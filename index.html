@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>素数あつめ RATING</title>
+<meta name="description" content="素数あつめのランキングボーダーからRATINGを算出し、プロフィールカードとして共有できるツール。">
+<meta property="og:title" content="素数あつめ RATING">
+<meta property="og:description" content="記録を入力してRATINGを算出。プロフィールカードの保存、フレンド比較、全体ランキングに対応。">
+<style>
+:root{
+  --bg:#0d1220; --card:#161f30; --card2:#111a29; --line:#28374f;
+  --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
+  --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:radial-gradient(1200px 600px at 50% -200px,#1b2740,#0d1220 60%),#0d1220;color:var(--tx);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
+  font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;min-height:100vh}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 100px}
+h1{font-size:1.22rem;margin:0;letter-spacing:.06em;font-weight:700}
+h2{font-size:.95rem;margin:0 0 14px;color:var(--acc);letter-spacing:.06em;font-weight:600}
+h3{font-size:.84rem;margin:20px 0 8px;color:var(--dim);letter-spacing:.04em}
+a{color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+.muted{color:var(--dim);font-size:.8rem}
+.tiny{font-size:.74rem;color:var(--dim2)}
+hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+
+header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;background:#0f1828;border:1px solid var(--line);
+  border-radius:11px;padding:4px;margin-bottom:16px;width:100%}
+.tabs button{background:none;border:none;color:var(--dim);font:inherit;font-size:.8rem;
+  padding:7px 13px;border-radius:8px;cursor:pointer;flex:1 1 auto;white-space:nowrap}
+.tabs button.on{background:#26364f;color:var(--tx)}
+section[hidden]{display:none}
+select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:8px;
+  padding:6px 10px;font:inherit;font-size:.82rem}
+
+.rt{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.02em;line-height:1;
+  display:inline-flex;align-items:baseline}
+.rt .d{font-size:.56em;letter-spacing:0}
+.rt.lock{color:var(--dim2);font-weight:700}
+.rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600}
+
+.prof{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+@media(max-width:520px){.prof{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.av,.avph{width:104px;height:104px;border-radius:50%;border:3px solid var(--line);display:block}
+.av{object-fit:cover;background:#25324a}
+.avph{background:linear-gradient(135deg,#2b3a55,#1b2740);display:grid;place-items:center;
+  font-size:2.4rem;font-weight:700;color:var(--dim)}
+.pname{font-size:1.42rem;font-weight:700;line-height:1.2}
+.phandle{color:var(--dim);font-size:.85rem}
+.ratebox{margin-top:10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.ratebox .rt{font-size:3.3rem}
+.badge{display:inline-block;padding:3px 14px;border-radius:999px;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;border:1px solid;background:#0f182880}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+@media(max-width:640px){.stats{grid-template-columns:1fr}}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .t{font-size:.72rem;color:var(--dim)}
+.stat .v{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25}
+.stat .s{font-size:.73rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+
+.brk{margin-top:18px;display:grid;gap:11px}
+.brk .row{display:grid;grid-template-columns:1fr auto;gap:3px 12px;align-items:center}
+.brk .lb{font-size:.8rem;color:var(--dim)}
+.brk .nm{font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--dim)}
+.bar{grid-column:1/-1;height:6px;background:#1e2a3d;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));
+  border-radius:4px;transition:width .4s cubic-bezier(.3,.9,.3,1)}
+
+.lockbox{background:#20263a;border:1px dashed #40506e;border-radius:12px;padding:14px;margin-top:14px}
+.lockbox b{color:var(--warn)}
+.goal{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:10px 0;border-bottom:1px solid #1f2c40}
+.goal:last-child{border-bottom:none}
+.goal .n{font-size:.9rem}
+.goal .g{font-size:.85rem;color:var(--acc2);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.goal .d{grid-column:1/-1;font-size:.76rem;color:var(--dim);font-variant-numeric:tabular-nums}
+.step{display:grid;grid-template-columns:24px 1fr auto;gap:3px 10px;padding:9px 0;border-bottom:1px solid #1f2c40}
+.step .no{color:var(--acc);font-weight:700;font-size:.8rem}
+.step .d{grid-column:2/-1;font-size:.76rem;color:var(--dim);font-variant-numeric:tabular-nums}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -6px;padding:0 6px}
+table{width:100%;border-collapse:collapse}
+th{font-size:.71rem;color:var(--dim);font-weight:600;text-align:right;padding:7px 8px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:6px 8px;border-bottom:1px solid #1e2b40;text-align:right;
+  font-variant-numeric:tabular-nums;font-size:.88rem;white-space:nowrap}
+td:first-child{text-align:left;white-space:normal}
+tr.sec td{background:#1d2a3e;color:var(--acc);font-size:.79rem;font-weight:600;text-align:left;padding:8px}
+tr.used{background:#16291f}
+tr.me{background:#1b2b44}
+.pct{color:var(--acc2);font-weight:600}
+.band{color:var(--dim);font-size:.75rem}
+.chk{color:var(--acc2);font-weight:700}
+.tgt{color:var(--warn);font-size:.8rem}
+
+input[type=text],input[type=number],input[type=password]{background:#0d1524;color:var(--tx);
+  border:1px solid #33455f;border-radius:8px;padding:6px 9px;font:inherit;font-size:.88rem;
+  text-align:right;font-variant-numeric:tabular-nums;width:100%;max-width:145px}
+input.txt{text-align:left}
+input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px #4da3ff22}
+label.fl{display:block;font-size:.76rem;color:var(--dim);margin:10px 0 4px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.frow{grid-template-columns:1fr}}
+.frow input{max-width:none}
+textarea{width:100%;background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:9px;
+  padding:9px;font:inherit;font-size:.8rem;min-height:66px;resize:vertical}
+
+button.btn{background:#25344c;color:var(--tx);border:1px solid var(--line);border-radius:9px;
+  padding:9px 17px;font:inherit;font-size:.84rem;cursor:pointer}
+button.btn:hover{background:#2f4160}
+button.btn.pri{background:linear-gradient(135deg,#2f6fd0,#3f9de0);border-color:#4da3ff}
+button.btn.pri:hover{filter:brightness(1.12)}
+button.btn.sm{padding:4px 11px;font-size:.76rem}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+.tools{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+
+.sw{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;margin-top:14px;flex-wrap:wrap}
+.sw .t{font-size:.86rem;font-weight:600}
+.sw .toggle{margin-left:auto;display:flex;gap:4px;background:#0d1524;border:1px solid var(--line);
+  border-radius:9px;padding:3px}
+.sw .toggle button{background:none;border:none;color:var(--dim);font:inherit;font-size:.78rem;
+  padding:5px 14px;border-radius:7px;cursor:pointer}
+.sw .toggle button.on{background:#2f6fd0;color:#fff}
+
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:6px}
+.vs .side{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.vs .side .av,.vs .side .avph{width:56px;height:56px;margin:0 auto 8px;font-size:1.3rem;border-width:2px}
+.vs .side .rt{font-size:1.9rem}
+.vs .mid{font-size:.85rem;color:var(--dim);font-weight:700;letter-spacing:.1em}
+.win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
+.tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
+
+.mask{position:fixed;inset:0;background:#060a12dd;display:grid;place-items:center;padding:16px;z-index:50}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+  max-width:860px;width:100%;max-height:88vh;overflow:auto}
+.devgrid input{max-width:108px}
+footer{text-align:center;margin-top:26px;font-size:.74rem;color:var(--dim2)}
+footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:inherit;padding:2px 6px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#25344c;
+  border:1px solid var(--line);border-radius:10px;padding:10px 20px;font-size:.85rem;z-index:60;
+  opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.banner{background:#3a2a12;border:1px solid #6b4d1c;border-radius:10px;padding:9px 13px;
+  font-size:.8rem;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner.info{background:#14283a;border-color:#2b567c}
+#cardCanvas{width:100%;max-width:680px;height:auto;border-radius:14px;border:1px solid var(--line);display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>素数あつめ <span style="color:var(--acc)">RATING</span></h1>
+  <select id="weekSel" title="集計週を切り替え" style="margin-left:auto"></select>
+</header>
+<nav class="tabs">
+  <button data-tab="profile" class="on">プロフィール</button>
+  <button data-tab="card">カード</button>
+  <button data-tab="input">入力</button>
+  <button data-tab="friends">フレンド</button>
+  <button data-tab="rank">ランキング</button>
+</nav>
+
+<div id="weekBanner" class="banner info" hidden>
+  <span id="weekMsg"></span><button class="btn sm" id="weekNow">最新に戻す</button>
+</div>
+<div id="localBanner" class="banner" hidden>
+  <span>⚠ ボーダーデータをこの端末でローカル上書き中です。</span>
+  <button class="btn sm" id="clearLocal">解除</button>
+</div>
+<div id="viewBanner" class="banner" hidden>
+  <span id="viewMsg"></span><button class="btn sm" id="viewClear">自分のデータを入力する</button>
+</div>
+
+<!-- ============ プロフィール ============ -->
+<section id="profile">
+  <div class="card">
+    <div class="prof">
+      <div id="avwrap"></div>
+      <div>
+        <div class="pname" id="pname">プレイヤー名未設定</div>
+        <div class="phandle" id="phandle"></div>
+        <div class="ratebox">
+          <div><div class="rtlabel">RATING</div><span id="ratingWrap"></span></div>
+          <span class="badge" id="rank">—</span>
+        </div>
+      </div>
+    </div>
+    <div id="lockbox" class="lockbox" hidden></div>
+    <div class="stats">
+      <div class="stat">
+        <div class="t">十種競技総合スコア<br><span class="tiny">素数判定を除く9種合計</span></div>
+        <div class="v" id="sTotal">—</div><div class="s" id="sTotalSub">—</div>
+      </div>
+      <div class="stat">
+        <div class="t">L値<span class="tiny"> ／ 乱数累積</span></div>
+        <div class="v" id="sL">—</div><div class="s" id="sLsub">—</div>
+      </div>
+      <div class="stat">
+        <div class="t">S値<span class="tiny"> ／ スコア累積</span></div>
+        <div class="v" id="sS">—</div><div class="s" id="sSsub">—</div>
+      </div>
+    </div>
+    <div class="brk" id="brk"></div>
+  </div>
+
+  <div class="card">
+    <h2>次の目標</h2>
+    <div id="goals"></div>
+  </div>
+
+  <div class="card">
+    <h2>目標RATING 達成プラン</h2>
+    <p class="muted" style="margin-top:-8px">目標RATINGを決めると、どの種目をどこまで伸ばせば届くかを効率順に計算します。</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="fl" style="margin:0">目標RATING</label>
+      <input type="text" inputmode="decimal" id="tgtRate" style="max-width:110px">
+      <button class="btn pri" id="doPlan">プランを作る</button>
+    </div>
+    <div id="planOut" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>プロフィール設定</h2>
+    <div class="frow">
+      <div><label class="fl" for="pn">プレイヤーネーム</label>
+        <input type="text" class="txt" id="pn" placeholder="例：aaa111"></div>
+      <div><label class="fl" for="ph">X（Twitter）の @ID　※画像を自動取得します</label>
+        <input type="text" class="txt" id="ph" placeholder="例：aaa111"></div>
+    </div>
+    <div class="tools">
+      <button class="btn" id="useX">Xのアイコンを取り込む</button>
+      <button class="btn" id="pickImg">画像を自分で選ぶ</button>
+      <button class="btn" id="rmImg">画像を消す</button>
+      <input type="file" id="fileImg" accept="image/*" hidden>
+    </div>
+    <div class="sw">
+      <div><div class="t">データの公開設定</div>
+        <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。</div></div>
+      <div class="toggle"><button id="pubOff" class="on">非公開</button><button id="pubOn">公開</button></div>
+    </div>
+    <p class="tiny">画像は <a href="https://unavatar.io" target="_blank" rel="noopener">unavatar.io</a> 経由で公開アイコンを取得します。Xの表示名はAPIキーなしでは取得できないため、名前は手入力です。</p>
+  </div>
+</section>
+
+<!-- ============ カード ============ -->
+<section id="card" hidden>
+  <div class="card">
+    <h2>プロフィールカード</h2>
+    <p class="muted" style="margin-top:-8px">RATING・L値・S値を載せた画像を生成します。SNSにそのまま貼れるサイズ（1200×630）です。</p>
+    <canvas id="cardCanvas" width="1200" height="630"></canvas>
+    <div class="tools">
+      <button class="btn pri" id="dlCard">画像を保存（PNG）</button>
+      <button class="btn" id="reCard">作り直す</button>
+      <select id="cardTheme">
+        <option value="deep">ディープブルー</option>
+        <option value="mid">ミッドナイト</option>
+        <option value="rank">ランクカラー</option>
+      </select>
+    </div>
+    <p class="tiny" id="cardNote"></p>
+  </div>
+</section>
+
+<!-- ============ 入力 ============ -->
+<section id="input" hidden>
+  <div class="card">
+    <h2>記録の入力</h2>
+    <p class="muted" style="margin-top:-8px">
+      タイムアタック系（1から順に／2から順に／1桁素数／2の累乗数）は<strong>秒数</strong>、それ以外はスコアを入力します。入力はこのブラウザに自動保存されます。
+    </p>
+    <div class="scroll"><table>
+      <thead><tr><th>種目</th><th>自分の記録</th><th>レート割合</th><th>順位帯</th><th>次の目標</th><th>換算</th><th>採用</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+    <div class="tools">
+      <button class="btn" id="clear">入力をクリア</button>
+      <button class="btn" id="sample">サンプル値</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>計算方法</h2>
+    <details open><summary class="muted">レート割合の求め方</summary>
+      <p class="tiny">各ボーダーラインに「最低保証の割合」を割り当て、その間を記録に応じて直線で結びます。</p>
+      <p class="tiny">レート割合 ＝ 下側の保証割合 ＋ (上側の保証割合 − 下側の保証割合) × (自分の記録 − 下側ボーダー) ÷ (上側ボーダー − 下側ボーダー)</p>
+      <ul class="tiny">
+        <li>個別18種目：1位 100% ／ 10位 80% ／ 50位 60% ／ 100位 50% ／ 200位 40%（5位は節点として使用しない）</li>
+        <li>200位より下は「記録0 ＝ 0%」との間を直線で結びます</li>
+        <li>十種競技総合：1位 100% ／ 5位 80% ／ 10位 70% ／ 25位 60% ／ 50位 50% ／ 100位 40% ／ 500位 30% ／ 1000位 0%</li>
+        <li>タイム系は 1 ÷ タイム（速度）に変換してから同じ式に通します</li>
+      </ul></details>
+    <details><summary class="muted">配点とL値・S値</summary>
+      <ul class="tiny">
+        <li>① 十種競技総合スコア … 6点／② 上位4種目 × 各2点 ＝ 8点／③ 上位3種目 × 各2点 ＝ 6点</li>
+        <li>L値 ＝ max( log₂₅(乱数累積) − 5.5 , 0 )　S値 ＝ max( log₂₅(スコア累積) − 4.75 , 0 )</li>
+        <li>L値・S値はRATINGには加算しません</li>
+      </ul></details>
+    <details><summary class="muted">ボーダーライン一覧（表示中の週）</summary>
+      <div class="scroll"><table id="bt"></table></div></details>
+  </div>
+</section>
+
+<!-- ============ フレンド ============ -->
+<section id="friends" hidden>
+  <div class="card">
+    <h2>自分のプロフィールを共有</h2>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="mkLink">共有リンクをコピー</button>
+      <button class="btn" id="tweet">Xに投稿</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>フレンドを追加</h2>
+    <p class="muted" style="margin-top:-8px">相手からもらった共有リンクを貼り付けてください。</p>
+    <textarea id="oppo" placeholder="https://.../#p=..."></textarea>
+    <div class="tools">
+      <button class="btn pri" id="addFr">フレンドに登録</button>
+      <button class="btn" id="cmpOnly">比較だけする</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>フレンドランキング</h2>
+    <div id="frList"></div>
+  </div>
+  <div id="cmpOut"></div>
+</section>
+
+<!-- ============ ランキング ============ -->
+<section id="rank" hidden>
+  <div class="card">
+    <h2>全体ランキング</h2>
+    <div id="rankBody"></div>
+  </div>
+</section>
+
+<footer>
+  <span id="upd">—</span>
+  <button id="devBtn" title="開発者メニュー">⚙</button>
+</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   0. 設定
+   ========================================================= */
+/* Supabase を使う場合はこの2つを埋めてください（anon key は公開してよいキーです）*/
+const SUPABASE_URL      = "";
+const SUPABASE_ANON_KEY = "";
+
+/* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
+const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
+const DEV_HASH = "07ded47312281a20b4793962012c710e85a406c4ebea7edbbf744f5c58d470b7";
+const DEV_ITER = 310000;
+
+/* data.json が読めないときのフォールバック */
+const EMBEDDED_WEEK = {
+ date:"2026-07-25",
+ borders:{
+ "素因数分解（初級）":{1:79799,5:78192,10:77674,50:74233,100:71381,200:68691},
+ "素因数分解（上級）":{1:96738,5:96232,10:95444,50:92250,100:86094,200:79235},
+ "素数判定":{1:98671,5:95740,10:94416,50:92597,100:90906,200:89244},
+ "素数特定":{1:91785,5:89573,10:88187,50:83004,100:78969,200:69981},
+ "素数判定・改":{1:93635,5:93042,10:92795,50:91853,100:91385,200:90558},
+ "素数増強":{1:95119,5:93079,10:91469,50:87198,100:85001,200:82769},
+ "二数限定":{1:90916,5:89005,10:87368,50:81911,100:78827,200:74359},
+ "暗素因数分解lv.1":{1:86141,5:85660,10:83131,50:81440,100:80578,200:79631},
+ "暗素因数分解lv.2":{1:81689,5:80793,10:79282,50:76223,100:74701,200:71878},
+ "暗素因数分解lv.3":{1:80221,5:78485,10:77428,50:73162,100:69882,200:63670},
+ "暗素因数分解・壱":{1:1411,5:1238,10:1169,50:930,100:808,200:672},
+ "暗素因数分解・参":{1:1572,5:1321,10:1226,50:992,100:785,200:543},
+ "暗素因数分解・闇":{1:2602,5:1207,10:1127,50:639,100:481,200:323},
+ "1から順に":{1:5.947,5:8.34,10:8.825,50:10.632,100:11.772,200:13.217},
+ "2から順に":{1:4.194,5:5.775,10:7.049,50:9.656,100:11.242,200:12.97},
+ "1桁素数":{1:3.298,5:4.028,10:4.393,50:5.409,100:5.922,200:6.59},
+ "2の累乗数":{1:1.489,5:1.973,10:2.487,50:3.045,100:3.304,200:3.618},
+ "1から順にEX":{1:133,5:97.33,10:90.5,50:75.33,100:68.5,200:61.5}},
+ totalBorders:{1:789918,5:771177,10:759880,25:740394,50:710883,100:677250,500:534341,1000:472345}
+};
+
+const CAT2 = ["素因数分解（初級）","素因数分解（上級）","素数判定","素数特定","素数判定・改",
+              "素数増強","二数限定","暗素因数分解lv.1","暗素因数分解lv.2","暗素因数分解lv.3"];
+const CAT3 = ["暗素因数分解・壱","暗素因数分解・参","暗素因数分解・闇","1から順に","2から順に",
+              "1桁素数","2の累乗数","1から順にEX"];
+const EVENTS = CAT2.concat(CAT3);
+const ORDER  = ["合計スコア"].concat(EVENTS, ["乱数累積","スコア累積"]);
+const LOW    = new Set(["1から順に","2から順に","1桁素数","2の累乗数"]);
+
+const IND_RANKS=[200,100,50,10,1], IND_PCT=[0,.4,.5,.6,.8,1.0];
+const IND_BAND =["200位以下","100〜200位","50〜100位","10〜50位","1〜10位","1位"];
+const TOT_RANKS=[1000,500,100,50,25,10,5,1], TOT_PCT=[0,0,.3,.4,.5,.6,.7,.8,1.0];
+const TOT_BAND =["1000位以下","500〜1000位","100〜500位","50〜100位","25〜50位","10〜25位","5〜10位","1〜5位","1位"];
+const L_BASE=25, L_SUB=5.5, S_BASE=25, S_SUB=4.75, MAXPT=20;
+
+const RANKS=[{min:0,n:"NOVICE",c:"#8ba0bd"},{min:4,n:"BRONZE",c:"#c98a52"},
+ {min:7,n:"SILVER",c:"#bfcbdb"},{min:10,n:"GOLD",c:"#f0c04a"},
+ {min:12.5,n:"PLATINUM",c:"#7fe6d4"},{min:15,n:"TITAN",c:"#a98bff"},
+ {min:17,n:"MASTER",c:"#ff7b8a"},{min:19,n:"RAINBOW",c:"#57e0a0"}];
+
+const SAMPLE={"合計スコア":789918,"素因数分解（初級）":79798,"素因数分解（上級）":13395,
+ "素数判定":75062,"素数特定":48886,"素数判定・改":56503,"素数増強":75525,"二数限定":45204,
+ "暗素因数分解lv.1":82407,"暗素因数分解lv.2":55100,"暗素因数分解lv.3":42368,
+ "暗素因数分解・壱":557,"暗素因数分解・参":94,"暗素因数分解・闇":30,"1から順に":16.641,
+ "2から順に":16.004,"1桁素数":9.119,"2の累乗数":4.178,"1から順にEX":62.67,
+ "乱数累積":258120254191,"スコア累積":2484070136};
+
+let WEEKS=[EMBEDDED_WEEK], wIdx=0;
+const DATA = () => WEEKS[wIdx];
+const isLatest = () => wIdx===WEEKS.length-1;
+
+/* =========================================================
+   1. 計算ロジック
+   ========================================================= */
+function interp(x,nodes,pct){
+  if(!(x>0)) return {r:0,k:0};
+  const last=nodes.length-1;
+  if(x>=nodes[last]) return {r:pct[last],k:last};
+  let k=0; for(let i=0;i<last;i++) if(x>=nodes[i]) k=i;
+  const span=nodes[k+1]-nodes[k];
+  return {r: span===0?pct[k] : pct[k]+(pct[k+1]-pct[k])*(x-nodes[k])/span, k};
+}
+const indNodes=n=>{const B=DATA().borders[n],low=LOW.has(n);
+  return [0].concat(IND_RANKS.map(r=>low?1/B[r]:B[r]));};
+const totNodes=()=>[0].concat(TOT_RANKS.map(r=>DATA().totalBorders[r]));
+
+function eventRate(n,raw){
+  if(!(raw>0)||!DATA().borders[n]) return {r:0,band:"—",k:-1};
+  const x=LOW.has(n)?1/raw:raw;
+  const {r,k}=interp(x,indNodes(n),IND_PCT);
+  return {r,band:IND_BAND[k],k};
+}
+function totalRate(raw){
+  if(!(raw>0)) return {r:0,band:"—",k:-1};
+  const {r,k}=interp(raw,totNodes(),TOT_PCT);
+  return {r,band:TOT_BAND[k],k};
+}
+const logb=(v,b)=>Math.log(v)/Math.log(b);
+
+function compute(rc){
+  const rates={},bands={};
+  const t=totalRate(rc["合計スコア"]||0);
+  rates["合計スコア"]=t.r; bands["合計スコア"]=t.band;
+  for(const n of EVENTS){const e=eventRate(n,rc[n]||0); rates[n]=e.r; bands[n]=e.band;}
+  const top=(l,k)=>l.map(n=>rates[n]).sort((a,b)=>b-a).slice(0,k);
+  const t2=top(CAT2,4), t3=top(CAT3,3);
+  const pts=[6*rates["合計スコア"],2*t2.reduce((a,b)=>a+b,0),2*t3.reduce((a,b)=>a+b,0)];
+  const cut2=t2[t2.length-1], cut3=t3[t3.length-1];
+  const used={"合計スコア":rates["合計スコア"]>0};
+  for(const n of CAT2) used[n]=rates[n]>0&&rates[n]>=cut2;
+  for(const n of CAT3) used[n]=rates[n]>0&&rates[n]>=cut3;
+  const a=rc["乱数累積"]||0,b=rc["スコア累積"]||0;
+  const missing=ORDER.filter(n=>!(rc[n]>0));
+  return {rates,bands,used,pts,total:pts.reduce((x,y)=>x+y,0),missing,complete:!missing.length,
+    L:a>0?Math.max(logb(a,L_BASE)-L_SUB,0):null,
+    S:b>0?Math.max(logb(b,S_BASE)-S_SUB,0):null};
+}
+function nextTarget(n,rc){
+  const cur=rc[n]||0, isTot=n==="合計スコア";
+  if(!isTot && !DATA().borders[n]) return null;
+  const nodes=isTot?totNodes():indNodes(n), ranks=isTot?TOT_RANKS:IND_RANKS;
+  const x=cur>0?(LOW.has(n)?1/cur:cur):0, last=nodes.length-1;
+  let k=0;
+  if(cur>0){ if(x>=nodes[last]) return null; for(let i=0;i<last;i++) if(x>=nodes[i]) k=i; }
+  const rank=ranks[k], req=isTot?DATA().totalBorders[rank]:DATA().borders[n][rank];
+  const before=compute(rc).total;
+  const after =compute(Object.assign({},rc,{[n]:req})).total;
+  return {rank,req,gain:after-before,cur};
+}
+/** 目標RATINGに届くまで、最も効率のよい底上げを積み重ねる */
+function makePlan(target,rc){
+  let r=Object.assign({},rc), steps=[], cur=compute(r).total;
+  const start=cur;
+  for(let i=0;i<80 && cur<target-1e-9;i++){
+    let best=null,fall=null;
+    for(const n of ["合計スコア"].concat(EVENTS)){
+      const t=nextTarget(n,r); if(!t) continue;
+      if(!best||t.gain>best.t.gain) best={n,t};
+      const d=t.cur>0?Math.abs(t.req-t.cur)/t.req:Infinity;
+      if(!fall||d<fall.d) fall={n,t,d};
+    }
+    const pick = (best&&best.t.gain>1e-9)?best:fall;
+    if(!pick) break;
+    r[pick.n]=pick.t.req;
+    const nt=compute(r).total;
+    steps.push({n:pick.n,rank:pick.t.rank,req:pick.t.req,from:pick.t.cur,to:nt,gain:nt-cur});
+    cur=nt;
+  }
+  return {steps,start,end:cur,reached:cur>=target-1e-9};
+}
+
+/* =========================================================
+   2. 小道具
+   ========================================================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const num=s=>{const v=parseFloat(String(s??"").replace(/[,\s　]/g,""));return isFinite(v)?v:0;};
+const f3=v=>v.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
+const pctf=v=>(v*100).toFixed(2)+"%";
+const jp=v=>v.toLocaleString("ja-JP");
+const nice=v=>Number.isInteger(v)?jp(v):v.toLocaleString("ja-JP",{maximumFractionDigits:3});
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function ratingParts(v){ const s=f3(v).replace(/,/g,""); const i=s.indexOf("."); return [s.slice(0,i),s.slice(i)]; }
+function ratingHTML(v){
+  if(v===null) return '<span class="rt lock">--<span class="d">.---</span></span>';
+  const [i,d]=ratingParts(v);
+  return `<span class="rt"><span class="i">${i}</span><span class="d">${d}</span></span>`;
+}
+const rankOf=v=>{let r=RANKS[0];for(const x of RANKS) if(v>=x.min) r=x; return r;};
+const nextRank=v=>RANKS.find(x=>x.min>v)||null;
+let toastT; function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2200);}
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+async function pbkdf2(pw,saltHex,iter){
+  const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
+  const salt=Uint8Array.from(saltHex.match(/../g).map(h=>parseInt(h,16)));
+  return hex(await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},k,256));
+}
+const b64e=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
+const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
+
+/* =========================================================
+   3. 状態
+   ========================================================= */
+const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
+      K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
+let rec={}, pro={name:"",handle:"",img:"",pub:false}, friends=[];
+const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
+rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
+let editKey=localStorage.getItem(K_EDIT); if(!editKey){editKey=rndHex(24);localStorage.setItem(K_EDIT,editKey);}
+const save=()=>{try{localStorage.setItem(K_REC,JSON.stringify(rec));
+  localStorage.setItem(K_PRO,JSON.stringify(pro));
+  localStorage.setItem(K_FR,JSON.stringify(friends));}catch(e){}};
+
+/* =========================================================
+   4. 入力テーブル
+   ========================================================= */
+const ROWS=[{sec:"① 十種競技総合スコア（素数判定を除く9種の合計）　6点"},{name:"合計スコア"},
+ {sec:"② 素数ゲームV1・V2／暗素因数分解lv.1-3（10種）　上位4種目 × 各2点"},...CAT2.map(n=>({name:n})),
+ {sec:"③ EX系・タイムアタック系（8種）　上位3種目 × 各2点"},...CAT3.map(n=>({name:n})),
+ {sec:"参考値（RATINGには加算しません）"},{name:"乱数累積",ref:1},{name:"スコア累積",ref:1}];
+(function(){const tb=$("#tb");
+ for(const r of ROWS){const tr=document.createElement("tr");
+  if(r.sec){tr.className="sec";tr.innerHTML=`<td colspan="7">${r.sec}</td>`;}
+  else{tr.dataset.name=r.name;
+   tr.innerHTML=`<td>${r.name}${LOW.has(r.name)?' <span class="band">(秒)</span>':""}</td>`+
+    `<td><input type="text" inputmode="decimal" data-in="${r.name}" placeholder="—"></td>`+
+    (r.ref?`<td colspan="5" class="band" data-ref>—</td>`
+          :`<td class="pct" data-r>0.00%</td><td class="band" data-b>—</td>`+
+           `<td class="tgt" data-t>—</td><td data-p>0.000</td><td class="chk" data-c></td>`);}
+  tb.appendChild(tr);}})();
+
+const BRK=[{t:"① 十種競技総合スコア",max:6},{t:"② 素数ゲーム／暗素因数分解（上位4種）",max:8},
+           {t:"③ EX系・タイムアタック系（上位3種）",max:6}];
+$("#brk").innerHTML=BRK.map((b,i)=>`<div class="row"><span class="lb">${b.t}</span>`+
+ `<span class="nm"><span id="p${i}">0.000</span> / ${b.max.toFixed(3)}</span>`+
+ `<span class="bar"><i id="b${i}"></i></span></div>`).join("");
+
+/* =========================================================
+   5. 描画
+   ========================================================= */
+function avatarHTML(p,cls){
+  const c=cls||"av", init=esc((p.name||p.handle||"?").trim()[0]||"?");
+  if(p.img) return `<img class="${c}" src="${p.img}" alt="">`;
+  if(p.handle) return `<img class="${c}" src="https://unavatar.io/x/${encodeURIComponent(p.handle)}" alt=""
+     onerror="this.outerHTML='<div class=\\'avph\\'>${init}</div>'">`;
+  return `<div class="avph">${init}</div>`;
+}
+function render(){
+  const c=compute(rec);
+  /* 入力表 */
+  $$("#tb tr[data-name]").forEach(tr=>{
+    const n=tr.dataset.name;
+    if(tr.querySelector("[data-ref]")){
+      const v=rec[n]||0;
+      tr.querySelector("[data-ref]").textContent = n==="乱数累積"
+        ? (c.L===null?"—":`L値 ${f3(c.L)}　（log₂₅ ${logb(v,25).toFixed(4)} − 5.5）`)
+        : (c.S===null?"—":`S値 ${f3(c.S)}　（log₂₅ ${logb(v,25).toFixed(4)} − 4.75）`);
+      return;
+    }
+    tr.querySelector("[data-r]").textContent=pctf(c.rates[n]);
+    tr.querySelector("[data-b]").textContent=c.bands[n];
+    tr.querySelector("[data-p]").textContent=f3((n==="合計スコア"?6:2)*c.rates[n]);
+    tr.querySelector("[data-c]").textContent=c.used[n]?"○":"";
+    tr.classList.toggle("used",c.used[n]);
+    const t=nextTarget(n,rec);
+    tr.querySelector("[data-t]").textContent=t?`${t.rank}位 ${nice(t.req)}`:"1位到達";
+  });
+  /* プロフィール */
+  $("#avwrap").innerHTML=avatarHTML(pro);
+  $("#pname").textContent=pro.name||"プレイヤー名未設定";
+  $("#phandle").textContent=pro.handle?"@"+pro.handle:"";
+  $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
+  const rk=c.complete?rankOf(c.total):null, rb=$("#rank");
+  rb.textContent=rk?rk.n:"—";
+  rb.style.color=rk?rk.c:"var(--dim)";
+  rb.style.borderColor=rk?rk.c+"66":"var(--line)";
+  const lb=$("#lockbox");
+  if(c.complete) lb.hidden=true;
+  else{lb.hidden=false;
+    lb.innerHTML=`<b>RATINGは全${ORDER.length}項目の入力後に表示されます。</b><br>`+
+      `<span class="muted">${ORDER.length-c.missing.length} / ${ORDER.length} 項目入力済み　残り：`+
+      `${esc(c.missing.slice(0,6).join("、"))}${c.missing.length>6?` ほか${c.missing.length-6}件`:""}</span>`;}
+  const ts=rec["合計スコア"]||0;
+  $("#sTotal").textContent=ts>0?jp(ts):"—";
+  $("#sTotalSub").textContent=ts>0?`${c.bands["合計スコア"]}　レート割合 ${pctf(c.rates["合計スコア"])}`:"未入力";
+  $("#sL").textContent=c.L===null?"—":f3(c.L);
+  $("#sLsub").textContent=rec["乱数累積"]>0?`乱数累積 ${jp(rec["乱数累積"])}`:"未入力";
+  $("#sS").textContent=c.S===null?"—":f3(c.S);
+  $("#sSsub").textContent=rec["スコア累積"]>0?`スコア累積 ${jp(rec["スコア累積"])}`:"未入力";
+  c.pts.forEach((p,i)=>{$("#p"+i).textContent=f3(p);
+    $("#b"+i).style.width=(100*p/BRK[i].max).toFixed(2)+"%";});
+  /* 次の目標 */
+  const all=["合計スコア"].concat(EVENTS).map(n=>({n,t:nextTarget(n,rec)})).filter(x=>x.t);
+  const near=x=>x.t.cur>0?Math.abs(x.t.req-x.t.cur)/x.t.req:Infinity;
+  const gs=all.filter(x=>x.t.gain>1e-9).sort((a,b)=>b.t.gain-a.t.gain)
+    .concat(all.filter(x=>x.t.gain<=1e-9).sort((a,b)=>near(a)-near(b))).slice(0,5);
+  let gh="";
+  if(c.complete){const nx=nextRank(c.total);
+    if(nx) gh+=`<div class="goal"><span class="n">次のランク <b style="color:${nx.c}">${nx.n}</b></span>`+
+      `<span class="g">あと ${f3(nx.min-c.total)}</span></div>`;}
+  gh+=gs.length?gs.map(x=>{
+      const dir=LOW.has(x.n)?"以下":"以上";
+      const g=x.t.gain>1e-9?`＋${f3(x.t.gain)}`:`<span class="tiny">上位入りで加点</span>`;
+      return `<div class="goal"><span class="n">${x.n}</span><span class="g">${g}</span>`+
+        `<span class="d">${x.t.rank}位ボーダー ${nice(x.t.req)} ${dir}`+
+        `${x.t.cur>0?`（現在 ${nice(x.t.cur)}）`:"（未入力）"}</span></div>`;}).join("")
+    :(gh?"":`<p class="muted">記録を入力すると、RATINGが伸びやすい順に目標が並びます。</p>`);
+  $("#goals").innerHTML=gh;
+  /* 公開トグル */
+  $("#pubOn").classList.toggle("on",!!pro.pub);
+  $("#pubOff").classList.toggle("on",!pro.pub);
+  renderFriends();
+  save();
+}
+
+/* =========================================================
+   6. 入力イベント
+   ========================================================= */
+function fillInputs(){
+  $$("[data-in]").forEach(el=>{const v=rec[el.dataset.in];el.value=(v===undefined||v===null||v===0)?"":v;});
+  $("#pn").value=pro.name||""; $("#ph").value=pro.handle||"";
+}
+document.addEventListener("input",e=>{const t=e.target;
+  if(t.dataset.in){rec[t.dataset.in]=num(t.value);render();}
+  else if(t.id==="pn"){pro.name=t.value;render();}
+  else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}});
+$("#clear").onclick=()=>{rec={};fillInputs();render();toast("入力をクリアしました");};
+$("#sample").onclick=()=>{rec=Object.assign({},SAMPLE);fillInputs();render();toast("サンプル値を入力しました");};
+$("#useX").onclick=()=>{const h=$("#ph").value.replace(/^@/,"").trim();
+  if(!h) return toast("先に @ID を入力してください");
+  pro.handle=h;pro.img="";if(!pro.name){pro.name=h;$("#pn").value=h;}
+  render();toast("Xのアイコンを取り込みました");};
+$("#pickImg").onclick=()=>$("#fileImg").click();
+$("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
+  const img=new Image(),fr=new FileReader();
+  fr.onload=()=>{img.onload=()=>{const s=256,cv=document.createElement("canvas");cv.width=cv.height=s;
+    const g=cv.getContext("2d"),m=Math.min(img.width,img.height);
+    g.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,s,s);
+    pro.img=cv.toDataURL("image/jpeg",.85);render();toast("画像を設定しました");};img.src=fr.result;};
+  fr.readAsDataURL(f);};
+$("#rmImg").onclick=()=>{pro.img="";render();toast("画像を消しました");};
+$("#pubOn").onclick=()=>{pro.pub=true;render();publishNow();};
+$("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
+
+$$(".tabs button").forEach(b=>b.onclick=()=>{
+  $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  ["profile","card","input","friends","rank"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  if(b.dataset.tab==="card") drawCard();
+  if(b.dataset.tab==="rank") loadRanking();
+  scrollTo({top:0,behavior:"smooth"});});
+
+/* =========================================================
+   7. 目標プラン
+   ========================================================= */
+$("#doPlan").onclick=()=>{
+  const c=compute(rec);
+  if(!c.complete) return toast("全項目を入力するとプランを作成できます");
+  const tgt=num($("#tgtRate").value)||(nextRank(c.total)?nextRank(c.total).min:MAXPT);
+  $("#tgtRate").value=f3(tgt);
+  if(tgt<=c.total) return $("#planOut").innerHTML=`<p class="muted">現在のRATING ${f3(c.total)} はすでに目標を超えています。</p>`;
+  const p=makePlan(tgt,rec);
+  /* 同じ種目の連続ステップを1行にまとめる */
+  const agg=[];
+  for(const s of p.steps){
+    const e=agg.find(x=>x.n===s.n);
+    if(e){ e.rank=s.rank; e.req=s.req; e.gain+=s.gain; e.to=s.to; }
+    else agg.push(Object.assign({},s));
+  }
+  agg.sort((a,b)=>b.gain-a.gain);
+  $("#planOut").innerHTML=
+    `<p class="muted">現在 ${f3(p.start)} → 到達 ${f3(p.end)}　`+
+    `${p.reached?'<span class="win">目標達成 ✓</span>':'<span class="lose">この組み合わせでは届きません</span>'}`+
+    `　（${agg.length}種目を強化）</p>`+
+    agg.map((s,i)=>{const dir=LOW.has(s.n)?"以下":"以上";
+      return `<div class="step"><span class="no">${i+1}</span><span>${s.n}</span>`+
+        `<span style="color:var(--acc2);font-weight:600">＋${f3(s.gain)}</span>`+
+        `<span class="d">${s.rank}位ボーダー <b>${nice(s.req)}</b> ${dir} を目指す`+
+        `${s.from>0?`（現在 ${nice(s.from)}）`:"（未入力）"}</span></div>`;}).join("");
+};
+
+/* =========================================================
+   8. 共有・フレンド
+   ========================================================= */
+const packMe=()=>b64e([pro.name||"",pro.handle||""].concat(ORDER.map(n=>rec[n]||0)));
+function unpack(s){const a=b64d(s),r={};ORDER.forEach((n,i)=>r[n]=a[i+2]||0);
+  return {pro:{name:a[0],handle:a[1],img:""},rec:r};}
+const shareURL=()=>location.origin+location.pathname+"#p="+packMe();
+$("#mkLink").onclick=async()=>{const u=shareURL();
+  try{await navigator.clipboard.writeText(u);toast("共有リンクをコピーしました");}
+  catch(e){prompt("このリンクをコピーしてください",u);}};
+$("#tweet").onclick=()=>{const c=compute(rec);
+  const t=c.complete?`RATING ${f3(c.total)}（${rankOf(c.total).n}）`:"RATINGを計測中";
+  open("https://twitter.com/intent/tweet?text="+encodeURIComponent(`【素数あつめ】${pro.name||""} ${t}\n`)+
+    "&url="+encodeURIComponent(shareURL()),"_blank");};
+const readLink=v=>{const m=String(v).trim().match(/#p=([A-Za-z0-9_-]+)/)||String(v).trim().match(/^([A-Za-z0-9_-]{20,})$/);
+  return m?unpack(m[1]):null;};
+$("#addFr").onclick=()=>{
+  let g; try{g=readLink($("#oppo").value);}catch(e){g=null;}
+  if(!g) return toast("共有リンクを正しく貼り付けてください");
+  const key=(g.pro.handle||g.pro.name||"").toLowerCase();
+  if(!key) return toast("相手のプロフィール名が空です");
+  const i=friends.findIndex(f=>((f.pro.handle||f.pro.name||"").toLowerCase())===key);
+  if(i>=0){friends[i]={pro:g.pro,rec:g.rec,at:Date.now()};toast("フレンド情報を更新しました");}
+  else{friends.push({pro:g.pro,rec:g.rec,at:Date.now()});toast("フレンドに登録しました");}
+  $("#oppo").value="";render();};
+$("#cmpOnly").onclick=()=>{let g;try{g=readLink($("#oppo").value);}catch(e){g=null;}
+  if(!g) return toast("共有リンクを正しく貼り付けてください"); renderCompare(g);};
+function renderFriends(){
+  const me=compute(rec);
+  const rows=friends.map((f,i)=>({i,pro:f.pro,c:compute(f.rec),rec:f.rec}));
+  const list=rows.concat([{i:-1,pro,c:me,rec}])
+    .sort((a,b)=>(b.c.complete?b.c.total:-1)-(a.c.complete?a.c.total:-1));
+  $("#frList").innerHTML = friends.length===0
+    ? `<p class="muted">まだフレンドがいません。上の欄に共有リンクを貼って登録してください。</p>`
+    : `<div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th><th></th></tr></thead><tbody>`+
+      list.map((x,n)=>`<tr class="${x.i===-1?"me":""}"><td>${n+1}</td>`+
+        `<td>${esc(x.pro.name||x.pro.handle||"名無し")}${x.i===-1?" <span class='tiny'>(自分)</span>":""}`+
+        `${x.pro.handle?`<br><span class="tiny">@${esc(x.pro.handle)}</span>`:""}</td>`+
+        `<td>${x.c.complete?f3(x.c.total):"—"}</td>`+
+        `<td style="color:${x.c.complete?rankOf(x.c.total).c:"var(--dim)"}">${x.c.complete?rankOf(x.c.total).n:"未完成"}</td>`+
+        `<td>${x.i>=0?`<button class="btn sm" data-cmp="${x.i}">比較</button> <button class="btn sm" data-del="${x.i}">削除</button>`:""}</td></tr>`).join("")+
+      `</tbody></table></div>`;
+  $$("[data-cmp]").forEach(b=>b.onclick=()=>renderCompare(friends[+b.dataset.cmp]));
+  $$("[data-del]").forEach(b=>b.onclick=()=>{friends.splice(+b.dataset.del,1);render();toast("削除しました");});
+}
+function renderCompare(op){
+  const me=compute(rec), th=compute(op.rec);
+  let w=0,l=0,d=0,rows="";
+  for(const n of ["合計スコア"].concat(EVENTS)){
+    const a=me.rates[n],b=th.rates[n];
+    const s=Math.abs(a-b)<1e-9?"draw":(a>b?"win":"lose");
+    if(s==="win")w++;else if(s==="lose")l++;else d++;
+    rows+=`<tr><td>${n}</td><td class="${s==="win"?"win":""}">${pctf(a)}</td>`+
+      `<td class="${s}">${s==="win"?"▲":s==="lose"?"▼":"＝"}</td>`+
+      `<td class="${s==="lose"?"lose":""}">${pctf(b)}</td></tr>`;}
+  const card=(p,c,mine)=>`<div class="side">${avatarHTML(p,"av")}
+    <div style="font-weight:700">${esc(p.name||"名無し")}${mine?" (自分)":""}</div>
+    <div class="tiny">${p.handle?"@"+esc(p.handle):"&nbsp;"}</div>
+    <div style="margin-top:8px">${ratingHTML(c.complete?c.total:null)}</div>
+    <div class="tiny">${c.complete?rankOf(c.total).n:"未完成"}</div></div>`;
+  const diff=(me.complete&&th.complete)?me.total-th.total:null;
+  $("#cmpOut").innerHTML=`<div class="card">
+    <div class="vs">${card(pro,me,true)}<div class="mid">VS</div>${card(op.pro,th,false)}</div>
+    ${diff===null?'<p class="muted" style="text-align:center">どちらかの入力が未完成のため、RATING差は表示できません。</p>'
+     :`<p style="text-align:center;font-size:1.05rem;font-weight:700" class="${diff>0?"win":diff<0?"lose":"draw"}">RATING差 ${diff>0?"＋":""}${f3(diff)}</p>`}
+    <div class="tally"><span class="win">勝ち ${w}</span><span class="draw">分け ${d}</span><span class="lose">負け ${l}</span></div>
+    <div class="scroll"><table><thead><tr><th>種目</th><th>自分</th><th></th><th>相手</th></tr></thead>
+    <tbody>${rows}</tbody></table></div></div>`;
+  $("#cmpOut").scrollIntoView({behavior:"smooth"});
+}
+
+/* =========================================================
+   9. プロフィールカード
+   ========================================================= */
+function loadImg(src,cors){return new Promise(res=>{const i=new Image();
+  if(cors) i.crossOrigin="anonymous";
+  i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src;});}
+function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);
+  g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
+  g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+async function drawCard(){
+  const cv=$("#cardCanvas"), g=cv.getContext("2d"), W=1200,H=630, c=compute(rec);
+  const rk=c.complete?rankOf(c.total):null;
+  const theme=$("#cardTheme").value;
+  const base=theme==="mid"?["#0a0f1a","#16203a"]:theme==="rank"&&rk?["#0b1120",rk.c+"33"]:["#0f1830","#1d2c4d"];
+  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,base[0]);gr.addColorStop(1,base[1]);
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.strokeStyle="#ffffff14";g.lineWidth=1;
+  for(let i=0;i<26;i++){g.beginPath();g.moveTo(i*60,0);g.lineTo(i*60-160,H);g.stroke();}
+  g.fillStyle=rk?rk.c:"#4da3ff";g.fillRect(0,0,W,8);
+
+  const F=(w,s)=>`${w} ${s}px "Hiragino Sans","Noto Sans JP",Meiryo,system-ui,sans-serif`;
+  /* アイコン */
+  const src=pro.img||(pro.handle?`https://unavatar.io/x/${encodeURIComponent(pro.handle)}`:"");
+  let img=src?await loadImg(src,!pro.img):null;
+  const cx=140,cy=150,r=76;
+  g.save();g.beginPath();g.arc(cx,cy,r,0,7);g.closePath();g.clip();
+  if(img){try{g.drawImage(img,cx-r,cy-r,r*2,r*2);}catch(e){img=null;}}
+  if(!img){g.fillStyle="#233150";g.fillRect(cx-r,cy-r,r*2,r*2);
+    g.fillStyle="#7c90ad";g.font=F(700,64);g.textAlign="center";g.textBaseline="middle";
+    g.fillText((pro.name||pro.handle||"?").trim()[0]||"?",cx,cy);}
+  g.restore();
+  g.strokeStyle=rk?rk.c:"#4da3ff";g.lineWidth=5;g.beginPath();g.arc(cx,cy,r,0,7);g.stroke();
+
+  g.textAlign="left";g.textBaseline="alphabetic";
+  g.fillStyle="#eef3fa";g.font=F(700,46);
+  g.fillText((pro.name||"NO NAME").slice(0,18),248,146);
+  g.fillStyle="#8ba0bd";g.font=F(400,26);
+  g.fillText(pro.handle?"@"+pro.handle.slice(0,24):"",248,186);
+
+  /* RATING */
+  g.fillStyle="#8ba0bd";g.font=F(600,22);g.letterSpacing="8px";
+  g.fillText("RATING",80,300);g.letterSpacing="0px";
+  if(c.complete){
+    const [ip,dp]=ratingParts(c.total);
+    g.fillStyle="#eef3fa";g.font=F(800,150);g.fillText(ip,74,420);
+    const w=g.measureText(ip).width;
+    g.font=F(800,84);g.fillText(dp,74+w+6,420);
+    g.fillStyle=rk.c;g.font=F(700,30);g.letterSpacing="6px";
+    g.fillText(rk.n,80,470);g.letterSpacing="0px";
+  }else{
+    g.fillStyle="#4a5b76";g.font=F(800,150);g.fillText("--",74,420);
+    g.font=F(800,84);g.fillText(".---",74+g.measureText("--").width+6,420);
+    g.fillStyle="#8ba0bd";g.font=F(400,24);
+    g.fillText(`未入力 ${c.missing.length} 項目`,80,470);
+  }
+  /* ステータス */
+  const box=[["十種競技総合スコア",rec["合計スコア"]>0?jp(rec["合計スコア"]):"—"],
+             ["L値",c.L===null?"—":f3(c.L)],["S値",c.S===null?"—":f3(c.S)]];
+  box.forEach((b,i)=>{const x=640,y=250+i*100;
+    g.fillStyle="#ffffff0d";rrect(g,x,y,490,84,14);g.fill();
+    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,490,84,14);g.stroke();
+    g.fillStyle="#8ba0bd";g.font=F(500,22);g.fillText(b[0],x+22,y+34);
+    g.fillStyle="#eef3fa";g.font=F(700,38);g.textAlign="right";g.fillText(b[1],x+468,y+62);g.textAlign="left";});
+
+  g.fillStyle="#61748f";g.font=F(400,20);
+  g.fillText("素数あつめ RATING",80,570);
+  g.textAlign="right";g.fillText(`ボーダー ${DATA().date} 時点`,W-80,570);
+  g.textAlign="left";
+  $("#cardNote").textContent = c.complete ? "" : "※ 全項目を入力するとRATINGが表示されます。";
+}
+$("#reCard").onclick=drawCard;
+$("#cardTheme").onchange=drawCard;
+$("#dlCard").onclick=()=>{
+  $("#cardCanvas").toBlob(b=>{ if(!b) return toast("画像を生成できませんでした");
+    const a=document.createElement("a");a.href=URL.createObjectURL(b);
+    a.download=`sosu-rating-${(pro.handle||pro.name||"card")}.png`;a.click();
+    toast("カードを保存しました");},"image/png");};
+
+/* =========================================================
+   10. Supabase（全体ランキング）
+   ========================================================= */
+const sbOn=()=>!!(SUPABASE_URL&&SUPABASE_ANON_KEY);
+async function sb(path,opt){
+  const r=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+path,Object.assign({
+    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY,
+             "Content-Type":"application/json"}},opt||{}));
+  if(!r.ok) throw new Error(await r.text());
+  return r.status===204?null:r.json();
+}
+async function publishNow(){
+  if(!sbOn()) return;
+  if(!pro.handle) return toast("公開するには @ID の入力が必要です");
+  const c=compute(rec);
+  try{
+    await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
+      p_handle:pro.handle.toLowerCase(), p_key:editKey, p_name:pro.name||pro.handle,
+      p_rating:c.complete?Number(c.total.toFixed(3)):null,
+      p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
+      p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub })});
+    toast(pro.pub?"公開しました":"非公開にしました");
+  }catch(e){ toast("公開に失敗しました："+String(e.message||e).slice(0,80)); }
+}
+async function loadRanking(){
+  const el=$("#rankBody");
+  if(!sbOn()){ el.innerHTML=
+    `<p class="muted">全体ランキングは未設定です。</p>
+     <p class="tiny">index.html 冒頭の <code>SUPABASE_URL</code> と <code>SUPABASE_ANON_KEY</code> に
+     Supabase プロジェクトの値を入れると有効になります。手順は SETUP.md を参照してください。
+     設定するまでは「フレンド」タブのランキングが使えます。</p>`; return; }
+  el.innerHTML=`<p class="muted">読み込み中…</p>`;
+  try{
+    const rows=await sb("profiles_public?select=handle,name,rating,l_value,s_value,total_score,updated_at&order=rating.desc.nullslast&limit=300");
+    if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>`; return; }
+    const mine=(pro.handle||"").toLowerCase();
+    el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
+      ${pro.pub?`<button class="btn pri" id="rkPush">自分の記録を更新</button>`:""}</div>
+      <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th>
+      <th>L値</th><th>S値</th><th>総合スコア</th></tr></thead><tbody>`+
+      rows.map((r,i)=>`<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
+        `<td>${esc(r.name||r.handle)}<br><span class="tiny">@${esc(r.handle)}</span></td>`+
+        `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
+        `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
+        `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
+        `<td>${r.total_score==null?"—":jp(+r.total_score)}</td></tr>`).join("")+`</tbody></table></div>`;
+    const rl=$("#rkReload"); if(rl) rl.onclick=loadRanking;
+    const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{await publishNow();loadRanking();};
+  }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
+}
+
+/* =========================================================
+   11. 開発者モード（PBKDF2＋パスキー＋ロックアウト）
+   ========================================================= */
+function lockState(){return ls(K_LOCK,{f:0,until:0});}
+function setLock(o){try{localStorage.setItem(K_LOCK,JSON.stringify(o));}catch(e){}}
+async function passkeyRegister(){
+  const c=await navigator.credentials.create({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    rp:{name:"素数あつめ RATING"},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"developer",displayName:"開発者"},
+    pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"preferred"},
+    timeout:60000,attestation:"none"}});
+  localStorage.setItem(K_PK,btoa(String.fromCharCode(...new Uint8Array(c.rawId))));
+}
+async function passkeyVerify(){
+  const id=localStorage.getItem(K_PK); if(!id) return false;
+  const raw=Uint8Array.from(atob(id),ch=>ch.charCodeAt(0));
+  const a=await navigator.credentials.get({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials:[{type:"public-key",id:raw}],
+    userVerification:"required",timeout:60000}});
+  return !!a;
+}
+function openDev(){
+  const mask=document.createElement("div");mask.className="mask";
+  const hasPk=!!localStorage.getItem(K_PK);
+  mask.innerHTML=`<div class="modal"><h2>開発者モード</h2>
+    <div id="dvGate">
+      ${hasPk?`<div class="tools" style="margin-top:0"><button class="btn pri" id="dvBio">生体認証で解除</button></div><hr>`:""}
+      <label class="fl">開発者コード</label>
+      <input type="password" class="txt" id="dvCode" style="max-width:300px" autocomplete="off">
+      <div class="tools"><button class="btn pri" id="dvGo">解除</button><button class="btn" id="dvX">閉じる</button></div>
+      <p class="tiny" id="dvMsg">照合には数百ミリ秒かかります（PBKDF2 31万回）。5回失敗すると5分間ロックされます。</p>
+    </div>
+    <div id="dvBody"></div></div>`;
+  document.body.appendChild(mask);
+  const close=()=>mask.remove();
+  mask.addEventListener("click",e=>{if(e.target===mask)close();});
+  const q=s=>mask.querySelector(s);
+  q("#dvX").onclick=close;
+  const unlock=()=>{setLock({f:0,until:0});q("#dvGate").remove();devEditor(q("#dvBody"),close);};
+  if(hasPk) q("#dvBio").onclick=async()=>{
+    try{ if(await passkeyVerify()) unlock(); else toast("認証できませんでした"); }
+    catch(e){ toast("生体認証に失敗しました"); }};
+  const go=async()=>{
+    const st=lockState();
+    if(Date.now()<st.until) return toast(`ロック中です。あと ${Math.ceil((st.until-Date.now())/1000)} 秒`);
+    const btn=q("#dvGo"); btn.disabled=true; q("#dvMsg").textContent="照合中…";
+    const h=await pbkdf2(q("#dvCode").value,DEV_SALT,DEV_ITER);
+    btn.disabled=false;
+    if(h===DEV_HASH){ unlock(); }
+    else{ const f=st.f+1;
+      setLock({f, until: f>=5?Date.now()+300000:0});
+      q("#dvMsg").textContent=`コードが違います（${f}/5）`;
+      if(f>=5) toast("5回失敗しました。5分間ロックします"); }
+  };
+  q("#dvGo").onclick=go;
+  q("#dvCode").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  q("#dvCode").focus();
+}
+function devEditor(box,close){
+  const ranks=[1,5,10,50,100,200], tRanks=[1,5,10,25,50,100,500,1000];
+  const today=new Date().toLocaleDateString("sv-SE");
+  const w=DATA();
+  let h=`<p class="muted">表示中の週：<b>${w.date}</b>　保存時の日付：<b>${today}</b></p>
+  <div class="tools" style="margin-top:0">
+    <button class="btn" id="dvPk">${localStorage.getItem(K_PK)?"生体認証を再登録":"この端末に生体認証を登録"}</button>
+    <button class="btn" id="dvSb">Supabase設定を確認</button></div>
+  <h3>個別18種目</h3><div class="scroll devgrid"><table><thead><tr><th>種目</th>`+
+  ranks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody>`;
+  for(const n of EVENTS) h+=`<tr><td>${n}</td>`+ranks.map(r=>
+    `<td><input type="text" inputmode="decimal" data-b="${n}" data-r="${r}" value="${w.borders[n]?w.borders[n][r]:""}"></td>`).join("")+`</tr>`;
+  h+=`</tbody></table></div><h3>十種競技総合（判定除外）</h3><div class="scroll devgrid"><table><thead><tr>`+
+    tRanks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody><tr>`+
+    tRanks.map(r=>`<td><input type="text" inputmode="decimal" data-t="${r}" value="${w.totalBorders[r]}"></td>`).join("")+
+    `</tr></tbody></table></div>
+  <h3>保存</h3>
+  <div class="tools" style="margin-top:0">
+    <button class="btn pri" id="dvAdd">新しい週として追加してダウンロード</button>
+    <button class="btn" id="dvOw">この週を上書きしてダウンロード</button>
+    <button class="btn" id="dvCp">JSONをコピー</button>
+    <button class="btn" id="dvAp">この端末だけに反映</button>
+    <button class="btn" id="dvC2">閉じる</button></div>
+  <p class="tiny">ダウンロードした data.json を GitHub 上の同名ファイルに差し替えれば公開サイトが更新されます。過去の週は消えずに残り、プレイヤーは画面右上のセレクトで切り替えられます。</p>`;
+  box.innerHTML=h;
+  const collect=()=>{const b={};
+    for(const n of EVENTS){b[n]={};for(const r of ranks)
+      b[n][r]=num(box.querySelector(`[data-b="${CSS.escape(n)}"][data-r="${r}"]`).value);}
+    const t={};for(const r of tRanks) t[r]=num(box.querySelector(`[data-t="${r}"]`).value);
+    return {date:today,borders:b,totalBorders:t};};
+  const build=mode=>{
+    const wk=collect(), arr=WEEKS.slice();
+    if(mode==="add"){ const i=arr.findIndex(x=>x.date===wk.date);
+      if(i>=0) arr[i]=wk; else arr.push(wk); }
+    else arr[wIdx]=Object.assign({},wk,{date:w.date});
+    arr.sort((a,b)=>a.date<b.date?-1:1);
+    return {current:arr[arr.length-1].date,weeks:arr};};
+  const dl=json=>{const blob=new Blob([JSON.stringify(json,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();};
+  box.querySelector("#dvAdd").onclick=()=>{dl(build("add"));toast("新しい週として data.json を書き出しました");};
+  box.querySelector("#dvOw").onclick =()=>{dl(build("over"));toast("この週を上書きして書き出しました");};
+  box.querySelector("#dvCp").onclick=async()=>{
+    try{await navigator.clipboard.writeText(JSON.stringify(build("add"),null,2));toast("JSONをコピーしました");}
+    catch(e){toast("コピーできませんでした");}};
+  box.querySelector("#dvAp").onclick=()=>{const j=build("add");
+    WEEKS=j.weeks;wIdx=WEEKS.length-1;
+    try{localStorage.setItem(K_DATA,JSON.stringify(j));}catch(e){}
+    $("#localBanner").hidden=false;applyData();close();toast("この端末に反映しました");};
+  box.querySelector("#dvC2").onclick=close;
+  box.querySelector("#dvPk").onclick=async()=>{
+    if(!window.PublicKeyCredential) return toast("この端末は生体認証に対応していません");
+    if(location.protocol!=="https:"&&location.hostname!=="localhost")
+      return toast("生体認証は https のサイトでのみ使えます");
+    try{ await passkeyRegister(); toast("登録しました。次回から生体認証で解除できます"); }
+    catch(e){ toast("登録できませんでした："+String(e.message||e).slice(0,60)); }};
+  box.querySelector("#dvSb").onclick=()=>toast(sbOn()?"Supabase: 設定済み":"Supabase: 未設定（SETUP.md参照）");
+}
+$("#devBtn").onclick=openDev;
+$("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();};
+
+/* =========================================================
+   12. 週の切り替え・起動
+   ========================================================= */
+$("#weekSel").onchange=e=>{wIdx=+e.target.value;applyData();};
+$("#weekNow").onclick=()=>{wIdx=WEEKS.length-1;$("#weekSel").value=wIdx;applyData();};
+function applyData(){
+  $("#weekSel").innerHTML=WEEKS.map((w,i)=>
+    `<option value="${i}">${w.date}${i===WEEKS.length-1?"（最新）":""}</option>`).join("");
+  $("#weekSel").value=wIdx;
+  $("#weekBanner").hidden=isLatest();
+  $("#weekMsg").textContent=`${DATA().date} 時点のボーダーで計算しています（過去データ）。`;
+  $("#upd").textContent="ボーダー更新日："+DATA().date;
+  const ranks=[1,5,10,50,100,200];
+  let h='<thead><tr><th>種目</th>'+ranks.map(r=>`<th>${r}位</th>`).join("")+"</tr></thead><tbody>";
+  for(const n of EVENTS) h+=`<tr><td>${n}</td>`+ranks.map(r=>
+    `<td>${DATA().borders[n]?nice(DATA().borders[n][r]):"—"}</td>`).join("")+"</tr>";
+  h+=`<tr><td>十種競技総合</td><td colspan="5" class="band">1位 ${jp(DATA().totalBorders[1])} ／ 1000位 ${jp(DATA().totalBorders[1000])}</td></tr></tbody>`;
+  $("#bt").innerHTML=h;
+  render();
+  if(!$("#card").hidden) drawCard();
+}
+function normalize(j){
+  if(j&&Array.isArray(j.weeks)&&j.weeks.length) return j.weeks;
+  if(j&&j.borders&&j.totalBorders) return [{date:j.updated||"—",borders:j.borders,totalBorders:j.totalBorders}];
+  return null;
+}
+(async function boot(){
+  const local=ls(K_DATA,null), lw=normalize(local);
+  if(lw){ WEEKS=lw; $("#localBanner").hidden=false; }
+  else{
+    try{ const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});
+      if(r.ok){ const w=normalize(await r.json()); if(w) WEEKS=w; } }
+    catch(e){ /* file:// では埋め込みデータを使用 */ }
+  }
+  wIdx=WEEKS.length-1;
+  if(location.hash==="#dev"){ history.replaceState(null,"",location.pathname); openDev(); }
+  const m=location.hash.match(/#p=([A-Za-z0-9_-]+)/);
+  if(m){ try{
+      const g=unpack(m[1]), mine=ORDER.some(n=>rec[n]>0);
+      if(!mine){ rec=g.rec; pro=Object.assign(pro,g.pro);
+        $("#viewBanner").hidden=false;
+        $("#viewMsg").textContent=`${g.pro.name||"他プレイヤー"} さんの共有プロフィールを表示中です。`;
+        $("#viewClear").onclick=()=>{rec={};pro={name:"",handle:"",img:"",pub:false};
+          $("#viewBanner").hidden=true;fillInputs();render();};
+      }else{ $("#oppo").value=location.hash; $$(".tabs button")[3].click(); renderCompare(g); }
+      history.replaceState(null,"",location.pathname);
+    }catch(e){} }
+  fillInputs();
+  applyData();
+})();
+</script>
+</body>
+</html>
