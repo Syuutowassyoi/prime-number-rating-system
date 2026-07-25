@@ -38,11 +38,11 @@ section[hidden]{display:none}
 select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:8px;
   padding:6px 10px;font:inherit;font-size:.82rem}
 
-.rt{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.02em;line-height:1;
-  display:inline-flex;align-items:baseline}
-.rt .d{font-size:.56em;letter-spacing:0}
-.rt.lock{color:var(--dim2);font-weight:700}
-.rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600}
+.segwrap{display:inline-flex;align-items:flex-end;line-height:0;
+  filter:drop-shadow(0 0 10px #4da3ff33)}
+.rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600;margin-bottom:6px}
+.dg{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em}
 
 .prof{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
 @media(max-width:520px){.prof{grid-template-columns:1fr;justify-items:center;text-align:center}}
@@ -53,7 +53,7 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .pname{font-size:1.42rem;font-weight:700;line-height:1.2}
 .phandle{color:var(--dim);font-size:.85rem}
 .ratebox{margin-top:10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.ratebox .rt{font-size:3.3rem}
+
 .badge{display:inline-block;padding:3px 14px;border-radius:999px;font-size:.72rem;font-weight:700;
   letter-spacing:.14em;border:1px solid;background:#0f182880}
 
@@ -61,7 +61,8 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 @media(max-width:640px){.stats{grid-template-columns:1fr}}
 .stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .stat .t{font-size:.72rem;color:var(--dim)}
-.stat .v{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25}
+.stat .v{font-size:1.5rem;font-weight:700;line-height:1.25;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 .stat .s{font-size:.73rem;color:var(--dim2);font-variant-numeric:tabular-nums}
 
 .brk{margin-top:18px;display:grid;gap:11px}
@@ -88,8 +89,9 @@ table{width:100%;border-collapse:collapse}
 th{font-size:.71rem;color:var(--dim);font-weight:600;text-align:right;padding:7px 8px;
   border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child{text-align:left}
-td{padding:6px 8px;border-bottom:1px solid #1e2b40;text-align:right;
-  font-variant-numeric:tabular-nums;font-size:.88rem;white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid #1e2b40;text-align:right;font-size:.88rem;white-space:nowrap;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+td:first-child,tr.sec td{font-family:inherit}
 td:first-child{text-align:left;white-space:normal}
 tr.sec td{background:#1d2a3e;color:var(--acc);font-size:.79rem;font-weight:600;text-align:left;padding:8px}
 tr.used{background:#16291f}
@@ -132,7 +134,7 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 .vs{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:6px}
 .vs .side{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
 .vs .side .av,.vs .side .avph{width:56px;height:56px;margin:0 auto 8px;font-size:1.3rem;border-width:2px}
-.vs .side .rt{font-size:1.9rem}
+
 .vs .mid{font-size:.85rem;color:var(--dim);font-weight:700;letter-spacing:.1em}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
 .tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
@@ -158,7 +160,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
 <header>
   <h1>素数あつめ <span style="color:var(--acc)">RATING</span></h1>
-  <select id="weekSel" title="集計週を切り替え" style="margin-left:auto"></select>
+  <button class="btn sm" id="histBtn" style="margin-left:auto">過去のランキングを見る</button>
 </header>
 <nav class="tabs">
   <button data-tab="profile" class="on">プロフィール</button>
@@ -168,9 +170,6 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <button data-tab="rank">ランキング</button>
 </nav>
 
-<div id="weekBanner" class="banner info" hidden>
-  <span id="weekMsg"></span><button class="btn sm" id="weekNow">最新に戻す</button>
-</div>
 <div id="localBanner" class="banner" hidden>
   <span>⚠ ボーダーデータをこの端末でローカル上書き中です。</span>
   <button class="btn sm" id="clearLocal">解除</button>
@@ -352,8 +351,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
    0. 設定
    ========================================================= */
 /* Supabase を使う場合はこの2つを埋めてください（anon key は公開してよいキーです）*/
-const SUPABASE_URL      = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL      = "https://hlhgjnhxtfcqcvdklww.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -506,10 +505,63 @@ const jp=v=>v.toLocaleString("ja-JP");
 const nice=v=>Number.isInteger(v)?jp(v):v.toLocaleString("ja-JP",{maximumFractionDigits:3});
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function ratingParts(v){ const s=f3(v).replace(/,/g,""); const i=s.indexOf("."); return [s.slice(0,i),s.slice(i)]; }
-function ratingHTML(v){
-  if(v===null) return '<span class="rt lock">--<span class="d">.---</span></span>';
-  const [i,d]=ratingParts(v);
-  return `<span class="rt"><span class="i">${i}</span><span class="d">${d}</span></span>`;
+
+/* ---------- 7セグメント表示（SVG／Canvas 共用） ---------- */
+const SEG_MAP={"0":"abcdef","1":"bc","2":"abged","3":"abgcd","4":"fgbc","5":"afgcd",
+  "6":"afgedc","7":"abc","8":"abcdefg","9":"abcdfg","-":"g"," ":""};
+function segGeom(W,H,T){
+  const hx=(cx,cy,L)=>[[cx-L/2,cy],[cx-L/2+T/2,cy-T/2],[cx+L/2-T/2,cy-T/2],
+                       [cx+L/2,cy],[cx+L/2-T/2,cy+T/2],[cx-L/2+T/2,cy+T/2]];
+  const vt=(cx,cy,L)=>[[cx,cy-L/2],[cx+T/2,cy-L/2+T/2],[cx+T/2,cy+L/2-T/2],
+                       [cx,cy+L/2],[cx-T/2,cy+L/2-T/2],[cx-T/2,cy-L/2+T/2]];
+  const Lh=W-T, Lv=H/2-T;
+  return {a:hx(W/2,T/2,Lh), g:hx(W/2,H/2,Lh), d:hx(W/2,H-T/2,Lh),
+          f:vt(T/2,(T+H/2)/2,Lv),      b:vt(W-T/2,(T+H/2)/2,Lv),
+          e:vt(T/2,(H/2+H-T)/2,Lv),    c:vt(W-T/2,(H/2+H-T)/2,Lv)};
+}
+function segLayout(str,W,H,T,gap){
+  const items=[]; let x=0;
+  for(const ch of String(str)){
+    if(ch==="."){ const r=T*0.58; items.push({p:1,cx:x+r,cy:H-r,r}); x+=r*2+gap; }
+    else { items.push({x,segs:SEG_MAP[ch]||""}); x+=W+gap; }
+  }
+  return {items,width:Math.max(0,x-gap)};
+}
+const SEG_OFF="#ffffff12";
+function segSVG(str,o){
+  const {W,H,T,gap,on,off}=o, L=segLayout(str,W,H,T,gap), G=segGeom(W,H,T);
+  let s=`<svg viewBox="0 0 ${L.width.toFixed(2)} ${H}" width="${L.width.toFixed(2)}" height="${H}"`+
+        ` xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible">`;
+  for(const it of L.items){
+    if(it.p){ s+=`<circle cx="${it.cx.toFixed(2)}" cy="${it.cy.toFixed(2)}" r="${it.r.toFixed(2)}" fill="${on}"/>`; continue; }
+    for(const k of "abcdefg")
+      s+=`<polygon points="${G[k].map(p=>`${(p[0]+it.x).toFixed(2)},${p[1].toFixed(2)}`).join(" ")}"`+
+         ` fill="${it.segs.includes(k)?on:off}"/>`;
+  }
+  return s+"</svg>";
+}
+function segCanvas(g,str,x,y,o){
+  const {W,H,T,gap,on,off}=o, L=segLayout(str,W,H,T,gap), G=segGeom(W,H,T);
+  for(const it of L.items){
+    if(it.p){ g.fillStyle=on; g.beginPath(); g.arc(x+it.cx,y+it.cy,it.r,0,7); g.fill(); continue; }
+    for(const k of "abcdefg"){
+      g.fillStyle=it.segs.includes(k)?on:off;
+      g.beginPath();
+      G[k].forEach((p,i)=> i?g.lineTo(x+p[0]+it.x,y+p[1]):g.moveTo(x+p[0]+it.x,y+p[1]));
+      g.closePath(); g.fill();
+    }
+  }
+  return L.width;
+}
+/** RATING を7セグで描く。整数部を大きく、小数部を小さく、下端を揃える */
+function ratingHTML(v,scale){
+  const k=scale||1, lock=v===null;
+  const s=lock?"--.---":f3(v).replace(/,/g,""), i=s.indexOf(".");
+  const on=lock?"#4a5b76":"#eef3fa", off=SEG_OFF;
+  const big={W:38*k,H:66*k,T:8.5*k,gap:9*k,on,off};
+  const sml={W:22*k,H:38*k,T:5.5*k,gap:6*k,on,off};
+  return `<span class="segwrap" style="gap:${7*k}px">`+
+    segSVG(s.slice(0,i),big)+segSVG(s.slice(i),sml)+`</span>`;
 }
 const rankOf=v=>{let r=RANKS[0];for(const x of RANKS) if(v>=x.min) r=x; return r;};
 const nextRank=v=>RANKS.find(x=>x.min>v)||null;
@@ -643,12 +695,33 @@ function render(){
 /* =========================================================
    6. 入力イベント
    ========================================================= */
+/** 入力中も3桁区切りを保ちつつ、カーソル位置を維持する */
+function commaFmt(raw){
+  let v=String(raw).replace(/[^\d.]/g,"");
+  const first=v.indexOf(".");
+  if(first>=0) v=v.slice(0,first+1)+v.slice(first+1).replace(/\./g,"");
+  if(v==="") return "";
+  const i=first>=0?v.slice(0,first):v, d=first>=0?v.slice(first+1):null;
+  const ii=i===""?"":Number(i).toLocaleString("en-US");
+  return d===null?ii:ii+"."+d;
+}
+function applyComma(el){
+  const before=el.value, caret=el.selectionStart;
+  const keep=before.slice(0,caret).replace(/[^\d.]/g,"").length;
+  const out=commaFmt(before);
+  if(out===before) return;
+  el.value=out;
+  let c=0,seen=0;
+  while(c<out.length&&seen<keep){ if(/[\d.]/.test(out[c])) seen++; c++; }
+  try{ el.setSelectionRange(c,c); }catch(e){}
+}
 function fillInputs(){
-  $$("[data-in]").forEach(el=>{const v=rec[el.dataset.in];el.value=(v===undefined||v===null||v===0)?"":v;});
+  $$("[data-in]").forEach(el=>{const v=rec[el.dataset.in];
+    el.value=(v===undefined||v===null||v===0)?"":commaFmt(String(v));});
   $("#pn").value=pro.name||""; $("#ph").value=pro.handle||"";
 }
 document.addEventListener("input",e=>{const t=e.target;
-  if(t.dataset.in){rec[t.dataset.in]=num(t.value);render();}
+  if(t.dataset.in){applyComma(t);rec[t.dataset.in]=num(t.value);render();}
   else if(t.id==="pn"){pro.name=t.value;render();}
   else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}});
 $("#clear").onclick=()=>{rec={};fillInputs();render();toast("入力をクリアしました");};
@@ -815,30 +888,34 @@ async function drawCard(){
   g.fillStyle="#8ba0bd";g.font=F(400,26);
   g.fillText(pro.handle?"@"+pro.handle.slice(0,24):"",248,186);
 
-  /* RATING */
-  g.fillStyle="#8ba0bd";g.font=F(600,22);g.letterSpacing="8px";
-  g.fillText("RATING",80,300);g.letterSpacing="0px";
-  if(c.complete){
-    const [ip,dp]=ratingParts(c.total);
-    g.fillStyle="#eef3fa";g.font=F(800,150);g.fillText(ip,74,420);
-    const w=g.measureText(ip).width;
-    g.font=F(800,84);g.fillText(dp,74+w+6,420);
-    g.fillStyle=rk.c;g.font=F(700,30);g.letterSpacing="6px";
-    g.fillText(rk.n,80,470);g.letterSpacing="0px";
-  }else{
-    g.fillStyle="#4a5b76";g.font=F(800,150);g.fillText("--",74,420);
-    g.font=F(800,84);g.fillText(".---",74+g.measureText("--").width+6,420);
-    g.fillStyle="#8ba0bd";g.font=F(400,24);
-    g.fillText(`未入力 ${c.missing.length} 項目`,80,470);
-  }
+  /* RATING（7セグメント。桁幅を実測して配置するので重なりません） */
+  g.fillStyle="#8ba0bd";g.font=F(600,22);
+  if(g.letterSpacing!==undefined) g.letterSpacing="8px";
+  g.fillText("RATING",80,290);
+  if(g.letterSpacing!==undefined) g.letterSpacing="0px";
+  const lock=!c.complete;
+  const s=lock?"--.---":f3(c.total).replace(/,/g,""), di=s.indexOf(".");
+  const on=lock?"#4a5b76":"#eef3fa", off="#ffffff14";
+  const big={W:62,H:112,T:15,gap:15,on,off};
+  const sml={W:34,H:62,T:9,gap:9,on,off};
+  const topBig=316, topSml=topBig+(big.H-sml.H);
+  const wI=segCanvas(g,s.slice(0,di),80,topBig,big);
+  segCanvas(g,s.slice(di),80+wI+12,topSml,sml);
+  if(!lock){ g.fillStyle=rk.c;g.font=F(700,30);
+    if(g.letterSpacing!==undefined) g.letterSpacing="6px";
+    g.fillText(rk.n,82,topBig+big.H+40);
+    if(g.letterSpacing!==undefined) g.letterSpacing="0px"; }
+  else { g.fillStyle="#8ba0bd";g.font=F(400,24);
+    g.fillText(`未入力 ${c.missing.length} 項目`,82,topBig+big.H+38); }
   /* ステータス */
   const box=[["十種競技総合スコア",rec["合計スコア"]>0?jp(rec["合計スコア"]):"—"],
              ["L値",c.L===null?"—":f3(c.L)],["S値",c.S===null?"—":f3(c.S)]];
-  box.forEach((b,i)=>{const x=640,y=250+i*100;
-    g.fillStyle="#ffffff0d";rrect(g,x,y,490,84,14);g.fill();
-    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,490,84,14);g.stroke();
-    g.fillStyle="#8ba0bd";g.font=F(500,22);g.fillText(b[0],x+22,y+34);
-    g.fillStyle="#eef3fa";g.font=F(700,38);g.textAlign="right";g.fillText(b[1],x+468,y+62);g.textAlign="left";});
+  box.forEach((b,i)=>{const x=660,y=272+i*98;
+    g.fillStyle="#ffffff0d";rrect(g,x,y,470,82,14);g.fill();
+    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,82,14);g.stroke();
+    g.fillStyle="#8ba0bd";g.font=F(500,21);g.fillText(b[0],x+22,y+32);
+    g.fillStyle="#eef3fa";g.font=`700 36px ui-monospace,"SF Mono",Menlo,Consolas,monospace`;
+    g.textAlign="right";g.fillText(b[1],x+448,y+64);g.textAlign="left";});
 
   g.fillStyle="#61748f";g.font=F(400,20);
   g.fillText("素数あつめ RATING",80,570);
@@ -859,9 +936,11 @@ $("#dlCard").onclick=()=>{
    ========================================================= */
 const sbOn=()=>!!(SUPABASE_URL&&SUPABASE_ANON_KEY);
 async function sb(path,opt){
-  const r=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+path,Object.assign({
-    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY,
-             "Content-Type":"application/json"}},opt||{}));
+  /* 旧 anon キー（JWT）は Bearer も付ける。新しい sb_publishable_… は apikey のみ */
+  const h={apikey:SUPABASE_ANON_KEY,"Content-Type":"application/json"};
+  if(SUPABASE_ANON_KEY.startsWith("eyJ")) h.Authorization="Bearer "+SUPABASE_ANON_KEY;
+  const r=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+path,
+    Object.assign({headers:h},opt||{}));
   if(!r.ok) throw new Error(await r.text());
   return r.status===204?null:r.json();
 }
@@ -1029,24 +1108,48 @@ $("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();
 /* =========================================================
    12. 週の切り替え・起動
    ========================================================= */
-$("#weekSel").onchange=e=>{wIdx=+e.target.value;applyData();};
-$("#weekNow").onclick=()=>{wIdx=WEEKS.length-1;$("#weekSel").value=wIdx;applyData();};
-function applyData(){
-  $("#weekSel").innerHTML=WEEKS.map((w,i)=>
+/* レート計算は常に最新週。過去はビューアで参照するだけ */
+function withWeek(i,fn){const b=wIdx; wIdx=i; try{ return fn(); } finally{ wIdx=b; }}
+function openHistory(){
+  const mask=document.createElement("div");mask.className="mask";
+  mask.innerHTML=`<div class="modal"><h2>過去のランキング</h2>
+    <p class="muted" style="margin-top:-8px">当時のボーダーラインを確認できます。プロフィールのRATINGは常に最新のボーダーで計算されます。</p>
+    <label class="fl">集計週</label>
+    <select id="hkWeek" style="max-width:260px"></select>
+    <div id="hkBody" style="margin-top:14px"></div>
+    <div class="tools"><button class="btn" id="hkX">閉じる</button></div></div>`;
+  document.body.appendChild(mask);
+  const q=s=>mask.querySelector(s), close=()=>mask.remove();
+  mask.addEventListener("click",e=>{if(e.target===mask)close();});
+  q("#hkX").onclick=close;
+  q("#hkWeek").innerHTML=WEEKS.map((w,i)=>
     `<option value="${i}">${w.date}${i===WEEKS.length-1?"（最新）":""}</option>`).join("");
-  $("#weekSel").value=wIdx;
-  $("#weekBanner").hidden=isLatest();
-  $("#weekMsg").textContent=`${DATA().date} 時点のボーダーで計算しています（過去データ）。`;
-  $("#upd").textContent="ボーダー更新日："+DATA().date;
-  const ranks=[1,5,10,50,100,200];
-  let h='<thead><tr><th>種目</th>'+ranks.map(r=>`<th>${r}位</th>`).join("")+"</tr></thead><tbody>";
-  for(const n of EVENTS) h+=`<tr><td>${n}</td>`+ranks.map(r=>
-    `<td>${DATA().borders[n]?nice(DATA().borders[n][r]):"—"}</td>`).join("")+"</tr>";
-  h+=`<tr><td>十種競技総合</td><td colspan="5" class="band">1位 ${jp(DATA().totalBorders[1])} ／ 1000位 ${jp(DATA().totalBorders[1000])}</td></tr></tbody>`;
-  $("#bt").innerHTML=h;
-  render();
-  if(!$("#card").hidden) drawCard();
+  q("#hkWeek").value=WEEKS.length-1;
+  const draw=()=>{
+    const i=+q("#hkWeek").value, w=WEEKS[i], ranks=[1,5,10,50,100,200];
+    const c=withWeek(i,()=>compute(rec));
+    const latest=compute(rec);
+    let h="";
+    if(c.complete){
+      const d=latest.total-c.total;
+      h+=`<div class="sw" style="margin-top:0"><div><div class="t">この週のボーダーでの自分のRATING（参考）</div>
+        <div class="tiny">現在 ${f3(latest.total)} との差 ${d>=0?"＋":""}${f3(d)}</div></div>
+        <div style="margin-left:auto">${ratingHTML(c.total,.45)}</div></div>`;
+    }
+    h+=`<h3>ボーダーライン（${w.date}）</h3><div class="scroll"><table><thead><tr><th>種目</th>`+
+      ranks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody>`+
+      EVENTS.map(n=>`<tr><td>${n}</td>`+ranks.map(r=>
+        `<td>${w.borders[n]?nice(w.borders[n][r]):"—"}</td>`).join("")+`</tr>`).join("")+
+      `</tbody></table></div><h3>十種競技総合（判定除外）</h3><div class="scroll"><table><thead><tr>`+
+      [1,5,10,25,50,100,500,1000].map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody><tr>`+
+      [1,5,10,25,50,100,500,1000].map(r=>`<td>${nice(w.totalBorders[r])}</td>`).join("")+
+      `</tr></tbody></table></div>`;
+    q("#hkBody").innerHTML=h;
+  };
+  q("#hkWeek").onchange=draw; draw();
 }
+$("#histBtn").onclick=openHistory;
+
 function normalize(j){
   if(j&&Array.isArray(j.weeks)&&j.weeks.length) return j.weeks;
   if(j&&j.borders&&j.totalBorders) return [{date:j.updated||"—",borders:j.borders,totalBorders:j.totalBorders}];
