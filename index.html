@@ -12,6 +12,7 @@
   --bg:#0d1220; --card:#161f30; --card2:#111a29; --line:#28374f;
   --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
   --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
+  --serif:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif;
 }
 *{box-sizing:border-box}
 /* クラス側の display 指定が [hidden] を打ち消してしまうのを防ぐ */
@@ -43,8 +44,8 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .segwrap{display:inline-flex;align-items:flex-end;line-height:0}
 .segfont{font-family:"DSEG7",ui-monospace,monospace;font-weight:700;line-height:1;
   display:inline-block;white-space:nowrap}
-.rtplain{font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
-  display:inline-flex;align-items:baseline;white-space:nowrap}
+.rtplain{font-family:var(--serif);font-weight:700;line-height:1;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;display:inline-flex;align-items:baseline;white-space:nowrap}
 .rtplain .d{font-size:.56em;letter-spacing:-.01em;margin-left:.02em}
 .rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600;margin-bottom:6px}
 .dg{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
@@ -194,7 +195,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <div class="phandle" id="phandle"></div>
         <div class="ratebox">
           <div><div class="rtlabel">RATING</div><span id="ratingWrap"></span></div>
-          <span class="badge" id="rank">—</span>
+          <span class="badge" id="rankBadge">—</span>
         </div>
       </div>
     </div>
@@ -251,21 +252,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。</div></div>
       <div class="toggle"><button id="pubOff" class="on">非公開</button><button id="pubOn">公開</button></div>
     </div>
-    <div class="tools"><button class="btn sm" id="pubTest">Supabase接続テスト</button></div>
     <div id="pubMsg" class="lockbox" hidden style="margin-top:10px"></div>
-    <details style="margin-top:10px"><summary class="muted">接続先をこの端末だけで試す（ファイルを書き換える前の動作確認用）</summary>
-      <p class="tiny">ここに入れた値はこのブラウザにだけ保存され、公開サイトには影響しません。
-        うまく繋がったら、同じ値を index.html の SUPABASE_URL / SUPABASE_ANON_KEY に書き写してアップロードしてください。</p>
-      <label class="fl">Project URL</label>
-      <input type="text" class="txt" id="sbUrl" placeholder="https://xxxxxxxxxxxxxxxxxxxx.supabase.co" style="max-width:none">
-      <label class="fl">Publishable key</label>
-      <input type="text" class="txt" id="sbKey" placeholder="sb_publishable_..." style="max-width:none">
-      <div class="tools">
-        <button class="btn pri sm" id="sbSave">この値で試す</button>
-        <button class="btn sm" id="sbClear">一時設定を消す</button>
-      </div>
-      <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
-    </details>
     <p class="tiny">画像は <a href="https://unavatar.io" target="_blank" rel="noopener">unavatar.io</a> 経由で公開アイコンを取得します。Xの表示名はAPIキーなしでは取得できないため、名前は手入力です。</p>
   </div>
 </section>
@@ -409,6 +396,7 @@ const EMBEDDED_WEEK = {
 };
 
 const FONTS = `"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,system-ui,sans-serif`;
+const SERIF = `Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif`;
 
 const CAT2 = ["素因数分解（初級）","素因数分解（上級）","素数判定","素数特定","素数判定・改",
               "素数増強","二数限定","暗素因数分解lv.1","暗素因数分解lv.2","暗素因数分解lv.3"];
@@ -694,7 +682,7 @@ function render(){
   $("#pname").textContent=pro.name||"プレイヤー名未設定";
   $("#phandle").textContent=pro.handle?"@"+pro.handle:"";
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
-  const rk=c.complete?rankOf(c.total):null, rb=$("#rank");
+  const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
   rb.textContent=rk?rk.n:"—";
   rb.style.color=rk?rk.c:"var(--dim)";
   rb.style.borderColor=rk?rk.c+"66":"var(--line)";
@@ -735,7 +723,10 @@ function render(){
   $("#pubOff").classList.toggle("on",!pro.pub);
   renderFriends();
   save();
+  if(pro.pub&&sbOn()&&pro.handle) schedulePublish();
 }
+let pubT=null;
+function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(()=>publishNow(),2500); }
 
 /* =========================================================
    6. 入力イベント
@@ -784,19 +775,6 @@ $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
     pro.img=cv.toDataURL("image/jpeg",.85);render();toast("画像を設定しました");};img.src=fr.result;};
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";render();toast("画像を消しました");};
-$("#pubTest").onclick=sbTest;
-$("#sbSave").onclick=()=>{
-  const u=$("#sbUrl").value.trim(), k=$("#sbKey").value.trim();
-  if(!u||!k) return toast("URLとキーの両方を入力してください");
-  sbCfg={url:u,key:k};
-  try{localStorage.setItem(K_SB,JSON.stringify(sbCfg));}catch(e){}
-  applySb(); sbTest();
-};
-$("#sbClear").onclick=()=>{
-  sbCfg=null; localStorage.removeItem(K_SB); applySb();
-  $("#sbUrl").value=""; $("#sbKey").value="";
-  $("#pubMsg").hidden=true; toast("一時設定を消しました");
-};
 $("#pubOn").onclick=()=>{pro.pub=true;render();publishNow();};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
@@ -959,7 +937,7 @@ async function drawCard(){
   const topBig=316, yBase=topBig+big.H;
   if(!DIGITAL){
     g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
-    const fBig=`800 150px ${FONTS}`, fSml=`800 84px ${FONTS}`;
+    const fBig=`700 150px ${SERIF}`, fSml=`700 86px ${SERIF}`;
     g.font=fBig;
     const wInt=g.measureText(s.slice(0,di)).width;   // 縮小前に実測する
     g.fillText(s.slice(0,di),80,yBase);
@@ -1049,7 +1027,7 @@ function sbHint(msg){
   return "";
 }
 function sbShow(title,detail){
-  const box=$("#pubMsg"); if(!box) return;
+  const box=$("#sbMsg")||$("#pubMsg"); if(!box) return;
   box.hidden=false;
   const hint=sbHint(detail);
   box.innerHTML=`<b>${esc(title)}</b>`+
@@ -1072,7 +1050,7 @@ async function publishNow(){
 }
 /** 接続テスト：URL形式 → 名前解決 → 認証 → ビュー → 関数 の順に切り分ける */
 async function sbTest(){
-  const log=[]; const box=$("#pubMsg"); box.hidden=false;
+  const log=[]; const box=$("#sbMsg")||$("#pubMsg"); if(!box) return; box.hidden=false;
   const put=(ok,t,d)=>{log.push(`<div style="margin:4px 0"><b style="color:${ok?"var(--acc2)":"var(--bad)"}">${ok?"✓":"✗"}</b> ${t}`+
     (d?`<br><span class="tiny" style="word-break:break-all">${esc(String(d)).slice(0,400)}</span>`:"")+`</div>`);
     box.innerHTML=log.join("");};
@@ -1161,10 +1139,15 @@ async function loadRanking(){
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
     const rows=await sb("profiles_public?select=handle,name,rating,l_value,s_value,total_score,updated_at&order=rating.desc.nullslast&limit=300");
-    if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>`; return; }
+    if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>
+      <div class="tools"><button class="btn pri" id="rkPush">自分の記録を公開／更新</button>
+      <button class="btn" id="rkReload">再読み込み</button></div>`;
+      $("#rkPush").onclick=async()=>{ if(!pro.pub){pro.pub=true;render();} await publishNow(); loadRanking(); };
+      $("#rkReload").onclick=loadRanking; return; }
     const mine=(pro.handle||"").toLowerCase();
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
-      ${pro.pub?`<button class="btn pri" id="rkPush">自分の記録を更新</button>`:""}</div>
+      <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
+      ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th>
       <th>L値</th><th>S値</th><th>総合スコア</th></tr></thead><tbody>`+
       rows.map((r,i)=>`<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
@@ -1174,7 +1157,9 @@ async function loadRanking(){
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
         `<td>${r.total_score==null?"—":jp(+r.total_score)}</td></tr>`).join("")+`</tbody></table></div>`;
     const rl=$("#rkReload"); if(rl) rl.onclick=loadRanking;
-    const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{await publishNow();loadRanking();};
+    const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{
+      if(!pro.pub){ pro.pub=true; render(); }
+      await publishNow(); loadRanking(); };
   }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
 }
 
@@ -1245,8 +1230,20 @@ function devEditor(box,close){
   const w=DATA();
   let h=`<p class="muted">表示中の週：<b>${w.date}</b>　保存時の日付：<b>${today}</b></p>
   <div class="tools" style="margin-top:0">
-    <button class="btn" id="dvPk">${localStorage.getItem(K_PK)?"生体認証を再登録":"この端末に生体認証を登録"}</button>
-    <button class="btn" id="dvSb">Supabase設定を確認</button></div>
+    <button class="btn" id="dvPk">${localStorage.getItem(K_PK)?"生体認証を再登録":"この端末に生体認証を登録"}</button></div>
+  <h3>Supabase 接続</h3>
+  <div class="tools" style="margin-top:0"><button class="btn pri" id="dvSbTest">接続テスト</button></div>
+  <div id="sbMsg" class="lockbox" hidden style="margin-top:10px"></div>
+  <p class="tiny" style="margin-top:8px">下の欄はこの端末だけの一時設定です。繋がることを確認してから
+    index.html の SUPABASE_URL / SUPABASE_ANON_KEY に書き写してください。</p>
+  <label class="fl">Project URL</label>
+  <input type="text" class="txt" id="sbUrl" placeholder="https://xxxxxxxxxxxxxxxxxxxx.supabase.co" style="max-width:none">
+  <label class="fl">Publishable key</label>
+  <input type="text" class="txt" id="sbKey" placeholder="sb_publishable_..." style="max-width:none">
+  <div class="tools">
+    <button class="btn" id="dvSbSave">この値で試す</button>
+    <button class="btn" id="dvSbClear">一時設定を消す</button></div>
+  <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
   <h3>個別18種目</h3><div class="scroll devgrid"><table><thead><tr><th>種目</th>`+
   ranks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody>`;
   for(const n of EVENTS) h+=`<tr><td>${n}</td>`+ranks.map(r=>
@@ -1294,7 +1291,21 @@ function devEditor(box,close){
       return toast("生体認証は https のサイトでのみ使えます");
     try{ await passkeyRegister(); toast("登録しました。次回から生体認証で解除できます"); }
     catch(e){ toast("登録できませんでした："+String(e.message||e).slice(0,60)); }};
-  box.querySelector("#dvSb").onclick=()=>toast(sbOn()?"Supabase: 設定済み":"Supabase: 未設定（SETUP.md参照）");
+  if(sbCfg){ box.querySelector("#sbUrl").value=sbCfg.url||""; box.querySelector("#sbKey").value=sbCfg.key||""; }
+  box.querySelector("#sbLocal").hidden=!sbCfg;
+  box.querySelector("#dvSbTest").onclick=sbTest;
+  box.querySelector("#dvSbSave").onclick=()=>{
+    const u=box.querySelector("#sbUrl").value.trim(), k=box.querySelector("#sbKey").value.trim();
+    if(!u||!k) return toast("URLとキーの両方を入力してください");
+    sbCfg={url:u,key:k};
+    try{localStorage.setItem(K_SB,JSON.stringify(sbCfg));}catch(e){}
+    applySb(); sbTest();
+  };
+  box.querySelector("#dvSbClear").onclick=()=>{
+    sbCfg=null; localStorage.removeItem(K_SB); applySb();
+    box.querySelector("#sbUrl").value=""; box.querySelector("#sbKey").value="";
+    box.querySelector("#sbMsg").hidden=true; toast("一時設定を消しました");
+  };
 }
 $("#devBtn").onclick=openDev;
 $("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();};
@@ -1371,7 +1382,6 @@ function normalize(j){
       history.replaceState(null,"",location.pathname);
     }catch(e){} }
   applySb();
-  if(sbCfg){ $("#sbUrl").value=sbCfg.url||""; $("#sbKey").value=sbCfg.key||""; }
   fillInputs();
   applyData();
 })();
