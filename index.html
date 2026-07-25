@@ -8,12 +8,21 @@
 <meta property="og:title" content="素数あつめ RATING">
 <meta property="og:description" content="記録を入力してRATINGを算出。プロフィールカードの保存、フレンド比較、全体ランキングに対応。">
 <style>
+/* DSEG7 Classic — 7セグメント表示フォント（keshikan 制作・SIL Open Font License 1.1 / 無料） */
+@font-face{
+  font-family:"DSEG7";
+  src:url("https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2") format("woff2"),
+      url("https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff") format("woff");
+  font-weight:700;font-style:normal;font-display:swap;
+}
 :root{
   --bg:#0d1220; --card:#161f30; --card2:#111a29; --line:#28374f;
   --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
   --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
 }
 *{box-sizing:border-box}
+/* クラス側の display 指定が [hidden] を打ち消してしまうのを防ぐ */
+[hidden]{display:none !important}
 html,body{margin:0;padding:0}
 body{background:radial-gradient(1200px 600px at 50% -200px,#1b2740,#0d1220 60%),#0d1220;color:var(--tx);
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
@@ -38,8 +47,11 @@ section[hidden]{display:none}
 select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:8px;
   padding:6px 10px;font:inherit;font-size:.82rem}
 
-.segwrap{display:inline-flex;align-items:flex-end;line-height:0;
-  filter:drop-shadow(0 0 10px #4da3ff33)}
+.segwrap{display:inline-flex;align-items:flex-end;line-height:0}
+.segfont{font-family:"DSEG7",ui-monospace,monospace;font-weight:700;line-height:1;
+  display:inline-block;white-space:nowrap}
+.rtplain{font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;
+  display:inline-flex;align-items:baseline}
 .rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600;margin-bottom:6px}
 .dg{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
   font-variant-numeric:tabular-nums;letter-spacing:.02em}
@@ -245,6 +257,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。</div></div>
       <div class="toggle"><button id="pubOff" class="on">非公開</button><button id="pubOn">公開</button></div>
     </div>
+    <div class="tools"><button class="btn sm" id="pubTest">Supabase接続テスト</button></div>
+    <div id="pubMsg" class="lockbox" hidden style="margin-top:10px"></div>
     <p class="tiny">画像は <a href="https://unavatar.io" target="_blank" rel="noopener">unavatar.io</a> 経由で公開アイコンを取得します。Xの表示名はAPIキーなしでは取得できないため、名前は手入力です。</p>
   </div>
 </section>
@@ -355,6 +369,9 @@ const SUPABASE_URL      = "https://hlhgjnhxtfcqcvdklww.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
+/* RATING を7セグ風にするか。false にすると通常の太字数字になります */
+const DIGITAL = true;
+
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
 const DEV_HASH = "07ded47312281a20b4793962012c710e85a406c4ebea7edbbf744f5c58d470b7";
 const DEV_ITER = 310000;
@@ -509,15 +526,16 @@ function ratingParts(v){ const s=f3(v).replace(/,/g,""); const i=s.indexOf(".");
 /* ---------- 7セグメント表示（SVG／Canvas 共用） ---------- */
 const SEG_MAP={"0":"abcdef","1":"bc","2":"abged","3":"abgcd","4":"fgbc","5":"afgcd",
   "6":"afgedc","7":"abc","8":"abcdefg","9":"abcdfg","-":"g"," ":""};
-function segGeom(W,H,T){
-  const hx=(cx,cy,L)=>[[cx-L/2,cy],[cx-L/2+T/2,cy-T/2],[cx+L/2-T/2,cy-T/2],
-                       [cx+L/2,cy],[cx+L/2-T/2,cy+T/2],[cx-L/2+T/2,cy+T/2]];
-  const vt=(cx,cy,L)=>[[cx,cy-L/2],[cx+T/2,cy-L/2+T/2],[cx+T/2,cy+L/2-T/2],
-                       [cx,cy+L/2],[cx-T/2,cy+L/2-T/2],[cx-T/2,cy-L/2+T/2]];
-  const Lh=W-T, Lv=H/2-T;
-  return {a:hx(W/2,T/2,Lh), g:hx(W/2,H/2,Lh), d:hx(W/2,H-T/2,Lh),
-          f:vt(T/2,(T+H/2)/2,Lv),      b:vt(W-T/2,(T+H/2)/2,Lv),
-          e:vt(T/2,(H/2+H-T)/2,Lv),    c:vt(W-T/2,(H/2+H-T)/2,Lv)};
+/* G＝セグメント間のすき間。DSEG7 Classic と同じく、角を尖らせて隙間を空ける */
+function segGeom(W,H,T,G){
+  const hx=(cy,x0,x1)=>[[x0,cy],[x0+T/2,cy-T/2],[x1-T/2,cy-T/2],
+                        [x1,cy],[x1-T/2,cy+T/2],[x0+T/2,cy+T/2]];
+  const vt=(cx,y0,y1)=>[[cx,y0],[cx+T/2,y0+T/2],[cx+T/2,y1-T/2],
+                        [cx,y1],[cx-T/2,y1-T/2],[cx-T/2,y0+T/2]];
+  const xa=T/2+G, xb=W-T/2-G;
+  return {a:hx(T/2,xa,xb), g:hx(H/2,xa,xb), d:hx(H-T/2,xa,xb),
+          f:vt(T/2,   T+G,       H/2-T/2-G), b:vt(W-T/2, T+G,       H/2-T/2-G),
+          e:vt(T/2,   H/2+T/2+G, H-T-G),     c:vt(W-T/2, H/2+T/2+G, H-T-G)};
 }
 function segLayout(str,W,H,T,gap){
   const items=[]; let x=0;
@@ -527,40 +545,58 @@ function segLayout(str,W,H,T,gap){
   }
   return {items,width:Math.max(0,x-gap)};
 }
-const SEG_OFF="#ffffff12";
+/* DSEG7 が読めなかった環境向けの自前描画。消灯セグメントは描かない */
 function segSVG(str,o){
-  const {W,H,T,gap,on,off}=o, L=segLayout(str,W,H,T,gap), G=segGeom(W,H,T);
+  const {W,H,T,gap,on}=o, G=o.G??T*0.22, L=segLayout(str,W,H,T,gap), P=segGeom(W,H,T,G);
   let s=`<svg viewBox="0 0 ${L.width.toFixed(2)} ${H}" width="${L.width.toFixed(2)}" height="${H}"`+
-        ` xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible">`;
+        ` xmlns="http://www.w3.org/2000/svg" style="display:block">`;
   for(const it of L.items){
     if(it.p){ s+=`<circle cx="${it.cx.toFixed(2)}" cy="${it.cy.toFixed(2)}" r="${it.r.toFixed(2)}" fill="${on}"/>`; continue; }
-    for(const k of "abcdefg")
-      s+=`<polygon points="${G[k].map(p=>`${(p[0]+it.x).toFixed(2)},${p[1].toFixed(2)}`).join(" ")}"`+
-         ` fill="${it.segs.includes(k)?on:off}"/>`;
+    for(const k of "abcdefg"){
+      if(!it.segs.includes(k)) continue;
+      s+=`<polygon points="${P[k].map(p=>`${(p[0]+it.x).toFixed(2)},${p[1].toFixed(2)}`).join(" ")}" fill="${on}"/>`;
+    }
   }
   return s+"</svg>";
 }
 function segCanvas(g,str,x,y,o){
-  const {W,H,T,gap,on,off}=o, L=segLayout(str,W,H,T,gap), G=segGeom(W,H,T);
+  const {W,H,T,gap,on}=o, G=o.G??T*0.22, L=segLayout(str,W,H,T,gap), P=segGeom(W,H,T,G);
+  g.fillStyle=on;
   for(const it of L.items){
-    if(it.p){ g.fillStyle=on; g.beginPath(); g.arc(x+it.cx,y+it.cy,it.r,0,7); g.fill(); continue; }
+    if(it.p){ g.beginPath(); g.arc(x+it.cx,y+it.cy,it.r,0,7); g.fill(); continue; }
     for(const k of "abcdefg"){
-      g.fillStyle=it.segs.includes(k)?on:off;
+      if(!it.segs.includes(k)) continue;
       g.beginPath();
-      G[k].forEach((p,i)=> i?g.lineTo(x+p[0]+it.x,y+p[1]):g.moveTo(x+p[0]+it.x,y+p[1]));
+      P[k].forEach((p,i)=> i?g.lineTo(x+p[0]+it.x,y+p[1]):g.moveTo(x+p[0]+it.x,y+p[1]));
       g.closePath(); g.fill();
     }
   }
   return L.width;
 }
-/** RATING を7セグで描く。整数部を大きく、小数部を小さく、下端を揃える */
+/* DSEG7 の読み込み状態 */
+let SEG_FONT=false;
+async function loadSegFont(){
+  try{
+    if(!document.fonts||!document.fonts.load) return false;
+    await document.fonts.load('700 64px DSEG7','0123456789.-');
+    SEG_FONT=document.fonts.check('700 64px DSEG7');
+  }catch(e){ SEG_FONT=false; }
+  return SEG_FONT;
+}
+/** RATING 表示。DIGITAL=false にすると通常の太字数字になります */
 function ratingHTML(v,scale){
   const k=scale||1, lock=v===null;
   const s=lock?"--.---":f3(v).replace(/,/g,""), i=s.indexOf(".");
-  const on=lock?"#4a5b76":"#eef3fa", off=SEG_OFF;
-  const big={W:38*k,H:66*k,T:8.5*k,gap:9*k,on,off};
-  const sml={W:22*k,H:38*k,T:5.5*k,gap:6*k,on,off};
-  return `<span class="segwrap" style="gap:${7*k}px">`+
+  const on=lock?"#43536e":"#eef3fa";
+  if(!DIGITAL)
+    return `<span class="rtplain" style="font-size:${58*k}px;color:${on}">`+
+      `${esc(s.slice(0,i))}<span style="font-size:.56em">${esc(s.slice(i))}</span></span>`;
+  if(SEG_FONT)
+    return `<span class="segfont" style="font-size:${62*k}px;color:${on}">`+
+      `${esc(s.slice(0,i))}<span style="font-size:.58em">${esc(s.slice(i))}</span></span>`;
+  const big={W:38*k,H:64*k,T:9*k,gap:11*k,on};
+  const sml={W:22*k,H:37*k,T:5.5*k,gap:7*k,on};
+  return `<span class="segwrap" style="gap:${8*k}px">`+
     segSVG(s.slice(0,i),big)+segSVG(s.slice(i),sml)+`</span>`;
 }
 const rankOf=v=>{let r=RANKS[0];for(const x of RANKS) if(v>=x.min) r=x; return r;};
@@ -739,6 +775,7 @@ $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
     pro.img=cv.toDataURL("image/jpeg",.85);render();toast("画像を設定しました");};img.src=fr.result;};
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";render();toast("画像を消しました");};
+$("#pubTest").onclick=sbTest;
 $("#pubOn").onclick=()=>{pro.pub=true;render();publishNow();};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
@@ -895,12 +932,22 @@ async function drawCard(){
   if(g.letterSpacing!==undefined) g.letterSpacing="0px";
   const lock=!c.complete;
   const s=lock?"--.---":f3(c.total).replace(/,/g,""), di=s.indexOf(".");
-  const on=lock?"#4a5b76":"#eef3fa", off="#ffffff14";
-  const big={W:62,H:112,T:15,gap:15,on,off};
-  const sml={W:34,H:62,T:9,gap:9,on,off};
-  const topBig=316, topSml=topBig+(big.H-sml.H);
-  const wI=segCanvas(g,s.slice(0,di),80,topBig,big);
-  segCanvas(g,s.slice(di),80+wI+12,topSml,sml);
+  const on=lock?"#43536e":"#eef3fa";
+  const big={W:60,H:110,T:15,gap:19,on};
+  const sml={W:34,H:62,T:9,gap:11,on};
+  const topBig=316;
+  if(SEG_FONT){
+    const base=topBig+big.H;
+    g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
+    g.font='700 118px DSEG7';
+    g.fillText(s.slice(0,di),80,base);
+    const w=g.measureText(s.slice(0,di)).width;
+    g.font='700 68px DSEG7';
+    g.fillText(s.slice(di),80+w+14,base);
+  }else{
+    const wI=segCanvas(g,s.slice(0,di),80,topBig,big);
+    segCanvas(g,s.slice(di),80+wI+12,topBig+(big.H-sml.H),sml);
+  }
   if(!lock){ g.fillStyle=rk.c;g.font=F(700,30);
     if(g.letterSpacing!==undefined) g.letterSpacing="6px";
     g.fillText(rk.n,82,topBig+big.H+40);
@@ -944,9 +991,34 @@ async function sb(path,opt){
   if(!r.ok) throw new Error(await r.text());
   return r.status===204?null:r.json();
 }
+/** エラー本文からよくある原因を日本語で言い当てる */
+function sbHint(msg){
+  const m=String(msg);
+  if(/PGRST205|does not exist|Could not find the table/i.test(m))
+    return "SQLがまだ実行されていないようです。Supabase の SQL Editor で SETUP.md のSQLを実行してください。";
+  if(/PGRST202|Could not find the function/i.test(m))
+    return "関数 upsert_profile が見つかりません。SQLの後半（create function …）まで実行できているか確認してください。";
+  if(/Invalid API key|JWSError|JWT|401/i.test(m))
+    return "APIキーが正しくありません。Settings → API Keys の Publishable key を貼り直してください。";
+  if(/permission denied/i.test(m))
+    return "権限が足りません。SQL末尾の grant 文まで実行されているか確認してください。";
+  if(/別の端末で登録済み/.test(m))
+    return "この@IDは別の端末から登録済みです。Supabase の Table Editor で該当行を削除すると再登録できます。";
+  if(/Failed to fetch|NetworkError/i.test(m))
+    return "接続できません。SUPABASE_URL のスペルとプロジェクトが起動中かを確認してください。";
+  return "";
+}
+function sbShow(title,detail){
+  const box=$("#pubMsg"); if(!box) return;
+  box.hidden=false;
+  const hint=sbHint(detail);
+  box.innerHTML=`<b>${esc(title)}</b>`+
+    (hint?`<br><span style="color:var(--warn)">${esc(hint)}</span>`:"")+
+    (detail?`<br><span class="tiny" style="word-break:break-all">${esc(String(detail)).slice(0,600)}</span>`:"");
+}
 async function publishNow(){
-  if(!sbOn()) return;
-  if(!pro.handle) return toast("公開するには @ID の入力が必要です");
+  if(!sbOn()){ sbShow("Supabase が未設定です","index.html の SUPABASE_URL / SUPABASE_ANON_KEY が空です（355〜356行目）"); return; }
+  if(!pro.handle){ sbShow("公開するには @ID の入力が必要です",""); return; }
   const c=compute(rec);
   try{
     await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
@@ -954,8 +1026,22 @@ async function publishNow(){
       p_rating:c.complete?Number(c.total.toFixed(3)):null,
       p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
       p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub })});
+    $("#pubMsg").hidden=true;
     toast(pro.pub?"公開しました":"非公開にしました");
-  }catch(e){ toast("公開に失敗しました："+String(e.message||e).slice(0,80)); }
+  }catch(e){ sbShow(pro.pub?"公開に失敗しました":"更新に失敗しました",e.message||e); }
+}
+/** 接続テスト：どこで失敗しているかを順に確かめる */
+async function sbTest(){
+  if(!sbOn()) return sbShow("Supabase が未設定です","index.html の 355〜356行目が空のままです");
+  sbShow("テスト中…","");
+  try{ await sb("profiles_public?select=handle&limit=1"); }
+  catch(e){ return sbShow("① テーブル／ビューの読み取りに失敗",e.message||e); }
+  try{
+    await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
+      p_handle:"__conntest__",p_key:"0000000000000000ffff",p_name:"test",
+      p_rating:null,p_l:null,p_s:null,p_total:null,p_records:{},p_public:false})});
+  }catch(e){ return sbShow("② 書き込み関数の呼び出しに失敗",e.message||e); }
+  sbShow("接続は正常です ✓","読み取り・書き込みとも成功しました。プロフィールの @ID を入れて「公開」を押してください。");
 }
 async function loadRanking(){
   const el=$("#rankBody");
@@ -1178,6 +1264,8 @@ function normalize(j){
     }catch(e){} }
   fillInputs();
   applyData();
+  /* DSEG7（7セグフォント）を読み込めたら本物の字形で描き直す */
+  if(DIGITAL && await loadSegFont()){ render(); if(!$("#card").hidden) drawCard(); }
 })();
 </script>
 </body>
