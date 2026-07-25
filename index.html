@@ -8,13 +8,6 @@
 <meta property="og:title" content="素数あつめ RATING">
 <meta property="og:description" content="記録を入力してRATINGを算出。プロフィールカードの保存、フレンド比較、全体ランキングに対応。">
 <style>
-/* DSEG7 Classic — 7セグメント表示フォント（keshikan 制作・SIL Open Font License 1.1 / 無料） */
-@font-face{
-  font-family:"DSEG7";
-  src:url("https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2") format("woff2"),
-      url("https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff") format("woff");
-  font-weight:700;font-style:normal;font-display:swap;
-}
 :root{
   --bg:#0d1220; --card:#161f30; --card2:#111a29; --line:#28374f;
   --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
@@ -50,8 +43,9 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .segwrap{display:inline-flex;align-items:flex-end;line-height:0}
 .segfont{font-family:"DSEG7",ui-monospace,monospace;font-weight:700;line-height:1;
   display:inline-block;white-space:nowrap}
-.rtplain{font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;
-  display:inline-flex;align-items:baseline}
+.rtplain{font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  display:inline-flex;align-items:baseline;white-space:nowrap}
+.rtplain .d{font-size:.56em;letter-spacing:-.01em;margin-left:.02em}
 .rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600;margin-bottom:6px}
 .dg{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
   font-variant-numeric:tabular-nums;letter-spacing:.02em}
@@ -366,11 +360,11 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
    ========================================================= */
 /* Supabase を使う場合はこの2つを埋めてください（anon key は公開してよいキーです）*/
 const SUPABASE_URL      = "https://hlhgjnhxtfcqcvdklww.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
+const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
-/* RATING を7セグ風にするか。false にすると通常の太字数字になります */
-const DIGITAL = true;
+/* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
+const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
 const DEV_HASH = "07ded47312281a20b4793962012c710e85a406c4ebea7edbbf744f5c58d470b7";
@@ -400,6 +394,8 @@ const EMBEDDED_WEEK = {
  "1から順にEX":{1:133,5:97.33,10:90.5,50:75.33,100:68.5,200:61.5}},
  totalBorders:{1:789918,5:771177,10:759880,25:740394,50:710883,100:677250,500:534341,1000:472345}
 };
+
+const FONTS = `"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,system-ui,sans-serif`;
 
 const CAT2 = ["素因数分解（初級）","素因数分解（上級）","素数判定","素数特定","素数判定・改",
               "素数増強","二数限定","暗素因数分解lv.1","暗素因数分解lv.2","暗素因数分解lv.3"];
@@ -589,8 +585,8 @@ function ratingHTML(v,scale){
   const s=lock?"--.---":f3(v).replace(/,/g,""), i=s.indexOf(".");
   const on=lock?"#43536e":"#eef3fa";
   if(!DIGITAL)
-    return `<span class="rtplain" style="font-size:${58*k}px;color:${on}">`+
-      `${esc(s.slice(0,i))}<span style="font-size:.56em">${esc(s.slice(i))}</span></span>`;
+    return `<span class="rtplain" style="font-size:${62*k}px;color:${on}">`+
+      `${esc(s.slice(0,i))}<span class="d">${esc(s.slice(i))}</span></span>`;
   if(SEG_FONT)
     return `<span class="segfont" style="font-size:${62*k}px;color:${on}">`+
       `${esc(s.slice(0,i))}<span style="font-size:.58em">${esc(s.slice(i))}</span></span>`;
@@ -906,7 +902,7 @@ async function drawCard(){
   for(let i=0;i<26;i++){g.beginPath();g.moveTo(i*60,0);g.lineTo(i*60-160,H);g.stroke();}
   g.fillStyle=rk?rk.c:"#4da3ff";g.fillRect(0,0,W,8);
 
-  const F=(w,s)=>`${w} ${s}px "Hiragino Sans","Noto Sans JP",Meiryo,system-ui,sans-serif`;
+  const F=(w,s)=>`${w} ${s}px ${FONTS}`;
   /* アイコン */
   const src=pro.img||(pro.handle?`https://unavatar.io/x/${encodeURIComponent(pro.handle)}`:"");
   let img=src?await loadImg(src,!pro.img):null;
@@ -935,15 +931,22 @@ async function drawCard(){
   const on=lock?"#43536e":"#eef3fa";
   const big={W:60,H:110,T:15,gap:19,on};
   const sml={W:34,H:62,T:9,gap:11,on};
-  const topBig=316;
-  if(SEG_FONT){
-    const base=topBig+big.H;
+  const topBig=316, yBase=topBig+big.H;
+  if(!DIGITAL){
+    g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
+    const fBig=`800 150px ${FONTS}`, fSml=`800 84px ${FONTS}`;
+    g.font=fBig;
+    const wInt=g.measureText(s.slice(0,di)).width;   // 縮小前に実測する
+    g.fillText(s.slice(0,di),80,yBase);
+    g.font=fSml;
+    g.fillText(s.slice(di),80+wInt+8,yBase);
+  }else if(SEG_FONT){
     g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
     g.font='700 118px DSEG7';
-    g.fillText(s.slice(0,di),80,base);
     const w=g.measureText(s.slice(0,di)).width;
+    g.fillText(s.slice(0,di),80,yBase);
     g.font='700 68px DSEG7';
-    g.fillText(s.slice(di),80+w+14,base);
+    g.fillText(s.slice(di),80+w+14,yBase);
   }else{
     const wI=segCanvas(g,s.slice(0,di),80,topBig,big);
     segCanvas(g,s.slice(di),80+wI+12,topBig+(big.H-sml.H),sml);
@@ -981,15 +984,21 @@ $("#dlCard").onclick=()=>{
 /* =========================================================
    10. Supabase（全体ランキング）
    ========================================================= */
-const sbOn=()=>!!(SUPABASE_URL&&SUPABASE_ANON_KEY);
+const SB_URL=String(SUPABASE_URL||"").trim().replace(/\/+$/,"");
+const SB_KEY=String(SUPABASE_ANON_KEY||"").trim();
+const sbOn=()=>!!(SB_URL&&SB_KEY);
 async function sb(path,opt){
-  /* 旧 anon キー（JWT）は Bearer も付ける。新しい sb_publishable_… は apikey のみ */
-  const h={apikey:SUPABASE_ANON_KEY,"Content-Type":"application/json"};
-  if(SUPABASE_ANON_KEY.startsWith("eyJ")) h.Authorization="Bearer "+SUPABASE_ANON_KEY;
-  const r=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+path,
-    Object.assign({headers:h},opt||{}));
-  if(!r.ok) throw new Error(await r.text());
-  return r.status===204?null:r.json();
+  const o=opt||{}, h={apikey:SB_KEY};
+  /* 旧 anon キー（JWT）のみ Bearer を付ける。新しい sb_publishable_… は apikey だけ */
+  if(SB_KEY.startsWith("eyJ")) h.Authorization="Bearer "+SB_KEY;
+  /* GET に Content-Type を付けると余計な preflight が走るので POST のときだけ付ける */
+  if(o.method&&o.method!=="GET") h["Content-Type"]="application/json";
+  const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),12000);
+  try{
+    const r=await fetch(SB_URL+"/rest/v1/"+path,Object.assign({signal:ac.signal},o,{headers:h}));
+    if(!r.ok){ const t=await r.text(); const e=new Error(t||("HTTP "+r.status)); e.status=r.status; throw e; }
+    return r.status===204?null:r.json();
+  }finally{ clearTimeout(tm); }
 }
 /** エラー本文からよくある原因を日本語で言い当てる */
 function sbHint(msg){
@@ -1017,7 +1026,7 @@ function sbShow(title,detail){
     (detail?`<br><span class="tiny" style="word-break:break-all">${esc(String(detail)).slice(0,600)}</span>`:"");
 }
 async function publishNow(){
-  if(!sbOn()){ sbShow("Supabase が未設定です","index.html の SUPABASE_URL / SUPABASE_ANON_KEY が空です（355〜356行目）"); return; }
+  if(!sbOn()){ sbShow("Supabase が未設定です","index.html の SUPABASE_URL / SUPABASE_ANON_KEY が空です（355〜356行目付近）"); return; }
   if(!pro.handle){ sbShow("公開するには @ID の入力が必要です",""); return; }
   const c=compute(rec);
   try{
@@ -1030,18 +1039,67 @@ async function publishNow(){
     toast(pro.pub?"公開しました":"非公開にしました");
   }catch(e){ sbShow(pro.pub?"公開に失敗しました":"更新に失敗しました",e.message||e); }
 }
-/** 接続テスト：どこで失敗しているかを順に確かめる */
+/** 接続テスト：URL形式 → 名前解決 → 認証 → ビュー → 関数 の順に切り分ける */
 async function sbTest(){
-  if(!sbOn()) return sbShow("Supabase が未設定です","index.html の 355〜356行目が空のままです");
-  sbShow("テスト中…","");
-  try{ await sb("profiles_public?select=handle&limit=1"); }
-  catch(e){ return sbShow("① テーブル／ビューの読み取りに失敗",e.message||e); }
+  const log=[]; const box=$("#pubMsg"); box.hidden=false;
+  const put=(ok,t,d)=>{log.push(`<div style="margin:4px 0"><b style="color:${ok?"var(--acc2)":"var(--bad)"}">${ok?"✓":"✗"}</b> ${t}`+
+    (d?`<br><span class="tiny" style="word-break:break-all">${esc(String(d)).slice(0,400)}</span>`:"")+`</div>`);
+    box.innerHTML=log.join("");};
+  const stop=t=>{log.push(`<div style="margin-top:8px;color:var(--warn)">${esc(t)}</div>`);box.innerHTML=log.join("");};
+
+  box.innerHTML="テスト中…";
+  /* 1. 設定されているか */
+  if(!SB_URL||!SB_KEY){ put(false,"設定が空です"); return stop("index.html の SUPABASE_URL / SUPABASE_ANON_KEY（355〜356行目）が空のままです。書き換えたファイルをアップロードし直してください。"); }
+  put(true,`URL：<code>${esc(SB_URL)}</code>`);
+  put(true,`キー：<code>${esc(SB_KEY.slice(0,18))}…</code>（${SB_KEY.length}文字）`);
+
+  /* 2. URL の形 */
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/i.test(SB_URL)){
+    put(false,"URLの形式が違います");
+    return stop("正しい形は https://プロジェクトID.supabase.co です。Project ID だけ／末尾に余計な文字／http:// になっていないか確認してください。");
+  }
+  put(true,"URLの形式");
+  if(!/^(sb_publishable_|eyJ)/.test(SB_KEY)){
+    put(false,"キーの形式が違います");
+    return stop("Publishable key は sb_publishable_ で始まります。Project ID や Secret key を貼っていないか確認してください。");
+  }
+  put(true,"キーの形式");
+
+  /* 3. サーバーに到達できるか（CORSを介さない no-cors で名前解決だけ確認） */
+  let reach=false;
+  try{ await fetch(SB_URL+"/rest/v1/",{mode:"no-cors",cache:"no-store"}); reach=true; }catch(e){}
+  if(!reach){
+    put(false,"サーバーに到達できません");
+    return stop("ドメインに接続できませんでした。①URLのプロジェクトIDのつづり ②Supabaseのプロジェクトが一時停止していないか ③広告ブロッカーや拡張機能が supabase.co を遮断していないか（シークレットウィンドウで試すと切り分けられます）を確認してください。");
+  }
+  put(true,"サーバーへの到達");
+
+  /* 4. キーが通るか */
+  try{ await sb("");
+  }catch(e){
+    if(e.status===401||/Invalid API key|No API key/i.test(e.message)){
+      put(false,"APIキーが拒否されました",e.message);
+      return stop("Settings → API Keys の Publishable key を貼り直してください。別プロジェクトのキーになっていないかも確認を。");
+    }
+    /* ルートは404などを返すことがあるが、到達していれば認証はOK */
+  }
+  put(true,"APIキーの認証");
+
+  /* 5. ビュー */
+  try{ await sb("profiles_public?select=handle&limit=1"); put(true,"profiles_public ビューの読み取り"); }
+  catch(e){ put(false,"profiles_public が読めません",e.message);
+    return stop("SQLがまだ実行されていない可能性が高いです。Supabase の SQL Editor で SETUP.md のSQLを丸ごと貼って Run してください。"); }
+
+  /* 6. 書き込み関数 */
   try{
     await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
       p_handle:"__conntest__",p_key:"0000000000000000ffff",p_name:"test",
       p_rating:null,p_l:null,p_s:null,p_total:null,p_records:{},p_public:false})});
-  }catch(e){ return sbShow("② 書き込み関数の呼び出しに失敗",e.message||e); }
-  sbShow("接続は正常です ✓","読み取り・書き込みとも成功しました。プロフィールの @ID を入れて「公開」を押してください。");
+    put(true,"upsert_profile 関数の呼び出し");
+  }catch(e){ put(false,"upsert_profile が呼べません",e.message);
+    return stop("SQLの後半（create function … / grant execute …）まで実行できているか確認してください。"); }
+
+  stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
 async function loadRanking(){
   const el=$("#rankBody");
@@ -1264,8 +1322,6 @@ function normalize(j){
     }catch(e){} }
   fillInputs();
   applyData();
-  /* DSEG7（7セグフォント）を読み込めたら本物の字形で描き直す */
-  if(DIGITAL && await loadSegFont()){ render(); if(!$("#card").hidden) drawCard(); }
 })();
 </script>
 </body>
