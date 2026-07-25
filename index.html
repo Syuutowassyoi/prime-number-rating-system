@@ -253,6 +253,19 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <div class="tools"><button class="btn sm" id="pubTest">Supabase接続テスト</button></div>
     <div id="pubMsg" class="lockbox" hidden style="margin-top:10px"></div>
+    <details style="margin-top:10px"><summary class="muted">接続先をこの端末だけで試す（ファイルを書き換える前の動作確認用）</summary>
+      <p class="tiny">ここに入れた値はこのブラウザにだけ保存され、公開サイトには影響しません。
+        うまく繋がったら、同じ値を index.html の SUPABASE_URL / SUPABASE_ANON_KEY に書き写してアップロードしてください。</p>
+      <label class="fl">Project URL</label>
+      <input type="text" class="txt" id="sbUrl" placeholder="https://xxxxxxxxxxxxxxxxxxxx.supabase.co" style="max-width:none">
+      <label class="fl">Publishable key</label>
+      <input type="text" class="txt" id="sbKey" placeholder="sb_publishable_..." style="max-width:none">
+      <div class="tools">
+        <button class="btn pri sm" id="sbSave">この値で試す</button>
+        <button class="btn sm" id="sbClear">一時設定を消す</button>
+      </div>
+      <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
+    </details>
     <p class="tiny">画像は <a href="https://unavatar.io" target="_blank" rel="noopener">unavatar.io</a> 経由で公開アイコンを取得します。Xの表示名はAPIキーなしでは取得できないため、名前は手入力です。</p>
   </div>
 </section>
@@ -359,7 +372,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
    0. 設定
    ========================================================= */
 /* Supabase を使う場合はこの2つを埋めてください（anon key は公開してよいキーです）*/
-const SUPABASE_URL      = "https://hlhgjnhxtfcqcvdklww.supabase.co";
+const SUPABASE_URL      = "https://hlhgjnhxtfcqcqvdklww.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
@@ -772,6 +785,18 @@ $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";render();toast("画像を消しました");};
 $("#pubTest").onclick=sbTest;
+$("#sbSave").onclick=()=>{
+  const u=$("#sbUrl").value.trim(), k=$("#sbKey").value.trim();
+  if(!u||!k) return toast("URLとキーの両方を入力してください");
+  sbCfg={url:u,key:k};
+  try{localStorage.setItem(K_SB,JSON.stringify(sbCfg));}catch(e){}
+  applySb(); sbTest();
+};
+$("#sbClear").onclick=()=>{
+  sbCfg=null; localStorage.removeItem(K_SB); applySb();
+  $("#sbUrl").value=""; $("#sbKey").value="";
+  $("#pubMsg").hidden=true; toast("一時設定を消しました");
+};
 $("#pubOn").onclick=()=>{pro.pub=true;render();publishNow();};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
@@ -984,8 +1009,14 @@ $("#dlCard").onclick=()=>{
 /* =========================================================
    10. Supabase（全体ランキング）
    ========================================================= */
-const SB_URL=String(SUPABASE_URL||"").trim().replace(/\/+$/,"");
-const SB_KEY=String(SUPABASE_ANON_KEY||"").trim();
+const K_SB="sa-sb-v3";
+let sbCfg=ls(K_SB,null), SB_URL="", SB_KEY="";
+function applySb(){
+  const o=sbCfg||{};
+  SB_URL=String(o.url||SUPABASE_URL||"").trim().replace(/\/+$/,"");
+  SB_KEY=String(o.key||SUPABASE_ANON_KEY||"").trim();
+  const b=$("#sbLocal"); if(b) b.hidden=!sbCfg;
+}
 const sbOn=()=>!!(SB_URL&&SB_KEY);
 async function sb(path,opt){
   const o=opt||{}, h={apikey:SB_KEY};
@@ -1070,7 +1101,11 @@ async function sbTest(){
   try{ await fetch(SB_URL+"/rest/v1/",{mode:"no-cors",cache:"no-store"}); reach=true; }catch(e){}
   if(!reach){
     put(false,"サーバーに到達できません");
-    return stop("ドメインに接続できませんでした。①URLのプロジェクトIDのつづり ②Supabaseのプロジェクトが一時停止していないか ③広告ブロッカーや拡張機能が supabase.co を遮断していないか（シークレットウィンドウで試すと切り分けられます）を確認してください。");
+    return stop("ドメインに接続できませんでした。まずURLを疑ってください。"+
+      "Supabaseダッシュボード右上の「Connect」ボタン、または左メニュー Settings → Data API に表示される "+
+      "Project URL を、手で打たずにコピーボタンでコピーして下の欄に貼ってください。"+
+      "（プロジェクトrefは20文字です）それでも駄目なら、プロジェクトの一時停止と、"+
+      "広告ブロッカー等による supabase.co の遮断（シークレットウィンドウで切り分け）を確認してください。");
   }
   put(true,"サーバーへの到達");
 
@@ -1320,6 +1355,8 @@ function normalize(j){
       }else{ $("#oppo").value=location.hash; $$(".tabs button")[3].click(); renderCompare(g); }
       history.replaceState(null,"",location.pathname);
     }catch(e){} }
+  applySb();
+  if(sbCfg){ $("#sbUrl").value=sbCfg.url||""; $("#sbKey").value=sbCfg.key||""; }
   fillInputs();
   applyData();
 })();
