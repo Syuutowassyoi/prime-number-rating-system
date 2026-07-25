@@ -1109,30 +1109,45 @@ async function sbTest(){
   }
   put(true,"サーバーへの到達");
 
-  /* 4. キーが通るか */
-  try{ await sb("");
+  /* 4. 読み取り（認証とスキーマを同時に確かめる）
+        ※ /rest/v1/ のルートは Secret key 専用なので触らない */
+  try{
+    await sb("profiles_public?select=handle&limit=1");
+    put(true,"APIキーの認証");
+    put(true,"profiles_public ビューの読み取り");
   }catch(e){
-    if(e.status===401||/Invalid API key|No API key/i.test(e.message)){
-      put(false,"APIキーが拒否されました",e.message);
-      return stop("Settings → API Keys の Publishable key を貼り直してください。別プロジェクトのキーになっていないかも確認を。");
+    const m=String(e.message||"");
+    if(e.status===401||e.status===403||/Invalid API key|No API key|JWT/i.test(m)){
+      put(false,"APIキーが拒否されました",m);
+      return stop("Settings → API Keys の Publishable key（sb_publishable_ で始まる方）をコピーし直してください。Secret key は使えません。");
     }
-    /* ルートは404などを返すことがあるが、到達していれば認証はOK */
+    if(/PGRST205|PGRST202|does not exist|Could not find/i.test(m)){
+      put(false,"profiles_public が見つかりません",m);
+      return stop("SQLがまだ実行されていません。Supabase 左メニューの SQL Editor で、SETUP.md のSQLを丸ごと貼り付けて Run してください。");
+    }
+    if(/permission denied/i.test(m)){
+      put(false,"読み取り権限がありません",m);
+      return stop("SQLの grant select on public.profiles_public to anon; が実行されているか確認してください。");
+    }
+    put(false,"読み取りに失敗しました",m);
+    return stop("上のエラー本文を確認してください。");
   }
-  put(true,"APIキーの認証");
 
-  /* 5. ビュー */
-  try{ await sb("profiles_public?select=handle&limit=1"); put(true,"profiles_public ビューの読み取り"); }
-  catch(e){ put(false,"profiles_public が読めません",e.message);
-    return stop("SQLがまだ実行されていない可能性が高いです。Supabase の SQL Editor で SETUP.md のSQLを丸ごと貼って Run してください。"); }
-
-  /* 6. 書き込み関数 */
+  /* 5. 書き込み関数 */
   try{
     await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
       p_handle:"__conntest__",p_key:"0000000000000000ffff",p_name:"test",
       p_rating:null,p_l:null,p_s:null,p_total:null,p_records:{},p_public:false})});
     put(true,"upsert_profile 関数の呼び出し");
-  }catch(e){ put(false,"upsert_profile が呼べません",e.message);
-    return stop("SQLの後半（create function … / grant execute …）まで実行できているか確認してください。"); }
+  }catch(e){
+    const m=String(e.message||"");
+    if(/PGRST202|Could not find the function/i.test(m)){
+      put(false,"upsert_profile が見つかりません",m);
+      return stop("SQLの後半（create function … / grant execute …）まで実行できているか確認してください。");
+    }
+    put(false,"upsert_profile が呼べません",m);
+    return stop("上のエラー本文を確認してください。");
+  }
 
   stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
