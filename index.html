@@ -44,8 +44,8 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .segwrap{display:inline-flex;align-items:flex-end;line-height:0}
 .segfont{font-family:"DSEG7",ui-monospace,monospace;font-weight:700;line-height:1;
   display:inline-block;white-space:nowrap}
-.rtplain{font-family:var(--serif);font-weight:700;line-height:1;letter-spacing:-.01em;
-  font-variant-numeric:tabular-nums;display:inline-flex;align-items:baseline;white-space:nowrap}
+.rtplain{font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  display:inline-flex;align-items:baseline;white-space:nowrap}
 .rtplain .d{font-size:.56em;letter-spacing:-.01em;margin-left:.02em}
 .rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600;margin-bottom:6px}
 .dg{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
@@ -231,6 +231,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn pri" id="doPlan">プランを作る</button>
     </div>
     <div id="planOut" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>ランクとレートの仕組み</h2>
+    <div id="pyramid"></div>
+    <div id="pyramidNote"></div>
   </div>
 
   <div class="card">
@@ -486,23 +492,30 @@ function nextTarget(n,rc){
   const after =compute(Object.assign({},rc,{[n]:req})).total;
   return {rank,req,gain:after-before,cur};
 }
-/** 目標RATINGに届くまで、最も効率のよい底上げを積み重ねる */
+/** 目標RATINGまでの強化プラン。
+ *  「1種目を極める」のではなく「伸ばしやすい種目から少しずつ」になるよう、
+ *  上昇量 ÷ 必要な伸び幅（費用対効果）が最大の一手を選び続ける。 */
+function stepCost(t){
+  if(!(t.cur>0)) return 1;                       // 未入力はゼロから作る想定
+  return Math.max(Math.abs(t.req-t.cur)/t.cur, 0.002);
+}
 function makePlan(target,rc){
   let r=Object.assign({},rc), steps=[], cur=compute(r).total;
   const start=cur;
   for(let i=0;i<80 && cur<target-1e-9;i++){
-    let best=null,fall=null;
+    let best=null, cheap=null;
     for(const n of ["合計スコア"].concat(EVENTS)){
       const t=nextTarget(n,r); if(!t) continue;
-      if(!best||t.gain>best.t.gain) best={n,t};
-      const d=t.cur>0?Math.abs(t.req-t.cur)/t.req:Infinity;
-      if(!fall||d<fall.d) fall={n,t,d};
+      const cost=stepCost(t), eff=t.gain/cost;
+      if(t.gain>1e-9 && (!best||eff>best.eff)) best={n,t,eff,cost};
+      if(!cheap||cost<cheap.cost) cheap={n,t,eff:0,cost};
     }
-    const pick = (best&&best.t.gain>1e-9)?best:fall;
+    const pick=best||cheap;
     if(!pick) break;
     r[pick.n]=pick.t.req;
     const nt=compute(r).total;
-    steps.push({n:pick.n,rank:pick.t.rank,req:pick.t.req,from:pick.t.cur,to:nt,gain:nt-cur});
+    steps.push({n:pick.n,rank:pick.t.rank,req:pick.t.req,from:pick.t.cur,
+                cost:pick.cost,gain:nt-cur,to:nt});
     cur=nt;
   }
   return {steps,start,end:cur,reached:cur>=target-1e-9};
@@ -650,12 +663,30 @@ $("#brk").innerHTML=BRK.map((b,i)=>`<div class="row"><span class="lb">${b.t}</sp
 /* =========================================================
    5. 描画
    ========================================================= */
+/* X のアイコンは取得元によって成否が変わるので順に試す */
+function avatarSources(h){
+  const q=encodeURIComponent(h);
+  return [`https://unavatar.io/x/${q}`,
+          `https://unavatar.io/twitter/${q}`,
+          `https://unavatar.io/${q}`];
+}
+window.avNext=function(img){
+  const list=JSON.parse(img.dataset.srcs||"[]");
+  let i=+img.dataset.i+1;
+  if(i<list.length){ img.dataset.i=i; img.src=list[i]; return; }
+  img.outerHTML=`<div class="${img.dataset.cls}">${img.dataset.init}</div>`;
+};
 function avatarHTML(p,cls){
-  const c=cls||"av", init=esc((p.name||p.handle||"?").trim()[0]||"?");
+  const c=cls||"av", ph=(cls==="av"?"avph":"avph");
+  const init=esc((p.name||p.handle||"?").trim()[0]||"?");
   if(p.img) return `<img class="${c}" src="${p.img}" alt="">`;
-  if(p.handle) return `<img class="${c}" src="https://unavatar.io/x/${encodeURIComponent(p.handle)}" alt=""
-     onerror="this.outerHTML='<div class=\\'avph\\'>${init}</div>'">`;
-  return `<div class="avph">${init}</div>`;
+  if(p.handle){
+    const srcs=avatarSources(p.handle);
+    return `<img class="${c}" src="${srcs[0]}" alt="" loading="lazy" referrerpolicy="no-referrer"
+      data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" data-cls="${ph}" data-init="${init}"
+      onerror="avNext(this)">`;
+  }
+  return `<div class="${ph}">${init}</div>`;
 }
 function render(){
   const c=compute(rec);
@@ -722,11 +753,54 @@ function render(){
   $("#pubOn").classList.toggle("on",!!pro.pub);
   $("#pubOff").classList.toggle("on",!pro.pub);
   renderFriends();
+  renderPyramid();
   save();
   if(pro.pub&&sbOn()&&pro.handle) schedulePublish();
 }
 let pubT=null;
 function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(()=>publishNow(),2500); }
+
+/** ランクのピラミッド図。現在地を光らせる */
+function drawPyramid(total,complete){
+  const W=660, rowH=42, n=RANKS.length, H=n*rowH+58;
+  const topW=190, botW=620, cx=W/2;
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:${W}px;margin:0 auto"
+    xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ランクのピラミッド">`;
+  for(let i=n-1;i>=0;i--){
+    const r=RANKS[i], idx=n-1-i;                 // 上から何番目か
+    const y=14+idx*rowH;
+    const w0=topW+(botW-topW)*(idx/n), w1=topW+(botW-topW)*((idx+1)/n);
+    const here=complete&&rankOf(total).n===r.n;
+    const nx=RANKS[i+1];
+    const range=nx?`${r.min.toFixed(1)} 〜 ${nx.min.toFixed(1)}`:`${r.min.toFixed(1)} 以上`;
+    g+=`<polygon points="${cx-w0/2},${y} ${cx+w0/2},${y} ${cx+w1/2},${y+rowH-5} ${cx-w1/2},${y+rowH-5}"
+      fill="${r.c}${here?"55":"1f"}" stroke="${r.c}${here?"":"66"}" stroke-width="${here?2.5:1}"/>`;
+    g+=`<text x="${cx-6}" y="${y+rowH/2+1}" text-anchor="end" fill="${r.c}"
+      style="font:700 15px ui-sans-serif,system-ui;letter-spacing:.1em">${r.n}</text>`;
+    g+=`<text x="${cx+14}" y="${y+rowH/2+1}" fill="#8ba0bd"
+      style="font:400 12px ui-monospace,monospace">${range}</text>`;
+    if(here) g+=`<text x="${cx+w1/2+8}" y="${y+rowH/2+1}" fill="${r.c}"
+      style="font:700 12px ui-sans-serif,system-ui">◀ 現在地</text>`;
+  }
+  g+=`<text x="${cx}" y="${H-16}" text-anchor="middle" fill="#61748f"
+    style="font:400 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>`;
+  return g+"</svg>";
+}
+function renderPyramid(){
+  const c=compute(rec);
+  $("#pyramid").innerHTML=drawPyramid(c.total,c.complete);
+  const nx=c.complete?nextRank(c.total):null;
+  $("#pyramidNote").innerHTML=
+    `<p class="tiny" style="margin-top:10px">RATINGは <b>20.000点満点</b>。3つの枠の合計で決まります。</p>`+
+    `<div class="scroll"><table><thead><tr><th>枠</th><th>対象</th><th>数え方</th><th>満点</th></tr></thead><tbody>`+
+    `<tr><td>①</td><td>十種競技総合スコア</td><td>合計1種目</td><td>6.000</td></tr>`+
+    `<tr><td>②</td><td>素数ゲームV1・V2／暗素因数分解lv.1-3（10種）</td><td>上位4種目 × 各2点</td><td>8.000</td></tr>`+
+    `<tr><td>③</td><td>EX系・タイムアタック系（8種）</td><td>上位3種目 × 各2点</td><td>6.000</td></tr>`+
+    `</tbody></table></div>`+
+    `<p class="tiny">各種目の点数は「1位で満点、10位で8割、50位で6割、100位で5割、200位で4割」を基準に、`+
+    `自分の記録がボーダーのどこにあるかで按分されます。`+
+    (nx?`　<span style="color:${nx.c}">次の <b>${nx.n}</b> まであと ${f3(nx.min-c.total)}</span>`:"")+`</p>`;
+}
 
 /* =========================================================
    6. 入力イベント
@@ -795,23 +869,38 @@ $("#doPlan").onclick=()=>{
   $("#tgtRate").value=f3(tgt);
   if(tgt<=c.total) return $("#planOut").innerHTML=`<p class="muted">現在のRATING ${f3(c.total)} はすでに目標を超えています。</p>`;
   const p=makePlan(tgt,rec);
-  /* 同じ種目の連続ステップを1行にまとめる */
-  const agg=[];
-  for(const s of p.steps){
-    const e=agg.find(x=>x.n===s.n);
-    if(e){ e.rank=s.rank; e.req=s.req; e.gain+=s.gain; e.to=s.to; }
-    else agg.push(Object.assign({},s));
+  const kinds=new Set(p.steps.map(x=>x.n)).size;
+  const rows=p.steps.map((x,i)=>{
+    const dir=LOW.has(x.n)?"短縮":"上乗せ";
+    const pct=x.from>0?`${(Math.abs(x.req-x.from)/x.from*100).toFixed(1)}% ${dir}`:"新規";
+    return `<tr><td>${i+1}</td><td>${x.n}</td>`+
+      `<td>${x.from>0?nice(x.from):"—"}</td>`+
+      `<td><b>${nice(x.req)}</b><br><span class="tiny">${x.rank}位ボーダー</span></td>`+
+      `<td class="tgt">${pct}</td><td class="pct">＋${f3(x.gain)}</td><td>${f3(x.to)}</td></tr>`;
+  });
+  /* 種目ごとの最終到達点だけをまとめた要約 */
+  const fin=[];
+  for(const st of p.steps){
+    const e=fin.find(x=>x.n===st.n);
+    if(e){ e.rank=st.rank; e.req=st.req; e.gain+=st.gain; e.hops++; }
+    else fin.push(Object.assign({hops:1},st));
   }
-  agg.sort((a,b)=>b.gain-a.gain);
+  fin.sort((a,b)=>b.gain-a.gain);
   $("#planOut").innerHTML=
-    `<p class="muted">現在 ${f3(p.start)} → 到達 ${f3(p.end)}　`+
+    `<p class="muted">現在 <b>${f3(p.start)}</b> → 到達 <b>${f3(p.end)}</b>　`+
     `${p.reached?'<span class="win">目標達成 ✓</span>':'<span class="lose">この組み合わせでは届きません</span>'}`+
-    `　（${agg.length}種目を強化）</p>`+
-    agg.map((s,i)=>{const dir=LOW.has(s.n)?"以下":"以上";
-      return `<div class="step"><span class="no">${i+1}</span><span>${s.n}</span>`+
-        `<span style="color:var(--acc2);font-weight:600">＋${f3(s.gain)}</span>`+
-        `<span class="d">${s.rank}位ボーダー <b>${nice(s.req)}</b> ${dir} を目指す`+
-        `${s.from>0?`（現在 ${nice(s.from)}）`:"（未入力）"}</span></div>`;}).join("");
+    `　<b>${kinds}種目</b>に分散・全<b>${p.steps.length}手</b></p>`+
+    `<h3>種目ごとの最終目標</h3>`+
+    fin.map(x=>{
+      const dir=LOW.has(x.n)?"以下":"以上";
+      return `<div class="goal"><span class="n">${x.n}</span><span class="g">＋${f3(x.gain)}</span>`+
+        `<span class="d">${x.from>0?nice(x.from)+" → ":""}<b>${nice(x.req)}</b> ${dir}`+
+        `（${x.rank}位ボーダー／${x.hops}段階）</span></div>`;}).join("")+
+    `<h3>おすすめの順番</h3>`+
+    `<p class="tiny" style="margin-top:-4px">伸ばしやすさ（上昇量 ÷ 必要な伸び幅）が高い順です。上から片付けるのが最短になります。</p>`+
+    `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>目標</th>`+
+    `<th>必要な伸び</th><th>上昇</th><th>到達RATING</th></tr></thead><tbody>`+
+    rows.join("")+`</tbody></table></div>`;
 };
 
 /* =========================================================
@@ -859,7 +948,7 @@ function renderFriends(){
   $$("[data-cmp]").forEach(b=>b.onclick=()=>renderCompare(friends[+b.dataset.cmp]));
   $$("[data-del]").forEach(b=>b.onclick=()=>{friends.splice(+b.dataset.del,1);render();toast("削除しました");});
 }
-function renderCompare(op){
+function renderCompare(op,sel){
   const me=compute(rec), th=compute(op.rec);
   let w=0,l=0,d=0,rows="";
   for(const n of ["合計スコア"].concat(EVENTS)){
@@ -875,14 +964,15 @@ function renderCompare(op){
     <div style="margin-top:8px">${ratingHTML(c.complete?c.total:null)}</div>
     <div class="tiny">${c.complete?rankOf(c.total).n:"未完成"}</div></div>`;
   const diff=(me.complete&&th.complete)?me.total-th.total:null;
-  $("#cmpOut").innerHTML=`<div class="card">
+  const out=$(sel||"#cmpOut");
+  out.innerHTML=`<div class="card">
     <div class="vs">${card(pro,me,true)}<div class="mid">VS</div>${card(op.pro,th,false)}</div>
     ${diff===null?'<p class="muted" style="text-align:center">どちらかの入力が未完成のため、RATING差は表示できません。</p>'
      :`<p style="text-align:center;font-size:1.05rem;font-weight:700" class="${diff>0?"win":diff<0?"lose":"draw"}">RATING差 ${diff>0?"＋":""}${f3(diff)}</p>`}
     <div class="tally"><span class="win">勝ち ${w}</span><span class="draw">分け ${d}</span><span class="lose">負け ${l}</span></div>
     <div class="scroll"><table><thead><tr><th>種目</th><th>自分</th><th></th><th>相手</th></tr></thead>
     <tbody>${rows}</tbody></table></div></div>`;
-  $("#cmpOut").scrollIntoView({behavior:"smooth"});
+  out.scrollIntoView({behavior:"smooth"});
 }
 
 /* =========================================================
@@ -907,8 +997,9 @@ async function drawCard(){
 
   const F=(w,s)=>`${w} ${s}px ${FONTS}`;
   /* アイコン */
-  const src=pro.img||(pro.handle?`https://unavatar.io/x/${encodeURIComponent(pro.handle)}`:"");
-  let img=src?await loadImg(src,!pro.img):null;
+  let img=null;
+  if(pro.img) img=await loadImg(pro.img,false);
+  else if(pro.handle){ for(const u of avatarSources(pro.handle)){ img=await loadImg(u,true); if(img) break; } }
   const cx=140,cy=150,r=76;
   g.save();g.beginPath();g.arc(cx,cy,r,0,7);g.closePath();g.clip();
   if(img){try{g.drawImage(img,cx-r,cy-r,r*2,r*2);}catch(e){img=null;}}
@@ -937,7 +1028,7 @@ async function drawCard(){
   const topBig=316, yBase=topBig+big.H;
   if(!DIGITAL){
     g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
-    const fBig=`700 150px ${SERIF}`, fSml=`700 86px ${SERIF}`;
+    const fBig=`800 150px ${FONTS}`, fSml=`800 84px ${FONTS}`;
     g.font=fBig;
     const wInt=g.measureText(s.slice(0,di)).width;   // 縮小前に実測する
     g.fillText(s.slice(0,di),80,yBase);
@@ -1129,6 +1220,7 @@ async function sbTest(){
 
   stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
+let RANK_ROWS=[];
 async function loadRanking(){
   const el=$("#rankBody");
   if(!sbOn()){ el.innerHTML=
@@ -1148,14 +1240,29 @@ async function loadRanking(){
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
       <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
+      <p class="tiny">プレイヤー行の「比較」を押すと、全種目の記録を並べて比べられます。</p>
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th>
-      <th>L値</th><th>S値</th><th>総合スコア</th></tr></thead><tbody>`+
+      <th>L値</th><th>S値</th><th>総合スコア</th><th></th></tr></thead><tbody>`+
       rows.map((r,i)=>`<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
         `<td>${esc(r.name||r.handle)}<br><span class="tiny">@${esc(r.handle)}</span></td>`+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
-        `<td>${r.total_score==null?"—":jp(+r.total_score)}</td></tr>`).join("")+`</tbody></table></div>`;
+        `<td>${r.total_score==null?"—":jp(+r.total_score)}</td>`+
+        `<td>${r.handle===mine?"":`<button class="btn sm" data-rc="${i}">比較</button> `+
+          `<button class="btn sm" data-rf="${i}">＋友達</button>`}</td></tr>`).join("")+
+      `</tbody></table></div><div id="rkCmp"></div>`;
+    RANK_ROWS=rows;
+    $$("[data-rc]").forEach(b=>b.onclick=()=>{
+      const r=RANK_ROWS[+b.dataset.rc];
+      renderCompare({pro:{name:r.name,handle:r.handle,img:""},rec:r.records||{}},"#rkCmp");});
+    $$("[data-rf]").forEach(b=>b.onclick=()=>{
+      const r=RANK_ROWS[+b.dataset.rf];
+      const key=(r.handle||"").toLowerCase();
+      const i=friends.findIndex(f=>((f.pro.handle||"").toLowerCase())===key);
+      const item={pro:{name:r.name,handle:r.handle,img:""},rec:r.records||{},at:Date.now()};
+      if(i>=0) friends[i]=item; else friends.push(item);
+      render(); toast("フレンドに登録しました");});
     const rl=$("#rkReload"); if(rl) rl.onclick=loadRanking;
     const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{
       if(!pro.pub){ pro.pub=true; render(); }
