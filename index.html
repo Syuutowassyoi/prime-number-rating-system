@@ -229,6 +229,11 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <button data-tab="settings">設定</button>
 </nav>
 
+<div id="updBanner" class="banner" hidden style="background:#12351f;border-color:#2c7a4b">
+  <span id="updMsg"></span>
+  <button class="btn sm pri" id="updGo">今すぐ更新</button>
+  <button class="btn sm" id="updLater">あとで</button>
+</div>
 <div id="errBanner" class="banner" hidden style="background:#3a1414;border-color:#7a2b2b">
   <span id="errMsg"></span><button class="btn sm" id="errClose">閉じる</button>
 </div>
@@ -295,6 +300,11 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div id="pickHint" class="hintbox" hidden></div>
     </details>
     <div id="planOut" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>大会成績</h2>
+    <div id="cupStat"></div>
   </div>
 
   <div class="card">
@@ -457,6 +467,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn" id="cCancel">やめる</button></div>
     <div id="cMsg" class="tiny"></div>
   </div>
+  <div class="card" id="myCupsCard" hidden><h2>自分が開催した大会</h2><div id="myCups"></div></div>
   <div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
   <div id="cupDetail"></div>
 </section>
@@ -528,7 +539,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v9";
+const APP_VERSION = "v11";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -989,6 +1000,7 @@ function render(){
       `素数ゲームV1・V2／暗素因数分解lv.1-3 の10種は ${jp(MAXSCORE)} 点が上限です。</span><br>`+
       over.map(n=>`<span class="tiny">${esc(n)}：${jp(rec[n])} 点</span>`).join("　");
   }
+  if($("#cupStat")&&pro.handle!==lastCupHandle){ lastCupHandle=pro.handle; renderCupStat(); }
   renderFriends();
   renderPyramid();
   if($("#pickList")) renderPicks();
@@ -1144,7 +1156,7 @@ $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["profile","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
-  if(b.dataset.tab==="card") drawCard();
+  if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
   if(b.dataset.tab==="rank") loadRanking();
   if(b.dataset.tab==="settings") renderSettings();
   if(b.dataset.tab==="cup") loadCups();
@@ -1360,14 +1372,27 @@ async function drawCard(){
 
   const box=[["十種競技総合スコア",rec["合計スコア"]>0?jp(rec["合計スコア"]):"—",""],
              ["L値",c.L===null?"—":f3(c.L),rec["乱数累積"]>0?"乱数累積 "+jp(rec["乱数累積"]):""],
-             ["S値",c.S===null?"—":f3(c.S),rec["スコア累積"]>0?"スコア累積 "+jp(rec["スコア累積"]):""]];
-  box.forEach((b,i)=>{const x=660,y=262+i*98;
-    g.fillStyle="#ffffff0d";rrect(g,x,y,470,86,14);g.fill();
-    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,86,14);g.stroke();
-    g.textAlign="left";g.fillStyle="#8ba0bd";g.font=F(500,21);g.fillText(b[0],x+22,y+30);
-    if(b[2]){ g.fillStyle="#61748f";g.font=F(400,16);g.fillText(b[2],x+22,y+56); }
-    g.fillStyle="#eef3fa";g.font=`400 40px ${IMPACT}`;
-    g.textAlign="right";g.fillText(b[1],x+448,y+62);g.textAlign="left";});
+             ["S値",c.S===null?"—":f3(c.S),rec["スコア累積"]>0?"スコア累積 "+jp(rec["スコア累積"]):""],
+             ["大会成績", MY_CUP?`${MY_CUP.wins} 優勝`:"—",
+              MY_CUP?`参加 ${MY_CUP.played} 回／3位以内 ${MY_CUP.podium} 回`:""]];
+  box.forEach((b,i)=>{const x=660,y=238+i*74;
+    g.fillStyle="#ffffff0d";rrect(g,x,y,470,64,12);g.fill();
+    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,64,12);g.stroke();
+    g.textAlign="left";g.fillStyle="#8ba0bd";g.font=F(500,19);g.fillText(b[0],x+20,y+26);
+    if(b[2]){ g.fillStyle="#61748f";g.font=F(400,14);g.fillText(b[2],x+20,y+48); }
+    g.fillStyle=i===3?"#ffc861":"#eef3fa";g.font=`400 34px ${IMPACT}`;
+    g.textAlign="right";g.fillText(b[1],x+450,y+46);g.textAlign="left";});
+  /* 最近の大会 */
+  if(MY_CUP&&MY_CUP.rows.length){
+    const r0=MY_CUP.rows.slice(0,2);
+    g.fillStyle="#8ba0bd";g.font=F(500,17);g.fillText("最近の大会",660,556);
+    r0.forEach((r,i)=>{const ended=Date.parse(r.ends_at)<=Date.now();
+      g.fillStyle="#cfe0f5";g.font=F(400,15);
+      const t=(r.title||"").length>18?r.title.slice(0,18)+"…":r.title;
+      g.fillText(t,750+i*0,556+22+i*20);
+      g.textAlign="right";g.fillStyle=ended&&+r.pos===1?"#ffc861":"#8ba0bd";
+      g.fillText(ended?`${r.pos}位`:"開催中",1130,556+22+i*20);g.textAlign="left";});
+  }
 
   g.fillStyle="#61748f";g.font=F(400,20);
   g.fillText("素数あつめ RATING",80,570);
@@ -1409,7 +1434,8 @@ function drawBack(g,W,H,c,rk,F){
     }
   }
   g.fillStyle="#61748f";g.font=F(400,16);
-  g.fillText("緑＝RATINGに加算された種目（②上位4種／③上位3種）",80,584);
+  g.fillText("緑＝RATINGに加算された種目（②上位4種／③上位3種）"+
+    (MY_CUP?`　／　大会 ${MY_CUP.played}回参加・${MY_CUP.wins}回優勝`:""),80,584);
   g.textAlign="right";g.fillText(`ボーダー ${DATA().date} 時点`,W-80,584);
   g.textAlign="left";
   $("#cardNote").textContent="";
@@ -1465,6 +1491,9 @@ function sbHint(msg){
   if(/PGRST205|does not exist|Could not find the table/i.test(m))
     return "SQLがまだ実行されていないようです。Supabase の SQL Editor で SETUP.md のSQLを実行してください。";
   if(/PGRST202|Could not find the function/i.test(m))
+    return "この画面のアプリが古い可能性があります。ページを再読み込み（Ctrl+Shift+R）してからもう一度お試しください。"+
+           "それでも直らない場合は、SETUP.md のSQLが最後まで実行されているか確認してください。";
+  if(/__never__/.test(m))
     return "必要な関数が見つかりません。SETUP.md の新しいSQLを最後まで実行してください（古い版のSQLだけでは足りません）。";
   if(/Invalid API key|JWSError|JWT|401/i.test(m))
     return "APIキーが正しくありません。Settings → API Keys の Publishable key を貼り直してください。";
@@ -1562,7 +1591,10 @@ async function sbTest(){
     put(true,"関数（get_records）の呼び出し");
   }catch(e){
     const m=String(e.message||"");
-    if(/PGRST202|Could not find the function/i.test(m)){
+    if(/PGRST202|Could not find the function/i.test(m))
+    return "この画面のアプリが古い可能性があります。ページを再読み込み（Ctrl+Shift+R）してからもう一度お試しください。"+
+           "それでも直らない場合は、SETUP.md のSQLが最後まで実行されているか確認してください。";
+  if(/__never__/.test(m)){
       put(false,"関数が見つかりません",m);
       return stop("SETUP.md の新しいSQLを最後まで実行してください。古い版のSQLしか入っていない可能性があります。");
     }
@@ -1882,8 +1914,65 @@ async function loadCups(){
   try{
     CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
     renderCupList();
+    renderMyCups();
     clearInterval(cupTimer); cupTimer=setInterval(tickCups,1000);
   }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
+}
+function renderMyCups(){
+  const card=$("#myCupsCard"), box=$("#myCups");
+  const mine=(sess&&CUPS.length)?CUPS.filter(c=>c.owner_id===sess.user.id):[];
+  card.hidden=!mine.length;
+  if(!mine.length) return;
+  box.innerHTML=mine.map(c=>{const ph=cupPhase(c);
+    return `<div class="cup ${ph==="live"?"live":""}">
+      <h4>${esc(c.title)}</h4>
+      <div class="meta">${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}　${
+        ph==="live"?"<b style='color:var(--acc2)'>開催中</b>":ph==="pre"?"開催予定":"終了"}</div>
+      <div class="tools" style="margin-top:8px">
+        <button class="btn sm" data-mo="${esc(c.id)}">開く</button>
+        ${ph!=="end"?`<button class="btn sm pri" data-me2="${esc(c.id)}">内容を変更</button>`
+                    :`<span class="tiny">終了した大会は変更できません</span>`}
+      </div></div>`;}).join("");
+  $$("[data-mo]").forEach(b=>b.onclick=()=>openCup(b.dataset.mo));
+  $$("[data-me2]").forEach(b=>b.onclick=()=>editCup(b.dataset.me2));
+}
+/** 主催者が内容を変更する（終了後は不可） */
+function editCup(id){
+  const c=CUPS.find(x=>x.id===id); if(!c) return;
+  if(cupPhase(c)==="end") return toast("終了した大会は変更できません");
+  const iso=t=>{const d=new Date(t);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);};
+  const mask=document.createElement("div");mask.className="mask";
+  mask.innerHTML=`<div class="modal"><h2>大会の内容を変更</h2>
+    <p class="muted" style="margin-top:-8px">種目と勝負の方式は、記録の公平性のため変更できません。</p>
+    <label class="fl">大会名</label>
+    <input type="text" class="txt" id="edTitle" style="max-width:none" value="${esc(c.title)}">
+    <label class="fl">説明</label>
+    <input type="text" class="txt" id="edNote" style="max-width:none" value="${esc(c.note||"")}">
+    <div class="frow">
+      <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="edStart" style="max-width:none" value="${iso(c.starts_at)}"></div>
+      <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="edEnd" style="max-width:none" value="${iso(c.ends_at)}"></div>
+    </div>
+    <p class="tiny">種目：${esc((c.events||[]).join("、"))}　方式：${c.mode==="score"?"スコアモード":"合計モード"}</p>
+    <div class="tools"><button class="btn pri" id="edSave">保存する</button>
+      <button class="btn" id="edX">やめる</button></div>
+    <div id="edMsg" class="tiny"></div></div>`;
+  document.body.appendChild(mask);
+  const q=x=>mask.querySelector(x), close=()=>mask.remove();
+  mask.addEventListener("click",e=>{if(e.target===mask)close();});
+  q("#edX").onclick=close;
+  q("#edSave").onclick=async()=>{
+    const a=q("#edStart").value,b=q("#edEnd").value;
+    if(!q("#edTitle").value.trim()) return toast("大会名を入力してください");
+    if(!a||!b) return toast("日時を入れてください");
+    if(Date.parse(b)<=Date.parse(a)) return toast("終了は開始より後にしてください");
+    try{
+      await sbAuth("rpc/update_tournament",{method:"POST",body:JSON.stringify({
+        p_id:c.id,p_title:q("#edTitle").value.trim(),p_note:q("#edNote").value.trim(),
+        p_starts:new Date(a).toISOString(),p_ends:new Date(b).toISOString()})});
+      close(); toast("変更しました"); await loadCups();
+      if(cupSel&&cupSel.id===c.id) openCup(c.id);
+    }catch(e){ q("#edMsg").innerHTML=`<span class="lose">失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
+  };
 }
 function renderCupList(){
   const groups=[["live","開催中"],["pre","開催予定"],["end","終了"]];
@@ -2024,12 +2113,14 @@ async function openCup(id){
         `</tr>`).join("")+`</tbody></table></div>`
       :`<p class="muted">まだ記録がありません。</p>`}
     <div class="tools">
+      ${owner&&ph!=="end"?`<button class="btn pri" id="cupEdit">内容を変更</button>`:""}
       ${owner&&ph==="live"?`<button class="btn" id="cupEnd">今すぐ終了する</button>`:""}
       ${isAdmin()?`<button class="btn" id="cupDel">この大会を削除（管理者）</button>`:""}
     </div>
   </div>`;
   tickCups();
   if(ph==="live"&&sess) entryForm(c,evs,dir,mine);
+  if($("#cupEdit")) $("#cupEdit").onclick=()=>editCup(c.id);
   if($("#cupEnd")) $("#cupEnd").onclick=async()=>{
     if(!confirm("この大会を今すぐ終了します。以降は記録を提出できなくなります。よろしいですか？")) return;
     try{ await sbAuth("rpc/end_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
@@ -2126,6 +2217,7 @@ function showPlayer(p,rc){
       `<td class="chk">${c.used[n]?"○":""}</td></tr>`).join("")+
     `</tbody></table></div>
     <div class="tools"><button class="btn pri" id="mpFr">フレンドに追加</button>
+      <button class="btn" id="mpCup">大会記録を見る</button>
       <button class="btn" id="mpCmp">自分と比較</button>
       <button class="btn" id="mpX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
@@ -2138,6 +2230,12 @@ function showPlayer(p,rc){
     const item={pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc,at:Date.now()};
     if(i>=0) friends[i]=item; else friends.push(item);
     render(); close(); toast("フレンドに登録しました");};
+  q("#mpCup").onclick=async()=>{
+    q("#mpCup").disabled=true;
+    const h=await fetchCupHistory(p.handle);
+    q("#mpCup").disabled=false;
+    if(!h) return toast("大会記録を取得できませんでした");
+    showCupHistory(p,h);};
   q("#mpCmp").onclick=()=>{ close(); $$(".tabs button")[3].click();
     renderCompare({pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc}); };
 }
@@ -2293,6 +2391,83 @@ document.addEventListener("visibilitychange",()=>{
 $("#devBtn").onclick=openDev;
 $("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();};
 
+/* ---- 大会成績（順位つきビューから集計）---- */
+let MY_CUP=null, lastCupHandle="\u0000";
+async function fetchCupHistory(handle){
+  if(!sbOn()||!handle) return null;
+  try{
+    const rows=await sb(`entry_ranks?select=*&handle=eq.${encodeURIComponent(handle.toLowerCase())}`+
+      `&order=ends_at.desc&limit=200`);
+    const done=rows.filter(r=>Date.parse(r.ends_at)<=Date.now());
+    return {rows, played:rows.length, finished:done.length,
+            wins:done.filter(r=>+r.pos===1).length,
+            podium:done.filter(r=>+r.pos<=3).length};
+  }catch(e){ return null; }
+}
+function cupHistHTML(h,limit){
+  if(!h||!h.rows.length) return `<p class="muted">まだ大会に参加していません。</p>`;
+  const list=limit?h.rows.slice(0,limit):h.rows;
+  return `<div class="scroll"><table><thead><tr><th>大会</th><th>順位</th><th>合計</th><th>状態</th><th>証明</th></tr></thead><tbody>`+
+    list.map(r=>{const ended=Date.parse(r.ends_at)<=Date.now();
+      return `<tr><td>${esc(r.title)}<br><span class="tiny">${fmtDT(r.ends_at)} 終了　主催 ${esc(r.owner_name||"")}</span></td>`+
+      `<td>${ended?`<b>${r.pos}位</b>${+r.pos===1?" 🏆":""}<span class="tiny"> / ${r.players}人</span>`:"—"}</td>`+
+      `<td>${nice(+r.total)}</td>`+
+      `<td class="tiny">${ended?"終了":"開催中"}</td>`+
+      `<td>${r.proof_url?`<a href="${esc(r.proof_url)}" target="_blank" rel="noopener">見る</a>`:"—"}</td></tr>`;}).join("")+
+    `</tbody></table></div>`+
+    (limit&&h.rows.length>limit?`<p class="tiny">ほか ${h.rows.length-limit} 件</p>`:"");
+}
+async function renderCupStat(){
+  const box=$("#cupStat"); if(!box) return;
+  if(!sbOn()||!pro.handle){ box.innerHTML=`<p class="muted">@ID を設定して大会に参加すると、ここに成績が出ます。</p>`; return; }
+  box.innerHTML=`<p class="muted">読み込み中…</p>`;
+  MY_CUP=await fetchCupHistory(pro.handle);
+  if(!MY_CUP){ box.innerHTML=`<p class="muted">大会成績を取得できませんでした。</p>`; return; }
+  box.innerHTML=`<div class="stats">
+      <div class="stat"><div class="t">参加した大会</div><div class="v">${MY_CUP.played}</div></div>
+      <div class="stat"><div class="t">優勝</div><div class="v" style="color:var(--warn)">${MY_CUP.wins}</div>
+        <div class="s">3位以内 ${MY_CUP.podium} 回</div></div>
+      <div class="stat"><div class="t">勝率（優勝）</div>
+        <div class="v">${MY_CUP.finished?((MY_CUP.wins/MY_CUP.finished*100).toFixed(0)+"%"):"—"}</div>
+        <div class="s">終了した大会 ${MY_CUP.finished} 件</div></div>
+    </div>
+    <h3>最近の結果</h3>${cupHistHTML(MY_CUP,5)}
+    <div class="tools"><button class="btn" id="cupHistAll">すべての大会記録を見る</button></div>`;
+  $("#cupHistAll").onclick=()=>showCupHistory({name:pro.name,handle:pro.handle,role:me?me.role:null},MY_CUP);
+}
+function showCupHistory(p,h){
+  const mask=document.createElement("div");mask.className="mask";
+  mask.innerHTML=`<div class="modal"><h2>${esc(p.name||p.handle)} の大会記録</h2>
+    <p class="muted" style="margin-top:-8px">参加 ${h.played} 件／優勝 ${h.wins} 回／3位以内 ${h.podium} 回</p>
+    ${cupHistHTML(h)}
+    <div class="tools"><button class="btn" id="chX">閉じる</button></div></div>`;
+  document.body.appendChild(mask);
+  const close=()=>mask.remove();
+  mask.addEventListener("click",e=>{if(e.target===mask)close();});
+  mask.querySelector("#chX").onclick=close;
+}
+
+/* =========================================================
+   11b. 新しい版が出ていないか見張る
+   ========================================================= */
+let updSeen="";
+async function checkUpdate(){
+  try{
+    const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) return;
+    const j=await r.json();
+    if(!j.version||j.version===APP_VERSION||j.version===updSeen) return;
+    updSeen=j.version;
+    $("#updBanner").hidden=false;
+    $("#updMsg").innerHTML=`新しい版 <b>${esc(j.version)}</b> が公開されました`+
+      `（お使いの版：${esc(APP_VERSION)}）。記録は保存済みなので、そのまま更新して大丈夫です。`;
+  }catch(e){}
+}
+$("#updGo").onclick=()=>{ try{ save(); }catch(e){} location.reload(); };
+$("#updLater").onclick=()=>{ $("#updBanner").hidden=true; };
+setInterval(checkUpdate,5*60*1000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
+
 /* =========================================================
    12. 週の切り替え・起動
    ========================================================= */
@@ -2382,6 +2557,7 @@ function normalize(j){
   /* どの経路を通っても最後に必ず描き直す */
   fillInputs();
   try{ render(); }catch(e){ console.error(e); }
+  checkUpdate();
 })();
 </script>
 </body>
