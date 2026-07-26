@@ -421,32 +421,13 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
 <section id="ls" hidden>
   <div class="card">
-    <h2>1回あたりの増加量を登録</h2>
-    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとに、どれだけ増えるかの予測値です。</p>
-    <div class="frow">
-      <div><label class="fl">1回あたりのスコア増加</label>
-        <input type="text" inputmode="numeric" id="lsPerScore" placeholder="例：1200" style="max-width:none"></div>
-      <div><label class="fl">1回あたりの乱数増加</label>
-        <input type="text" inputmode="numeric" id="lsPerRand" placeholder="例：480000" style="max-width:none"></div>
+    <h2>準備</h2>
+    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとの増加量を登録しておくと、予測値が出せます。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="lsOpenCfg">1回あたりの増加量を登録</button>
+      <button class="btn" id="lsOpenKey">カウントキーを設定</button>
     </div>
-    <div class="hintbox" style="margin-top:10px">
-      <b>乱数の増加量の測り方</b><br>
-      <span class="tiny">まず10回ほどプレイして、ゲーム内のL値ページにある「所持チケットのみなし累積」が
-      どれだけ増えたかを確認し、その増加量を10で割った値を入れてください。</span>
-      <div class="frow" style="margin-top:8px">
-        <div><label class="fl">10回プレイ前のみなし累積</label>
-          <input type="text" inputmode="numeric" id="lsA" style="max-width:none"></div>
-        <div><label class="fl">10回プレイ後のみなし累積</label>
-          <input type="text" inputmode="numeric" id="lsB" style="max-width:none"></div>
-      </div>
-      <div class="tools"><button class="btn sm" id="lsCalc">10回分から計算して入れる</button></div>
-      <div id="lsCalcOut" class="tiny"></div>
-    </div>
-    <label class="fl">目標（任意・空なら次のボーダーラインを目標にします）</label>
-    <div class="frow">
-      <div><label class="fl">目標スコア累積</label><input type="text" inputmode="numeric" id="lsGoalS" style="max-width:none"></div>
-      <div><label class="fl">目標乱数累積</label><input type="text" inputmode="numeric" id="lsGoalR" style="max-width:none"></div>
-    </div>
+    <div id="lsCfgView" class="tiny" style="margin-top:10px"></div>
   </div>
 
   <div class="card">
@@ -460,9 +441,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn pri" id="lsStartBtn">スタート</button>
       <button class="btn" id="lsStopBtn" hidden>終了して記録する</button>
       <button class="btn" id="lsReset">リセット</button>
-      <label class="tiny" style="display:flex;align-items:center;gap:6px;margin-left:auto">
-        カウントキー <input type="text" id="lsKey" maxlength="1" value=" " style="width:54px;max-width:54px;text-align:center">
-      </label>
+      <span class="tiny" id="lsKeyNow" style="margin-left:auto"></span>
     </div>
     <button class="lshit" id="lsHit" disabled>＋1回　クリア！</button>
     <p class="tiny" id="lsHint">スタートを押すとカウントできます。ボタンのクリック、または設定したキーでも数えられます（連打防止のため1秒間隔）。</p>
@@ -733,7 +712,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v16";
+const APP_VERSION = "v18";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1050,6 +1029,30 @@ function ratingHTML(v,scale){
 }
 const rankOf=v=>{let r=RANKS[0];for(const x of RANKS) if(v>=x.min) r=x; return r;};
 const nextRank=v=>RANKS.find(x=>x.min>v)||null;
+/** 最前面に出す共通の小窓 */
+function modal(html,opt){
+  const mask=document.createElement("div"); mask.className="mask";
+  mask.innerHTML=`<div class="modal" style="max-width:${(opt&&opt.w)||720}px">${html}</div>`;
+  document.body.appendChild(mask);
+  const api={
+    el:mask, q:sel=>mask.querySelector(sel), qa:sel=>[...mask.querySelectorAll(sel)],
+    close:()=>{ mask.remove(); if(opt&&opt.onClose) opt.onClose(); }
+  };
+  if(!(opt&&opt.sticky)) mask.addEventListener("click",e=>{ if(e.target===mask) api.close(); });
+  return api;
+}
+/** はい／いいえの確認。ブラウザ標準のダイアログを使わない */
+function askYN(title,body,okLabel,cancelLabel){
+  return new Promise(res=>{
+    const M=modal(`<h2>${esc(title)}</h2>
+      <div class="muted" style="white-space:pre-wrap;margin-top:-6px">${body||""}</div>
+      <div class="tools"><button class="btn pri" id="ayY">${esc(okLabel||"はい")}</button>
+        <button class="btn" id="ayN">${esc(cancelLabel||"やめる")}</button></div>`,
+      {sticky:true,w:560});
+    M.q("#ayY").onclick=()=>{M.close();res(true);};
+    M.q("#ayN").onclick=()=>{M.close();res(false);};
+  });
+}
 let toastT; function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");
   clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2200);}
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
@@ -1340,9 +1343,11 @@ document.addEventListener("input",e=>{const t=e.target;
   else if(t.id==="pn"){pro.name=t.value;render();}
   else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}
   else if(t.id==="pbio"){pro.bio=t.value;render();}});
-$("#clear").onclick=()=>{
+$("#clear").onclick=async()=>{
   const n=ORDER.filter(x=>rec[x]>0).length;
-  if(n&&!confirm(`入力済みの ${n} 項目をすべて消します。よろしいですか？\n（設定タブの「バックアップを保存」で控えを取れます）`)) return;
+  if(n&&!await askYN("入力をすべて消しますか？",
+    `入力済みの <b>${n} 項目</b> を消します。<br>`+
+    `<span class="tiny">設定タブの「バックアップを保存」で控えを取れます。</span>`,"消す")) return;
   allowEmptySave=true; rec={}; fillInputs(); render(); allowEmptySave=false;
   toast("入力をクリアしました");};
 $("#sample").onclick=()=>{rec=Object.assign({},SAMPLE);fillInputs();render();toast("サンプル値を入力しました");};
@@ -1377,10 +1382,13 @@ $("#impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;
     fillInputs();render();renderSettings();toast("読み込みました");}
     catch(x){toast("ファイルを読めませんでした");}};
   fr.readAsText(f);};
-$("#wipe").onclick=()=>{
-  if(!confirm("この端末に保存された記録・プロフィール・フレンドを消します。よろしいですか？")) return;
+$("#wipe").onclick=async()=>{
+  if(!await askYN("この端末のデータを消しますか？",
+    "記録・プロフィール・フレンドがすべて消えます。<br>"+
+    "<span class='tiny'>ログイン中ならクラウドには残るので、再ログインで戻せます。</span>","消す")) return;
+  allowEmptySave=true;
   [K_REC,K_PRO,K_FR].forEach(k=>localStorage.removeItem(k));
-  rec={};pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:""};friends=[];
+  rec={};pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:"",proofs:[]};friends=[];
   fillInputs();render();renderSettings();allowEmptySave=false;toast("消去しました");};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
@@ -1564,7 +1572,14 @@ function unpack(s){const a=b64d(s),r={};ORDER.forEach((n,i)=>r[n]=a[i+2]||0);
 const shareURL=()=>location.origin+location.pathname+"#p="+packMe();
 $("#mkLink").onclick=async()=>{const u=shareURL();
   try{await navigator.clipboard.writeText(u);toast("共有リンクをコピーしました");}
-  catch(e){prompt("このリンクをコピーしてください",u);}};
+  catch(e){
+    const M=modal(`<h2>共有リンク</h2>
+      <p class="muted" style="margin-top:-8px">下のリンクを選択してコピーしてください。</p>
+      <textarea readonly style="min-height:90px">${esc(u)}</textarea>
+      <div class="tools"><button class="btn" id="lkX">閉じる</button></div>`);
+    M.q("textarea").select();
+    M.q("#lkX").onclick=M.close;
+  }};
 $("#tweet").onclick=()=>{const c=compute(rec);
   const t=c.complete?`RATING ${f3(c.total)}（${rankOf(c.total).n}）`:"RATINGを計測中";
   open("https://twitter.com/intent/tweet?text="+encodeURIComponent(`【素数あつめ】${pro.name||""} ${t}\n`)+
@@ -1709,7 +1724,7 @@ function renderFriendReq(){
   $$("[data-fok]").forEach(b=>b.onclick=()=>respondFr(b.dataset.fok,true));
   $$("[data-fng]").forEach(b=>b.onclick=()=>respondFr(b.dataset.fng,false));
   $$("[data-fdel]").forEach(b=>b.onclick=async()=>{
-    if(!confirm("このフレンドを解除しますか？（相手側からも消えます）")) return;
+    if(!await askYN("フレンドを解除しますか？","相手側の一覧からも消えます。","解除する")) return;
     try{ await sbAuth("rpc/remove_friend",{method:"POST",body:JSON.stringify({p_other:b.dataset.fdel})});
       await loadFriendReq(); renderFriendReq(); toast("解除しました"); }
     catch(e){ toast("解除に失敗しました"); }});
@@ -2124,12 +2139,30 @@ async function loadRanking(force){
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
     const byEv=rkSortKey.startsWith("ev:");
-    const cols="handle,name,role,rating,l_value,s_value,total_score,x_url,proofs,updated_at"+(byEv?",records":"");
+    /* 新しいSQLをまだ実行していない環境でも動くよう、列を段階的に減らして試す */
+    const colSets=[
+      "handle,name,role,rating,l_value,s_value,total_score,x_url,proofs,updated_at",
+      "handle,name,role,rating,l_value,s_value,total_score,x_url,updated_at",
+      "handle,name,rating,l_value,s_value,total_score,updated_at"];
+    const cols=colSets[0];
     let rows;
-    const ck=cols;
+    const ck=rkSortKey;
     if(!force && rkCache.rows && rkCache.key===ck && Date.now()-rkCache.at<60000){ rows=rkCache.rows; }
-    else { rows=await sb(`profiles_public?select=${cols}&order=rating.desc.nullslast&limit=300`);
-           rkCache={key:ck,at:Date.now(),rows}; }
+    else {
+      let lastErr=null;
+      for(const cs of colSets){
+        try{
+          const q=cs+(byEv&&!cs.includes("records")?",records":"");
+          rows=await sb(`profiles_public?select=${q}&order=rating.desc.nullslast&limit=300`);
+          lastErr=null; break;
+        }catch(err){
+          lastErr=err;
+          if(!/42703|does not exist/i.test(String(err.message||""))) throw err;
+        }
+      }
+      if(lastErr) throw lastErr;
+      rkCache={key:ck,at:Date.now(),rows};
+    }
     const evName=byEv?rkSortKey.slice(3):null;
     const val=r=>byEv?((r.records||{})[evName]||0):(r[rkSortKey]==null?null:+r[rkSortKey]);
     const lowBetter=byEv&&LOW.has(evName);
@@ -2626,7 +2659,7 @@ async function openCup(id){
         `<td><b>${nice(e.total)}</b>${c.mode==="score"?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
         `<td>${proofsHTML(e.proofs,e.proof_url)}</td>`+
         `<td><button class="btn sm" data-dt="${ix}">詳細データ</button></td></tr>`).join("")+
-      `</tbody></table></div><div id="entDetail"></div>`
+      `</tbody></table></div>`
       :`<p class="muted">まだ記録がありません。</p>`}
     <div class="tools">
       ${owner&&ph!=="end"?`<button class="btn pri" id="cupEdit">内容を変更</button>`:""}
@@ -2642,13 +2675,16 @@ async function openCup(id){
   }
   if($("#cupEdit")) $("#cupEdit").onclick=()=>editCup(c.id);
   if($("#cupEnd")) $("#cupEnd").onclick=async()=>{
-    if(!confirm("この大会を今すぐ終了します。以降は記録を提出できなくなります。よろしいですか？")) return;
+    if(!await askYN("この大会を今すぐ終了しますか？",
+      "終了すると、以降は誰も記録を提出できなくなります。順位はその時点の内容で確定します。",
+      "終了する")) return;
     try{ await sbAuth("rpc/end_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
       toast("大会を終了しました"); cupCache.rows=null; await loadCups(true); openCup(c.id); }
     catch(e){ toast("終了に失敗しました："+String(e.message||e).slice(0,60)); }};
   if(isAdmin()){
     $("#cupDel").onclick=async()=>{
-      if(!confirm("この大会と記録をすべて削除します。よろしいですか？")) return;
+      if(!await askYN("この大会を削除しますか？",
+        "大会と、提出されたすべての記録が消えます。元に戻せません。","削除する")) return;
       try{ await sbAuth("rpc/delete_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
         box.innerHTML=""; toast("削除しました"); cupCache.rows=null; loadCups(true); }
       catch(e){ toast("削除に失敗しました"); }};
@@ -2667,9 +2703,7 @@ function proofLinks(u){
 /** 詳細データ（比重の前後を並べる） */
 function showEntryDetail(c,evs,e,owner,reload){
   const W=(c.mode==="score"&&c.weights)?c.weights:null;
-  const box=$("#entDetail"); if(!box) return;
-  box.innerHTML=`<div class="card" style="margin-top:12px">
-    <h3 style="margin-top:0">${esc(e.name||e.handle||"")} の詳細</h3>
+  const M=modal(`<h2>${esc(e.name||e.handle||"")} の詳細データ</h2>
     <div class="scroll"><table><thead><tr><th>種目</th>`+
       (W?`<th>比重</th><th>比重後</th><th>元の記録</th>`:`<th>記録</th>`)+
       `</tr></thead><tbody>`+
@@ -2683,23 +2717,47 @@ function showEntryDetail(c,evs,e,owner,reload){
          :`<td><b style="color:var(--acc2)">${nice(e.total)}</b></td>`)+`</tr>`+
       `</tbody></table></div>
     <p class="tiny">証明：${proofsHTML(e.proofs,e.proof_url)}　／　提出 ${jstFull(e.updated_at)} (JST)</p>
-    ${owner?`<div class="tools"><button class="btn sm" id="edEnt">記録を編集</button>
-      <button class="btn sm" id="dlEnt">記録を削除</button></div>`:""}
-    <div class="tools"><button class="btn sm" id="clEnt">閉じる</button></div></div>`;
-  box.scrollIntoView({behavior:"smooth"});
-  $("#clEnt").onclick=()=>{box.innerHTML="";};
+    ${owner?`<div class="tools"><button class="btn pri" id="edEnt">記録を編集</button>
+      <button class="btn" id="dlEnt">記録を削除</button></div>`:""}
+    <div class="tools"><button class="btn" id="clEnt">閉じる</button></div>`);
+  M.q("#clEnt").onclick=M.close;
   if(owner){
-    $("#dlEnt").onclick=async()=>{
-      if(!confirm("この記録を削除します。よろしいですか？")) return;
-      try{ await sbAuth("rpc/owner_delete_entry",{method:"POST",body:JSON.stringify({p_id:e.id})});
-        toast("削除しました"); reload(); }catch(x){ toast("削除に失敗しました"); }};
-    $("#edEnt").onclick=()=>{
-      const vals=evs.map(n=>prompt(`${n} の記録`,e.scores&&e.scores[n]!=null?e.scores[n]:""));
-      if(vals.some(v=>v===null)) return;
-      const sc={}; evs.forEach((n,i)=>sc[n]=num(vals[i]));
-      const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
-      sbAuth("rpc/owner_edit_entry",{method:"POST",body:JSON.stringify({p_id:e.id,p_scores:sc,p_total:tot})})
-        .then(()=>{toast("修正しました");reload();}).catch(()=>toast("修正に失敗しました"));};
+    M.q("#dlEnt").onclick=()=>{
+      const C=modal(`<h2>記録を削除しますか？</h2>
+        <p class="muted">${esc(e.name||e.handle||"")} さんの記録を削除します。元に戻せません。</p>
+        <div class="tools"><button class="btn pri" id="cy">削除する</button>
+          <button class="btn" id="cn">やめる</button></div>`,{sticky:true});
+      C.q("#cn").onclick=C.close;
+      C.q("#cy").onclick=async()=>{
+        try{ await sbAuth("rpc/owner_delete_entry",{method:"POST",body:JSON.stringify({p_id:e.id})});
+          C.close(); M.close(); toast("削除しました"); reload(); }
+        catch(x){ toast("削除に失敗しました"); }};
+    };
+    M.q("#edEnt").onclick=()=>{
+      const E=modal(`<h2>記録を編集</h2>
+        <p class="muted" style="margin-top:-8px">${esc(e.name||e.handle||"")} さんの記録を主催者として修正します。</p>
+        <div class="frow">${evs.map(n=>
+          `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}${W?` <span class="tiny">×${(+W[n]||1)}</span>`:""}</label>
+           <input type="text" inputmode="decimal" data-ed="${esc(n)}" style="max-width:none"
+             value="${(e.scores&&e.scores[n]!=null)?e.scores[n]:""}"></div>`).join("")}</div>
+        <div id="edTot" class="lsbox" style="margin-top:12px"><div class="t">合計${W?"（比重後）":""}</div>
+          <div class="v" id="edTotV">—</div></div>
+        <div class="tools"><button class="btn pri" id="edGo">この内容で保存</button>
+          <button class="btn" id="edNo">やめる</button></div>
+        <div id="edM" class="tiny"></div>`,{sticky:true});
+      const calc=()=>{ let t=0;
+        evs.forEach(n=>{ t+=num(E.q(`[data-ed="${CSS.escape(n)}"]`).value)*(W?(+W[n]||1):1); });
+        E.q("#edTotV").textContent=nice(t); return t; };
+      E.qa("[data-ed]").forEach(el=>el.oninput=calc); calc();
+      E.q("#edNo").onclick=E.close;
+      E.q("#edGo").onclick=async()=>{
+        const sc={}; evs.forEach(n=>sc[n]=num(E.q(`[data-ed="${CSS.escape(n)}"]`).value));
+        if(evs.some(n=>sc[n]<0)) return toast("マイナスの記録は保存できません");
+        const tot=calc();
+        try{ await sbAuth("rpc/owner_edit_entry",{method:"POST",body:JSON.stringify({p_id:e.id,p_scores:sc,p_total:tot})});
+          E.close(); M.close(); toast("修正しました"); reload(); }
+        catch(x){ E.q("#edM").innerHTML=`<span class="lose">${esc(String(x.message||x)).slice(0,200)}</span>`; }};
+    };
   }
 }
 function entryForm(c,evs,dir,mine){
@@ -2724,9 +2782,12 @@ function entryForm(c,evs,dir,mine){
       if(raw==="") blanks.push(n); sc[n]=v;});
     /* 未入力があれば、まず「記録が無いので0点か」を確認する */
     if(blanks.length){
-      const ok=confirm(`次の種目が未入力です。\n\n${blanks.join("\n")}\n\n`+
-        `記録が無いため 0点 として提出しますか？\n`+
-        `「キャンセル」を押すと提出せずに戻ります。`);
+      const ok=await askYN("未入力の種目があります",
+        `<b>${esc(blanks.join("、"))}</b><br><br>`+
+        `記録が無いため <b>0点</b> として提出しますか？<br>`+
+        `<span class="tiny">記録があるのに入れ忘れている場合は「戻って入力する」を選んでください。`+
+        `0点でない記録を空欄のまま出すことはできません。</span>`,
+        "0点として提出する","戻って入力する");
       if(!ok) return;
       blanks.forEach(n=>{const el=$(`[data-en="${CSS.escape(n)}"]`); el.value="0"; sc[n]=0;});
     }
@@ -2747,11 +2808,12 @@ function entryForm(c,evs,dir,mine){
     const better=evs.filter(n=>{const cur=rec[n]||0; if(!cur) return sc[n]>0;
       return LOW.has(n)?sc[n]<cur:sc[n]>cur;});
     if(better.length){
-      if(confirm(`次の種目でプロフィールの記録を上回っています。\n\n`+
-        better.map(n=>`${n}：${nice(rec[n]||0)} → ${nice(sc[n])}`).join("\n")+
-        `\n\n個人歴代最高記録を更新しましたか？\n「OK」でプロフィールの記録も更新します。`)){
-        better.forEach(n=>rec[n]=sc[n]); fillInputs(); render();
-      }
+      const upd=await askYN("個人歴代最高記録を更新しましたか？",
+        `次の種目で、プロフィールの記録を上回っています。<br><br>`+
+        better.map(n=>`<b>${esc(n)}</b>　${nice(rec[n]||0)} → <b>${nice(sc[n])}</b>`).join("<br>")+
+        `<br><br><span class="tiny">「はい」を選ぶと、プロフィールの記録も同じ値に更新します。</span>`,
+        "はい、更新する","大会の記録だけにする");
+      if(upd){ better.forEach(n=>rec[n]=sc[n]); fillInputs(); render(); }
     }
     const W=(c.mode==="score"&&c.weights)?c.weights:null;
     const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
@@ -2852,9 +2914,11 @@ function animNum(el,from,to,fmt){
 }
 function lsElapsed(){ return lsRun?Date.now()-lsRun.start:0; }
 function lsFmtTime(ms){
-  const t=Math.floor(ms/1000), h=Math.floor(t/3600);
-  const p=n=>String(n).padStart(2,"0");
-  return `${h}:${p(Math.floor(t%3600/60))}:${p(t%60)}`;
+  if(ms<0) ms=0;
+  const p=(n,w)=>String(n).padStart(w||2,"0");
+  const h=Math.floor(ms/3600000), m=Math.floor(ms%3600000/60000);
+  const sec=Math.floor(ms%60000/1000), mil=Math.floor(ms%1000);
+  return (h?`${h}:${p(m)}`:p(m))+`:${p(sec)}.${p(mil,3)}`;
 }
 function renderLs(prev){
   const n=lsRun?lsRun.count:0;
@@ -2885,6 +2949,7 @@ function renderLs(prev){
   $("#lsLvNext").textContent=rkR?`乱数累積 ${rkR}位以内`:"ランキング圏外";
   $("#lsTime").textContent=lsFmtTime(lsElapsed());
   $("#lsStart").textContent=lsRun?`開始 ${jstFull(lsRun.start)}`:"未開始";
+  if($("#lsKeyNow")) $("#lsKeyNow").textContent=`カウントキー：${keyLabel(lsCfg.key)}`;
   renderLsLog();
 }
 function renderLsLog(){
@@ -2899,8 +2964,8 @@ function renderLsLog(){
         `<td>${L.score?jp(L.score):"—"}</td><td>${L.rand?jp(L.rand):"—"}</td>`+
         `<td><button class="btn sm" data-lsdel="${lsLog.length-1-i}">削除</button></td></tr>`;}).join("")+
     `</tbody></table></div>`;
-  $$("[data-lsdel]").forEach(b=>b.onclick=()=>{
-    if(!confirm("この記録を削除しますか？")) return;
+  $$("[data-lsdel]").forEach(b=>b.onclick=async()=>{
+    if(!await askYN("この記録を削除しますか？","やりこみ記録から1件消します。","削除する")) return;
     lsLog.splice(+b.dataset.lsdel,1); saveLs(); renderLsLog();});
 }
 function lsHit(){
@@ -2914,67 +2979,166 @@ function lsHit(){
   setTimeout(()=>{ if(lsRun) $("#lsHit").disabled=false; },1000);
   renderLs(prev);
 }
-function lsFill(){
-  $("#lsPerScore").value=lsCfg.perScore?commaFmt(String(lsCfg.perScore)):"";
-  $("#lsPerRand").value =lsCfg.perRand ?commaFmt(String(lsCfg.perRand )):"";
-  $("#lsGoalS").value   =lsCfg.goalS   ?commaFmt(String(lsCfg.goalS   )):"";
-  $("#lsGoalR").value   =lsCfg.goalR   ?commaFmt(String(lsCfg.goalR   )):"";
-  $("#lsKey").value=lsCfg.key||" ";
-}
-document.addEventListener("input",e=>{
-  const t=e.target; if(!t.id||!t.id.startsWith("ls")) return;
-  const map={lsPerScore:"perScore",lsPerRand:"perRand",lsGoalS:"goalS",lsGoalR:"goalR"};
-  if(map[t.id]){ applyComma(t); lsCfg[map[t.id]]=num(t.value); saveLs(); renderLs(); }
-  else if(t.id==="lsKey"){ lsCfg.key=t.value||" "; saveLs(); }
-});
+function lsFill(){ lsCfgView(); }
+const keyLabel=k=>{
+  if(!k) return "スペース";
+  if(k.code==="Space") return "スペース";
+  return k.label||k.code||"スペース";
+};
 document.addEventListener("keydown",e=>{
   if(!lsRun) return;
   const tag=(e.target.tagName||"").toLowerCase();
   if(tag==="input"||tag==="textarea"||tag==="select") return;
-  const k=lsCfg.key||" ";
-  if(e.key===k||(k===" "&&e.code==="Space")){ e.preventDefault(); lsHit(); }
+  const code=(lsCfg.key&&lsCfg.key.code)||"Space";
+  if(e.code===code){ e.preventDefault(); lsHit(); }
 });
-$("#lsCalc").onclick=()=>{
-  const a=num($("#lsA").value), b=num($("#lsB").value);
-  if(!(b>a)) return toast("10回プレイ後の値のほうが大きくなるように入れてください");
-  const per=Math.round((b-a)/10);
-  lsCfg.perRand=per; saveLs(); lsFill(); renderLs();
-  $("#lsCalcOut").innerHTML=`<span class="win">1回あたり ${jp(per)} と算出し、上の欄に入れました。</span>`;
+function lsCfgView(){
+  const v=$("#lsCfgView"); if(!v) return;
+  v.innerHTML=`1回あたり — スコア <b>${lsCfg.perScore?jp(lsCfg.perScore):"未登録"}</b>　／　`+
+    `乱数 <b>${lsCfg.perRand?jp(lsCfg.perRand):"未登録"}</b>　／　`+
+    `カウントキー <b>${esc(keyLabel(lsCfg.key))}</b>`+
+    (lsCfg.goalS||lsCfg.goalR?`<br>目標 — スコア ${lsCfg.goalS?jp(lsCfg.goalS):"—"} ／ 乱数 ${lsCfg.goalR?jp(lsCfg.goalR):"—"}`:"");
+}
+/* 増加量の登録（最前面） */
+$("#lsOpenCfg").onclick=()=>{
+  const M=modal(`<h2>1回あたりの増加量を登録</h2>
+    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとに、どれだけ増えるかの予測値です。</p>
+    <div class="frow">
+      <div><label class="fl">1回あたりのスコア増加</label>
+        <input type="text" inputmode="numeric" id="mPerS" style="max-width:none" value="${lsCfg.perScore?commaFmt(String(lsCfg.perScore)):""}"></div>
+      <div><label class="fl">1回あたりの乱数増加</label>
+        <input type="text" inputmode="numeric" id="mPerR" style="max-width:none" value="${lsCfg.perRand?commaFmt(String(lsCfg.perRand)):""}"></div>
+    </div>
+    <div class="hintbox" style="margin-top:12px">
+      <b>乱数の増加量の測り方</b><br>
+      <span class="tiny">まず10回ほどプレイして、ゲーム内のL値ページにある「所持チケットのみなし累積」が
+      どれだけ増えたかを確認し、その増加量を10で割った値を入れてください。</span>
+      <div class="frow" style="margin-top:8px">
+        <div><label class="fl">10回プレイ前</label><input type="text" inputmode="numeric" id="mA" style="max-width:none"></div>
+        <div><label class="fl">10回プレイ後</label><input type="text" inputmode="numeric" id="mB" style="max-width:none"></div>
+      </div>
+      <div class="tools"><button class="btn sm" id="mCalc">10回分から計算して入れる</button></div>
+      <div id="mCalcOut" class="tiny"></div>
+    </div>
+    <h3>目標（任意・空なら次のボーダーを目標にします）</h3>
+    <div class="frow">
+      <div><label class="fl">目標スコア累積</label>
+        <input type="text" inputmode="numeric" id="mGoalS" style="max-width:none" value="${lsCfg.goalS?commaFmt(String(lsCfg.goalS)):""}"></div>
+      <div><label class="fl">目標乱数累積</label>
+        <input type="text" inputmode="numeric" id="mGoalR" style="max-width:none" value="${lsCfg.goalR?commaFmt(String(lsCfg.goalR)):""}"></div>
+    </div>
+    <div class="tools"><button class="btn pri" id="mSave">保存する</button>
+      <button class="btn" id="mX">やめる</button></div>`);
+  M.qa("input").forEach(el=>el.oninput=()=>applyComma(el));
+  M.q("#mCalc").onclick=()=>{
+    const a=num(M.q("#mA").value), b=num(M.q("#mB").value);
+    if(!(b>a)) return toast("10回プレイ後の値のほうが大きくなるように入れてください");
+    const per=Math.round((b-a)/10);
+    M.q("#mPerR").value=commaFmt(String(per));
+    M.q("#mCalcOut").innerHTML=`<span class="win">1回あたり ${jp(per)} と算出しました。</span>`;
+  };
+  M.q("#mX").onclick=M.close;
+  M.q("#mSave").onclick=()=>{
+    lsCfg.perScore=num(M.q("#mPerS").value); lsCfg.perRand=num(M.q("#mPerR").value);
+    lsCfg.goalS=num(M.q("#mGoalS").value);   lsCfg.goalR=num(M.q("#mGoalR").value);
+    saveLs(); lsCfgView(); renderLs(); M.close(); toast("登録しました");
+  };
 };
+/* カウントキーの設定（実際に押して覚えさせる） */
+$("#lsOpenKey").onclick=()=>{
+  const M=modal(`<h2>カウントキーを設定</h2>
+    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするたびに押すキーです。
+      画面のボタンを押さなくても、このキーだけで回数を数えられます。</p>
+    <div class="lsbox" style="margin:14px 0"><div class="t">現在の割り当て</div>
+      <div class="v" id="mKeyNow">${esc(keyLabel(lsCfg.key))}</div></div>
+    <div class="tools"><button class="btn pri" id="mKeyCap">キーを押して設定する</button>
+      <button class="btn" id="mKeySp">スペースに戻す</button>
+      <button class="btn" id="mKeyX">閉じる</button></div>
+    <div id="mKeyMsg" class="tiny"></div>`,{sticky:true});
+  let capturing=false;
+  const onKey=e=>{
+    if(!capturing) return;
+    e.preventDefault(); e.stopPropagation();
+    capturing=false;
+    lsCfg.key={code:e.code,label:(e.key===" "?"スペース":e.key.length===1?e.key.toUpperCase():e.key)};
+    saveLs(); M.q("#mKeyNow").textContent=keyLabel(lsCfg.key);
+    M.q("#mKeyMsg").innerHTML=`<span class="win">「${esc(keyLabel(lsCfg.key))}」に設定しました。</span>`;
+    M.q("#mKeyCap").textContent="キーを押して設定する";
+    lsCfgView();
+  };
+  document.addEventListener("keydown",onKey,true);
+  M.q("#mKeyCap").onclick=()=>{ capturing=true;
+    M.q("#mKeyCap").textContent="キーを押してください…";
+    M.q("#mKeyMsg").innerHTML=`<span class="tiny">割り当てたいキーを1回押してください。</span>`;};
+  M.q("#mKeySp").onclick=()=>{ lsCfg.key={code:"Space",label:"スペース"}; saveLs();
+    M.q("#mKeyNow").textContent="スペース"; lsCfgView(); toast("スペースに戻しました");};
+  M.q("#mKeyX").onclick=()=>{ document.removeEventListener("keydown",onKey,true); M.close(); };
+};
+
 $("#lsStartBtn").onclick=()=>{
   lsRun={start:Date.now(),count:0}; lsCool=0;
   $("#lsHit").disabled=false;
   $("#lsStartBtn").hidden=true; $("#lsStopBtn").hidden=false;
   $("#lsHint").textContent="カウント中。ボタンか設定したキーで数えてください（1秒間隔）。";
-  clearInterval(lsTimer);
-  lsTimer=setInterval(()=>{ $("#lsTime").textContent=lsFmtTime(lsElapsed()); },250);
+  cancelAnimationFrame(lsTimer);
+  const tick=()=>{ if(!lsRun) return; $("#lsTime").textContent=lsFmtTime(lsElapsed());
+    lsTimer=requestAnimationFrame(tick); };
+  lsTimer=requestAnimationFrame(tick);
   renderLs();
 };
 $("#lsStopBtn").onclick=()=>{
   if(!lsRun) return;
   const L={start:lsRun.start,ms:lsElapsed(),count:lsRun.count,score:0,rand:0};
-  clearInterval(lsTimer); lsTimer=null;
-  const doAsk=confirm(`お疲れさまでした。\n\n`+
-    `回数 ${jp(L.count)} 回 ／ 時間 ${lsFmtTime(L.ms)}\n\n`+
-    `いまのスコア累積と乱数累積を入力しますか？（任意）\n`+
-    `「キャンセル」を押すと回数と時間だけ記録します。`);
-  if(doAsk){
-    const sv=prompt("いまのスコア累積（ゲーム内の実際の値）", rec["スコア累積"]||"");
-    const rv=prompt("いまの乱数累積（ゲーム内の実際の値）", rec["乱数累積"]||"");
-    L.score=num(sv); L.rand=num(rv);
-    if(L.score>0){ rec["スコア累積"]=L.score; }
-    if(L.rand>0){ rec["乱数累積"]=L.rand; }
-    if(L.score>0||L.rand>0){ fillInputs(); render(); }
-  }
-  lsLog.push(L); saveLs();
-  lsRun=null; $("#lsHit").disabled=true;
-  $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
-  $("#lsHint").textContent="記録しました。もう一度スタートを押すと新しい計測を始めます。";
-  renderLs(); toast("記録しました");
+  cancelAnimationFrame(lsTimer); lsTimer=null;
+  const finish=()=>{
+    lsLog.push(L); saveLs();
+    lsRun=null; $("#lsHit").disabled=true;
+    $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
+    $("#lsHint").textContent="記録しました。もう一度スタートを押すと新しい計測を始めます。";
+    renderLs(); toast("記録しました");
+  };
+  const M=modal(`<h2>お疲れさまでした</h2>
+    <div class="lsgrid" style="margin-top:12px">
+      <div class="lsbox"><div class="t">クリア回数</div><div class="v">${jp(L.count)}</div><div class="s">回</div></div>
+      <div class="lsbox"><div class="t">かかった時間</div><div class="v" style="font-size:1.5rem">${lsFmtTime(L.ms)}</div>
+        <div class="s">${L.ms>0?(L.count/(L.ms/3600000)).toFixed(1)+" 回/時":""}</div></div>
+    </div>
+    <h3>乱数累積・スコア累積の入力（任意）</h3>
+    <p class="muted" style="margin-top:-6px">ゲーム内の実際の値を入れると、記録に残り、プロフィールの記録も更新されます。
+      分からなければ「今回はスキップ」で構いません。</p>
+    <div class="frow">
+      <div><label class="fl">いまのスコア累積</label>
+        <input type="text" inputmode="numeric" id="fS" style="max-width:none" value="${rec["スコア累積"]?commaFmt(String(rec["スコア累積"])):""}"></div>
+      <div><label class="fl">いまの乱数累積</label>
+        <input type="text" inputmode="numeric" id="fR" style="max-width:none" value="${rec["乱数累積"]?commaFmt(String(rec["乱数累積"])):""}"></div>
+    </div>
+    <div id="fPrev" class="tiny" style="margin-top:8px"></div>
+    <div class="tools"><button class="btn pri" id="fSave">入力して記録する</button>
+      <button class="btn" id="fSkip">今回はスキップ</button></div>`,{sticky:true});
+  const upd=()=>{
+    const sv=num(M.q("#fS").value), rv=num(M.q("#fR").value);
+    const parts=[];
+    if(sv>0) parts.push(`S値 ${f3(Math.max(logb(sv,S_BASE)-S_SUB,0))}`+
+      (lsRankOf("score",sv)?`（スコア累積 ${lsRankOf("score",sv)}位以内）`:""));
+    if(rv>0) parts.push(`L値 ${f3(Math.max(logb(rv,L_BASE)-L_SUB,0))}`+
+      (lsRankOf("rand",rv)?`（乱数累積 ${lsRankOf("rand",rv)}位以内）`:""));
+    M.q("#fPrev").innerHTML=parts.length?`入力した値だと ${parts.join("　／　")} になります。`:"";
+  };
+  M.qa("input").forEach(el=>el.oninput=()=>{applyComma(el);upd();});
+  upd();
+  M.q("#fSkip").onclick=()=>{ M.close(); finish(); };
+  M.q("#fSave").onclick=()=>{
+    const sv=num(M.q("#fS").value), rv=num(M.q("#fR").value);
+    L.score=sv; L.rand=rv;
+    if(sv>0) rec["スコア累積"]=sv;
+    if(rv>0) rec["乱数累積"]=rv;
+    if(sv>0||rv>0){ fillInputs(); render(); }
+    M.close(); finish();
+  };
 };
-$("#lsReset").onclick=()=>{
-  if(lsRun&&lsRun.count&&!confirm("いまの計測を破棄します。よろしいですか？")) return;
-  clearInterval(lsTimer); lsTimer=null; lsRun=null;
+$("#lsReset").onclick=async()=>{
+  if(lsRun&&lsRun.count&&!await askYN("いまの計測を破棄しますか？","記録は保存されません。","破棄する")) return;
+  cancelAnimationFrame(lsTimer); lsTimer=null; lsRun=null;
   $("#lsHit").disabled=true; $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
   renderLs();
 };
@@ -3015,6 +3179,40 @@ function openDev(){
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   devEditor(mask.querySelector("#dvBody"),close);
 }
+/** 「N位 <値>」の並びを読み取る。全角・カンマ・タブ・コロンなど幅広く許容 */
+function parseRankLines(text){
+  const out={};
+  for(let line of String(text).split(/\r?\n/)){
+    line=line.replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+             .replace(/[，、]/g,",").replace(/[：:]/g," ").trim();
+    if(!line) continue;
+    const m=line.match(/^([\d,]+)\s*位?[\s\t]*([\d,]+(?:\.\d+)?)$/);
+    if(!m) continue;
+    const rank=m[1].replace(/,/g,""), val=parseFloat(m[2].replace(/,/g,""));
+    if(rank&&isFinite(val)) out[rank]=val;
+  }
+  return out;
+}
+/** 「種目名 → 各順位の値」を読み取る。種目名の行のあとに順位行が続く形式 */
+function parseEventBlocks(text){
+  const out={}; let cur=null;
+  for(let line of String(text).split(/\r?\n/)){
+    line=line.replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).trim();
+    if(!line) continue;
+    const hit=EVENTS.find(n=>line.replace(/\s+/g,"")===n.replace(/\s+/g,""));
+    if(hit){ cur=hit; out[cur]=out[cur]||{}; continue; }
+    const m=line.replace(/[\t]+/g," ").match(/^([\d,]+)\s*位?[\s]*([\d,]+(?:\.\d+)?)$/);
+    if(m&&cur){ out[cur][m[1].replace(/,/g,"")]=parseFloat(m[2].replace(/,/g,"")); continue; }
+    /* 「種目名 値 値 値 値 値 値」の1行形式 */
+    const parts=line.replace(/[\t]+/g," ").split(/\s+/);
+    if(parts.length>=7){
+      const name=EVENTS.find(n=>parts[0]===n);
+      if(name){ const vs=parts.slice(1,7).map(x=>parseFloat(x.replace(/,/g,"")));
+        if(vs.every(v=>isFinite(v))){ out[name]={1:vs[0],5:vs[1],10:vs[2],50:vs[3],100:vs[4],200:vs[5]}; } }
+    }
+  }
+  return out;
+}
 function devEditor(box,close){
   const ranks=[1,5,10,50,100,200], tRanks=[1,5,10,25,50,100,500,1000];
   const today=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
@@ -3038,6 +3236,14 @@ function devEditor(box,close){
     <button id="bdLS">乱数累積・スコア累積のボーダー</button>
   </div>
   <div id="bdGameBox">
+  <details style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（おすすめ）</summary>
+    <p class="tiny">ランキング表をそのままコピーして貼り付けてください。<br>
+      「種目名」の行のあとに「1位&nbsp;&nbsp;79,799」のような行が続く形式、
+      または「種目名&nbsp;79799&nbsp;78192&nbsp;…」の1行形式に対応しています。</p>
+    <textarea id="pasteGame" style="min-height:120px" placeholder="素因数分解（初級）&#10;1位	79,799&#10;5位	78,192&#10;…"></textarea>
+    <div class="tools"><button class="btn pri sm" id="pasteGameGo">読み取って入力欄に反映</button></div>
+    <div id="pasteGameMsg" class="tiny"></div>
+  </details>
   <h3>個別18種目</h3><div class="scroll devgrid"><table><thead><tr><th>種目</th>`+
   ranks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody>`;
   for(const n of EVENTS) h+=`<tr><td>${n}</td>`+ranks.map(r=>
@@ -3048,6 +3254,17 @@ function devEditor(box,close){
     `</tr></tbody></table></div></div>
   <div id="bdLSBox" hidden>
     <p class="muted">乱数累積・スコア累積のランキングボーダーです。LSやりこみタブで使われます。</p>
+    <details open style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（おすすめ）</summary>
+      <p class="tiny">ランキング表をそのままコピーして貼り付けてください。「1位&nbsp;&nbsp;1,702,125,499,390」のような行を読み取ります。</p>
+      <div class="frow">
+        <div><label class="fl">乱数累積</label>
+          <textarea id="pasteRand" style="min-height:110px" placeholder="1位	1,702,125,499,390&#10;2位	1,155,838,961,966&#10;…"></textarea></div>
+        <div><label class="fl">スコア累積</label>
+          <textarea id="pasteScore" style="min-height:110px" placeholder="1位	73,556,568,644&#10;2位	62,019,382,503&#10;…"></textarea></div>
+      </div>
+      <div class="tools"><button class="btn pri sm" id="pasteLsGo">読み取って入力欄に反映</button></div>
+      <div id="pasteLsMsg" class="tiny"></div>
+    </details>
     <h3>乱数累積</h3><div class="scroll devgrid"><table><tbody>`+
     LS_RANKS.map(r=>`<tr><td class="tiny">${r}位</td><td><input type="text" inputmode="numeric"
       data-lr="${r}" value="${(w.lsBorders&&w.lsBorders.rand&&w.lsBorders.rand[r])||""}" style="max-width:170px"></td></tr>`).join("")+
@@ -3086,6 +3303,37 @@ function devEditor(box,close){
     return {current:arr[arr.length-1].date,weeks:arr};};
   const dl=json=>{const blob=new Blob([JSON.stringify(json,null,2)],{type:"application/json"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();};
+  box.querySelector("#pasteLsGo").onclick=()=>{
+    const R=parseRankLines(box.querySelector("#pasteRand").value);
+    const S=parseRankLines(box.querySelector("#pasteScore").value);
+    let nR=0,nS=0,skip=[];
+    for(const r of LS_RANKS){
+      const a=box.querySelector(`[data-lr="${r}"]`), c2=box.querySelector(`[data-ls2="${r}"]`);
+      if(R[r]!==undefined&&a){ a.value=jp(R[r]); nR++; }
+      if(S[r]!==undefined&&c2){ c2.value=jp(S[r]); nS++; }
+    }
+    for(const k of Object.keys(R)) if(!LS_RANKS.includes(+k)) skip.push(k+"位(乱数)");
+    for(const k of Object.keys(S)) if(!LS_RANKS.includes(+k)) skip.push(k+"位(スコア)");
+    box.querySelector("#pasteLsMsg").innerHTML=
+      `<span class="win">乱数 ${nR}件 / スコア ${nS}件 を反映しました。</span>`+
+      (skip.length?`<br><span class="lose">対応する順位が無いため無視：${esc(skip.join("、"))}</span>`:"")+
+      `<br><span class="tiny">内容を確認したら、下の「新しい週として追加してダウンロード」を押してください。</span>`;
+  };
+  box.querySelector("#pasteGameGo").onclick=()=>{
+    const G=parseEventBlocks(box.querySelector("#pasteGame").value);
+    let n=0, names=[];
+    for(const name of Object.keys(G)){
+      let ok=0;
+      for(const r of [1,5,10,50,100,200]){
+        const el=box.querySelector(`[data-b="${CSS.escape(name)}"][data-r="${r}"]`);
+        if(el&&G[name][r]!==undefined){ el.value=nice(G[name][r]); ok++; n++; }
+      }
+      if(ok) names.push(`${name}(${ok})`);
+    }
+    box.querySelector("#pasteGameMsg").innerHTML= n
+      ? `<span class="win">${names.length}種目・計${n}件を反映しました。</span><br><span class="tiny">${esc(names.join("　"))}</span>`
+      : `<span class="lose">読み取れませんでした。種目名がアプリの表記と一致しているか確認してください。</span>`;
+  };
   box.querySelector("#bdGame").onclick=()=>{box.querySelector("#bdGameBox").hidden=false;
     box.querySelector("#bdLSBox").hidden=true;
     box.querySelector("#bdGame").classList.add("on");box.querySelector("#bdLS").classList.remove("on");};
