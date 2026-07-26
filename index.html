@@ -219,15 +219,19 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 @keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
 .nm-admin{animation:shine 2.4s ease-in-out infinite}
 /* 上位ランクを光らせる */
-@keyframes rainbow{0%{filter:hue-rotate(0deg) brightness(1.15)}100%{filter:hue-rotate(360deg) brightness(1.15)}}
-.badge.bg-RAINBOW{background:linear-gradient(90deg,#ff5f6d,#ffc371,#57e0a0,#4da3ff,#a98bff,#ff5f6d);
-  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
-  border-color:#ffffff55;animation:rbslide 4s linear infinite;
-  box-shadow:0 0 26px -6px #ffffff88, inset 0 0 18px -8px #ffffff66;font-weight:800}
-@keyframes rbslide{0%{background-position:0% 50%}100%{background-position:300% 50%}}
-.badge.bg-MASTER{box-shadow:0 0 26px -6px #ff7b8a;animation:shine 2s ease-in-out infinite}
-.badge.bg-TITAN{box-shadow:0 0 26px -6px #a98bff;animation:shine 2.6s ease-in-out infinite}
-.rtwrap-RAINBOW{animation:rainbow 6s linear infinite}
+@keyframes rbslide{0%{background-position:0% 50%}100%{background-position:400% 50%}}
+@keyframes glowpulse{0%,100%{filter:drop-shadow(0 0 6px #ffffff55)}50%{filter:drop-shadow(0 0 16px #ffffffaa)}}
+.rb-text{
+  background-image:linear-gradient(90deg,#ff2d55,#ff9500,#ffd60a,#34c759,#00c7be,#0a84ff,#bf5af2,#ff2d55);
+  background-size:400% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:rbslide 3s linear infinite, glowpulse 2s ease-in-out infinite;
+}
+.badge.bg-RAINBOW{border-color:#ffffff66;background:#0f182888;font-weight:800}
+.badge.bg-MASTER{box-shadow:0 0 24px -6px #ff7b8a;animation:shine 2s ease-in-out infinite}
+.badge.bg-TITAN{box-shadow:0 0 24px -6px #a98bff;animation:shine 2.6s ease-in-out infinite}
+.nm-RAINBOW{font-weight:800}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
 .tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
 
@@ -336,32 +340,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div id="pyramidNote"></div>
   </div>
 
-<div class="card">
-    <h2>プロフィール設定</h2>
-    <div class="frow">
-      <div><label class="fl" for="pn">プレイヤーネーム</label>
-        <input type="text" class="txt" id="pn" placeholder="例：aaa111"></div>
-      <div><label class="fl" for="ph">X（Twitter）の @ID　※画像を自動取得します</label>
-        <input type="text" class="txt" id="ph" placeholder="例：aaa111"></div>
-    </div>
-    <label class="fl" for="pbio">自己紹介（カードの右上に載ります・80文字程度まで）</label>
-    <input type="text" class="txt" id="pbio" placeholder="例：素因数分解が好きです。よろしくお願いします" style="max-width:none" maxlength="120">
-    <label class="fl" for="pxurl">記録を証明するXの投稿リンク（任意）</label>
-    <input type="text" class="txt" id="pxurl" placeholder="https://x.com/..." style="max-width:none">
-    <div class="tools">
-      <button class="btn" id="useX">Xのアイコンを取り込む</button>
-      <button class="btn" id="pickImg">画像を自分で選ぶ</button>
-      <button class="btn" id="rmImg">画像を消す</button>
-      <input type="file" id="fileImg" accept="image/*" hidden>
-    </div>
-    <div class="sw">
-      <div><div class="t">データの公開設定</div>
-        <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。<b>ログインが必要です。</b></div></div>
-      <div class="toggle"><button id="pubOff" class="on">非公開</button><button id="pubOn">公開</button></div>
-    </div>
-    <div id="pubMsg" class="lockbox" hidden style="margin-top:10px"></div>
-    <p class="tiny">画像は <a href="https://unavatar.io" target="_blank" rel="noopener">unavatar.io</a> 経由で公開アイコンを取得します。Xの表示名はAPIキーなしでは取得できないため、名前は手入力です。</p>
-  </div>
+
 </section>
 
 <section id="plan" hidden>
@@ -541,6 +520,32 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 </section>
 
 <section id="settings" hidden>
+<div class="card">
+    <h2>プロフィール設定</h2>
+    <div class="frow">
+      <div><label class="fl" for="pn">プレイヤーネーム</label>
+        <input type="text" class="txt" id="pn" placeholder="例：aaa111"></div>
+      <div><label class="fl" for="ph">X（Twitter）の @ID　※画像を自動取得します</label>
+        <input type="text" class="txt" id="ph" placeholder="例：aaa111"></div>
+    </div>
+    <label class="fl" for="pbio">自己紹介（カードの右上に載ります・80文字程度まで）</label>
+    <input type="text" class="txt" id="pbio" placeholder="例：素因数分解が好きです。よろしくお願いします" style="max-width:none" maxlength="120">
+    <label class="fl" for="pxurl">記録を証明するXの投稿リンク（任意）</label>
+    <input type="text" class="txt" id="pxurl" placeholder="https://x.com/..." style="max-width:none">
+    <div class="tools">
+      <button class="btn" id="useX">Xのアイコンを取り込む</button>
+      <button class="btn" id="pickImg">画像を自分で選ぶ</button>
+      <button class="btn" id="rmImg">画像を消す</button>
+      <input type="file" id="fileImg" accept="image/*" hidden>
+    </div>
+    <div class="sw">
+      <div><div class="t">データの公開設定</div>
+        <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。<b>ログインが必要です。</b></div></div>
+      <div class="toggle"><button id="pubOff" class="on">非公開</button><button id="pubOn">公開</button></div>
+    </div>
+    <div id="pubMsg" class="lockbox" hidden style="margin-top:10px"></div>
+    <p class="tiny">画像は <a href="https://unavatar.io" target="_blank" rel="noopener">unavatar.io</a> 経由で公開アイコンを取得します。Xの表示名はAPIキーなしでは取得できないため、名前は手入力です。</p>
+  </div>
   <div class="card">
     <h2>アカウント</h2>
     <div id="acctBox"></div>
@@ -607,7 +612,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v13";
+const APP_VERSION = "v14";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1031,11 +1036,12 @@ function render(){
     (pro.x_url?` 　<a href="${esc(pro.x_url)}" target="_blank" rel="noopener" class="tiny">記録の証明 ↗</a>`:"");
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
   const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
+  const isRB=rk&&rk.n==="RAINBOW";
   rb.textContent=rk?rk.n:"—";
-  rb.className="badge"+(rk?" bg-"+rk.n:"");
-  rb.style.color=rk&&rk.n!=="RAINBOW"?rk.c:"";
+  rb.className="badge"+(rk?" bg-"+rk.n:"")+(isRB?" rb-text":"");
+  rb.style.color=rk&&!isRB?rk.c:"";
   rb.style.borderColor=rk?rk.c+"66":"var(--line)";
-  $("#ratingWrap").className=rk&&rk.n==="RAINBOW"?"rtwrap-RAINBOW":"";
+  $("#ratingWrap").className=isRB?"rb-text":"";
   const lb=$("#lockbox");
   if(c.complete) lb.hidden=true;
   else{lb.hidden=false;
@@ -1246,7 +1252,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
   if(b.dataset.tab==="rank") loadRanking();
   if(b.dataset.tab==="profile") renderHome();
-  if(b.dataset.tab==="settings") renderSettings();
+  if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderGoals();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
@@ -1334,42 +1340,70 @@ $("#doPlan").onclick=()=>{
     `<th>必要な伸び</th><th>上昇</th><th>到達RATING</th></tr></thead><tbody>`+rows.join("")+`</tbody></table></div>`;
 };
 
-/** 十種競技総合スコアを目標値まで上げるには、9種目をどう伸ばすか。
- *  理論値(10万点)までの余地が大きい種目ほど多く割り当てる。 */
+/** 十種競技総合スコアの伸ばし方。
+ *  理論値ではなく「次のボーダーラインまであと何点か」を見て、
+ *  到達しやすい（必要な伸び率が小さい）種目から順に積み上げる。 */
 function decaPlan(targetTotal){
-  const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
+  const work=Object.assign({},rec);
+  let cur=DECA.reduce((a,n)=>a+(work[n]||0),0);
   const need=targetTotal-cur;
-  const room=DECA.map(n=>({n,v:rec[n]||0,room:Math.max(MAXSCORE-(rec[n]||0),0)}));
-  const sum=room.reduce((a,x)=>a+x.room,0);
-  if(need<=0||sum<=0) return {cur,need,rows:room.map(x=>Object.assign({add:0,to:x.v},x)),ok:need<=0};
-  let left=need, rows=[];
-  room.sort((a,b)=>b.room-a.room);
-  room.forEach((x,i)=>{
-    let add=(i===room.length-1)?left:Math.min(x.room,Math.round(need*x.room/sum));
-    add=Math.max(0,Math.min(add,x.room,left)); left-=add;
-    rows.push(Object.assign({add,to:x.v+add},x));
-  });
-  /* 端数が残ったら余地のある種目に足す */
-  for(const r of rows){ if(left<=0) break;
-    const more=Math.min(left,r.room-r.add); r.add+=more; r.to=r.v+more+ (r.add-more) - (r.add-more); r.to=r.v+r.add; left-=more; }
-  return {cur,need,rows,ok:left<=0};
+  const steps=[];
+  const save=wIdx;
+  for(let i=0;i<80&&cur<targetTotal;i++){
+    let best=null;
+    for(const n of DECA){
+      const t=nextTargetFor(n,work); if(!t) continue;
+      const v=work[n]||0, gap=t.req-v;
+      if(gap<=0) continue;
+      const rel=v>0?gap/v:1;
+      if(!best||rel<best.rel) best={n,t,gap,rel,v};
+    }
+    if(!best) break;
+    const remain=targetTotal-cur;
+    if(best.gap>remain){
+      steps.push({n:best.n,from:best.v,add:remain,to:best.v+remain,rank:null,partial:true,rel:remain/(best.v||1)});
+      work[best.n]=best.v+remain; cur=targetTotal; break;
+    }
+    steps.push({n:best.n,from:best.v,add:best.gap,to:best.t.req,rank:best.t.rank,rel:best.rel});
+    work[best.n]=best.t.req; cur+=best.gap;
+  }
+  /* 種目ごとに集約（順番＝到達しやすい順） */
+  const agg=[];
+  for(const st of steps){
+    const e=agg.find(x=>x.n===st.n);
+    if(e){ e.add+=st.add; e.to=st.to; e.rank=st.rank; e.hops++; e.partial=st.partial; }
+    else agg.push(Object.assign({hops:1},st));
+  }
+  return {cur:DECA.reduce((a,n)=>a+(rec[n]||0),0),need,end:cur,steps,agg,ok:cur>=targetTotal-0.5};
+}
+/** その種目の「次のボーダー」。決められた記録集合に対して求める */
+function nextTargetFor(n,rc){
+  const cur=rc[n]||0;
+  if(!DATA().borders[n]) return null;
+  const nodes=indNodes(n), ranks=IND_RANKS, last=nodes.length-1;
+  const x=cur>0?(LOW.has(n)?1/cur:cur):0;
+  let k=0;
+  if(cur>0){ if(x>=nodes[last]) return null; for(let i=0;i<last;i++) if(x>=nodes[i]) k=i; }
+  const rank=ranks[k];
+  return {rank,req:DATA().borders[n][rank],cur};
 }
 function decaHTML(targetTotal){
   const d=decaPlan(targetTotal);
   if(d.need<=0) return `<p class="muted">十種競技総合スコアは既に目標に届いています（現在 ${jp(d.cur)}）。</p>`;
-  const tips=n=>{const r=eventRate(n,rec[n]||0);
-    return r.r<0.4?"伸びしろ大":r.r<0.7?"伸びしろあり":r.r<1?"あと少し":"1位到達";};
+  if(!d.agg.length) return `<p class="muted">9種目すべてが1位ボーダーに到達しているため、これ以上の提案はありません。</p>`;
   return `<p class="muted">現在 <b>${jp(d.cur)}</b> → 目標 <b>${jp(targetTotal)}</b>（あと <b>${jp(d.need)}</b> 点）`+
-    `${d.ok?"":' <span class="lose">※9種目すべて理論値でも届きません</span>'}</p>`+
-    `<p class="tiny">理論値（各 ${jp(MAXSCORE)} 点）までの余地が大きい種目ほど、多めに割り当てています。</p>`+
-    `<div class="scroll"><table><thead><tr><th>種目</th><th>現在</th><th>提案</th><th>目標値</th><th>理論値までの余地</th><th>状況</th></tr></thead><tbody>`+
-    d.rows.map(r=>`<tr class="${r.add>0?"used":""}"><td>${r.n}</td>`+
-      `<td>${r.v>0?jp(r.v):"—"}</td>`+
-      `<td class="pct">${r.add>0?"＋"+jp(r.add):"—"}</td>`+
-      `<td><b>${jp(r.to)}</b></td>`+
-      `<td class="tiny">${jp(r.room)}</td>`+
-      `<td class="tgt">${tips(r.n)}</td></tr>`).join("")+
-    `</tbody></table></div>`;
+    `${d.ok?"":` <span class="lose">※9種目すべて1位ボーダーでも ${jp(d.end)} 点までです</span>`}</p>`+
+    `<p class="tiny">次のボーダーラインまでの距離が近い順です。上から片付けるのがいちばん楽に総合スコアを伸ばせます。</p>`+
+    `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>次のボーダー</th>`+
+    `<th>必要な伸び</th><th>到達後</th></tr></thead><tbody>`+
+    d.agg.map((r,i)=>`<tr class="used"><td>${i+1}</td><td>${r.n}</td>`+
+      `<td>${r.from>0?jp(r.from):"—"}</td>`+
+      `<td>${r.rank?`<b>${jp(r.to)}</b><br><span class="tiny">${r.rank}位ボーダー${r.hops>1?`（${r.hops}段階）`:""}</span>`
+                   :`<b>${jp(r.to)}</b><br><span class="tiny">目標到達に必要な分だけ</span>`}</td>`+
+      `<td class="pct">＋${jp(r.add)}<br><span class="tiny">${r.from>0?(r.add/r.from*100).toFixed(1)+"%":"—"}</span></td>`+
+      `<td class="tgt">${pctf(eventRate(r.n,r.to).r)}</td></tr>`).join("")+
+    `</tbody></table></div>`+
+    `<p class="tiny">いちばん右は、その記録に到達したときのその種目のレート割合です。</p>`;
 }
 
 /* =========================================================
@@ -1393,10 +1427,10 @@ $("#addFr").onclick=()=>{
   if(!g) return toast("共有リンクを正しく貼り付けてください");
   const key=(g.pro.handle||g.pro.name||"").toLowerCase();
   if(!key) return toast("相手のプロフィール名が空です");
-  const i=friends.findIndex(f=>((f.pro.handle||f.pro.name||"").toLowerCase())===key);
-  if(i>=0){friends[i]={pro:g.pro,rec:g.rec,at:Date.now()};toast("フレンド情報を更新しました");}
-  else{friends.push({pro:g.pro,rec:g.rec,at:Date.now()});toast("フレンドに登録しました");}
-  $("#oppo").value="";render();};
+  const known=friends.some(f=>((f.pro.handle||f.pro.name||"").toLowerCase())===key);
+  saveFriend(g.pro,g.rec);
+  toast(known?"フレンド情報を更新しました":"フレンドに登録しました");
+  $("#oppo").value="";render();renderHomeFriends();};
 $("#cmpOnly").onclick=()=>{let g;try{g=readLink($("#oppo").value);}catch(e){g=null;}
   if(!g) return toast("共有リンクを正しく貼り付けてください"); renderCompare(g);};
 function renderFriends(){
@@ -1817,7 +1851,7 @@ async function loadRanking(force){
       <th>RATING</th><th>ランク</th><th>L値</th><th>S値</th><th></th></tr></thead><tbody>`+
       rows.map((r,i)=>{const v=val(r);
         return `<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
-        `<td><a href="#" data-rp="${i}" style="text-decoration:none">${nameHTML(r.name||r.handle,r.role)}</a>`+
+        `<td><a href="#" data-rp="${i}" style="text-decoration:none">${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating)}</a>`+
         `<br><span class="tiny">@${esc(r.handle)}</span></td>`+
         `<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
@@ -1840,7 +1874,7 @@ async function loadRanking(force){
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
       const rc=await fetchRec(r.handle); if(!rc) return;
-      showPlayer({name:r.name,handle:r.handle,role:r.role,x_url:r.x_url},rc);});
+      showPlayer({name:r.name,handle:r.handle,role:r.role,x_url:r.x_url,rating:r.rating,updated_at:r.updated_at,bio:r.bio},rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
       b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
@@ -1950,8 +1984,9 @@ const isSupporter=()=>!!(me&&(me.role==="supporter"||me.role==="admin"));
 const roleColor=r=>r==="admin"?"var(--warn)":r==="supporter"?"var(--acc2)":"var(--tx)";
 const roleCls=r=>r==="admin"?"nm nm-admin":r==="supporter"?"nm nm-supporter":"nm";
 /** 役職に応じて光る名前を返す */
-function nameHTML(name,role){
-  return `<span class="${roleCls(role)}">${esc(name||"")}</span>`+
+function nameHTML(name,role,rating){
+  const rb=(typeof rating==="number"&&rating>=19);
+  return `<span class="${roleCls(role)}${rb?" rb-text nm-RAINBOW":""}">${esc(name||"")}</span>`+
     (roleLabel(role)?` <span class="tiny" style="color:${roleColor(role)}">${roleLabel(role)}</span>`:"");
 }
 const roleLabel=r=>r==="admin"?"管理者":r==="supporter"?"サポーター":"";
@@ -2368,8 +2403,9 @@ function showPlayer(p,rc){
   mask.innerHTML=`<div class="modal">
     <div class="prof">
       <div>${avatarHTML({name:p.name,handle:p.handle,img:""})}</div>
-      <div><div class="pname">${nameHTML(p.name||p.handle,p.role)}</div>
+      <div><div class="pname">${nameHTML(p.name||p.handle,p.role,p.rating==null?null:+p.rating)}</div>
         <div class="phandle">${p.handle?"@"+esc(p.handle):""}</div>
+        <div class="tiny">${p.updated_at?"最終更新 "+esc(String(p.updated_at).replace("T"," ").slice(0,16)):"更新日時 不明"}</div>
         <div class="ratebox"><div><div class="rtlabel">RATING</div>${ratingHTML(c.complete?c.total:null,.75)}</div>
         ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div></div>
     </div>
@@ -2397,11 +2433,8 @@ function showPlayer(p,rc){
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   q("#mpX").onclick=close;
   q("#mpFr").onclick=()=>{
-    const key=(p.handle||"").toLowerCase();
-    const i=friends.findIndex(f=>((f.pro.handle||"").toLowerCase())===key);
-    const item={pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc,at:Date.now()};
-    if(i>=0) friends[i]=item; else friends.push(item);
-    render(); close(); toast("フレンドに登録しました");};
+    saveFriend({name:p.name,handle:p.handle,img:"",role:p.role,rating:p.rating},rc);
+    render(); renderHomeFriends(); close(); toast("フレンドに登録しました");};
   q("#mpCup").onclick=async()=>{
     q("#mpCup").disabled=true;
     const h=await fetchCupHistory(p.handle);
@@ -2657,17 +2690,50 @@ async function renderHome(){
   renderHomeFriends();
 }
 /** フレンドの更新履歴（登録時に取り込んだ記録の新しい順）*/
+/** フレンド情報を差し替えるとき、前回との差分を「更新履歴」として残す */
+function saveFriend(pro2,rec2){
+  const key=(pro2.handle||pro2.name||"").toLowerCase();
+  const i=friends.findIndex(f=>((f.pro.handle||f.pro.name||"").toLowerCase())===key);
+  const now=Date.now();
+  let log=(i>=0&&Array.isArray(friends[i].log))?friends[i].log:[];
+  if(i>=0){
+    const old=friends[i].rec||{};
+    for(const n of ["合計スコア"].concat(EVENTS)){
+      const a=old[n]||0, b=rec2[n]||0;
+      if(!b||a===b) continue;
+      const better=a?(LOW.has(n)?b<a:b>a):true;
+      if(!better) continue;
+      log.unshift({n,from:a,to:b,d:a?Math.abs(b-a):null,at:now});
+    }
+    log=log.slice(0,40);
+  }
+  const item={pro:pro2,rec:rec2,at:now,log};
+  if(i>=0) friends[i]=item; else friends.push(item);
+}
 function renderHomeFriends(){
   const box=$("#homeFriends"); if(!box) return;
   if(!friends.length){ box.innerHTML=`<p class="muted">フレンドを登録すると、ここに更新が並びます。`+
     `<br><span class="tiny">「フレンド」タブ、またはランキングの名前から追加できます。</span></p>`; return; }
-  const list=friends.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,6);
-  box.innerHTML=list.map(f=>{const c=compute(f.rec);
-    const d=f.at?new Date(f.at):null;
-    return `<div class="goal"><span class="n">${nameHTML(f.pro.name||f.pro.handle||"名無し",f.pro.role)}</span>`+
-      `<span class="g">${c.complete?f3(c.total):"—"}</span>`+
-      `<span class="d">${c.complete?rankOf(c.total).n:"未完成"}`+
-      `${d?`　${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 更新`:""}</span></div>`;}).join("")+
+  const feed=[];
+  for(const f of friends) for(const e of (f.log||[])) feed.push({f,e});
+  feed.sort((a,b)=>b.e.at-a.e.at);
+  const dt=t=>{const d=new Date(t);
+    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
+  if(!feed.length){
+    box.innerHTML=`<p class="muted">まだ更新はありません。`+
+      `<br><span class="tiny">フレンドの共有リンクを貼り直すか、ランキングから「＋友達」を押し直すと、前回との差分がここに並びます。</span></p>`+
+      `<div class="tools"><button class="btn sm" id="hfMore">フレンド一覧へ</button></div>`;
+    $("#hfMore").onclick=()=>goTab("friends"); return;
+  }
+  box.innerHTML=feed.slice(0,8).map(({f,e})=>{
+    const unit=LOW.has(e.n)?"秒":"点";
+    const verb=LOW.has(e.n)?"短縮":"更新";
+    return `<div class="goal">
+      <span class="n">${nameHTML(f.pro.name||f.pro.handle||"名無し",f.pro.role)}
+        <span class="tiny">が ${esc(e.n)} を${verb}</span></span>
+      <span class="g">${nice(e.to)}${unit}</span>
+      <span class="d">${e.d!==null?`${nice(e.from)}${unit} → <b>${nice(e.to)}${unit}</b>（${verb} ${nice(e.d)}${unit}）`
+        :`新しく登録 <b>${nice(e.to)}${unit}</b>`}　${dt(e.at)}</span></div>`;}).join("")+
     `<div class="tools"><button class="btn sm" id="hfMore">フレンド一覧へ</button></div>`;
   $("#hfMore").onclick=()=>goTab("friends");
 }
