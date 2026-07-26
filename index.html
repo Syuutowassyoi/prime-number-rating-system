@@ -447,10 +447,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <p class="tiny" id="lsHint">スタートを押すとカウントできます。ボタンのクリック、または設定したキーでも数えられます（連打防止のため1秒間隔）。</p>
 
     <div class="lsgrid2">
-      <div class="lsbox big"><div class="t">スコア累積の予測</div>
+      <div class="lsbox big"><div class="t">今回のスコア増加</div>
         <div class="v big" id="lsScore">0</div>
         <div class="s" id="lsScoreNext">—</div></div>
-      <div class="lsbox big"><div class="t">乱数累積の予測</div>
+      <div class="lsbox big"><div class="t">今回の乱数増加</div>
         <div class="v big" id="lsRand">0</div>
         <div class="s" id="lsRandNext">—</div></div>
     </div>
@@ -712,7 +712,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v18";
+const APP_VERSION = "v19";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2902,6 +2902,7 @@ function lsRankOf(kind,v){
 /** 数字をパラパラ動かして最終値に着地させる */
 function animNum(el,from,to,fmt){
   if(!el) return;
+  fmt=fmt||jp;
   const t0=performance.now(), dur=420;
   el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
   function step(t){
@@ -2922,31 +2923,39 @@ function lsFmtTime(ms){
 }
 function renderLs(prev){
   const n=lsRun?lsRun.count:0;
-  const baseS=rec["スコア累積"]||0, baseR=rec["乱数累積"]||0;
-  const s=baseS+n*(lsCfg.perScore||0), r=baseR+n*(lsCfg.perRand||0);
-  const ps=prev?baseS+prev*(lsCfg.perScore||0):s;
-  const pr=prev?baseR+prev*(lsCfg.perRand||0):r;
+  const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
+  /* 表示の主役は「今回の増加」。0から積み上がる */
+  const gainS=n*perS, gainR=n*perR;
+  const pGainS=prev!==undefined?prev*perS:gainS, pGainR=prev!==undefined?prev*perR:gainR;
   $("#lsCount").textContent=jp(n);
-  animNum($("#lsScore"),ps,s,jp);
-  animNum($("#lsRand"),pr,r,jp);
-  const sv=s>0?Math.max(logb(s,S_BASE)-S_SUB,0):null;
-  const lv=r>0?Math.max(logb(r,L_BASE)-L_SUB,0):null;
+  animNum($("#lsScore"),pGainS,gainS,v=>(v>0?"+":"")+jp(v));
+  animNum($("#lsRand"), pGainR,gainR,v=>(v>0?"+":"")+jp(v));
+
+  /* 累積の見込み（プロフィールの値＋今回の増加）で、次のボーダーまでを出す */
+  const baseS=rec["スコア累積"]||0, baseR=rec["乱数累積"]||0;
+  const totS=baseS+gainS, totR=baseR+gainR;
+  const sv=totS>0?Math.max(logb(totS,S_BASE)-S_SUB,0):null;
+  const lv=totR>0?Math.max(logb(totR,L_BASE)-L_SUB,0):null;
   $("#lsSv").textContent=sv===null?"—":f3(sv);
   $("#lsLv").textContent=lv===null?"—":f3(lv);
-  /* 次の目標まで */
-  const info=(kind,cur,goal,per,elS,elN)=>{
-    let tgt=goal>0?{rank:null,val:goal}:nextLsBorder(kind,cur);
-    if(!tgt){ elN.textContent="ボーダー1位に到達しています"; return; }
+
+  const info=(kind,base,gain,goal,per,elN)=>{
+    const cur=base+gain;
+    const tgt=goal>0?{rank:null,val:goal}:nextLsBorder(kind,cur);
+    if(!tgt){ elN.innerHTML=`<b>1位ボーダーに到達しています</b>`; return; }
     const left=Math.max(tgt.val-cur,0);
     const need=per>0?Math.ceil(left/per):null;
-    elN.innerHTML=`${tgt.rank?tgt.rank+"位ボーダー":"目標"} ${jp(tgt.val)}<br>`+
-      `あと ${jp(left)}${need!==null?`（約 ${jp(need)} 回）`:"（1回あたりの増加量を登録すると回数が出ます）"}`;
+    elN.innerHTML=
+      (base>0?`累積の見込み <b>${jp(cur)}</b><br>`:`<span class="tiny">累積を入力タブに登録すると順位も出ます</span><br>`)+
+      `${tgt.rank?tgt.rank+"位ボーダー":"目標"} ${jp(tgt.val)} まで あと <b>${jp(left)}</b>`+
+      (need!==null?`<br><b style="color:var(--warn)">あと約 ${jp(need)} 回</b>`
+                  :`<br><span class="tiny">1回あたりの増加量を登録すると回数が出ます</span>`);
   };
-  info("score",s,lsCfg.goalS,lsCfg.perScore,$("#lsScore"),$("#lsScoreNext"));
-  info("rand", r,lsCfg.goalR,lsCfg.perRand,$("#lsRand"), $("#lsRandNext"));
-  const rkS=lsRankOf("score",s), rkR=lsRankOf("rand",r);
-  $("#lsSvNext").textContent=rkS?`スコア累積 ${rkS}位以内`:"ランキング圏外";
-  $("#lsLvNext").textContent=rkR?`乱数累積 ${rkR}位以内`:"ランキング圏外";
+  info("score",baseS,gainS,lsCfg.goalS,perS,$("#lsScoreNext"));
+  info("rand", baseR,gainR,lsCfg.goalR,perR,$("#lsRandNext"));
+  const rkS=lsRankOf("score",totS), rkR=lsRankOf("rand",totR);
+  $("#lsSvNext").textContent=totS>0?(rkS?`スコア累積 ${rkS}位以内`:"ランキング圏外"):"未登録";
+  $("#lsLvNext").textContent=totR>0?(rkR?`乱数累積 ${rkR}位以内`:"ランキング圏外"):"未登録";
   $("#lsTime").textContent=lsFmtTime(lsElapsed());
   $("#lsStart").textContent=lsRun?`開始 ${jstFull(lsRun.start)}`:"未開始";
   if($("#lsKeyNow")) $("#lsKeyNow").textContent=`カウントキー：${keyLabel(lsCfg.key)}`;
@@ -2956,11 +2965,12 @@ function renderLsLog(){
   const box=$("#lsLog"); if(!box) return;
   if(!lsLog.length){ box.innerHTML=`<p class="muted">まだ記録がありません。スタート→終了で残ります。</p>`; return; }
   box.innerHTML=`<div class="scroll"><table><thead><tr><th>開始時刻(JST)</th><th>時間</th><th>回数</th>`+
-    `<th>1時間あたり</th><th>スコア累積</th><th>乱数累積</th><th></th></tr></thead><tbody>`+
+    `<th>1時間あたり</th><th>今回の増加</th><th>スコア累積</th><th>乱数累積</th><th></th></tr></thead><tbody>`+
     lsLog.slice().reverse().map((L,i)=>{
       const hr=L.ms>0?(L.count/(L.ms/3600000)):0;
       return `<tr><td>${jstFull(L.start)}</td><td>${lsFmtTime(L.ms)}</td><td><b>${jp(L.count)}</b></td>`+
         `<td class="tiny">${hr.toFixed(1)} 回</td>`+
+        `<td class="tiny">${L.gainS||L.gainR?`S +${jp(L.gainS||0)}<br>L +${jp(L.gainR||0)}`:"—"}</td>`+
         `<td>${L.score?jp(L.score):"—"}</td><td>${L.rand?jp(L.rand):"—"}</td>`+
         `<td><button class="btn sm" data-lsdel="${lsLog.length-1-i}">削除</button></td></tr>`;}).join("")+
     `</tbody></table></div>`;
@@ -3088,7 +3098,8 @@ $("#lsStartBtn").onclick=()=>{
 };
 $("#lsStopBtn").onclick=()=>{
   if(!lsRun) return;
-  const L={start:lsRun.start,ms:lsElapsed(),count:lsRun.count,score:0,rand:0};
+  const L={start:lsRun.start,ms:lsElapsed(),count:lsRun.count,score:0,rand:0,
+    gainS:lsRun.count*(lsCfg.perScore||0),gainR:lsRun.count*(lsCfg.perRand||0)};
   cancelAnimationFrame(lsTimer); lsTimer=null;
   const finish=()=>{
     lsLog.push(L); saveLs();
@@ -3099,7 +3110,8 @@ $("#lsStopBtn").onclick=()=>{
   };
   const M=modal(`<h2>お疲れさまでした</h2>
     <div class="lsgrid" style="margin-top:12px">
-      <div class="lsbox"><div class="t">クリア回数</div><div class="v">${jp(L.count)}</div><div class="s">回</div></div>
+      <div class="lsbox"><div class="t">クリア回数</div><div class="v">${jp(L.count)}</div>
+        <div class="s">スコア +${jp(L.gainS)} ／ 乱数 +${jp(L.gainR)}</div></div>
       <div class="lsbox"><div class="t">かかった時間</div><div class="v" style="font-size:1.5rem">${lsFmtTime(L.ms)}</div>
         <div class="s">${L.ms>0?(L.count/(L.ms/3600000)).toFixed(1)+" 回/時":""}</div></div>
     </div>
@@ -3213,6 +3225,31 @@ function parseEventBlocks(text){
   }
   return out;
 }
+/* ---- GitHub に data.json を直接コミットする（管理者のみ・トークンは端末内のみ）---- */
+const K_GH="sa-gh-v1";
+let gh=ls(K_GH,{owner:"",repo:"",branch:"main",path:"data.json",token:""});
+const saveGh=()=>{try{localStorage.setItem(K_GH,JSON.stringify(gh));}catch(e){}};
+const ghReady=()=>!!(gh.owner&&gh.repo&&gh.token);
+async function ghApi(path,opt){
+  const r=await fetch("https://api.github.com/"+path,Object.assign({},opt,{headers:Object.assign({
+    "Authorization":"Bearer "+gh.token,
+    "Accept":"application/vnd.github+json",
+    "X-GitHub-Api-Version":"2022-11-28"},(opt&&opt.headers)||{})}));
+  const t=await r.text();
+  let j=null; try{ j=JSON.parse(t); }catch(e){}
+  if(!r.ok){ const e=new Error((j&&j.message)||t||("HTTP "+r.status)); e.status=r.status; throw e; }
+  return j;
+}
+/** ファイルを1本コミットする */
+async function ghPut(path,content,message){
+  const base=`repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/contents/${path}`;
+  let sha=null;
+  try{ const cur=await ghApi(`${base}?ref=${encodeURIComponent(gh.branch||"main")}`); sha=cur.sha; }
+  catch(e){ if(e.status!==404) throw e; }
+  const b64=btoa(unescape(encodeURIComponent(content)));
+  return ghApi(base,{method:"PUT",body:JSON.stringify({
+    message, content:b64, branch:gh.branch||"main", ...(sha?{sha}:{})})});
+}
 function devEditor(box,close){
   const ranks=[1,5,10,50,100,200], tRanks=[1,5,10,25,50,100,500,1000];
   const today=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
@@ -3275,8 +3312,18 @@ function devEditor(box,close){
     `</tbody></table></div>
   </div>
   <h3>保存</h3>
+  <div class="hintbox" style="margin-bottom:10px">
+    <b>ここが大事です。</b>下のボタンで作った data.json を <b>GitHub に反映するまで、公開サイトは変わりません。</b><br>
+    <span class="tiny">「この端末だけに反映」はご自分の画面の確認用で、他のプレイヤーには届きません。</span>
+  </div>
+  <div class="tools" style="margin-top:0;margin-bottom:10px">
+    <button class="btn pri" id="dvGh">GitHubに直接反映する（おすすめ）</button>
+    <button class="btn sm" id="dvGhCfg">GitHub連携の設定</button>
+    <span class="tiny" id="dvGhState"></span>
+  </div>
+  <div id="dvGhMsg" class="tiny" style="margin-bottom:10px"></div>
   <div class="tools" style="margin-top:0">
-    <button class="btn pri" id="dvAdd">新しい週として追加してダウンロード</button>
+    <button class="btn" id="dvAdd">新しい週として追加してダウンロード</button>
     <button class="btn" id="dvOw">この週を上書きしてダウンロード</button>
     <button class="btn" id="dvCp">JSONをコピー</button>
     <button class="btn" id="dvAp">この端末だけに反映</button>
@@ -3303,6 +3350,77 @@ function devEditor(box,close){
     return {current:arr[arr.length-1].date,weeks:arr};};
   const dl=json=>{const blob=new Blob([JSON.stringify(json,null,2)],{type:"application/json"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();};
+  const ghState=()=>{ box.querySelector("#dvGhState").textContent=
+    ghReady()?`連携先：${gh.owner}/${gh.repo}（${gh.branch||"main"}）`:"未設定です";
+    box.querySelector("#dvGh").disabled=!ghReady(); };
+  ghState();
+  box.querySelector("#dvGhCfg").onclick=()=>{
+    const M=modal(`<h2>GitHub連携の設定</h2>
+      <p class="muted" style="margin-top:-8px">ここに入れた情報は<b>この端末のブラウザにだけ</b>保存されます。
+        公開されるファイルには一切含まれません。</p>
+      <div class="frow">
+        <div><label class="fl">ユーザー名（owner）</label>
+          <input type="text" class="txt" id="ghO" style="max-width:none" value="${esc(gh.owner)}" placeholder="Syuutowassyoi"></div>
+        <div><label class="fl">リポジトリ名</label>
+          <input type="text" class="txt" id="ghR" style="max-width:none" value="${esc(gh.repo)}" placeholder="prime-number-rating-system"></div>
+      </div>
+      <div class="frow">
+        <div><label class="fl">ブランチ</label>
+          <input type="text" class="txt" id="ghB" style="max-width:none" value="${esc(gh.branch||"main")}"></div>
+        <div><label class="fl">ファイル名</label>
+          <input type="text" class="txt" id="ghP" style="max-width:none" value="${esc(gh.path||"data.json")}"></div>
+      </div>
+      <label class="fl">アクセストークン</label>
+      <input type="password" class="txt" id="ghT" style="max-width:none" value="${esc(gh.token)}" placeholder="github_pat_...">
+      <div class="hintbox" style="margin-top:10px">
+        <b>トークンの作り方</b><br>
+        <span class="tiny">GitHub → 右上のアイコン → Settings → Developer settings →
+        Personal access tokens → <b>Fine-grained tokens</b> → Generate new token<br>
+        ・Repository access：このリポジトリだけを選ぶ<br>
+        ・Permissions → Repository permissions → <b>Contents を Read and write</b><br>
+        ・有効期限は短め（90日など）にしておくと安心です</span>
+      </div>
+      <div class="tools"><button class="btn pri" id="ghSave">保存する</button>
+        <button class="btn" id="ghTest">接続テスト</button>
+        <button class="btn" id="ghDel">連携を解除</button>
+        <button class="btn" id="ghX">閉じる</button></div>
+      <div id="ghMsg" class="tiny"></div>`);
+    M.q("#ghX").onclick=M.close;
+    const grab=()=>{ gh={owner:M.q("#ghO").value.trim(),repo:M.q("#ghR").value.trim(),
+      branch:M.q("#ghB").value.trim()||"main",path:M.q("#ghP").value.trim()||"data.json",
+      token:M.q("#ghT").value.trim()}; };
+    M.q("#ghSave").onclick=()=>{ grab(); saveGh(); ghState(); M.close(); toast("保存しました"); };
+    M.q("#ghDel").onclick=()=>{ gh={owner:"",repo:"",branch:"main",path:"data.json",token:""};
+      saveGh(); ghState(); M.close(); toast("連携を解除しました"); };
+    M.q("#ghTest").onclick=async()=>{
+      grab();
+      M.q("#ghMsg").innerHTML="確認中…";
+      try{
+        const j=await ghApi(`repos/${gh.owner}/${gh.repo}/contents/${gh.path}?ref=${gh.branch}`);
+        M.q("#ghMsg").innerHTML=`<span class="win">接続できました。${esc(gh.path)} が見つかりました（${jp(j.size||0)} バイト）。</span>`;
+      }catch(e){
+        const m=String(e.message||e);
+        M.q("#ghMsg").innerHTML=`<span class="lose">失敗：${esc(m).slice(0,200)}</span><br>`+
+          `<span class="tiny">${/Not Found/i.test(m)?"ユーザー名・リポジトリ名・ファイル名を確認してください。トークンの Repository access にこのリポジトリが含まれているかも確認を。"
+            :/Bad credentials/i.test(m)?"トークンが正しくありません。":"Contents の権限が Read and write になっているか確認してください。"}</span>`;
+      }};
+  };
+  box.querySelector("#dvGh").onclick=async()=>{
+    const msg=box.querySelector("#dvGhMsg");
+    const json=JSON.stringify(build("add"),null,2);
+    if(!await askYN("GitHubに反映しますか？",
+      `${esc(gh.owner)}/${esc(gh.repo)} の <b>${esc(gh.path)}</b> を更新します。<br>`+
+      `<span class="tiny">反映後、プレイヤーの画面には次の読み込みから新しいボーダーが表示されます。</span>`,
+      "反映する")) return;
+    msg.innerHTML="送信中…";
+    try{
+      const r=await ghPut(gh.path,json,`ボーダーライン更新 ${new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date())}`);
+      msg.innerHTML=`<span class="win">反映しました。</span>`+
+        (r&&r.commit&&r.commit.html_url?` <a href="${esc(r.commit.html_url)}" target="_blank" rel="noopener">コミットを見る</a>`:"")+
+        `<br><span class="tiny">GitHub Pages への反映まで1〜3分かかります。</span>`;
+      toast("GitHubに反映しました");
+    }catch(e){ msg.innerHTML=`<span class="lose">失敗：${esc(String(e.message||e)).slice(0,250)}</span>`; }
+  };
   box.querySelector("#pasteLsGo").onclick=()=>{
     const R=parseRankLines(box.querySelector("#pasteRand").value);
     const S=parseRankLines(box.querySelector("#pasteScore").value);
