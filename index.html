@@ -229,6 +229,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <button data-tab="settings">設定</button>
 </nav>
 
+<div id="errBanner" class="banner" hidden style="background:#3a1414;border-color:#7a2b2b">
+  <span id="errMsg"></span><button class="btn sm" id="errClose">閉じる</button>
+</div>
 <div id="localBanner" class="banner" hidden>
   <span>⚠ ボーダーデータをこの端末でローカル上書き中です。</span>
   <button class="btn sm" id="clearLocal">解除</button>
@@ -308,6 +311,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div><label class="fl" for="ph">X（Twitter）の @ID　※画像を自動取得します</label>
         <input type="text" class="txt" id="ph" placeholder="例：aaa111"></div>
     </div>
+    <label class="fl" for="pxurl">記録を証明するXの投稿リンク（任意）</label>
+    <input type="text" class="txt" id="pxurl" placeholder="https://x.com/..." style="max-width:none">
     <div class="tools">
       <button class="btn" id="useX">Xのアイコンを取り込む</button>
       <button class="btn" id="pickImg">画像を自分で選ぶ</button>
@@ -357,6 +362,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <thead><tr><th>種目</th><th>自分の記録</th><th>レート割合</th><th>順位帯</th><th>次の目標</th><th>換算</th><th>採用</th></tr></thead>
       <tbody id="tb"></tbody>
     </table></div>
+    <div id="capWarn" class="lockbox" hidden style="margin-top:12px"></div>
     <div class="tools">
       <button class="btn" id="clear">入力をクリア</button>
       <button class="btn" id="sample">サンプル値</button>
@@ -413,16 +419,32 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <section id="rank" hidden>
   <div class="card">
     <h2>全体ランキング</h2>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <label class="fl" style="margin:0">並べ替え</label>
+      <select id="rkSort" style="max-width:260px"></select>
+      <button class="btn sm" id="rkGo">表示</button>
+    </div>
     <div id="rankBody"></div>
   </div>
 </section>
 
 <section id="cup" hidden>
+  <div class="card" id="cupNewBar" hidden>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="cupNewBtn">＋ 大会を作成する</button>
+      <span class="tiny" id="cupNewNote">サポーターと管理者だけが開催できます。</span>
+    </div>
+  </div>
   <div class="card" id="cupNew" hidden>
     <h2>大会を開催する</h2>
     <label class="fl">大会名</label>
     <input type="text" class="txt" id="cTitle" placeholder="例：第1回 素因数分解カップ" style="max-width:none">
-    <label class="fl">対象種目（複数選ぶと合計スコアで勝負）</label>
+    <label class="fl">勝負の方式</label>
+    <div class="toggle" style="display:inline-flex;gap:4px;background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:3px">
+      <button id="mdSum" class="on">合計モード</button><button id="mdScore">スコアモード（比重付き）</button>
+    </div>
+    <p class="tiny" id="mdNote">選んだ種目の記録をそのまま合計します。</p>
+    <label class="fl">対象種目（複数選ぶと合計で勝負）</label>
     <div id="cEvents" class="picks"></div>
     <div id="cEvHint" class="hintbox" hidden></div>
     <div class="frow">
@@ -431,7 +453,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <label class="fl">説明（任意）</label>
     <input type="text" class="txt" id="cNote" placeholder="ルールや連絡事項" style="max-width:none">
-    <div class="tools"><button class="btn pri" id="cCreate">この内容で開催する</button></div>
+    <div class="tools"><button class="btn pri" id="cCreate">この内容で開催する</button>
+      <button class="btn" id="cCancel">やめる</button></div>
     <div id="cMsg" class="tiny"></div>
   </div>
   <div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
@@ -485,6 +508,17 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <div class="toast" id="toast"></div>
 
 <script>
+window.addEventListener("error",e=>{
+  const b=document.getElementById("errBanner");
+  if(!b) return; b.hidden=false;
+  document.getElementById("errMsg").textContent=
+    "画面の一部でエラーが起きました： "+(e.message||"")+"（"+String(e.filename||"").split("/").pop()+":"+e.lineno+"）";
+});
+document.addEventListener("DOMContentLoaded",()=>{
+  const c=document.getElementById("errClose");
+  if(c) c.onclick=()=>document.getElementById("errBanner").hidden=true;
+});
+
 /* =========================================================
    0. 設定
    ========================================================= */
@@ -494,7 +528,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v8";
+const APP_VERSION = "v9";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -536,6 +570,9 @@ const CAT3 = ["暗素因数分解・壱","暗素因数分解・参","暗素因�
 const EVENTS = CAT2.concat(CAT3);
 const ORDER  = ["合計スコア"].concat(EVENTS, ["乱数累積","スコア累積"]);
 const LOW    = new Set(["1から順に","2から順に","1桁素数","2の累乗数"]);
+/* 十種競技総合＝CAT2 から素数判定を除いた9種の合計。各種目の理論値は10万点 */
+const DECA   = CAT2.filter(n=>n!=="素数判定");
+const MAXSCORE = 100000;
 
 const IND_RANKS=[200,100,50,10,1], IND_PCT=[0,.4,.5,.6,.8,1.0];
 const IND_BAND =["200位以下","100〜200位","50〜100位","10〜50位","1〜10位","1位"];
@@ -799,13 +836,30 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
    ========================================================= */
 const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
       K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
-let rec={}, pro={name:"",handle:"",img:"",pub:false}, friends=[];
+let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:""}, friends=[];
 const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
 let editKey=localStorage.getItem(K_EDIT); if(!editKey){editKey=rndHex(24);localStorage.setItem(K_EDIT,editKey);}
-const save=()=>{try{localStorage.setItem(K_REC,JSON.stringify(rec));
+let allowEmptySave=false;
+const K_BK="sa-backup-v3";
+const save=()=>{try{
+  const had=ls(K_REC,{}), hadN=Object.keys(had).filter(k=>had[k]>0).length;
+  const nowN=ORDER.filter(n=>rec[n]>0).length;
+  /* 中身のある記録を、うっかり空で上書きしない */
+  if(hadN>0 && nowN===0 && !allowEmptySave){ localStorage.setItem(K_PRO,JSON.stringify(pro)); return; }
+  if(nowN>0){
+    const bk=ls(K_BK,[]);
+    const last=bk[bk.length-1];
+    if(!last||JSON.stringify(last.rec)!==JSON.stringify(rec)){
+      bk.push({at:new Date().toISOString(),rec:Object.assign({},rec),pro:Object.assign({},pro)});
+      while(bk.length>5) bk.shift();
+      localStorage.setItem(K_BK,JSON.stringify(bk));
+    }
+  }
+  localStorage.setItem(K_REC,JSON.stringify(rec));
   localStorage.setItem(K_PRO,JSON.stringify(pro));
-  localStorage.setItem(K_FR,JSON.stringify(friends));}catch(e){}};
+  localStorage.setItem(K_FR,JSON.stringify(friends));
+}catch(e){}};
 
 /* =========================================================
    4. 入力テーブル
@@ -820,7 +874,9 @@ const ROWS=[{sec:"① 十種競技総合スコア（素数判定を除く9種の
   else{tr.dataset.name=r.name;
    tr.innerHTML=`<td>${r.name}${LOW.has(r.name)?' <span class="band">(秒)</span>':""}</td>`+
     `<td><input type="text" inputmode="decimal" data-in="${r.name}" placeholder="—"></td>`+
-    (r.ref?`<td colspan="5" class="band" data-ref>—</td>`
+    (r.auto?`<td class="pct" data-r>0.00%</td><td class="band" data-b>—</td>`+
+            `<td class="tgt" data-t>—</td><td data-p>0.000</td><td class="chk" data-c></td>`
+     :r.ref?`<td colspan="5" class="band" data-ref>—</td>`
           :`<td class="pct" data-r>0.00%</td><td class="band" data-b>—</td>`+
            `<td class="tgt" data-t>—</td><td data-p>0.000</td><td class="chk" data-c></td>`);}
   tb.appendChild(tr);}})();
@@ -882,7 +938,8 @@ function render(){
   /* プロフィール */
   $("#avwrap").innerHTML=avatarHTML(pro);
   $("#pname").innerHTML=nameHTML(pro.name||"プレイヤー名未設定", me?me.role:null);
-  $("#phandle").textContent=pro.handle?"@"+pro.handle:"";
+  $("#phandle").innerHTML=(pro.handle?"@"+esc(pro.handle):"")+
+    (pro.x_url?` 　<a href="${esc(pro.x_url)}" target="_blank" rel="noopener" class="tiny">記録の証明 ↗</a>`:"");
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
   const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
   rb.textContent=rk?rk.n:"—";
@@ -923,6 +980,15 @@ function render(){
   /* 公開トグル */
   $("#pubOn").classList.toggle("on",!!pro.pub);
   $("#pubOff").classList.toggle("on",!pro.pub);
+  const over=overCap(), cw=$("#capWarn");
+  if(cw){
+    cw.hidden=!over.length;
+    if(over.length) cw.innerHTML=
+      `<b style="color:var(--bad)">入力値がおかしいようです。</b><br>`+
+      `<span class="muted">次の種目は理論値の ${jp(MAXSCORE)} 点を超えています。`+
+      `素数ゲームV1・V2／暗素因数分解lv.1-3 の10種は ${jp(MAXSCORE)} 点が上限です。</span><br>`+
+      over.map(n=>`<span class="tiny">${esc(n)}：${jp(rec[n])} 点</span>`).join("　");
+  }
   renderFriends();
   renderPyramid();
   if($("#pickList")) renderPicks();
@@ -1002,16 +1068,40 @@ function applyComma(el){
   while(c<out.length&&seen<keep){ if(/[\d.]/.test(out[c])) seen++; c++; }
   try{ el.setSelectionRange(c,c); }catch(e){}
 }
+/** 十種競技総合スコアを9種目から自動計算する */
+function autoTotal(){
+  const has=DECA.filter(n=>rec[n]>0);
+  if(!has.length) return null;
+  return DECA.reduce((a,n)=>a+(rec[n]||0),0);
+}
+/** 理論値（10万点）超えを検出する */
+function overCap(){
+  return DECA.concat(["素数判定"]).filter(n=>(rec[n]||0)>MAXSCORE);
+}
 function fillInputs(){
   $$("[data-in]").forEach(el=>{const v=rec[el.dataset.in];
     el.value=(v===undefined||v===null||v===0)?"":commaFmt(String(v));});
   $("#pn").value=pro.name||""; $("#ph").value=pro.handle||"";
+  if($("#pxurl")) $("#pxurl").value=pro.x_url||"";
 }
 document.addEventListener("input",e=>{const t=e.target;
-  if(t.dataset.in){applyComma(t);rec[t.dataset.in]=num(t.value);render();}
+  if(t.dataset.in){
+    applyComma(t); rec[t.dataset.in]=num(t.value);
+    if(DECA.includes(t.dataset.in)){
+      const a=autoTotal();
+      if(a!==null){ rec["合計スコア"]=a;
+        const el=$('[data-in="合計スコア"]'); if(el) el.value=commaFmt(String(a)); }
+    }
+    render();
+  }
   else if(t.id==="pn"){pro.name=t.value;render();}
-  else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}});
-$("#clear").onclick=()=>{rec={};fillInputs();render();toast("入力をクリアしました");};
+  else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}
+  else if(t.id==="pxurl"){pro.x_url=t.value.trim();render();}});
+$("#clear").onclick=()=>{
+  const n=ORDER.filter(x=>rec[x]>0).length;
+  if(n&&!confirm(`入力済みの ${n} 項目をすべて消します。よろしいですか？\n（設定タブの「バックアップを保存」で控えを取れます）`)) return;
+  allowEmptySave=true; rec={}; fillInputs(); render(); allowEmptySave=false;
+  toast("入力をクリアしました");};
 $("#sample").onclick=()=>{rec=Object.assign({},SAMPLE);fillInputs();render();toast("サンプル値を入力しました");};
 $("#useX").onclick=()=>{const h=$("#ph").value.replace(/^@/,"").trim();
   if(!h) return toast("先に @ID を入力してください");
@@ -1047,8 +1137,8 @@ $("#impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;
 $("#wipe").onclick=()=>{
   if(!confirm("この端末に保存された記録・プロフィール・フレンドを消します。よろしいですか？")) return;
   [K_REC,K_PRO,K_FR].forEach(k=>localStorage.removeItem(k));
-  rec={};pro={name:"",handle:"",img:"",pub:false};friends=[];
-  fillInputs();render();renderSettings();toast("消去しました");};
+  rec={};pro={name:"",handle:"",img:"",pub:false,x_url:""};friends=[];
+  fillInputs();render();renderSettings();allowEmptySave=false;toast("消去しました");};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
 $$(".tabs button").forEach(b=>b.onclick=()=>{
@@ -1486,7 +1576,9 @@ async function sbTest(){
 
   stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
-let RANK_ROWS=[];
+let RANK_ROWS=[], rkSortKey="rating";
+const SORT_OPTS=()=>[["rating","RATING（総合）"],["l_value","L値"],["s_value","S値"],
+  ["total_score","十種競技総合スコア"]].concat(EVENTS.map(n=>["ev:"+n,n]));
 async function loadRanking(){
   const el=$("#rankBody");
   if(!sbOn()){ el.innerHTML=
@@ -1494,9 +1586,23 @@ async function loadRanking(){
      <p class="tiny">index.html 冒頭の <code>SUPABASE_URL</code> と <code>SUPABASE_ANON_KEY</code> に
      Supabase プロジェクトの値を入れると有効になります。手順は SETUP.md を参照してください。
      設定するまでは「フレンド」タブのランキングが使えます。</p>`; return; }
+  if(!$("#rkSort").innerHTML){
+    $("#rkSort").innerHTML=SORT_OPTS().map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join("");
+    $("#rkSort").onchange=()=>{rkSortKey=$("#rkSort").value;loadRanking();};
+    $("#rkGo").onclick=()=>{rkSortKey=$("#rkSort").value;loadRanking();};
+  }
+  $("#rkSort").value=rkSortKey;
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
-    const rows=await sb("profiles_public?select=handle,name,role,rating,l_value,s_value,total_score,updated_at&order=rating.desc.nullslast&limit=300");
+    const byEv=rkSortKey.startsWith("ev:");
+    const cols="handle,name,role,rating,l_value,s_value,total_score,updated_at"+(byEv?",records":"");
+    const rows=await sb(`profiles_public?select=${cols}&order=rating.desc.nullslast&limit=300`);
+    const evName=byEv?rkSortKey.slice(3):null;
+    const val=r=>byEv?((r.records||{})[evName]||0):(r[rkSortKey]==null?null:+r[rkSortKey]);
+    const lowBetter=byEv&&LOW.has(evName);
+    rows.sort((a,b)=>{const x=val(a),y=val(b);
+      if(!x&&!y) return 0; if(!x) return 1; if(!y) return -1;
+      return lowBetter?(x-y):(y-x);});
     if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>
       <div class="tools"><button class="btn pri" id="rkPush">自分の記録を公開／更新</button>
       <button class="btn" id="rkReload">再読み込み</button></div>`;
@@ -1508,17 +1614,20 @@ async function loadRanking(){
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
       <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
-      <p class="tiny">プレイヤー行の「比較」を押すと、全種目の記録を並べて比べられます。</p>
-      <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th>
-      <th>L値</th><th>S値</th><th>総合スコア</th><th></th></tr></thead><tbody>`+
-      rows.map((r,i)=>`<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
-        `<td>${nameHTML(r.name||r.handle,r.role)}<br><span class="tiny">@${esc(r.handle)}</span></td>`+
+      <p class="tiny">名前を押すとその人のプロフィールが開きます。「＋友達」でフレンドに追加できます。</p>
+      <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th>
+      <th>${esc(SORT_OPTS().find(o=>o[0]===rkSortKey)[1])}</th>
+      <th>RATING</th><th>ランク</th><th>L値</th><th>S値</th><th></th></tr></thead><tbody>`+
+      rows.map((r,i)=>{const v=val(r);
+        return `<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
+        `<td><a href="#" data-rp="${i}" style="text-decoration:none">${nameHTML(r.name||r.handle,r.role)}</a>`+
+        `<br><span class="tiny">@${esc(r.handle)}</span></td>`+
+        `<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
-        `<td>${r.total_score==null?"—":jp(+r.total_score)}</td>`+
-        `<td>${r.handle===mine?"":`<button class="btn sm" data-rc="${i}">比較</button> `+
-          `<button class="btn sm" data-rf="${i}">＋友達</button>`}</td></tr>`).join("")+
+        `<td>${r.handle===mine?"<span class='tiny'>あなた</span>":`<button class="btn sm" data-rc="${i}">比較</button> `+
+          `<button class="btn sm" data-rf="${i}">＋友達</button>`}</td></tr>`;}).join("")+
       `</tbody></table></div><div id="rkCmp"></div>`;
     RANK_ROWS=rows;
     /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
@@ -1530,6 +1639,11 @@ async function loadRanking(){
       b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
       if(!rc) return;
       renderCompare({pro:{name:r.name,handle:r.handle,img:""},rec:rc},"#rkCmp");});
+    $$("[data-rp]").forEach(a=>a.onclick=async e=>{
+      e.preventDefault();
+      const r=RANK_ROWS[+a.dataset.rp];
+      const rc=await fetchRec(r.handle); if(!rc) return;
+      showPlayer({name:r.name,handle:r.handle,role:r.role,x_url:r.x_url},rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
       b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
@@ -1601,6 +1715,7 @@ async function loadMe(){
     if(me){
       if(me.handle) pro.handle=me.handle;
       if(me.name) pro.name=me.name;
+      if(me.x_url) pro.x_url=me.x_url;
       pro.pub=!!me.is_public;
       const cloud=me.records||{};
       const mine=ORDER.some(n=>rec[n]>0);
@@ -1626,7 +1741,7 @@ async function pushMe(){
     p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||"",
     p_rating:c.complete?Number(c.total.toFixed(3)):null,
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
-    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub })});
+    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub, p_x:pro.x_url||null })});
 }
 const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
@@ -1672,9 +1787,11 @@ function renderSettings(){
       try{ await sbAuth("rpc/ensure_profile",{method:"POST",
              body:JSON.stringify({p_handle:(pro.handle||"").toLowerCase()||null,p_name:pro.name||""})}); }catch(e){}
       try{ await pushMe(); await loadMe(); renderSettings(); render();
+        renderCupNew(); if(!$("#cup").hidden) loadCups();
         toast(me&&me.role!=="user"?`${roleLabel(me.role)}として認識されました`:"一般ユーザーとして登録されています"); }
       catch(e){ toast("失敗しました："+String(e.message||e).slice(0,80)); }};
-    $("#btnSync").onclick=async()=>{try{await pushMe();await loadMe();toast("同期しました");}
+    $("#btnSync").onclick=async()=>{try{await pushMe();await loadMe();renderSettings();render();
+      if(!$("#cup").hidden) loadCups(); toast("同期しました");}
       catch(e){toast("同期に失敗しました："+String(e.message||e).slice(0,60));}};
   }
   $("#pubOn2").classList.toggle("on",!!pro.pub);
@@ -1731,7 +1848,7 @@ async function setRole(uid,role){
 /* =========================================================
    10c. 大会
    ========================================================= */
-let CUPS=[], cupSel=null, cupTimer=null, cupEvents=new Set();
+let CUPS=[], cupSel=null, cupTimer=null, cupEvents=new Set(), cupMode="sum", cupW={};
 const nowMs=()=>Date.now();
 function dhms(ms){
   if(ms<0) ms=0;
@@ -1755,6 +1872,12 @@ async function loadCups(){
   renderCupNew();
   const el=$("#cupList");
   if(!sbOn()){ el.innerHTML=`<p class="muted">Supabase が未設定のため大会機能は使えません。</p>`; return; }
+  if(!$("#rkSort").innerHTML){
+    $("#rkSort").innerHTML=SORT_OPTS().map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join("");
+    $("#rkSort").onchange=()=>{rkSortKey=$("#rkSort").value;loadRanking();};
+    $("#rkGo").onclick=()=>{rkSortKey=$("#rkSort").value;loadRanking();};
+  }
+  $("#rkSort").value=rkSortKey;
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
     CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
@@ -1773,7 +1896,7 @@ function renderCupList(){
     h+=`<div class="gsec">${label}（${list.length}）</div>`;
     h+=list.map(c=>`<div class="cup ${ph==="live"?"live":""}">
       <h4>${esc(c.title)}</h4>
-      <div class="meta">主催 ${esc(c.owner_name||c.owner_handle||"")}　種目 ${esc((c.events||[]).join("、"))}</div>
+      <div class="meta">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"（不明）")}</b>${c.owner_handle?` <span class="tiny">@${esc(c.owner_handle)}</span>`:""}　${c.mode==="score"?"<b style=\"color:var(--warn)\">スコアモード</b>　":""}種目 ${esc((c.events||[]).join("、"))}</div>
       <div class="meta">${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
         <span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
@@ -1797,25 +1920,45 @@ function tickCups(){
 /* ---- 開催フォーム ---- */
 function renderCupNew(){
   const can=isSupporter();
-  $("#cupNew").hidden=!can;
-  if(!can) return;
+  $("#cupNewBar").hidden=!can;
+  if(!can){ $("#cupNew").hidden=true; return; }
+  $("#cupNewNote").textContent = isAdmin()?"管理者：開催と削除ができます。":"サポーター：開催できます（削除は管理者のみ）。";
   if(!$("#cEvents").innerHTML){
     $("#cEvents").innerHTML=EVENTS.map(n=>
       `<label class="pk"><input type="checkbox" data-ce="${esc(n)}"><span>${n}</span>`+
-      `<span class="v">${LOW.has(n)?"タイム":"スコア"}</span></label>`).join("");
+      `<span class="v">${LOW.has(n)?"タイム":"スコア"}</span>`+
+      `<input type="text" inputmode="decimal" data-cw="${esc(n)}" value="1" title="比重"
+        style="width:52px;max-width:52px;padding:3px 6px;margin-left:6px;display:none"></label>`).join("");
     $$("[data-ce]").forEach(el=>el.onchange=()=>{
       el.checked?cupEvents.add(el.dataset.ce):cupEvents.delete(el.dataset.ce);
       el.closest(".pk").classList.toggle("on",el.checked);
-      const d=cupDir([...cupEvents]), hb=$("#cEvHint");
-      if(!cupEvents.size){hb.hidden=true;return;}
-      hb.hidden=false;
-      hb.innerHTML = d==="mixed"
-        ? `<b style="color:var(--bad)">スコア系とタイム系は混ぜられません。</b>どちらかに揃えてください。`
-        : d==="low" ? `タイム系のみ：合計タイムが<b>短い</b>ほど上位になります。`
-        : `スコア系のみ：合計スコアが<b>高い</b>ほど上位になります。`;
+      updateCupHint();
     });
+    $$("[data-cw]").forEach(el=>el.onclick=e=>e.preventDefault());
   }
+  syncWeightInputs();
 }
+function syncWeightInputs(){
+  $$("[data-cw]").forEach(el=>{ el.style.display=(cupMode==="score")?"inline-block":"none"; });
+}
+function updateCupHint(){
+  const evs=[...cupEvents], d=cupDir(evs), hb=$("#cEvHint");
+  if(!evs.length){hb.hidden=true;return;}
+  hb.hidden=false;
+  hb.innerHTML = d==="mixed"
+    ? `<b style="color:var(--bad)">スコア系とタイム系は混ぜられません。</b>どちらかに揃えてください。`
+    : (cupMode==="score"
+        ? `各種目に比重をかけて合計します。比重を大きくした種目ほど勝敗への影響が強くなります。`+
+          `<br><span class="tiny">例：比重2なら、その種目の記録が2倍として扱われます。</span>`
+        : (d==="low" ? `合計タイムが<b>短い</b>ほど上位になります。` : `合計スコアが<b>高い</b>ほど上位になります。`));
+}
+$("#cupNewBtn").onclick=()=>{ $("#cupNew").hidden=!$("#cupNew").hidden;
+  if(!$("#cupNew").hidden){ renderCupNew(); $("#cupNew").scrollIntoView({behavior:"smooth"}); } };
+$("#cCancel").onclick=()=>{ $("#cupNew").hidden=true; };
+$("#mdSum").onclick=()=>{cupMode="sum";$("#mdSum").classList.add("on");$("#mdScore").classList.remove("on");
+  $("#mdNote").textContent="選んだ種目の記録をそのまま合計します。";syncWeightInputs();updateCupHint();};
+$("#mdScore").onclick=()=>{cupMode="score";$("#mdScore").classList.add("on");$("#mdSum").classList.remove("on");
+  $("#mdNote").textContent="種目ごとに比重を設定できます。重要な種目に大きい数字を入れてください。";syncWeightInputs();updateCupHint();};
 $("#cCreate").onclick=async()=>{
   const evs=[...cupEvents], m=$("#cMsg");
   if(!sess) return toast("ログインが必要です");
@@ -1826,13 +1969,15 @@ $("#cCreate").onclick=async()=>{
   if(!a||!b) return toast("開始と終了の日時を入れてください");
   if(Date.parse(b)<=Date.parse(a)) return toast("終了は開始より後にしてください");
   try{
+    const w={}; evs.forEach(n=>{const el=$(`[data-cw="${CSS.escape(n)}"]`);
+      w[n]=(cupMode==="score"&&el)?Math.max(num(el.value)||1,0.01):1;});
     await sbAuth("rpc/create_tournament",{method:"POST",body:JSON.stringify({
-      p_title:$("#cTitle").value.trim(), p_events:evs,
+      p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:new Date(a).toISOString(), p_ends:new Date(b).toISOString(),
       p_note:$("#cNote").value.trim()})});
     m.textContent=""; toast("大会を作成しました");
     $("#cTitle").value="";$("#cNote").value="";
-    cupEvents=new Set(); $("#cEvents").innerHTML=""; renderCupNew();
+    cupEvents=new Set(); $("#cEvents").innerHTML=""; $("#cupNew").hidden=true; renderCupNew();
     loadCups();
   }catch(e){ m.innerHTML=`<span class="lose">作成に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
 };
@@ -1855,8 +2000,10 @@ async function openCup(id){
 
   box.innerHTML=`<div class="card">
     <h2>${esc(c.title)}</h2>
-    <p class="muted" style="margin-top:-8px">主催 ${esc(c.owner_name||c.owner_handle||"")}　／　種目 ${esc(evs.join("、"))}
-      （${dir==="low"?"合計タイムが短いほど上位":"合計スコアが高いほど上位"}）</p>
+    <p class="muted" style="margin-top:-8px">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"（不明）")}</b>
+      ${c.owner_handle?`<span class="tiny">@${esc(c.owner_handle)}</span>`:""}　／　種目 ${esc(evs.join("、"))}
+      （${c.mode==="score"?"スコアモード：比重付き合計":dir==="low"?"合計タイムが短いほど上位":"合計スコアが高いほど上位"}）</p>
+    ${c.mode==="score"?`<p class="tiny">比重 ${evs.map(n=>`${esc(n)}×${(c.weights&&c.weights[n])||1}`).join("　")}</p>`:""}
     ${c.note?`<p class="tiny">${esc(c.note)}</p>`:""}
     <div style="margin:10px 0"><span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
       <span class="tiny">　${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</span></div>
@@ -1876,16 +2023,26 @@ async function openCup(id){
                `<button class="btn sm" data-ed="${esc(e.id)}">削除</button></td>`:"")+
         `</tr>`).join("")+`</tbody></table></div>`
       :`<p class="muted">まだ記録がありません。</p>`}
-    ${owner?`<div class="tools"><button class="btn" id="cupDel">この大会を削除</button></div>`:""}
+    <div class="tools">
+      ${owner&&ph==="live"?`<button class="btn" id="cupEnd">今すぐ終了する</button>`:""}
+      ${isAdmin()?`<button class="btn" id="cupDel">この大会を削除（管理者）</button>`:""}
+    </div>
   </div>`;
   tickCups();
   if(ph==="live"&&sess) entryForm(c,evs,dir,mine);
-  if(owner){
+  if($("#cupEnd")) $("#cupEnd").onclick=async()=>{
+    if(!confirm("この大会を今すぐ終了します。以降は記録を提出できなくなります。よろしいですか？")) return;
+    try{ await sbAuth("rpc/end_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
+      toast("大会を終了しました"); await loadCups(); openCup(c.id); }
+    catch(e){ toast("終了に失敗しました："+String(e.message||e).slice(0,60)); }};
+  if(isAdmin()){
     $("#cupDel").onclick=async()=>{
       if(!confirm("この大会と記録をすべて削除します。よろしいですか？")) return;
       try{ await sbAuth("rpc/delete_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
         box.innerHTML=""; toast("削除しました"); loadCups(); }
       catch(e){ toast("削除に失敗しました"); }};
+  }
+  if(owner){
     $$("[data-ed]").forEach(b=>b.onclick=async()=>{
       if(!confirm("この記録を削除します。よろしいですか？")) return;
       try{ await sbAuth("rpc/owner_delete_entry",{method:"POST",body:JSON.stringify({p_id:b.dataset.ed})});
@@ -1901,8 +2058,10 @@ async function openCup(id){
   }
 }
 function entryForm(c,evs,dir,mine){
+  const W=(c.mode==="score"&&c.weights)?c.weights:null;
   $("#entForm").innerHTML=`<h3>記録を提出${mine?"／更新":""}</h3>
-    <p class="tiny" style="margin-top:-4px">期間中は何度でも更新できます。X（Twitter）の投稿リンクの添付が必須です。</p>
+    <p class="tiny" style="margin-top:-4px">期間中は何度でも更新できます。X（Twitter）の投稿リンクの添付が必須です。
+    ${W?`このスコアモードでは 比重 ${evs.map(n=>`${esc(n)}×${(+W[n]||1)}`).join("　")} を掛けた合計で競います。`:""}</p>
     <div class="frow">${evs.map(n=>
       `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}</label>
        <input type="text" inputmode="decimal" data-en="${esc(n)}" style="max-width:none"
@@ -1929,13 +2088,58 @@ function entryForm(c,evs,dir,mine){
         better.forEach(n=>rec[n]=sc[n]); fillInputs(); render();
       }
     }
-    const tot=evs.reduce((a,n)=>a+sc[n],0);
+    const W=(c.mode==="score"&&c.weights)?c.weights:null;
+    const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
     try{
       await sbAuth("rpc/submit_entry",{method:"POST",body:JSON.stringify({
         p_tid:c.id,p_scores:sc,p_total:tot,p_proof:url})});
       toast("記録を提出しました"); openCup(c.id);
     }catch(e){ $("#enMsg").innerHTML=`<span class="lose">提出に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
   };
+}
+
+/** ランキングから開く、他プレイヤーのプロフィール */
+function showPlayer(p,rc){
+  const c=compute(rc), rk=c.complete?rankOf(c.total):null;
+  const mask=document.createElement("div");mask.className="mask";
+  mask.innerHTML=`<div class="modal">
+    <div class="prof">
+      <div>${avatarHTML({name:p.name,handle:p.handle,img:""})}</div>
+      <div><div class="pname">${nameHTML(p.name||p.handle,p.role)}</div>
+        <div class="phandle">${p.handle?"@"+esc(p.handle):""}</div>
+        <div class="ratebox"><div><div class="rtlabel">RATING</div>${ratingHTML(c.complete?c.total:null,.75)}</div>
+        ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div></div>
+    </div>
+    ${p.x_url?`<p class="tiny" style="margin-top:10px">記録の証明：
+      <a href="${esc(p.x_url)}" target="_blank" rel="noopener">${esc(p.x_url).slice(0,60)}</a></p>`:""}
+    <div class="stats">
+      <div class="stat"><div class="t">十種競技総合スコア</div><div class="v">${rc["合計スコア"]>0?jp(rc["合計スコア"]):"—"}</div></div>
+      <div class="stat"><div class="t">L値</div><div class="v">${c.L===null?"—":f3(c.L)}</div>
+        <div class="s">${rc["乱数累積"]>0?jp(rc["乱数累積"]):""}</div></div>
+      <div class="stat"><div class="t">S値</div><div class="v">${c.S===null?"—":f3(c.S)}</div>
+        <div class="s">${rc["スコア累積"]>0?jp(rc["スコア累積"]):""}</div></div>
+    </div>
+    <h3>全種目の記録</h3>
+    <div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>レート割合</th><th>採用</th></tr></thead><tbody>`+
+    EVENTS.map(n=>`<tr class="${c.used[n]?"used":""}"><td>${n}</td>`+
+      `<td>${rc[n]>0?nice(rc[n]):"—"}</td><td class="pct">${pctf(c.rates[n])}</td>`+
+      `<td class="chk">${c.used[n]?"○":""}</td></tr>`).join("")+
+    `</tbody></table></div>
+    <div class="tools"><button class="btn pri" id="mpFr">フレンドに追加</button>
+      <button class="btn" id="mpCmp">自分と比較</button>
+      <button class="btn" id="mpX">閉じる</button></div></div>`;
+  document.body.appendChild(mask);
+  const q=x=>mask.querySelector(x), close=()=>mask.remove();
+  mask.addEventListener("click",e=>{if(e.target===mask)close();});
+  q("#mpX").onclick=close;
+  q("#mpFr").onclick=()=>{
+    const key=(p.handle||"").toLowerCase();
+    const i=friends.findIndex(f=>((f.pro.handle||"").toLowerCase())===key);
+    const item={pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc,at:Date.now()};
+    if(i>=0) friends[i]=item; else friends.push(item);
+    render(); close(); toast("フレンドに登録しました");};
+  q("#mpCmp").onclick=()=>{ close(); $$(".tabs button")[3].click();
+    renderCompare({pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc}); };
 }
 
 /* =========================================================
@@ -2082,6 +2286,10 @@ function devEditor(box,close){
     box.querySelector("#sbMsg").hidden=true; toast("一時設定を消しました");
   };
 }
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&sess&&sbOn())
+    loadMe().then(()=>{ try{renderSettings();render();}catch(e){} });
+});
 $("#devBtn").onclick=openDev;
 $("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();};
 
@@ -2151,7 +2359,7 @@ function normalize(j){
       if(!mine){ rec=g.rec; pro=Object.assign(pro,g.pro);
         $("#viewBanner").hidden=false;
         $("#viewMsg").textContent=`${g.pro.name||"他プレイヤー"} さんの共有プロフィールを表示中です。`;
-        $("#viewClear").onclick=()=>{rec={};pro={name:"",handle:"",img:"",pub:false};
+        $("#viewClear").onclick=()=>{rec={};pro={name:"",handle:"",img:"",pub:false,x_url:""};
           $("#viewBanner").hidden=true;fillInputs();render();};
       }else{ $("#oppo").value=location.hash; $$(".tabs button")[3].click(); renderCompare(g); }
       history.replaceState(null,"",location.pathname);
@@ -2169,8 +2377,11 @@ function normalize(j){
     }
   }
   fillInputs();
-  applyData();
-  if(sess&&sbOn()){ await loadMe(); renderSettings(); }
+  try{ applyData(); }catch(e){ console.error(e); }
+  if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){} }
+  /* どの経路を通っても最後に必ず描き直す */
+  fillInputs();
+  try{ render(); }catch(e){ console.error(e); }
 })();
 </script>
 </body>
