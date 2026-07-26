@@ -45,6 +45,10 @@ hr{border:none;border-top:1px solid var(--line);margin:18px 0}
 header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;background:#0f1828;border:1px solid var(--line);
   border-radius:11px;padding:4px;margin-bottom:16px;width:100%}
+@media(max-width:700px){
+  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+  .tabs button{flex:0 0 auto}
+}
 .tabs button{background:none;border:none;color:var(--dim);font:inherit;font-size:.8rem;
   padding:7px 13px;border-radius:8px;cursor:pointer;flex:1 1 auto;white-space:nowrap}
 .tabs button.on{background:linear-gradient(180deg,#31456610,#2b3d5a);color:var(--tx);
@@ -106,6 +110,14 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .pk input{width:auto;margin:0;accent-color:var(--acc)}
 .pk .v{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--acc2);font-size:.78rem}
 .pk.on{border-color:var(--acc);background:#1b2a41}
+.cup{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;
+  background:linear-gradient(180deg,#141d2c,#111926)}
+.cup.live{border-color:#57e0a066;box-shadow:0 0 0 1px #57e0a022}
+.cup h4{margin:0 0 4px;font-size:1rem}
+.cup .meta{font-size:.76rem;color:var(--dim)}
+.cd{font-variant-numeric:tabular-nums;font-weight:700;color:var(--acc2);font-size:1.05rem}
+.cd.pre{color:var(--warn)} .cd.end{color:var(--dim2)}
+.gsec{font-size:.82rem;color:var(--acc);font-weight:600;margin:16px 0 8px;letter-spacing:.06em}
 .hintbox{margin-top:10px;background:#20263a;border:1px solid #40506e;border-radius:10px;
   padding:10px 12px;font-size:.8rem}
 .goal{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:10px 0;border-bottom:1px solid #1f2c40}
@@ -171,6 +183,11 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 .vs .side .av,.vs .side .avph{width:56px;height:56px;margin:0 auto 8px;font-size:1.3rem;border-width:2px}
 
 .vs .mid{font-size:.85rem;color:var(--dim);font-weight:700;letter-spacing:.1em}
+.nm{font-weight:600}
+.nm-admin{color:var(--warn);font-weight:800;text-shadow:0 0 14px #ffc861aa,0 0 4px #ffc86166}
+.nm-supporter{color:var(--acc2);font-weight:700;text-shadow:0 0 12px #57e0a088}
+@keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+.nm-admin{animation:shine 2.4s ease-in-out infinite}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
 .tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
 
@@ -204,6 +221,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <button data-tab="input">入力</button>
   <button data-tab="friends">フレンド</button>
   <button data-tab="rank">ランキング</button>
+  <button data-tab="cup">大会</button>
   <button data-tab="settings">設定</button>
 </nav>
 
@@ -294,7 +312,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <div class="sw">
       <div><div class="t">データの公開設定</div>
-        <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。</div></div>
+        <div class="tiny" id="pubNote">公開にすると、全体ランキングに名前・RATING・記録が掲載されます。<b>ログインが必要です。</b></div></div>
       <div class="toggle"><button id="pubOff" class="on">非公開</button><button id="pubOn">公開</button></div>
     </div>
     <div id="pubMsg" class="lockbox" hidden style="margin-top:10px"></div>
@@ -395,6 +413,27 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   </div>
 </section>
 
+<section id="cup" hidden>
+  <div class="card" id="cupNew" hidden>
+    <h2>大会を開催する</h2>
+    <label class="fl">大会名</label>
+    <input type="text" class="txt" id="cTitle" placeholder="例：第1回 素因数分解カップ" style="max-width:none">
+    <label class="fl">対象種目（複数選ぶと合計スコアで勝負）</label>
+    <div id="cEvents" class="picks"></div>
+    <div id="cEvHint" class="hintbox" hidden></div>
+    <div class="frow">
+      <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="cStart" style="max-width:none"></div>
+      <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="cEnd" style="max-width:none"></div>
+    </div>
+    <label class="fl">説明（任意）</label>
+    <input type="text" class="txt" id="cNote" placeholder="ルールや連絡事項" style="max-width:none">
+    <div class="tools"><button class="btn pri" id="cCreate">この内容で開催する</button></div>
+    <div id="cMsg" class="tiny"></div>
+  </div>
+  <div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
+  <div id="cupDetail"></div>
+</section>
+
 <section id="settings" hidden>
   <div class="card">
     <h2>アカウント</h2>
@@ -451,6 +490,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
+const APP_VERSION = "v7 (大会タブあり)";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -837,7 +877,7 @@ function render(){
   });
   /* プロフィール */
   $("#avwrap").innerHTML=avatarHTML(pro);
-  $("#pname").textContent=pro.name||"プレイヤー名未設定";
+  $("#pname").innerHTML=nameHTML(pro.name||"プレイヤー名未設定", me?me.role:null);
   $("#phandle").textContent=pro.handle?"@"+pro.handle:"";
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
   const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
@@ -883,13 +923,13 @@ function render(){
   renderPyramid();
   if($("#pickList")) renderPicks();
   save();
-  if(autoSync&&sbOn()&&(sess||pro.pub&&pro.handle)) schedulePublish();
+  if(autoSync&&sbOn()&&sess&&pro.handle) schedulePublish();
 }
 let pubT=null;
 function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(syncNow,2500); }
 async function syncNow(){
-  if(!sbOn()) return;
-  try{ if(sess) await pushMe(); else await publishNow(); }
+  if(!sbOn()||!sess) return;              /* 未ログインならクラウド保存はしない */
+  try{ await pushMe(); }
   catch(e){ sbShow("同期に失敗しました",e.message||e); }
 }
 
@@ -1009,10 +1049,11 @@ $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","card","input","friends","rank","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   if(b.dataset.tab==="card") drawCard();
   if(b.dataset.tab==="rank") loadRanking();
   if(b.dataset.tab==="settings") renderSettings();
+  if(b.dataset.tab==="cup") loadCups();
   scrollTo({top:0,behavior:"smooth"});});
 
 /* =========================================================
@@ -1116,7 +1157,8 @@ function renderFriends(){
     ? `<p class="muted">まだフレンドがいません。上の欄に共有リンクを貼って登録してください。</p>`
     : `<div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th><th></th></tr></thead><tbody>`+
       list.map((x,n)=>`<tr class="${x.i===-1?"me":""}"><td>${n+1}</td>`+
-        `<td>${esc(x.pro.name||x.pro.handle||"名無し")}${x.i===-1?" <span class='tiny'>(自分)</span>":""}`+
+        `<td>${nameHTML(x.pro.name||x.pro.handle||"名無し", x.i===-1&&me?me.role:x.pro.role)}`+
+        `${x.i===-1?" <span class='tiny'>(自分)</span>":""}`+
         `${x.pro.handle?`<br><span class="tiny">@${esc(x.pro.handle)}</span>`:""}</td>`+
         `<td>${x.c.complete?f3(x.c.total):"—"}</td>`+
         `<td style="color:${x.c.complete?rankOf(x.c.total).c:"var(--dim)"}">${x.c.complete?rankOf(x.c.total).n:"未完成"}</td>`+
@@ -1136,7 +1178,7 @@ function renderCompare(op,sel){
       `<td class="${s}">${s==="win"?"▲":s==="lose"?"▼":"＝"}</td>`+
       `<td class="${s==="lose"?"lose":""}">${pctf(b)}</td></tr>`;}
   const card=(p,c,mine)=>`<div class="side">${avatarHTML(p,"av")}
-    <div style="font-weight:700">${esc(p.name||"名無し")}${mine?" (自分)":""}</div>
+    <div>${nameHTML(p.name||"名無し", mine&&me?me.role:p.role)}${mine?' <span class="tiny">(自分)</span>':""}</div>
     <div class="tiny">${p.handle?"@"+esc(p.handle):"&nbsp;"}</div>
     <div style="margin-top:8px">${ratingHTML(c.complete?c.total:null)}</div>
     <div class="tiny">${c.complete?rankOf(c.total).n:"未完成"}</div></div>`;
@@ -1329,7 +1371,7 @@ function sbHint(msg){
   if(/PGRST205|does not exist|Could not find the table/i.test(m))
     return "SQLがまだ実行されていないようです。Supabase の SQL Editor で SETUP.md のSQLを実行してください。";
   if(/PGRST202|Could not find the function/i.test(m))
-    return "関数 upsert_profile が見つかりません。SQLの後半（create function …）まで実行できているか確認してください。";
+    return "必要な関数が見つかりません。SETUP.md の新しいSQLを最後まで実行してください（古い版のSQLだけでは足りません）。";
   if(/Invalid API key|JWSError|JWT|401/i.test(m))
     return "APIキーが正しくありません。Settings → API Keys の Publishable key を貼り直してください。";
   if(/permission denied/i.test(m))
@@ -1349,18 +1391,13 @@ function sbShow(title,detail){
     (detail?`<br><span class="tiny" style="word-break:break-all">${esc(String(detail)).slice(0,600)}</span>`:"");
 }
 async function publishNow(){
-  if(!sbOn()){ sbShow("Supabase が未設定です","index.html の SUPABASE_URL / SUPABASE_ANON_KEY が空です（355〜356行目付近）"); return; }
+  if(!sbOn()){ sbShow("Supabase が未設定です","index.html の SUPABASE_URL / SUPABASE_ANON_KEY が空です"); return; }
+  if(!sess){ sbShow("公開にはログインが必要です",
+    "設定タブの「Googleでログイン」からログインしてください。記録がクラウドに保存され、ランキングにも載せられます。"); return; }
   if(!pro.handle){ sbShow("公開するには @ID の入力が必要です",""); return; }
-  const c=compute(rec);
-  try{
-    await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
-      p_handle:pro.handle.toLowerCase(), p_key:editKey, p_name:pro.name||pro.handle,
-      p_rating:c.complete?Number(c.total.toFixed(3)):null,
-      p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
-      p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub })});
-    $("#pubMsg").hidden=true;
-    toast(pro.pub?"公開しました":"非公開にしました");
-  }catch(e){ sbShow(pro.pub?"公開に失敗しました":"更新に失敗しました",e.message||e); }
+  try{ await pushMe(); const b=$("#sbMsg")||$("#pubMsg2")||$("#pubMsg"); if(b) b.hidden=true;
+    toast(pro.pub?"公開しました":"非公開にしました"); }
+  catch(e){ sbShow(pro.pub?"公開に失敗しました":"更新に失敗しました",e.message||e); }
 }
 /** 接続テスト：URL形式 → 名前解決 → 認証 → ビュー → 関数 の順に切り分ける */
 async function sbTest(){
@@ -1425,21 +1462,23 @@ async function sbTest(){
     return stop("上のエラー本文を確認してください。");
   }
 
-  /* 5. 書き込み関数 */
+  /* 5. 関数が入っているか（誰でも呼べる get_records で確認）*/
   try{
-    await sb("rpc/upsert_profile",{method:"POST",body:JSON.stringify({
-      p_handle:"__conntest__",p_key:"0000000000000000ffff",p_name:"test",
-      p_rating:null,p_l:null,p_s:null,p_total:null,p_records:{},p_public:false})});
-    put(true,"upsert_profile 関数の呼び出し");
+    await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:"__none__"})});
+    put(true,"関数（get_records）の呼び出し");
   }catch(e){
     const m=String(e.message||"");
     if(/PGRST202|Could not find the function/i.test(m)){
-      put(false,"upsert_profile が見つかりません",m);
-      return stop("SQLの後半（create function … / grant execute …）まで実行できているか確認してください。");
+      put(false,"関数が見つかりません",m);
+      return stop("SETUP.md の新しいSQLを最後まで実行してください。古い版のSQLしか入っていない可能性があります。");
     }
-    put(false,"upsert_profile が呼べません",m);
+    put(false,"関数が呼べません",m);
     return stop("上のエラー本文を確認してください。");
   }
+
+  /* 6. ログイン設定 */
+  if(sess) put(true,"Googleログイン済み");
+  else put(true,"未ログイン（ランキングへの公開にはログインが必要です）");
 
   stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
@@ -1457,7 +1496,9 @@ async function loadRanking(){
     if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>
       <div class="tools"><button class="btn pri" id="rkPush">自分の記録を公開／更新</button>
       <button class="btn" id="rkReload">再読み込み</button></div>`;
-      $("#rkPush").onclick=async()=>{ if(!pro.pub){pro.pub=true;render();} await publishNow(); loadRanking(); };
+      $("#rkPush").onclick=async()=>{
+        if(!sess) return toast("ランキングに載せるには設定タブでログインしてください");
+        if(!pro.pub){pro.pub=true;render();} await publishNow(); loadRanking(); };
       $("#rkReload").onclick=loadRanking; return; }
     const mine=(pro.handle||"").toLowerCase();
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
@@ -1467,9 +1508,7 @@ async function loadRanking(){
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th>
       <th>L値</th><th>S値</th><th>総合スコア</th><th></th></tr></thead><tbody>`+
       rows.map((r,i)=>`<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
-        `<td><span style="color:${roleColor(r.role)};font-weight:${r.role&&r.role!=="user"?700:400}">`+
-          `${esc(r.name||r.handle)}</span>${roleLabel(r.role)?` <span class="tiny" style="color:${roleColor(r.role)}">${roleLabel(r.role)}</span>`:""}`+
-          `<br><span class="tiny">@${esc(r.handle)}</span></td>`+
+        `<td>${nameHTML(r.name||r.handle,r.role)}<br><span class="tiny">@${esc(r.handle)}</span></td>`+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
@@ -1498,6 +1537,7 @@ async function loadRanking(){
       render(); toast("フレンドに登録しました");});
     const rl=$("#rkReload"); if(rl) rl.onclick=loadRanking;
     const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{
+      if(!sess) return toast("ランキングに載せるには設定タブでログインしてください");
       if(!pro.pub){ pro.pub=true; render(); }
       await publishNow(); loadRanking(); };
   }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
@@ -1508,7 +1548,7 @@ async function loadRanking(){
    10b. Google ログイン（Supabase Auth をライブラリ無しで利用）
    ========================================================= */
 const K_SESS="sa-sess-v3", K_AUTO="sa-auto-v3";
-let sess=ls(K_SESS,null), me=null;          /* me = profiles の自分の行 */
+let sess=ls(K_SESS,null), me=null, meErr="";          /* me = profiles の自分の行 */
 let autoSync=ls(K_AUTO,true);
 const saveSess=()=>{try{sess?localStorage.setItem(K_SESS,JSON.stringify(sess)):localStorage.removeItem(K_SESS);}catch(e){}};
 
@@ -1545,6 +1585,7 @@ async function refreshSess(){
 /** ログイン直後：自分の行を取得し、無ければ作る。クラウドの記録を取り込む */
 async function loadMe(){
   if(!sess||!sbOn()) return;
+  meErr="";
   try{
     let rows=await sbAuth("profiles?select=*&user_id=eq."+sess.user.id);
     if(!rows.length){
@@ -1563,7 +1604,7 @@ async function loadMe(){
       else if(Object.keys(cloud).length) mergeCloud(cloud);
       fillInputs(); render();
     }
-  }catch(e){ console.warn(e); }
+  }catch(e){ meErr=String(e.message||e); console.warn(e); }
 }
 /** 各項目ごとに良い方を残す（タイム系は小さい方） */
 function mergeCloud(cloud){
@@ -1583,9 +1624,16 @@ async function pushMe(){
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
     p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub })});
 }
+const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
 const isSupporter=()=>!!(me&&(me.role==="supporter"||me.role==="admin"));
 const roleColor=r=>r==="admin"?"var(--warn)":r==="supporter"?"var(--acc2)":"var(--tx)";
+const roleCls=r=>r==="admin"?"nm nm-admin":r==="supporter"?"nm nm-supporter":"nm";
+/** 役職に応じて光る名前を返す */
+function nameHTML(name,role){
+  return `<span class="${roleCls(role)}">${esc(name||"")}</span>`+
+    (roleLabel(role)?` <span class="tiny" style="color:${roleColor(role)}">${roleLabel(role)}</span>`:"");
+}
 const roleLabel=r=>r==="admin"?"管理者":r==="supporter"?"サポーター":"";
 
 /* 画面 */
@@ -1606,9 +1654,22 @@ function renderSettings(){
       <div class="tiny">${esc(u.email||"")}</div>
       ${roleLabel(r)?`<span class="badge" style="color:${roleColor(r)};border-color:${roleColor(r)}66;margin-top:6px">${roleLabel(r)}</span>`:""}</div>
       <div style="margin-left:auto" class="tools"><button class="btn" id="btnSync">今すぐ同期</button>
+      <button class="btn" id="btnRole">権限を再判定</button>
       <button class="btn" id="btnOut">ログアウト</button></div></div>
-      <p class="tiny">記録は自動でクラウドに保存されます。別の端末で同じGoogleアカウントでログインすれば続きから使えます。</p>`;
+      <p class="tiny">記録は自動でクラウドに保存されます。別の端末で同じGoogleアカウントでログインすれば続きから使えます。</p>
+      ${me?"":`<div class="lockbox" style="margin-top:10px"><b>プロフィール情報を取得できていません。</b><br>
+        <span class="tiny">SETUP.md の新しいSQLがまだ実行されていない可能性があります。
+        ${meErr?`<br>エラー：${esc(meErr).slice(0,300)}`:""}</span></div>`}
+      ${me&&me.role==="user"&&(u.email===ADMIN_HINT)?`<div class="lockbox" style="margin-top:10px">
+        <b>管理者として認識されていません。</b><br><span class="tiny">SQLの admin_email() が
+        このメールアドレスと一致しているか確認し、「権限を再判定」を押してください。</span></div>`:""}`;
     $("#btnOut").onclick=signOut;
+    $("#btnRole").onclick=async()=>{
+      try{ await sbAuth("rpc/ensure_profile",{method:"POST",
+             body:JSON.stringify({p_handle:(pro.handle||"").toLowerCase()||null,p_name:pro.name||""})}); }catch(e){}
+      try{ await pushMe(); await loadMe(); renderSettings(); render();
+        toast(me&&me.role!=="user"?`${roleLabel(me.role)}として認識されました`:"一般ユーザーとして登録されています"); }
+      catch(e){ toast("失敗しました："+String(e.message||e).slice(0,80)); }};
     $("#btnSync").onclick=async()=>{try{await pushMe();await loadMe();toast("同期しました");}
       catch(e){toast("同期に失敗しました："+String(e.message||e).slice(0,60));}};
   }
@@ -1660,6 +1721,217 @@ async function setRole(uid,role){
   try{ await sbAuth("rpc/set_role",{method:"POST",body:JSON.stringify({p_user:uid,p_role:role})});
   }catch(e){ return toast("失敗しました："+String(e.message||e).slice(0,60)); }
   toast(role==="supporter"?"サポーターに承認しました":"却下しました"); renderAdmin();
+}
+
+
+/* =========================================================
+   10c. 大会
+   ========================================================= */
+let CUPS=[], cupSel=null, cupTimer=null, cupEvents=new Set();
+const nowMs=()=>Date.now();
+function dhms(ms){
+  if(ms<0) ms=0;
+  const t=Math.floor(ms/1000), d=Math.floor(t/86400);
+  const p=n=>String(n).padStart(2,"0");
+  return `${d}日${p(Math.floor(t%86400/3600))}:${p(Math.floor(t%3600/60))}:${p(t%60)}`;
+}
+const cupPhase=c=>{const n=nowMs(),a=Date.parse(c.starts_at),b=Date.parse(c.ends_at);
+  return n<a?"pre":n<b?"live":"end";};
+/* 選んだ種目の向き。全部タイムなら小さいほど良い、混在は不可 */
+function cupDir(evs){
+  const lows=evs.filter(n=>LOW.has(n)).length;
+  if(lows===0) return "high";
+  if(lows===evs.length) return "low";
+  return "mixed";
+}
+const fmtDT=s=>{const d=new Date(s);return isNaN(d)?"—":
+  `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
+
+async function loadCups(){
+  renderCupNew();
+  const el=$("#cupList");
+  if(!sbOn()){ el.innerHTML=`<p class="muted">Supabase が未設定のため大会機能は使えません。</p>`; return; }
+  el.innerHTML=`<p class="muted">読み込み中…</p>`;
+  try{
+    CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
+    renderCupList();
+    clearInterval(cupTimer); cupTimer=setInterval(tickCups,1000);
+  }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
+}
+function renderCupList(){
+  const groups=[["live","開催中"],["pre","開催予定"],["end","終了"]];
+  let h="";
+  for(const [ph,label] of groups){
+    const list=CUPS.filter(c=>cupPhase(c)===ph);
+    if(!list.length) continue;
+    if(ph==="end") list.sort((a,b)=>Date.parse(b.ends_at)-Date.parse(a.ends_at));
+    if(ph==="pre") list.sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at));
+    h+=`<div class="gsec">${label}（${list.length}）</div>`;
+    h+=list.map(c=>`<div class="cup ${ph==="live"?"live":""}">
+      <h4>${esc(c.title)}</h4>
+      <div class="meta">主催 ${esc(c.owner_name||c.owner_handle||"")}　種目 ${esc((c.events||[]).join("、"))}</div>
+      <div class="meta">${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
+        <span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
+        <button class="btn sm" data-open="${esc(c.id)}" style="margin-left:auto">開く</button>
+      </div></div>`).join("");
+  }
+  $("#cupList").innerHTML=h||`<p class="muted">まだ大会がありません。</p>`;
+  $$("[data-open]").forEach(b=>b.onclick=()=>openCup(b.dataset.open));
+  tickCups();
+}
+function tickCups(){
+  $$("[data-cd]").forEach(el=>{
+    const c=CUPS.find(x=>x.id===el.dataset.cd); if(!c) return;
+    const ph=cupPhase(c);
+    el.className="cd "+ph;
+    el.textContent = ph==="pre" ? "開始まで "+dhms(Date.parse(c.starts_at)-nowMs())
+                   : ph==="live"? "残り "+dhms(Date.parse(c.ends_at)-nowMs())
+                   : "終了しました";
+  });
+}
+/* ---- 開催フォーム ---- */
+function renderCupNew(){
+  const can=isSupporter();
+  $("#cupNew").hidden=!can;
+  if(!can) return;
+  if(!$("#cEvents").innerHTML){
+    $("#cEvents").innerHTML=EVENTS.map(n=>
+      `<label class="pk"><input type="checkbox" data-ce="${esc(n)}"><span>${n}</span>`+
+      `<span class="v">${LOW.has(n)?"タイム":"スコア"}</span></label>`).join("");
+    $$("[data-ce]").forEach(el=>el.onchange=()=>{
+      el.checked?cupEvents.add(el.dataset.ce):cupEvents.delete(el.dataset.ce);
+      el.closest(".pk").classList.toggle("on",el.checked);
+      const d=cupDir([...cupEvents]), hb=$("#cEvHint");
+      if(!cupEvents.size){hb.hidden=true;return;}
+      hb.hidden=false;
+      hb.innerHTML = d==="mixed"
+        ? `<b style="color:var(--bad)">スコア系とタイム系は混ぜられません。</b>どちらかに揃えてください。`
+        : d==="low" ? `タイム系のみ：合計タイムが<b>短い</b>ほど上位になります。`
+        : `スコア系のみ：合計スコアが<b>高い</b>ほど上位になります。`;
+    });
+  }
+}
+$("#cCreate").onclick=async()=>{
+  const evs=[...cupEvents], m=$("#cMsg");
+  if(!sess) return toast("ログインが必要です");
+  if(!$("#cTitle").value.trim()) return toast("大会名を入力してください");
+  if(!evs.length) return toast("種目を1つ以上選んでください");
+  if(cupDir(evs)==="mixed") return toast("スコア系とタイム系は混ぜられません");
+  const a=$("#cStart").value, b=$("#cEnd").value;
+  if(!a||!b) return toast("開始と終了の日時を入れてください");
+  if(Date.parse(b)<=Date.parse(a)) return toast("終了は開始より後にしてください");
+  try{
+    await sbAuth("rpc/create_tournament",{method:"POST",body:JSON.stringify({
+      p_title:$("#cTitle").value.trim(), p_events:evs,
+      p_starts:new Date(a).toISOString(), p_ends:new Date(b).toISOString(),
+      p_note:$("#cNote").value.trim()})});
+    m.textContent=""; toast("大会を作成しました");
+    $("#cTitle").value="";$("#cNote").value="";
+    cupEvents=new Set(); $("#cEvents").innerHTML=""; renderCupNew();
+    loadCups();
+  }catch(e){ m.innerHTML=`<span class="lose">作成に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
+};
+/* ---- 詳細 ---- */
+async function openCup(id){
+  cupSel=CUPS.find(c=>c.id===id); if(!cupSel) return;
+  const box=$("#cupDetail");
+  box.innerHTML=`<div class="card"><p class="muted">読み込み中…</p></div>`;
+  let ent=[];
+  try{ ent=await sb(`entries?select=*&tournament_id=eq.${encodeURIComponent(id)}&order=total.desc`); }
+  catch(e){ box.innerHTML=`<div class="card"><p class="muted">記録の読み込みに失敗しました。</p>
+    <p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p></div>`; return; }
+  const c=cupSel, ph=cupPhase(c), evs=c.events||[], dir=cupDir(evs);
+  ent.sort((x,y)=>dir==="low"?(x.total-y.total):(y.total-x.total));
+  /* 同点は同順位。次の順位は飛ばす */
+  let rank=0,prev=null;
+  ent.forEach((e,i)=>{ if(prev===null||e.total!==prev){rank=i+1;prev=e.total;} e._rank=rank; });
+  const mine=sess?ent.find(e=>e.user_id===sess.user.id):null;
+  const owner=sess&&(c.owner_id===sess.user.id||isAdmin());
+
+  box.innerHTML=`<div class="card">
+    <h2>${esc(c.title)}</h2>
+    <p class="muted" style="margin-top:-8px">主催 ${esc(c.owner_name||c.owner_handle||"")}　／　種目 ${esc(evs.join("、"))}
+      （${dir==="low"?"合計タイムが短いほど上位":"合計スコアが高いほど上位"}）</p>
+    ${c.note?`<p class="tiny">${esc(c.note)}</p>`:""}
+    <div style="margin:10px 0"><span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
+      <span class="tiny">　${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</span></div>
+    ${ph==="live"?(sess?`<div id="entForm"></div>`
+      :`<div class="hintbox">記録を提出するにはログインが必要です（設定タブから）。順位表の閲覧は誰でもできます。</div>`):""}
+    ${ph==="pre"?`<div class="hintbox">まだ開始していません。開始時刻になると記録を提出できます。</div>`:""}
+    <h3>順位表（${ent.length}人）</h3>
+    ${ent.length?`<div class="scroll"><table><thead><tr><th>順位</th><th>プレイヤー</th>`+
+      evs.map(n=>`<th>${esc(n)}</th>`).join("")+`<th>合計</th><th>証明</th>${owner?"<th></th>":""}</tr></thead><tbody>`+
+      ent.map(e=>`<tr class="${sess&&e.user_id===sess.user.id?"me":""}">`+
+        `<td>${e._rank}${e._rank===1?" 🏆":""}</td>`+
+        `<td>${nameHTML(e.name||e.handle||"",e.role)}</td>`+
+        evs.map(n=>`<td>${(e.scores&&e.scores[n]>0)?nice(e.scores[n]):"—"}</td>`).join("")+
+        `<td><b>${nice(e.total)}</b></td>`+
+        `<td>${e.proof_url?`<a href="${esc(e.proof_url)}" target="_blank" rel="noopener">見る</a>`:"—"}</td>`+
+        (owner?`<td><button class="btn sm" data-ee="${esc(e.id)}">編集</button> `+
+               `<button class="btn sm" data-ed="${esc(e.id)}">削除</button></td>`:"")+
+        `</tr>`).join("")+`</tbody></table></div>`
+      :`<p class="muted">まだ記録がありません。</p>`}
+    ${owner?`<div class="tools"><button class="btn" id="cupDel">この大会を削除</button></div>`:""}
+  </div>`;
+  tickCups();
+  if(ph==="live"&&sess) entryForm(c,evs,dir,mine);
+  if(owner){
+    $("#cupDel").onclick=async()=>{
+      if(!confirm("この大会と記録をすべて削除します。よろしいですか？")) return;
+      try{ await sbAuth("rpc/delete_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
+        box.innerHTML=""; toast("削除しました"); loadCups(); }
+      catch(e){ toast("削除に失敗しました"); }};
+    $$("[data-ed]").forEach(b=>b.onclick=async()=>{
+      if(!confirm("この記録を削除します。よろしいですか？")) return;
+      try{ await sbAuth("rpc/owner_delete_entry",{method:"POST",body:JSON.stringify({p_id:b.dataset.ed})});
+        toast("削除しました"); openCup(id); }catch(e){ toast("削除に失敗しました"); }});
+    $$("[data-ee]").forEach(b=>b.onclick=()=>{
+      const e=ent.find(x=>x.id===b.dataset.ee);
+      const vals=evs.map(n=>prompt(`${n} の記録`,e.scores&&e.scores[n]!=null?e.scores[n]:""));
+      if(vals.some(v=>v===null)) return;
+      const sc={}; evs.forEach((n,i)=>sc[n]=num(vals[i]));
+      const tot=evs.reduce((a,n)=>a+(sc[n]||0),0);
+      sbAuth("rpc/owner_edit_entry",{method:"POST",body:JSON.stringify({p_id:e.id,p_scores:sc,p_total:tot})})
+        .then(()=>{toast("修正しました");openCup(id);}).catch(()=>toast("修正に失敗しました"));});
+  }
+}
+function entryForm(c,evs,dir,mine){
+  $("#entForm").innerHTML=`<h3>記録を提出${mine?"／更新":""}</h3>
+    <p class="tiny" style="margin-top:-4px">期間中は何度でも更新できます。X（Twitter）の投稿リンクの添付が必須です。</p>
+    <div class="frow">${evs.map(n=>
+      `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}</label>
+       <input type="text" inputmode="decimal" data-en="${esc(n)}" style="max-width:none"
+        value="${mine&&mine.scores&&mine.scores[n]!=null?mine.scores[n]:""}"></div>`).join("")}</div>
+    <label class="fl">記録のXリンク（必須）</label>
+    <input type="text" class="txt" id="enProof" placeholder="https://x.com/..." style="max-width:none"
+      value="${mine?esc(mine.proof_url||""):""}">
+    <div class="tools"><button class="btn pri" id="enSend">${mine?"記録を更新する":"記録を提出する"}</button></div>
+    <div id="enMsg" class="tiny"></div>`;
+  $("#enSend").onclick=async()=>{
+    const sc={}; let bad=false;
+    evs.forEach(n=>{const v=num($(`[data-en="${CSS.escape(n)}"]`).value); if(!(v>0)) bad=true; sc[n]=v;});
+    if(bad) return toast("すべての種目の記録を入力してください");
+    const url=$("#enProof").value.trim();
+    if(!/^https?:\/\/(www\.)?(x\.com|twitter\.com)\//i.test(url))
+      return toast("X（twitter.com / x.com）の投稿リンクを貼ってください");
+    /* 自己ベスト更新の確認 */
+    const better=evs.filter(n=>{const cur=rec[n]||0; if(!cur) return sc[n]>0;
+      return LOW.has(n)?sc[n]<cur:sc[n]>cur;});
+    if(better.length){
+      if(confirm(`次の種目でプロフィールの記録を上回っています。\n\n`+
+        better.map(n=>`${n}：${nice(rec[n]||0)} → ${nice(sc[n])}`).join("\n")+
+        `\n\n個人歴代最高記録を更新しましたか？\n「OK」でプロフィールの記録も更新します。`)){
+        better.forEach(n=>rec[n]=sc[n]); fillInputs(); render();
+      }
+    }
+    const tot=evs.reduce((a,n)=>a+sc[n],0);
+    try{
+      await sbAuth("rpc/submit_entry",{method:"POST",body:JSON.stringify({
+        p_tid:c.id,p_scores:sc,p_total:tot,p_proof:url})});
+      toast("記録を提出しました"); openCup(c.id);
+    }catch(e){ $("#enMsg").innerHTML=`<span class="lose">提出に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
+  };
 }
 
 /* =========================================================
