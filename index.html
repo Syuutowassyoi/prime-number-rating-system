@@ -539,7 +539,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v11";
+const APP_VERSION = "v12";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1008,7 +1008,7 @@ function render(){
   if(autoSync&&sbOn()&&sess&&pro.handle) schedulePublish();
 }
 let pubT=null;
-function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(syncNow,2500); }
+function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(syncNow,6000); }
 async function syncNow(){
   if(!sbOn()||!sess) return;              /* 未ログインならクラウド保存はしない */
   try{ await pushMe(); }
@@ -1611,7 +1611,8 @@ async function sbTest(){
 let RANK_ROWS=[], rkSortKey="rating";
 const SORT_OPTS=()=>[["rating","RATING（総合）"],["l_value","L値"],["s_value","S値"],
   ["total_score","十種競技総合スコア"]].concat(EVENTS.map(n=>["ev:"+n,n]));
-async function loadRanking(){
+let rkCache={key:"",at:0,rows:null};
+async function loadRanking(force){
   const el=$("#rankBody");
   if(!sbOn()){ el.innerHTML=
     `<p class="muted">全体ランキングは未設定です。</p>
@@ -1628,7 +1629,11 @@ async function loadRanking(){
   try{
     const byEv=rkSortKey.startsWith("ev:");
     const cols="handle,name,role,rating,l_value,s_value,total_score,updated_at"+(byEv?",records":"");
-    const rows=await sb(`profiles_public?select=${cols}&order=rating.desc.nullslast&limit=300`);
+    let rows;
+    const ck=cols;
+    if(!force && rkCache.rows && rkCache.key===ck && Date.now()-rkCache.at<60000){ rows=rkCache.rows; }
+    else { rows=await sb(`profiles_public?select=${cols}&order=rating.desc.nullslast&limit=300`);
+           rkCache={key:ck,at:Date.now(),rows}; }
     const evName=byEv?rkSortKey.slice(3):null;
     const val=r=>byEv?((r.records||{})[evName]||0):(r[rkSortKey]==null?null:+r[rkSortKey]);
     const lowBetter=byEv&&LOW.has(evName);
@@ -1640,8 +1645,8 @@ async function loadRanking(){
       <button class="btn" id="rkReload">再読み込み</button></div>`;
       $("#rkPush").onclick=async()=>{
         if(!sess) return toast("ランキングに載せるには設定タブでログインしてください");
-        if(!pro.pub){pro.pub=true;render();} await publishNow(); loadRanking(); };
-      $("#rkReload").onclick=loadRanking; return; }
+        if(!pro.pub){pro.pub=true;render();} await publishNow(); loadRanking(true); };
+      $("#rkReload").onclick=()=>loadRanking(true); return; }
     const mine=(pro.handle||"").toLowerCase();
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
       <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
@@ -1685,11 +1690,11 @@ async function loadRanking(){
       const item={pro:{name:r.name,handle:r.handle,img:""},rec:rc,at:Date.now()};
       if(i>=0) friends[i]=item; else friends.push(item);
       render(); toast("フレンドに登録しました");});
-    const rl=$("#rkReload"); if(rl) rl.onclick=loadRanking;
+    const rl=$("#rkReload"); if(rl) rl.onclick=()=>loadRanking(true);
     const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{
       if(!sess) return toast("ランキングに載せるには設定タブでログインしてください");
       if(!pro.pub){ pro.pub=true; render(); }
-      await publishNow(); loadRanking(); };
+      await publishNow(); loadRanking(true); };
   }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
 }
 
@@ -1766,14 +1771,18 @@ function mergeCloud(cloud){
     rec[n]=LOW.has(n)?Math.min(a,b):Math.max(a,b);
   }
 }
-async function pushMe(){
+let lastPush="";
+async function pushMe(force){
   if(!sess||!sbOn()) return;
   const c=compute(rec);
-  await sbAuth("rpc/save_profile",{method:"POST",body:JSON.stringify({
+  const body=JSON.stringify({
     p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||"",
     p_rating:c.complete?Number(c.total.toFixed(3)):null,
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
-    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub, p_x:pro.x_url||null })});
+    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub, p_x:pro.x_url||null });
+  if(!force && body===lastPush) return;          /* 内容が同じなら通信しない */
+  await sbAuth("rpc/save_profile",{method:"POST",body});
+  lastPush=body;
 }
 const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
@@ -1900,7 +1909,8 @@ function cupDir(evs){
 const fmtDT=s=>{const d=new Date(s);return isNaN(d)?"—":
   `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
 
-async function loadCups(){
+let cupCache={at:0,rows:null};
+async function loadCups(force){
   renderCupNew();
   const el=$("#cupList");
   if(!sbOn()){ el.innerHTML=`<p class="muted">Supabase が未設定のため大会機能は使えません。</p>`; return; }
@@ -1912,7 +1922,9 @@ async function loadCups(){
   $("#rkSort").value=rkSortKey;
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
-    CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
+    if(!force && cupCache.rows && Date.now()-cupCache.at<45000){ CUPS=cupCache.rows; }
+    else { CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
+           cupCache={at:Date.now(),rows:CUPS}; }
     renderCupList();
     renderMyCups();
     clearInterval(cupTimer); cupTimer=setInterval(tickCups,1000);
@@ -1969,7 +1981,7 @@ function editCup(id){
       await sbAuth("rpc/update_tournament",{method:"POST",body:JSON.stringify({
         p_id:c.id,p_title:q("#edTitle").value.trim(),p_note:q("#edNote").value.trim(),
         p_starts:new Date(a).toISOString(),p_ends:new Date(b).toISOString()})});
-      close(); toast("変更しました"); await loadCups();
+      close(); toast("変更しました"); cupCache.rows=null; await loadCups(true);
       if(cupSel&&cupSel.id===c.id) openCup(c.id);
     }catch(e){ q("#edMsg").innerHTML=`<span class="lose">失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
   };
@@ -2064,7 +2076,7 @@ $("#cCreate").onclick=async()=>{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:new Date(a).toISOString(), p_ends:new Date(b).toISOString(),
       p_note:$("#cNote").value.trim()})});
-    m.textContent=""; toast("大会を作成しました");
+    m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
     $("#cTitle").value="";$("#cNote").value="";
     cupEvents=new Set(); $("#cEvents").innerHTML=""; $("#cupNew").hidden=true; renderCupNew();
     loadCups();
@@ -2124,13 +2136,13 @@ async function openCup(id){
   if($("#cupEnd")) $("#cupEnd").onclick=async()=>{
     if(!confirm("この大会を今すぐ終了します。以降は記録を提出できなくなります。よろしいですか？")) return;
     try{ await sbAuth("rpc/end_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
-      toast("大会を終了しました"); await loadCups(); openCup(c.id); }
+      toast("大会を終了しました"); cupCache.rows=null; await loadCups(true); openCup(c.id); }
     catch(e){ toast("終了に失敗しました："+String(e.message||e).slice(0,60)); }};
   if(isAdmin()){
     $("#cupDel").onclick=async()=>{
       if(!confirm("この大会と記録をすべて削除します。よろしいですか？")) return;
       try{ await sbAuth("rpc/delete_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
-        box.innerHTML=""; toast("削除しました"); loadCups(); }
+        box.innerHTML=""; toast("削除しました"); cupCache.rows=null; loadCups(true); }
       catch(e){ toast("削除に失敗しました"); }};
   }
   if(owner){
@@ -2384,9 +2396,12 @@ function devEditor(box,close){
     box.querySelector("#sbMsg").hidden=true; toast("一時設定を消しました");
   };
 }
+let lastMeAt=0;
 document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"&&sess&&sbOn())
-    loadMe().then(()=>{ try{renderSettings();render();}catch(e){} });
+  if(document.visibilityState!=="visible"||!sess||!sbOn()) return;
+  if(Date.now()-lastMeAt<5*60*1000) return;        /* 5分に1回まで */
+  lastMeAt=Date.now();
+  loadMe().then(()=>{ try{renderSettings();render();}catch(e){} });
 });
 $("#devBtn").onclick=openDev;
 $("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();};
