@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>素数あつめ RATING</title>
 <meta name="description" content="素数あつめのランキングボーダーからRATINGを算出し、プロフィールカードとして共有できるツール。">
 <meta property="og:title" content="素数あつめ RATING">
@@ -26,6 +26,32 @@ body{background:
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
   font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;min-height:100vh}
 .wrap{max-width:980px;margin:0 auto;padding:20px 16px 100px}
+@media(max-width:640px){
+  .wrap{padding:12px 10px 90px}
+  body{font-size:14px}
+  h1{font-size:1.05rem}
+  .card{padding:14px 12px;border-radius:14px}
+  .ratebox .rtplain{font-size:44px !important}
+  .av,.avph{width:76px;height:76px}
+  .avph{font-size:1.7rem}
+  .pname{font-size:1.15rem}
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:10px}
+  .stat .v{font-size:1.15rem}
+  .frow{grid-template-columns:1fr}
+  th,td{padding:5px 6px;font-size:.8rem}
+  .picks{grid-template-columns:1fr}
+  .vs{grid-template-columns:1fr;gap:6px}
+  .vs .mid{text-align:center}
+  .modal{padding:14px;max-height:92vh}
+  .tools{gap:6px}
+  button.btn{padding:8px 12px;font-size:.8rem}
+  input[type=text],input[type=number],input[type=password],select,textarea{font-size:16px}
+  .goal{grid-template-columns:1fr auto}
+  .banner{font-size:.75rem}
+  footer{font-size:.7rem}
+}
+@media(max-width:400px){ .stats{grid-template-columns:1fr} }
 h1{font-size:1.22rem;margin:0;letter-spacing:.06em;font-weight:700}
 h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:text;
   background-clip:text;color:transparent}
@@ -133,6 +159,7 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .step .d{grid-column:2/-1;font-size:.76rem;color:var(--dim);font-variant-numeric:tabular-nums}
 
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -6px;padding:0 6px}
+.scroll table{min-width:max-content}
 table{width:100%;border-collapse:collapse}
 th{font-size:.71rem;color:var(--dim);font-weight:600;text-align:right;padding:7px 8px;
   border-bottom:1px solid var(--line);white-space:nowrap}
@@ -191,6 +218,16 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 .nm-supporter{color:var(--acc2);font-weight:700;text-shadow:0 0 12px #57e0a088}
 @keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
 .nm-admin{animation:shine 2.4s ease-in-out infinite}
+/* 上位ランクを光らせる */
+@keyframes rainbow{0%{filter:hue-rotate(0deg) brightness(1.15)}100%{filter:hue-rotate(360deg) brightness(1.15)}}
+.badge.bg-RAINBOW{background:linear-gradient(90deg,#ff5f6d,#ffc371,#57e0a0,#4da3ff,#a98bff,#ff5f6d);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  border-color:#ffffff55;animation:rbslide 4s linear infinite;
+  box-shadow:0 0 26px -6px #ffffff88, inset 0 0 18px -8px #ffffff66;font-weight:800}
+@keyframes rbslide{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.badge.bg-MASTER{box-shadow:0 0 26px -6px #ff7b8a;animation:shine 2s ease-in-out infinite}
+.badge.bg-TITAN{box-shadow:0 0 26px -6px #a98bff;animation:shine 2.6s ease-in-out infinite}
+.rtwrap-RAINBOW{animation:rainbow 6s linear infinite}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
 .tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
 
@@ -217,10 +254,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <header>
   <h1>素数あつめ <span class="g">RATING</span></h1>
   <span class="ver" id="verBadge">—</span>
-  <button class="btn sm" id="histBtn" style="margin-left:auto">過去のランキングを見る</button>
 </header>
 <nav class="tabs">
-  <button data-tab="profile" class="on">プロフィール</button>
+  <button data-tab="profile" class="on">ホーム</button>
+  <button data-tab="plan">プラン</button>
   <button data-tab="card">カード</button>
   <button data-tab="input">入力</button>
   <button data-tab="friends">フレンド</button>
@@ -247,7 +284,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
 <!-- ============ プロフィール ============ -->
 <section id="profile">
-  <div class="card">
+<div class="card">
     <div class="prof">
       <div id="avwrap"></div>
       <div>
@@ -277,43 +314,29 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div class="brk" id="brk"></div>
   </div>
 
+  
   <div class="card">
-    <h2>次の目標</h2>
-    <div id="goals"></div>
+    <h2>開催中の大会</h2>
+    <div id="homeCups"><p class="muted">読み込み中…</p></div>
   </div>
 
   <div class="card">
-    <h2>目標RATING 達成プラン</h2>
-    <p class="muted" style="margin-top:-8px">目標RATINGを決めると、どの種目をどこまで伸ばせば届くかを効率順に計算します。</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <label class="fl" style="margin:0">目標RATING</label>
-      <input type="text" inputmode="decimal" id="tgtRate" style="max-width:110px">
-      <button class="btn pri" id="doPlan">プランを作る</button>
-    </div>
-    <details style="margin-top:12px"><summary class="muted">伸ばす種目を指定する（未選択なら全種目から自動で選びます）</summary>
-      <div class="tools" style="margin-top:8px">
-        <button class="btn sm" id="pkAll">全選択</button>
-        <button class="btn sm" id="pkNone">全解除</button>
-        <button class="btn sm" id="pkWeak">レートが低い5種目</button>
-      </div>
-      <div id="pickList" class="picks"></div>
-      <div id="pickHint" class="hintbox" hidden></div>
-    </details>
-    <div id="planOut" style="margin-top:12px"></div>
+    <h2>フレンドの更新</h2>
+    <div id="homeFriends"></div>
   </div>
 
-  <div class="card">
+<div class="card">
     <h2>大会成績</h2>
     <div id="cupStat"></div>
   </div>
 
-  <div class="card">
+<div class="card">
     <h2>ランクとレートの仕組み</h2>
     <div id="pyramid"></div>
     <div id="pyramidNote"></div>
   </div>
 
-  <div class="card">
+<div class="card">
     <h2>プロフィール設定</h2>
     <div class="frow">
       <div><label class="fl" for="pn">プレイヤーネーム</label>
@@ -321,6 +344,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div><label class="fl" for="ph">X（Twitter）の @ID　※画像を自動取得します</label>
         <input type="text" class="txt" id="ph" placeholder="例：aaa111"></div>
     </div>
+    <label class="fl" for="pbio">自己紹介（カードの右上に載ります・80文字程度まで）</label>
+    <input type="text" class="txt" id="pbio" placeholder="例：素因数分解が好きです。よろしくお願いします" style="max-width:none" maxlength="120">
     <label class="fl" for="pxurl">記録を証明するXの投稿リンク（任意）</label>
     <input type="text" class="txt" id="pxurl" placeholder="https://x.com/..." style="max-width:none">
     <div class="tools">
@@ -339,7 +364,47 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   </div>
 </section>
 
-<!-- ============ カード ============ -->
+<section id="plan" hidden>
+<div class="card">
+    <h2>目標RATING 達成プラン</h2>
+    <p class="muted" style="margin-top:-8px">目標RATINGを決めると、どの種目をどこまで伸ばせば届くかを効率順に計算します。</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="fl" style="margin:0">目標RATING</label>
+      <input type="text" inputmode="decimal" id="tgtRate" style="max-width:110px">
+      <button class="btn pri" id="doPlan">プランを作る</button>
+    </div>
+    <details style="margin-top:12px" open><summary class="muted">伸ばす種目と、種目ごとの上げ幅を指定する</summary>
+      <p class="tiny" style="margin-top:6px">チェックを付けた種目だけを使います（未選択なら全種目）。
+        右の欄に数字を入れると、<b>その種目で上げるRATINGの上限</b>になります。
+        例：素因数分解（初級）に <b>0.100</b> と入れると、その種目は0.100までしか伸ばさず、残りを他の種目で埋めます。</p>
+      <div class="tools" style="margin-top:8px">
+        <button class="btn sm" id="pkAll">全選択</button>
+        <button class="btn sm" id="pkNone">全解除</button>
+        <button class="btn sm" id="pkWeak">レートが低い5種目</button>
+      </div>
+      <div id="pickList" class="picks"></div>
+      <div id="pickHint" class="hintbox" hidden></div>
+    </details>
+    <div id="planOut" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>十種競技総合スコアの伸ばし方</h2>
+    <p class="muted" style="margin-top:-8px">9種目の合計です。目標にしたい合計スコアを入れると、どの種目をどれだけ伸ばせばよいか割り振ります。</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="fl" style="margin:0">目標の合計スコア</label>
+      <input type="text" inputmode="numeric" id="decaTgt" style="max-width:140px">
+      <button class="btn pri" id="decaGo">割り振る</button>
+    </div>
+    <div id="decaOut" style="margin-top:12px"></div>
+  </div>
+
+<div class="card">
+    <h2>次の目標</h2>
+    <div id="goals"></div>
+  </div>
+</section>
+
 <section id="card" hidden>
   <div class="card">
     <h2>プロフィールカード</h2>
@@ -368,6 +433,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <p class="muted" style="margin-top:-8px">
       タイムアタック系（1から順に／2から順に／1桁素数／2の累乗数）は<strong>秒数</strong>、それ以外はスコアを入力します。入力はこのブラウザに自動保存されます。
     </p>
+    <div class="tools" style="margin-top:0;margin-bottom:12px">
+      <button class="btn pri" id="borderBtn">現在のボーダーラインを見る</button>
+      <button class="btn" id="histBtn2">過去のランキングを見る</button>
+    </div>
     <div class="scroll"><table>
       <thead><tr><th>種目</th><th>自分の記録</th><th>レート割合</th><th>順位帯</th><th>次の目標</th><th>換算</th><th>採用</th></tr></thead>
       <tbody id="tb"></tbody>
@@ -395,8 +464,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <li>L値 ＝ max( log₂₅(乱数累積) − 5.5 , 0 )　S値 ＝ max( log₂₅(スコア累積) − 4.75 , 0 )</li>
         <li>L値・S値はRATINGには加算しません</li>
       </ul></details>
-    <details><summary class="muted">ボーダーライン一覧（表示中の週）</summary>
-      <div class="scroll"><table id="bt"></table></div></details>
+
   </div>
 </section>
 
@@ -513,7 +581,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
 <footer>
   <span id="upd">—</span>
-  <button id="devBtn" title="開発者メニュー">⚙</button>
+  <button id="devBtn" title="開発者メニュー" hidden>⚙</button>
 </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -539,7 +607,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v12";
+const APP_VERSION = "v13";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -689,15 +757,16 @@ function stepCost(t){
   return Math.max(Math.abs(t.req-t.cur)/t.cur,0.002);
 }
 /** 端数をぴったり合わせる最後の一手。加点対象の種目だけが対象 */
-function finishExact(target,r,pool){
+function finishExact(target,r,pool,cap){
   const c=compute(r), need=target-c.total;
   if(need<=1e-9) return null;
   let best=null;
   for(const n of pool){
     if(!c.used[n]) continue;
     const w=(n==="合計スコア")?6:2;
-    const want=c.rates[n]+need/w;
+    let want=c.rates[n]+need/w;
     if(want>1+1e-12) continue;
+    if(cap&&cap[n]!==undefined&&want>cap[n]+1e-9) continue;
     const req=roundReq(n,recordForRate(n,want));
     const cur=r[n]||0;
     if(cur>0&&(LOW.has(n)?req>=cur:req<=cur)) continue;
@@ -710,14 +779,23 @@ function finishExact(target,r,pool){
 }
 /** 目標RATINGへちょうど届くルート。
  *  pool を指定するとその種目だけを使う。ボーダー間の中途半端な値も目標に使う。 */
-function makePlan(target,rc,pool){
+function makePlan(target,rc,pool,caps){
   const use=(pool&&pool.length)?pool:["合計スコア"].concat(EVENTS);
+  const base=compute(rc), cap={};
+  if(caps) for(const n of use){
+    const lim=caps[n];
+    if(lim>0){ const w=(n==="合計スコア")?6:2; cap[n]=Math.min(1,base.rates[n]+lim/w); }
+  }
   let r=Object.assign({},rc), steps=[], cur=compute(r).total;
   const start=cur;
   for(let i=0;i<80&&cur<target-1e-9;i++){
     let best=null,cheap=null;
     for(const n of use){
       const t=nextTarget(n,r); if(!t) continue;
+      if(cap[n]!==undefined){
+        const nr=(n==="合計スコア")?totalRate(t.req).r:eventRate(n,t.req).r;
+        if(nr>cap[n]+1e-9) continue;             /* この種目の上げ幅の上限を超える手は使わない */
+      }
       const after=compute(Object.assign({},r,{[n]:t.req})).total;
       if(after>target+1e-9) continue;            /* 目標を飛び越す手は使わない */
       const cost=stepCost(t), eff=t.gain/cost;
@@ -730,7 +808,7 @@ function makePlan(target,rc,pool){
     steps.push({n:pick.n,rank:pick.t.rank,req:pick.t.req,from:pick.t.cur,gain:nt-cur,to:nt,border:true});
     cur=nt;
   }
-  const fin=finishExact(target,r,use);
+  const fin=finishExact(target,r,use,cap);
   if(fin){
     r[fin.n]=fin.req;
     const nt=compute(r).total;
@@ -847,7 +925,7 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
    ========================================================= */
 const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
       K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
-let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:""}, friends=[];
+let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:""}, friends=[];
 const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
 let editKey=localStorage.getItem(K_EDIT); if(!editKey){editKey=rndHex(24);localStorage.setItem(K_EDIT,editKey);}
@@ -954,8 +1032,10 @@ function render(){
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
   const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
   rb.textContent=rk?rk.n:"—";
-  rb.style.color=rk?rk.c:"var(--dim)";
+  rb.className="badge"+(rk?" bg-"+rk.n:"");
+  rb.style.color=rk&&rk.n!=="RAINBOW"?rk.c:"";
   rb.style.borderColor=rk?rk.c+"66":"var(--line)";
+  $("#ratingWrap").className=rk&&rk.n==="RAINBOW"?"rtwrap-RAINBOW":"";
   const lb=$("#lockbox");
   if(c.complete) lb.hidden=true;
   else{lb.hidden=false;
@@ -971,23 +1051,7 @@ function render(){
   $("#sSsub").textContent=rec["スコア累積"]>0?`スコア累積 ${jp(rec["スコア累積"])}`:"未入力";
   c.pts.forEach((p,i)=>{$("#p"+i).textContent=f3(p);
     $("#b"+i).style.width=(100*p/BRK[i].max).toFixed(2)+"%";});
-  /* 次の目標 */
-  const all=["合計スコア"].concat(EVENTS).map(n=>({n,t:nextTarget(n,rec)})).filter(x=>x.t);
-  const near=x=>x.t.cur>0?Math.abs(x.t.req-x.t.cur)/x.t.req:Infinity;
-  const gs=all.filter(x=>x.t.gain>1e-9).sort((a,b)=>b.t.gain-a.t.gain)
-    .concat(all.filter(x=>x.t.gain<=1e-9).sort((a,b)=>near(a)-near(b))).slice(0,5);
-  let gh="";
-  if(c.complete){const nx=nextRank(c.total);
-    if(nx) gh+=`<div class="goal"><span class="n">次のランク <b style="color:${nx.c}">${nx.n}</b></span>`+
-      `<span class="g">あと ${f3(nx.min-c.total)}</span></div>`;}
-  gh+=gs.length?gs.map(x=>{
-      const dir=LOW.has(x.n)?"以下":"以上";
-      const g=x.t.gain>1e-9?`＋${f3(x.t.gain)}`:`<span class="tiny">上位入りで加点</span>`;
-      return `<div class="goal"><span class="n">${x.n}</span><span class="g">${g}</span>`+
-        `<span class="d">${x.t.rank}位ボーダー ${nice(x.t.req)} ${dir}`+
-        `${x.t.cur>0?`（現在 ${nice(x.t.cur)}）`:"（未入力）"}</span></div>`;}).join("")
-    :(gh?"":`<p class="muted">記録を入力すると、RATINGが伸びやすい順に目標が並びます。</p>`);
-  $("#goals").innerHTML=gh;
+  if($("#goals")&&!$("#plan").hidden) renderGoals();
   /* 公開トグル */
   $("#pubOn").classList.toggle("on",!!pro.pub);
   $("#pubOff").classList.toggle("on",!pro.pub);
@@ -1057,6 +1121,26 @@ function renderPyramid(){
     (nx?`　<span style="color:${nx.c}">次の <b>${nx.n}</b> まであと ${f3(nx.min-c.total)}</span>`:"")+`</p>`;
 }
 
+function renderGoals(){
+  const c=compute(rec);
+  const all=["合計スコア"].concat(EVENTS).map(n=>({n,t:nextTarget(n,rec)})).filter(x=>x.t);
+  const near=x=>x.t.cur>0?Math.abs(x.t.req-x.t.cur)/x.t.req:Infinity;
+  const gs=all.filter(x=>x.t.gain>1e-9).sort((a,b)=>b.t.gain-a.t.gain)
+    .concat(all.filter(x=>x.t.gain<=1e-9).sort((a,b)=>near(a)-near(b))).slice(0,5);
+  let gh="";
+  if(c.complete){const nx=nextRank(c.total);
+    if(nx) gh+=`<div class="goal"><span class="n">次のランク <b style="color:${nx.c}">${nx.n}</b></span>`+
+      `<span class="g">あと ${f3(nx.min-c.total)}</span></div>`;}
+  gh+=gs.length?gs.map(x=>{
+      const dir=LOW.has(x.n)?"以下":"以上";
+      const g=x.t.gain>1e-9?`＋${f3(x.t.gain)}`:`<span class="tiny">上位入りで加点</span>`;
+      return `<div class="goal"><span class="n">${x.n}</span><span class="g">${g}</span>`+
+        `<span class="d">${x.t.rank}位ボーダー ${nice(x.t.req)} ${dir}`+
+        `${x.t.cur>0?`（現在 ${nice(x.t.cur)}）`:"（未入力）"}</span></div>`;}).join("")
+    :(gh?"":`<p class="muted">記録を入力すると、RATINGが伸びやすい順に目標が並びます。</p>`);
+  $("#goals").innerHTML=gh;
+}
+
 /* =========================================================
    6. 入力イベント
    ========================================================= */
@@ -1095,6 +1179,7 @@ function fillInputs(){
     el.value=(v===undefined||v===null||v===0)?"":commaFmt(String(v));});
   $("#pn").value=pro.name||""; $("#ph").value=pro.handle||"";
   if($("#pxurl")) $("#pxurl").value=pro.x_url||"";
+  if($("#pbio")) $("#pbio").value=pro.bio||"";
 }
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.in){
@@ -1108,7 +1193,8 @@ document.addEventListener("input",e=>{const t=e.target;
   }
   else if(t.id==="pn"){pro.name=t.value;render();}
   else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}
-  else if(t.id==="pxurl"){pro.x_url=t.value.trim();render();}});
+  else if(t.id==="pxurl"){pro.x_url=t.value.trim();render();}
+  else if(t.id==="pbio"){pro.bio=t.value;render();}});
 $("#clear").onclick=()=>{
   const n=ORDER.filter(x=>rec[x]>0).length;
   if(n&&!confirm(`入力済みの ${n} 項目をすべて消します。よろしいですか？\n（設定タブの「バックアップを保存」で控えを取れます）`)) return;
@@ -1134,7 +1220,7 @@ $("#pubOff2").onclick=()=>{pro.pub=false;render();renderSettings();syncNow();};
 $("#autoOn").onclick=()=>{autoSync=true;localStorage.setItem(K_AUTO,"true");renderSettings();};
 $("#autoOff").onclick=()=>{autoSync=false;localStorage.setItem(K_AUTO,"false");renderSettings();};
 $("#expJson").onclick=()=>{
-  const blob=new Blob([JSON.stringify({v:3,pro,rec,friends,at:new Date().toISOString()},null,2)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({v:4,pro,rec,friends,at:new Date().toISOString()},null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download=`sosu-rating-backup-${new Date().toLocaleDateString("sv-SE")}.json`;a.click();
   toast("バックアップを保存しました");};
@@ -1149,16 +1235,21 @@ $("#impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;
 $("#wipe").onclick=()=>{
   if(!confirm("この端末に保存された記録・プロフィール・フレンドを消します。よろしいですか？")) return;
   [K_REC,K_PRO,K_FR].forEach(k=>localStorage.removeItem(k));
-  rec={};pro={name:"",handle:"",img:"",pub:false,x_url:""};friends=[];
+  rec={};pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:""};friends=[];
   fillInputs();render();renderSettings();allowEmptySave=false;toast("消去しました");};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
+function goTab(name){const b=document.querySelector(`.tabs button[data-tab="${name}"]`); if(b) b.click();}
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
   if(b.dataset.tab==="rank") loadRanking();
+  if(b.dataset.tab==="profile") renderHome();
   if(b.dataset.tab==="settings") renderSettings();
+  if(b.dataset.tab==="plan"){ renderPicks(); renderGoals();
+    const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
+      if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="cup") loadCups();
   scrollTo({top:0,behavior:"smooth"});});
 
@@ -1166,15 +1257,22 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
    7. 目標プラン
    ========================================================= */
 const PLAN_POOL=["合計スコア"].concat(EVENTS);
-let picked=new Set();
+let picked=new Set(), caps={};
 function renderPicks(){
   const c=compute(rec);
   $("#pickList").innerHTML=PLAN_POOL.map(n=>
     `<label class="pk ${picked.has(n)?"on":""}"><input type="checkbox" data-pk="${esc(n)}" ${picked.has(n)?"checked":""}>`+
-    `<span>${n}</span><span class="v">${pctf(c.rates[n])}</span></label>`).join("");
+    `<span style="flex:1">${n}</span><span class="v">${pctf(c.rates[n])}</span>`+
+    `<input type="text" inputmode="decimal" data-cap="${esc(n)}" placeholder="上限" title="この種目で上げるRATINGの上限"
+      value="${caps[n]!==undefined?caps[n]:""}" style="width:58px;max-width:58px;padding:3px 6px;margin-left:6px">`+
+    `</label>`).join("");
   $$("[data-pk]").forEach(el=>el.onchange=()=>{
     el.checked?picked.add(el.dataset.pk):picked.delete(el.dataset.pk);
     renderPicks();});
+  $$("[data-cap]").forEach(el=>{
+    el.onclick=e=>e.preventDefault();
+    el.oninput=()=>{const v=num(el.value); if(v>0) caps[el.dataset.cap]=v; else delete caps[el.dataset.cap];};
+  });
   const hint=$("#pickHint");
   if(picked.size>=2){
     const arr=[...picked].map(n=>({n,r:c.rates[n]})).sort((a,b)=>a.r-b.r);
@@ -1186,10 +1284,16 @@ function renderPicks(){
   }else hint.hidden=true;
 }
 $("#pkAll").onclick=()=>{picked=new Set(PLAN_POOL);renderPicks();};
-$("#pkNone").onclick=()=>{picked=new Set();renderPicks();};
+$("#pkNone").onclick=()=>{picked=new Set();caps={};renderPicks();};
 $("#pkWeak").onclick=()=>{const c=compute(rec);
   picked=new Set(PLAN_POOL.slice().sort((a,b)=>c.rates[a]-c.rates[b]).slice(0,5));renderPicks();};
 
+$("#decaGo").onclick=()=>{
+  const t=num($("#decaTgt").value);
+  if(!(t>0)) return toast("目標の合計スコアを入れてください");
+  $("#decaTgt").value=commaFmt(String(t));
+  $("#decaOut").innerHTML=decaHTML(t);
+};
 $("#doPlan").onclick=()=>{
   const c=compute(rec);
   if(!c.complete) return toast("全項目を入力するとプランを作成できます");
@@ -1197,7 +1301,7 @@ $("#doPlan").onclick=()=>{
   $("#tgtRate").value=f3(tgt);
   if(tgt<=c.total) return $("#planOut").innerHTML=`<p class="muted">現在のRATING ${f3(c.total)} はすでに目標を超えています。</p>`;
   const pool=picked.size?[...picked]:null;
-  const p=makePlan(tgt,rec,pool);
+  const p=makePlan(tgt,rec,pool,caps);
   const kinds=new Set(p.steps.map(x=>x.n)).size;
   const rows=p.steps.map((x,i)=>{
     const dir=LOW.has(x.n)?"短縮":"上乗せ";
@@ -1221,11 +1325,52 @@ $("#doPlan").onclick=()=>{
       return `<div class="goal"><span class="n">${x.n}</span><span class="g">＋${f3(x.gain)}</span>`+
         `<span class="d">${x.from>0?nice(x.from)+" → ":""}<b>${nice(x.req)}</b> ${dir}`+
         `（${x.hops}段階${x.border?"":"／最後はぴったり調整"}）</span></div>`;}).join("")+
+    (p.steps.some(x=>x.n==="合計スコア")?
+      `<h3>十種競技総合スコアの上げ方</h3>`+
+      decaHTML(p.steps.filter(x=>x.n==="合計スコア").slice(-1)[0].req):"")+
     `<h3>おすすめの順番</h3>`+
     `<p class="tiny" style="margin-top:-4px">上昇量 ÷ 必要な伸び幅 が大きい順です。最後の一手で目標にぴったり合わせます。</p>`+
     `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>目標</th>`+
     `<th>必要な伸び</th><th>上昇</th><th>到達RATING</th></tr></thead><tbody>`+rows.join("")+`</tbody></table></div>`;
 };
+
+/** 十種競技総合スコアを目標値まで上げるには、9種目をどう伸ばすか。
+ *  理論値(10万点)までの余地が大きい種目ほど多く割り当てる。 */
+function decaPlan(targetTotal){
+  const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
+  const need=targetTotal-cur;
+  const room=DECA.map(n=>({n,v:rec[n]||0,room:Math.max(MAXSCORE-(rec[n]||0),0)}));
+  const sum=room.reduce((a,x)=>a+x.room,0);
+  if(need<=0||sum<=0) return {cur,need,rows:room.map(x=>Object.assign({add:0,to:x.v},x)),ok:need<=0};
+  let left=need, rows=[];
+  room.sort((a,b)=>b.room-a.room);
+  room.forEach((x,i)=>{
+    let add=(i===room.length-1)?left:Math.min(x.room,Math.round(need*x.room/sum));
+    add=Math.max(0,Math.min(add,x.room,left)); left-=add;
+    rows.push(Object.assign({add,to:x.v+add},x));
+  });
+  /* 端数が残ったら余地のある種目に足す */
+  for(const r of rows){ if(left<=0) break;
+    const more=Math.min(left,r.room-r.add); r.add+=more; r.to=r.v+more+ (r.add-more) - (r.add-more); r.to=r.v+r.add; left-=more; }
+  return {cur,need,rows,ok:left<=0};
+}
+function decaHTML(targetTotal){
+  const d=decaPlan(targetTotal);
+  if(d.need<=0) return `<p class="muted">十種競技総合スコアは既に目標に届いています（現在 ${jp(d.cur)}）。</p>`;
+  const tips=n=>{const r=eventRate(n,rec[n]||0);
+    return r.r<0.4?"伸びしろ大":r.r<0.7?"伸びしろあり":r.r<1?"あと少し":"1位到達";};
+  return `<p class="muted">現在 <b>${jp(d.cur)}</b> → 目標 <b>${jp(targetTotal)}</b>（あと <b>${jp(d.need)}</b> 点）`+
+    `${d.ok?"":' <span class="lose">※9種目すべて理論値でも届きません</span>'}</p>`+
+    `<p class="tiny">理論値（各 ${jp(MAXSCORE)} 点）までの余地が大きい種目ほど、多めに割り当てています。</p>`+
+    `<div class="scroll"><table><thead><tr><th>種目</th><th>現在</th><th>提案</th><th>目標値</th><th>理論値までの余地</th><th>状況</th></tr></thead><tbody>`+
+    d.rows.map(r=>`<tr class="${r.add>0?"used":""}"><td>${r.n}</td>`+
+      `<td>${r.v>0?jp(r.v):"—"}</td>`+
+      `<td class="pct">${r.add>0?"＋"+jp(r.add):"—"}</td>`+
+      `<td><b>${jp(r.to)}</b></td>`+
+      `<td class="tiny">${jp(r.room)}</td>`+
+      `<td class="tgt">${tips(r.n)}</td></tr>`).join("")+
+    `</tbody></table></div>`;
+}
 
 /* =========================================================
    8. 共有・フレンド
@@ -1277,12 +1422,20 @@ function renderCompare(op,sel){
   const me=compute(rec), th=compute(op.rec);
   let w=0,l=0,d=0,rows="";
   for(const n of ["合計スコア"].concat(EVENTS)){
-    const a=me.rates[n],b=th.rates[n];
-    const s=Math.abs(a-b)<1e-9?"draw":(a>b?"win":"lose");
+    const va=rec[n]||0, vb=op.rec[n]||0;
+    let s;
+    if(!va&&!vb) s="draw";
+    else if(!va) s="lose";
+    else if(!vb) s="win";
+    else if(va===vb) s="draw";
+    else s=(LOW.has(n)?va<vb:va>vb)?"win":"lose";   /* タイム系は小さい方が勝ち */
     if(s==="win")w++;else if(s==="lose")l++;else d++;
-    rows+=`<tr><td>${n}</td><td class="${s==="win"?"win":""}">${pctf(a)}</td>`+
-      `<td class="${s}">${s==="win"?"▲":s==="lose"?"▼":"＝"}</td>`+
-      `<td class="${s==="lose"?"lose":""}">${pctf(b)}</td></tr>`;}
+    const diff=(va&&vb)?Math.abs(va-vb):null;
+    rows+=`<tr><td>${n}${LOW.has(n)?' <span class="tiny">(秒)</span>':""}</td>`+
+      `<td class="${s==="win"?"win":""}">${va?nice(va):"—"}<br><span class="tiny">${pctf(me.rates[n])}</span></td>`+
+      `<td class="${s}">${s==="win"?"▲":s==="lose"?"▼":"＝"}`+
+      `${diff!==null?`<br><span class="tiny">${nice(diff)}</span>`:""}</td>`+
+      `<td class="${s==="lose"?"lose":""}">${vb?nice(vb):"—"}<br><span class="tiny">${pctf(th.rates[n])}</span></td></tr>`;}
   const card=(p,c,mine)=>`<div class="side">${avatarHTML(p,"av")}
     <div>${nameHTML(p.name||"名無し", mine&&me?me.role:p.role)}${mine?' <span class="tiny">(自分)</span>':""}</div>
     <div class="tiny">${p.handle?"@"+esc(p.handle):"&nbsp;"}</div>
@@ -1295,7 +1448,7 @@ function renderCompare(op,sel){
     ${diff===null?'<p class="muted" style="text-align:center">どちらかの入力が未完成のため、RATING差は表示できません。</p>'
      :`<p style="text-align:center;font-size:1.05rem;font-weight:700" class="${diff>0?"win":diff<0?"lose":"draw"}">RATING差 ${diff>0?"＋":""}${f3(diff)}</p>`}
     <div class="tally"><span class="win">勝ち ${w}</span><span class="draw">分け ${d}</span><span class="lose">負け ${l}</span></div>
-    <div class="scroll"><table><thead><tr><th>種目</th><th>自分</th><th></th><th>相手</th></tr></thead>
+    <div class="scroll"><table><thead><tr><th>種目</th><th>自分の記録</th><th>差</th><th>相手の記録</th></tr></thead>
     <tbody>${rows}</tbody></table></div></div>`;
   out.scrollIntoView({behavior:"smooth"});
 }
@@ -1306,6 +1459,17 @@ function renderCompare(op,sel){
 function loadImg(src,cors){return new Promise(res=>{const i=new Image();
   if(cors) i.crossOrigin="anonymous";
   i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src;});}
+/** 折り返しながら文字を描く */
+function wrapText(g,text,x,y,maxW,lh,maxLines){
+  const chars=[...String(text)]; let line="",n=0;
+  for(const ch of chars){
+    if(ch==="\n"||g.measureText(line+ch).width>maxW){
+      g.fillText(line,x,y+n*lh); n++; line=(ch==="\n"?"":ch);
+      if(n>=maxLines){ return; }
+    }else line+=ch;
+  }
+  if(line&&n<maxLines) g.fillText(line,x,y+n*lh);
+}
 function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);
   g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
   g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
@@ -1347,6 +1511,14 @@ async function drawCard(){
   g.fillText((pro.name||"NO NAME").slice(0,18),248,146);
   g.fillStyle="#8ba0bd";g.font=F(400,26);
   g.fillText(pro.handle?"@"+pro.handle.slice(0,24):"",248,186);
+  /* 右上：自己紹介 */
+  if(pro.bio){
+    g.fillStyle="#ffffff0d";rrect(g,660,74,470,132,14);g.fill();
+    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,660,74,470,132,14);g.stroke();
+    g.fillStyle="#8ba0bd";g.font=F(500,17);g.fillText("PROFILE",680,100);
+    g.fillStyle="#dfe8f5";g.font=F(400,19);
+    wrapText(g,pro.bio,680,126,430,26,4);
+  }
 
   g.fillStyle="#8ba0bd";g.font=F(600,22);
   if(g.letterSpacing!==undefined) g.letterSpacing="8px";
@@ -1375,25 +1547,13 @@ async function drawCard(){
              ["S値",c.S===null?"—":f3(c.S),rec["スコア累積"]>0?"スコア累積 "+jp(rec["スコア累積"]):""],
              ["大会成績", MY_CUP?`${MY_CUP.wins} 優勝`:"—",
               MY_CUP?`参加 ${MY_CUP.played} 回／3位以内 ${MY_CUP.podium} 回`:""]];
-  box.forEach((b,i)=>{const x=660,y=238+i*74;
+  box.forEach((b,i)=>{const x=660,y=(pro.bio?226:238)+i*74;
     g.fillStyle="#ffffff0d";rrect(g,x,y,470,64,12);g.fill();
     g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,64,12);g.stroke();
     g.textAlign="left";g.fillStyle="#8ba0bd";g.font=F(500,19);g.fillText(b[0],x+20,y+26);
     if(b[2]){ g.fillStyle="#61748f";g.font=F(400,14);g.fillText(b[2],x+20,y+48); }
     g.fillStyle=i===3?"#ffc861":"#eef3fa";g.font=`400 34px ${IMPACT}`;
     g.textAlign="right";g.fillText(b[1],x+450,y+46);g.textAlign="left";});
-  /* 最近の大会 */
-  if(MY_CUP&&MY_CUP.rows.length){
-    const r0=MY_CUP.rows.slice(0,2);
-    g.fillStyle="#8ba0bd";g.font=F(500,17);g.fillText("最近の大会",660,556);
-    r0.forEach((r,i)=>{const ended=Date.parse(r.ends_at)<=Date.now();
-      g.fillStyle="#cfe0f5";g.font=F(400,15);
-      const t=(r.title||"").length>18?r.title.slice(0,18)+"…":r.title;
-      g.fillText(t,750+i*0,556+22+i*20);
-      g.textAlign="right";g.fillStyle=ended&&+r.pos===1?"#ffc861":"#8ba0bd";
-      g.fillText(ended?`${r.pos}位`:"開催中",1130,556+22+i*20);g.textAlign="left";});
-  }
-
   g.fillStyle="#61748f";g.font=F(400,20);
   g.fillText("素数あつめ RATING",80,570);
   g.textAlign="right";g.fillText(`ボーダー ${DATA().date} 時点`,W-80,570);
@@ -2248,7 +2408,7 @@ function showPlayer(p,rc){
     q("#mpCup").disabled=false;
     if(!h) return toast("大会記録を取得できませんでした");
     showCupHistory(p,h);};
-  q("#mpCmp").onclick=()=>{ close(); $$(".tabs button")[3].click();
+  q("#mpCmp").onclick=()=>{ close(); goTab("friends");
     renderCompare({pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc}); };
 }
 
@@ -2403,7 +2563,10 @@ document.addEventListener("visibilitychange",()=>{
   lastMeAt=Date.now();
   loadMe().then(()=>{ try{renderSettings();render();}catch(e){} });
 });
-$("#devBtn").onclick=openDev;
+$("#devBtn").onclick=()=>{
+  if(!isAdmin()) return toast("開発者モードは管理者のみ利用できます");
+  openDev();
+};
 $("#clearLocal").onclick=()=>{localStorage.removeItem(K_DATA);location.reload();};
 
 /* ---- 大会成績（順位つきビューから集計）---- */
@@ -2442,11 +2605,10 @@ async function renderCupStat(){
       <div class="stat"><div class="t">参加した大会</div><div class="v">${MY_CUP.played}</div></div>
       <div class="stat"><div class="t">優勝</div><div class="v" style="color:var(--warn)">${MY_CUP.wins}</div>
         <div class="s">3位以内 ${MY_CUP.podium} 回</div></div>
-      <div class="stat"><div class="t">勝率（優勝）</div>
-        <div class="v">${MY_CUP.finished?((MY_CUP.wins/MY_CUP.finished*100).toFixed(0)+"%"):"—"}</div>
+      <div class="stat"><div class="t">3位以内</div><div class="v">${MY_CUP.podium}</div>
         <div class="s">終了した大会 ${MY_CUP.finished} 件</div></div>
     </div>
-    <h3>最近の結果</h3>${cupHistHTML(MY_CUP,5)}
+    <h3>最近の結果</h3>${cupHistHTML(MY_CUP,3)}
     <div class="tools"><button class="btn" id="cupHistAll">すべての大会記録を見る</button></div>`;
   $("#cupHistAll").onclick=()=>showCupHistory({name:pro.name,handle:pro.handle,role:me?me.role:null},MY_CUP);
 }
@@ -2460,6 +2622,54 @@ function showCupHistory(p,h){
   const close=()=>mask.remove();
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   mask.querySelector("#chX").onclick=close;
+}
+
+/* ---- ホーム画面 ---- */
+async function renderHome(){
+  const box=$("#homeCups");
+  if(box){
+    if(!sbOn()){ box.innerHTML=`<p class="muted">大会機能は未設定です。</p>`; }
+    else{
+      try{
+        if(!CUPS.length){
+          CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
+          cupCache={at:Date.now(),rows:CUPS};
+        }
+        const live=CUPS.filter(c=>cupPhase(c)==="live");
+        const pre =CUPS.filter(c=>cupPhase(c)==="pre").slice(0,2);
+        box.innerHTML=(live.length?live.map(c=>`<div class="cup live">
+            <h4>${esc(c.title)}</h4>
+            <div class="meta">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"")}</b>　種目 ${esc((c.events||[]).join("、"))}</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
+              <span class="cd live" data-cd="${esc(c.id)}"></span>
+              <button class="btn sm pri" data-hc="${esc(c.id)}" style="margin-left:auto">参加する</button>
+            </div></div>`).join("")
+          :`<p class="muted">いま開催中の大会はありません。</p>`)+
+          (pre.length?`<div class="gsec">まもなく開催</div>`+pre.map(c=>`<div class="cup">
+            <h4>${esc(c.title)}</h4><div class="meta">主催 ${esc(c.owner_name||"")}</div>
+            <div style="margin-top:6px"><span class="cd pre" data-cd="${esc(c.id)}"></span></div></div>`).join(""):"");
+        $$("[data-hc]").forEach(b=>b.onclick=()=>{ goTab("cup"); openCup(b.dataset.hc); });
+        tickCups();
+        clearInterval(cupTimer); cupTimer=setInterval(tickCups,1000);
+      }catch(e){ box.innerHTML=`<p class="muted">大会情報を取得できませんでした。</p>`; }
+    }
+  }
+  renderHomeFriends();
+}
+/** フレンドの更新履歴（登録時に取り込んだ記録の新しい順）*/
+function renderHomeFriends(){
+  const box=$("#homeFriends"); if(!box) return;
+  if(!friends.length){ box.innerHTML=`<p class="muted">フレンドを登録すると、ここに更新が並びます。`+
+    `<br><span class="tiny">「フレンド」タブ、またはランキングの名前から追加できます。</span></p>`; return; }
+  const list=friends.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,6);
+  box.innerHTML=list.map(f=>{const c=compute(f.rec);
+    const d=f.at?new Date(f.at):null;
+    return `<div class="goal"><span class="n">${nameHTML(f.pro.name||f.pro.handle||"名無し",f.pro.role)}</span>`+
+      `<span class="g">${c.complete?f3(c.total):"—"}</span>`+
+      `<span class="d">${c.complete?rankOf(c.total).n:"未完成"}`+
+      `${d?`　${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 更新`:""}</span></div>`;}).join("")+
+    `<div class="tools"><button class="btn sm" id="hfMore">フレンド一覧へ</button></div>`;
+  $("#hfMore").onclick=()=>goTab("friends");
 }
 
 /* =========================================================
@@ -2488,12 +2698,13 @@ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==
    ========================================================= */
 /* レート計算は常に最新週。過去はビューアで参照するだけ */
 function withWeek(i,fn){const b=wIdx; wIdx=i; try{ return fn(); } finally{ wIdx=b; }}
-function openHistory(){
+function openHistory(latestOnly){
   const mask=document.createElement("div");mask.className="mask";
-  mask.innerHTML=`<div class="modal"><h2>過去のランキング</h2>
-    <p class="muted" style="margin-top:-8px">当時のボーダーラインを確認できます。プロフィールのRATINGは常に最新のボーダーで計算されます。</p>
-    <label class="fl">集計週</label>
-    <select id="hkWeek" style="max-width:260px"></select>
+  mask.innerHTML=`<div class="modal"><h2>${latestOnly?"現在のボーダーライン":"過去のランキング"}</h2>
+    <p class="muted" style="margin-top:-8px">${latestOnly?"最新の集計週のボーダーラインです。":
+      "当時のボーダーラインを確認できます。RATINGは常に最新のボーダーで計算されます。"}</p>
+    <label class="fl" ${latestOnly?'style="display:none"':""}>集計週</label>
+    <select id="hkWeek" style="max-width:260px${latestOnly?";display:none":""}"></select>
     <div id="hkBody" style="margin-top:14px"></div>
     <div class="tools"><button class="btn" id="hkX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
@@ -2526,7 +2737,8 @@ function openHistory(){
   };
   q("#hkWeek").onchange=draw; draw();
 }
-$("#histBtn").onclick=openHistory;
+$("#histBtn2").onclick=openHistory;
+$("#borderBtn").onclick=()=>openHistory(true);
 
 function normalize(j){
   if(j&&Array.isArray(j.weeks)&&j.weeks.length) return j.weeks;
@@ -2542,16 +2754,17 @@ function normalize(j){
     catch(e){ /* file:// では埋め込みデータを使用 */ }
   }
   wIdx=WEEKS.length-1;
-  if(location.hash==="#dev"){ history.replaceState(null,"",location.pathname); openDev(); }
+  const wantDev=(location.hash==="#dev");
+  if(wantDev) history.replaceState(null,"",location.pathname);
   const m=location.hash.match(/#p=([A-Za-z0-9_-]+)/);
   if(m){ try{
       const g=unpack(m[1]), mine=ORDER.some(n=>rec[n]>0);
       if(!mine){ rec=g.rec; pro=Object.assign(pro,g.pro);
         $("#viewBanner").hidden=false;
         $("#viewMsg").textContent=`${g.pro.name||"他プレイヤー"} さんの共有プロフィールを表示中です。`;
-        $("#viewClear").onclick=()=>{rec={};pro={name:"",handle:"",img:"",pub:false,x_url:""};
+        $("#viewClear").onclick=()=>{rec={};pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:""};
           $("#viewBanner").hidden=true;fillInputs();render();};
-      }else{ $("#oppo").value=location.hash; $$(".tabs button")[3].click(); renderCompare(g); }
+      }else{ $("#oppo").value=location.hash; goTab("friends"); renderCompare(g); }
       history.replaceState(null,"",location.pathname);
     }catch(e){} }
   applySb();
@@ -2569,10 +2782,13 @@ function normalize(j){
   fillInputs();
   try{ applyData(); }catch(e){ console.error(e); }
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){} }
+  $("#devBtn").hidden=!isAdmin();
+  if(wantDev&&isAdmin()) openDev();
   /* どの経路を通っても最後に必ず描き直す */
   fillInputs();
   try{ render(); }catch(e){ console.error(e); }
   checkUpdate();
+  renderHome();
 })();
 </script>
 </body>
