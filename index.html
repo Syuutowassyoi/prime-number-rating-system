@@ -72,14 +72,22 @@ h2::before{content:"";position:absolute;left:0;top:.15em;bottom:.15em;width:3px;
 hr{border:none;border-top:1px solid var(--line);margin:18px 0}
 
 header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.tabs{display:flex;gap:4px;flex-wrap:wrap;background:#0f1828;border:1px solid var(--line);
-  border-radius:11px;padding:4px;margin-bottom:16px;width:100%}
-@media(max-width:700px){
-  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
-  .tabs button{flex:0 0 auto}
-}
-.tabs button{background:none;border:none;color:var(--dim);font:inherit;font-size:.8rem;
-  padding:7px 13px;border-radius:8px;cursor:pointer;flex:1 1 auto;white-space:nowrap}
+.menubar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.mbtn{width:44px;height:40px;border-radius:11px;background:#182233;border:1px solid var(--line);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer;flex:0 0 auto}
+.mbtn span{display:block;width:20px;height:2px;background:var(--tx);border-radius:2px;transition:.2s}
+.mbtn.on span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.mbtn.on span:nth-child(2){opacity:0}
+.mbtn.on span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mnow{font-size:1.02rem;font-weight:700;letter-spacing:.04em}
+.mbadge{background:var(--bad);color:#fff;font-size:.72rem;font-weight:700;border-radius:999px;
+  padding:2px 9px;box-shadow:0 0 14px -4px var(--bad)}
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;
+  background:#0f1828;border:1px solid var(--line);
+  border-radius:13px;padding:8px;margin-bottom:16px;width:100%}
+@media(max-width:640px){ .tabs{grid-template-columns:1fr 1fr} }
+.tabs button{background:#16202f;border:1px solid transparent;color:var(--dim);font:inherit;font-size:.86rem;
+  padding:11px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;text-align:center}
 .tabs button.on{background:linear-gradient(180deg,#31456610,#2b3d5a);color:var(--tx);
   box-shadow:0 0 0 1px #4da3ff55, 0 6px 16px -10px #4da3ff}
 .tabs button:hover:not(.on){color:var(--tx);background:#1c2739}
@@ -132,6 +140,27 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 
 .lockbox{background:#20263a;border:1px dashed #40506e;border-radius:12px;padding:14px;margin-top:14px}
 .lockbox b{color:var(--warn)}
+.lsgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.lsgrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:520px){.lsgrid2{grid-template-columns:1fr}}
+.lsbox{background:linear-gradient(180deg,#131c2b,#0f1726);border:1px solid var(--line);
+  border-radius:13px;padding:14px 16px;text-align:center}
+.lsbox .t{font-size:.74rem;color:var(--dim)}
+.lsbox .v{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.lsbox .v.big{font-size:1.7rem;color:var(--acc2)}
+.lsbox .s{font-size:.74rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+.lsbox .v.bump{animation:bump .35s ease-out}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.18);color:var(--warn)}100%{transform:scale(1)}}
+.lshit{width:100%;margin-top:14px;padding:22px;border-radius:16px;font:inherit;font-size:1.15rem;
+  font-weight:800;letter-spacing:.06em;cursor:pointer;color:#fff;border:1px solid #4da3ff;
+  background:linear-gradient(135deg,#2f6fd0,#3f9de0);box-shadow:0 10px 30px -18px #4da3ff}
+.lshit:active{transform:translateY(2px)}
+.lshit:disabled{opacity:.4;cursor:not-allowed;background:#25344c;border-color:var(--line)}
+.pfrow{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.pfhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pfchk{display:flex;flex-wrap:wrap;gap:6px}
+.pfchk .pk{font-size:.76rem}
 .picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin-top:10px}
 .pk{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);
   border-radius:9px;padding:7px 10px;font-size:.82rem;cursor:pointer;user-select:none}
@@ -259,9 +288,15 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <h1>素数あつめ <span class="g">RATING</span></h1>
   <span class="ver" id="verBadge">—</span>
 </header>
-<nav class="tabs">
+<div class="menubar">
+  <button class="mbtn" id="menuBtn" aria-label="メニュー"><span></span><span></span><span></span></button>
+  <span class="mnow" id="menuNow">ホーム</span>
+  <span class="mbadge" id="menuBadge" hidden>0</span>
+</div>
+<nav class="tabs" id="tabs" hidden>
   <button data-tab="profile" class="on">ホーム</button>
   <button data-tab="plan">プラン</button>
+  <button data-tab="ls">LSやりこみ</button>
   <button data-tab="card">カード</button>
   <button data-tab="input">入力</button>
   <button data-tab="friends">フレンド</button>
@@ -384,6 +419,76 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   </div>
 </section>
 
+<section id="ls" hidden>
+  <div class="card">
+    <h2>1回あたりの増加量を登録</h2>
+    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとに、どれだけ増えるかの予測値です。</p>
+    <div class="frow">
+      <div><label class="fl">1回あたりのスコア増加</label>
+        <input type="text" inputmode="numeric" id="lsPerScore" placeholder="例：1200" style="max-width:none"></div>
+      <div><label class="fl">1回あたりの乱数増加</label>
+        <input type="text" inputmode="numeric" id="lsPerRand" placeholder="例：480000" style="max-width:none"></div>
+    </div>
+    <div class="hintbox" style="margin-top:10px">
+      <b>乱数の増加量の測り方</b><br>
+      <span class="tiny">まず10回ほどプレイして、ゲーム内のL値ページにある「所持チケットのみなし累積」が
+      どれだけ増えたかを確認し、その増加量を10で割った値を入れてください。</span>
+      <div class="frow" style="margin-top:8px">
+        <div><label class="fl">10回プレイ前のみなし累積</label>
+          <input type="text" inputmode="numeric" id="lsA" style="max-width:none"></div>
+        <div><label class="fl">10回プレイ後のみなし累積</label>
+          <input type="text" inputmode="numeric" id="lsB" style="max-width:none"></div>
+      </div>
+      <div class="tools"><button class="btn sm" id="lsCalc">10回分から計算して入れる</button></div>
+      <div id="lsCalcOut" class="tiny"></div>
+    </div>
+    <label class="fl">目標（任意・空なら次のボーダーラインを目標にします）</label>
+    <div class="frow">
+      <div><label class="fl">目標スコア累積</label><input type="text" inputmode="numeric" id="lsGoalS" style="max-width:none"></div>
+      <div><label class="fl">目標乱数累積</label><input type="text" inputmode="numeric" id="lsGoalR" style="max-width:none"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>やりこみカウンター</h2>
+    <div class="lsgrid">
+      <div class="lsbox"><div class="t">クリア回数</div><div class="v" id="lsCount">0</div><div class="s">回</div></div>
+      <div class="lsbox"><div class="t">経過時間</div><div class="v" id="lsTime">0:00:00</div>
+        <div class="s" id="lsStart">未開始</div></div>
+    </div>
+    <div class="tools">
+      <button class="btn pri" id="lsStartBtn">スタート</button>
+      <button class="btn" id="lsStopBtn" hidden>終了して記録する</button>
+      <button class="btn" id="lsReset">リセット</button>
+      <label class="tiny" style="display:flex;align-items:center;gap:6px;margin-left:auto">
+        カウントキー <input type="text" id="lsKey" maxlength="1" value=" " style="width:54px;max-width:54px;text-align:center">
+      </label>
+    </div>
+    <button class="lshit" id="lsHit" disabled>＋1回　クリア！</button>
+    <p class="tiny" id="lsHint">スタートを押すとカウントできます。ボタンのクリック、または設定したキーでも数えられます（連打防止のため1秒間隔）。</p>
+
+    <div class="lsgrid2">
+      <div class="lsbox big"><div class="t">スコア累積の予測</div>
+        <div class="v big" id="lsScore">0</div>
+        <div class="s" id="lsScoreNext">—</div></div>
+      <div class="lsbox big"><div class="t">乱数累積の予測</div>
+        <div class="v big" id="lsRand">0</div>
+        <div class="s" id="lsRandNext">—</div></div>
+    </div>
+    <div class="lsgrid2">
+      <div class="lsbox"><div class="t">S値の予測</div><div class="v" id="lsSv">—</div>
+        <div class="s" id="lsSvNext">—</div></div>
+      <div class="lsbox"><div class="t">L値の予測</div><div class="v" id="lsLv">—</div>
+        <div class="s" id="lsLvNext">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>やりこみ記録</h2>
+    <div id="lsLog"></div>
+  </div>
+</section>
+
 <section id="card" hidden>
   <div class="card">
     <h2>プロフィールカード</h2>
@@ -456,9 +561,24 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn" id="tweet">Xに投稿</button>
     </div>
   </div>
+  <div class="card" id="frReqCard">
+    <h2>フレンド申請</h2>
+    <div id="frReqBody"></div>
+  </div>
+
   <div class="card">
-    <h2>フレンドを追加</h2>
-    <p class="muted" style="margin-top:-8px">相手からもらった共有リンクを貼り付けてください。</p>
+    <h2>@ID で申請する</h2>
+    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認したときに双方のフレンドになります。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input type="text" class="txt" id="frTo" placeholder="aaa111" style="max-width:220px">
+      <button class="btn pri" id="frSend">申請を送る</button>
+    </div>
+    <div id="frSendMsg" class="tiny"></div>
+  </div>
+
+  <div class="card">
+    <h2>共有リンクから追加（ログイン不要）</h2>
+    <p class="muted" style="margin-top:-8px">相手からもらった共有リンクを貼り付けてください。承認は要りません。</p>
     <textarea id="oppo" placeholder="https://.../#p=..."></textarea>
     <div class="tools">
       <button class="btn pri" id="addFr">フレンドに登録</button>
@@ -530,8 +650,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <label class="fl" for="pbio">自己紹介（カードの右上に載ります・80文字程度まで）</label>
     <input type="text" class="txt" id="pbio" placeholder="例：素因数分解が好きです。よろしくお願いします" style="max-width:none" maxlength="120">
-    <label class="fl" for="pxurl">記録を証明するXの投稿リンク（任意）</label>
-    <input type="text" class="txt" id="pxurl" placeholder="https://x.com/..." style="max-width:none">
+    <label class="fl">記録を証明するXの投稿リンク（任意・複数可）</label>
+    <p class="tiny" style="margin-top:-2px">リンクごとに「どの種目の記録が写っているか」をチェックしてください。</p>
+    <div id="pfProofs"></div>
     <div class="tools">
       <button class="btn" id="useX">Xのアイコンを取り込む</button>
       <button class="btn" id="pickImg">画像を自分で選ぶ</button>
@@ -612,7 +733,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v14";
+const APP_VERSION = "v16";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -654,6 +775,7 @@ const CAT3 = ["暗素因数分解・壱","暗素因数分解・参","暗素因�
 const EVENTS = CAT2.concat(CAT3);
 const ORDER  = ["合計スコア"].concat(EVENTS, ["乱数累積","スコア累積"]);
 const LOW    = new Set(["1から順に","2から順に","1桁素数","2の累乗数"]);
+const LS_RANKS=[1,2,3,4,5,6,7,8,9,10,15,20,25,30,50,75,100,150,200,250,300,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000];
 /* 十種競技総合＝CAT2 から素数判定を除いた9種の合計。各種目の理論値は10万点 */
 const DECA   = CAT2.filter(n=>n!=="素数判定");
 const MAXSCORE = 100000;
@@ -831,6 +953,21 @@ const num=s=>{const v=parseFloat(String(s??"").replace(/[,\s　]/g,""));return i
 const f3=v=>v.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
 const pctf=v=>(v*100).toFixed(2)+"%";
 const jp=v=>v.toLocaleString("ja-JP");
+/* 時刻はすべて日本標準時（JST）で表示する */
+const JST={timeZone:"Asia/Tokyo"};
+function jstDT(t){ const d=new Date(t); if(isNaN(d)) return "—";
+  return d.toLocaleString("ja-JP",Object.assign({month:"numeric",day:"numeric",
+    hour:"2-digit",minute:"2-digit"},JST)); }
+function jstFull(t){ const d=new Date(t); if(isNaN(d)) return "—";
+  return d.toLocaleString("ja-JP",Object.assign({year:"numeric",month:"2-digit",day:"2-digit",
+    hour:"2-digit",minute:"2-digit"},JST)); }
+/* datetime-local 用：JSTの壁掛け時計の値に変換する */
+function toJstInput(t){ const d=new Date(t); if(isNaN(d)) return "";
+  const p=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit",
+    hour:"2-digit",minute:"2-digit",hour12:false},JST)).format(d);
+  return p.replace(" ","T").slice(0,16); }
+/* JSTとして入力された値を正しいUTC時刻に直す */
+function fromJstInput(v){ return new Date(v+"+09:00"); }
 const nice=v=>Number.isInteger(v)?jp(v):v.toLocaleString("ja-JP",{maximumFractionDigits:3});
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function ratingParts(v){ const s=f3(v).replace(/,/g,""); const i=s.indexOf("."); return [s.slice(0,i),s.slice(i)]; }
@@ -930,7 +1067,7 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
    ========================================================= */
 const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
       K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
-let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:""}, friends=[];
+let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:"",proofs:[]}, friends=[];
 const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
 let editKey=localStorage.getItem(K_EDIT); if(!editKey){editKey=rndHex(24);localStorage.setItem(K_EDIT,editKey);}
@@ -1184,8 +1321,11 @@ function fillInputs(){
   $$("[data-in]").forEach(el=>{const v=rec[el.dataset.in];
     el.value=(v===undefined||v===null||v===0)?"":commaFmt(String(v));});
   $("#pn").value=pro.name||""; $("#ph").value=pro.handle||"";
-  if($("#pxurl")) $("#pxurl").value=pro.x_url||"";
   if($("#pbio")) $("#pbio").value=pro.bio||"";
+  if($("#pfProofs")){
+    if(!Array.isArray(pro.proofs)) pro.proofs=normProofs(null,pro.x_url);
+    renderProofs("pfProofs",["合計スコア"].concat(EVENTS),pro.proofs);
+  }
 }
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.in){
@@ -1199,7 +1339,6 @@ document.addEventListener("input",e=>{const t=e.target;
   }
   else if(t.id==="pn"){pro.name=t.value;render();}
   else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}
-  else if(t.id==="pxurl"){pro.x_url=t.value.trim();render();}
   else if(t.id==="pbio"){pro.bio=t.value;render();}});
 $("#clear").onclick=()=>{
   const n=ORDER.filter(x=>rec[x]>0).length;
@@ -1228,7 +1367,7 @@ $("#autoOff").onclick=()=>{autoSync=false;localStorage.setItem(K_AUTO,"false");r
 $("#expJson").onclick=()=>{
   const blob=new Blob([JSON.stringify({v:4,pro,rec,friends,at:new Date().toISOString()},null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download=`sosu-rating-backup-${new Date().toLocaleDateString("sv-SE")}.json`;a.click();
+  a.download=`sosu-rating-backup-${new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date())}.json`;a.click();
   toast("バックアップを保存しました");};
 $("#impJson").onclick=()=>$("#impFile").click();
 $("#impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;
@@ -1246,13 +1385,23 @@ $("#wipe").onclick=()=>{
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
 function goTab(name){const b=document.querySelector(`.tabs button[data-tab="${name}"]`); if(b) b.click();}
+function toggleMenu(open){
+  const t=$("#tabs"), b=$("#menuBtn");
+  const show=(open===undefined)?t.hidden:open;
+  t.hidden=!show; b.classList.toggle("on",show);
+}
+$("#menuBtn").onclick=()=>toggleMenu();
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","ls","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  $("#menuNow").textContent=b.textContent;
+  toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
   if(b.dataset.tab==="rank") loadRanking();
   if(b.dataset.tab==="profile") renderHome();
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); }
+  if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
+  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderGoals();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
@@ -1422,13 +1571,29 @@ $("#tweet").onclick=()=>{const c=compute(rec);
     "&url="+encodeURIComponent(shareURL()),"_blank");};
 const readLink=v=>{const m=String(v).trim().match(/#p=([A-Za-z0-9_-]+)/)||String(v).trim().match(/^([A-Za-z0-9_-]{20,})$/);
   return m?unpack(m[1]):null;};
+$("#frSend").onclick=async()=>{
+  const h=$("#frTo").value.replace(/^@/,"").trim();
+  const msg=$("#frSendMsg");
+  if(!sess) return toast("ログインが必要です（設定タブ）");
+  if(!h) return toast("相手の @ID を入力してください");
+  if(h.toLowerCase()===(pro.handle||"").toLowerCase()) return toast("自分自身には申請できません");
+  try{
+    const r=await sbAuth("rpc/send_friend_request",{method:"POST",body:JSON.stringify({p_to_handle:h})});
+    const res=(typeof r==="string")?r:(r&&r[0])||"sent";
+    msg.innerHTML=res==="accepted"?`<span class="win">相手からも申請が来ていたため、その場でフレンドになりました。</span>`
+      :res==="already"?`<span class="muted">すでにフレンドです。</span>`
+      :`<span class="win">申請を送りました。相手の承認をお待ちください。</span>`;
+    $("#frTo").value="";
+    await loadFriendReq(); renderFriendReq(); render();
+  }catch(e){ msg.innerHTML=`<span class="lose">${esc(String(e.message||e)).slice(0,200)}</span>`; }
+};
 $("#addFr").onclick=()=>{
   let g; try{g=readLink($("#oppo").value);}catch(e){g=null;}
   if(!g) return toast("共有リンクを正しく貼り付けてください");
   const key=(g.pro.handle||g.pro.name||"").toLowerCase();
   if(!key) return toast("相手のプロフィール名が空です");
   const known=friends.some(f=>((f.pro.handle||f.pro.name||"").toLowerCase())===key);
-  saveFriend(g.pro,g.rec);
+  if(!saveFriend(g.pro,g.rec)) return;
   toast(known?"フレンド情報を更新しました":"フレンドに登録しました");
   $("#oppo").value="";render();renderHomeFriends();};
 $("#cmpOnly").onclick=()=>{let g;try{g=readLink($("#oppo").value);}catch(e){g=null;}
@@ -1442,13 +1607,17 @@ function renderFriends(){
     ? `<p class="muted">まだフレンドがいません。上の欄に共有リンクを貼って登録してください。</p>`
     : `<div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th><th></th></tr></thead><tbody>`+
       list.map((x,n)=>`<tr class="${x.i===-1?"me":""}"><td>${n+1}</td>`+
-        `<td>${nameHTML(x.pro.name||x.pro.handle||"名無し", x.i===-1&&me?me.role:x.pro.role)}`+
-        `${x.i===-1?" <span class='tiny'>(自分)</span>":""}`+
+        `<td>${x.i>=0?`<a href="#" data-fp="${x.i}" style="text-decoration:none">`:""}`+
+        `${nameHTML(x.pro.name||x.pro.handle||"名無し", x.i===-1&&me?me.role:x.pro.role)}`+
+        `${x.i>=0?"</a>":""}${x.i===-1?" <span class='tiny'>(自分)</span>":""}`+
         `${x.pro.handle?`<br><span class="tiny">@${esc(x.pro.handle)}</span>`:""}</td>`+
         `<td>${x.c.complete?f3(x.c.total):"—"}</td>`+
         `<td style="color:${x.c.complete?rankOf(x.c.total).c:"var(--dim)"}">${x.c.complete?rankOf(x.c.total).n:"未完成"}</td>`+
         `<td>${x.i>=0?`<button class="btn sm" data-cmp="${x.i}">比較</button> <button class="btn sm" data-del="${x.i}">削除</button>`:""}</td></tr>`).join("")+
       `</tbody></table></div>`;
+  $$("[data-fp]").forEach(a=>a.onclick=e=>{ e.preventDefault();
+    const f=friends[+a.dataset.fp];
+    showPlayer(Object.assign({},f.pro,{updated_at:f.at?new Date(f.at).toISOString():null}),f.rec);});
   $$("[data-cmp]").forEach(b=>b.onclick=()=>renderCompare(friends[+b.dataset.cmp]));
   $$("[data-del]").forEach(b=>b.onclick=()=>{friends.splice(+b.dataset.del,1);render();toast("削除しました");});
 }
@@ -1485,6 +1654,79 @@ function renderCompare(op,sel){
     <div class="scroll"><table><thead><tr><th>種目</th><th>自分の記録</th><th>差</th><th>相手の記録</th></tr></thead>
     <tbody>${rows}</tbody></table></div></div>`;
   out.scrollIntoView({behavior:"smooth"});
+}
+
+
+/* =========================================================
+   8b. フレンド申請（相互承認）
+   ========================================================= */
+let FR={in:[],out:[],list:[]};
+async function loadFriendReq(){
+  if(!sess||!sbOn()){ FR={in:[],out:[],list:[]}; return; }
+  try{
+    const rows=await sbAuth("friend_requests?select=*");
+    FR.in =rows.filter(r=>r.to_id===sess.user.id&&r.status==="pending");
+    FR.out=rows.filter(r=>r.from_id===sess.user.id&&r.status==="pending");
+    FR.list=await sbAuth("rpc/my_friends",{method:"POST",body:"{}"})||[];
+    /* 承認済みのフレンドを手元の一覧にも取り込む */
+    for(const f of FR.list)
+      saveFriend({name:f.name,handle:f.handle,img:"",role:f.role,rating:f.rating,user_id:f.user_id},f.records||{});
+  }catch(e){ /* 未設定・未実行なら黙って諦める */ }
+}
+function badgeCount(){ return FR.in.length; }
+function renderFriendReq(){
+  const box=$("#frReqBody"); if(!box) return;
+  if(!sbOn()||!sess){
+    box.innerHTML=`<p class="muted">フレンド申請にはログインが必要です（設定タブ）。`+
+      `<br><span class="tiny">ログインしなくても、共有リンクからの追加は使えます。</span></p>`;
+    $("#frReqCard").hidden=false; return;
+  }
+  let h="";
+  if(FR.in.length){
+    h+=`<h3 style="margin-top:0">届いている申請（${FR.in.length}）</h3>`+
+      FR.in.map(r=>`<div class="goal">
+        <span class="n">${nameHTML(r.from_name||r.from_handle||"",null)}
+          <span class="tiny">@${esc(r.from_handle||"")}</span></span>
+        <span class="g"><button class="btn sm pri" data-fok="${esc(r.from_id)}">承認</button>
+          <button class="btn sm" data-fng="${esc(r.from_id)}">拒否</button></span>
+        <span class="d">${jstFull(r.created_at)} に申請</span></div>`).join("");
+  }else h+=`<p class="muted">届いている申請はありません。</p>`;
+  if(FR.out.length)
+    h+=`<h3>送った申請（${FR.out.length}）</h3>`+FR.out.map(r=>
+      `<div class="goal"><span class="n">@${esc(r.to_handle||"")}</span>`+
+      `<span class="g tiny">承認待ち</span>`+
+      `<span class="d">${jstFull(r.created_at)} に送信</span></div>`).join("");
+  if(FR.list.length)
+    h+=`<h3>相互フレンド（${FR.list.length}）</h3><div class="scroll"><table><tbody>`+
+      FR.list.map(f=>`<tr><td>${nameHTML(f.name||f.handle,f.role,f.rating==null?null:+f.rating)}`+
+        `<br><span class="tiny">@${esc(f.handle)}</span></td>`+
+        `<td>${f.rating==null?"—":f3(+f.rating)}</td>`+
+        `<td><button class="btn sm" data-fdel="${esc(f.user_id)}">解除</button></td></tr>`).join("")+
+      `</tbody></table></div>`;
+  h+=`<div class="tools"><button class="btn sm" id="frReload">最新の状態にする</button></div>`;
+  box.innerHTML=h;
+  $("#frReload").onclick=async()=>{ await loadFriendReq(); renderFriendReq(); render(); toast("更新しました"); };
+  $$("[data-fok]").forEach(b=>b.onclick=()=>respondFr(b.dataset.fok,true));
+  $$("[data-fng]").forEach(b=>b.onclick=()=>respondFr(b.dataset.fng,false));
+  $$("[data-fdel]").forEach(b=>b.onclick=async()=>{
+    if(!confirm("このフレンドを解除しますか？（相手側からも消えます）")) return;
+    try{ await sbAuth("rpc/remove_friend",{method:"POST",body:JSON.stringify({p_other:b.dataset.fdel})});
+      await loadFriendReq(); renderFriendReq(); toast("解除しました"); }
+    catch(e){ toast("解除に失敗しました"); }});
+  updateMenuBadge();
+}
+async function respondFr(from,accept){
+  try{
+    await sbAuth("rpc/respond_friend_request",{method:"POST",
+      body:JSON.stringify({p_from:from,p_accept:accept})});
+    await loadFriendReq(); renderFriendReq(); render();
+    toast(accept?"フレンドになりました":"申請を断りました");
+  }catch(e){ toast("処理に失敗しました："+String(e.message||e).slice(0,60)); }
+}
+function updateMenuBadge(){
+  const n=badgeCount(), el=$("#menuBadge");
+  if(!el) return;
+  el.hidden=!n; el.textContent=n;
 }
 
 /* =========================================================
@@ -1654,6 +1896,66 @@ $("#dlCard").onclick=()=>{
     a.download=`sosu-rating-${(pro.handle||pro.name||"card")}.png`;a.click();
     toast("カードを保存しました");},"image/png");};
 
+
+/* =========================================================
+   9b. 証明リンク（1本ごとに「どの記録を証明するか」を持たせる）
+   ========================================================= */
+const isXUrl=u=>/^https?:\/\/(www\.)?(x\.com|twitter\.com)\//i.test(String(u).trim());
+/** 旧形式（空白区切りのURL列）を新形式に変換する */
+function normProofs(v,fallbackUrl){
+  if(Array.isArray(v)&&v.length) return v.map(x=>({url:String(x.url||""),events:Array.isArray(x.events)?x.events:[]}));
+  const arr=String(fallbackUrl||"").split(/[\s,]+/).filter(isXUrl);
+  return arr.map(u=>({url:u,events:[]}));
+}
+/** 証明リンクの編集欄を描く。events は対象種目 */
+function renderProofs(boxId,events,list){
+  const box=$("#"+boxId); if(!box) return;
+  if(!list.length) list.push({url:"",events:[]});
+  box.innerHTML=list.map((pf,i)=>`<div class="pfrow">
+    <div class="pfhead">
+      <span class="tiny">リンク ${i+1}</span>
+      <button class="btn sm" data-pfdel="${i}" style="margin-left:auto">削除</button>
+    </div>
+    <input type="text" class="txt" data-pfurl="${i}" placeholder="https://x.com/..." value="${esc(pf.url)}" style="max-width:none">
+    <div class="tiny" style="margin:8px 0 4px">このリンクで証明できる記録にチェック</div>
+    <div class="pfchk">${events.map(n=>
+      `<label class="pk ${pf.events.includes(n)?"on":""}" style="padding:5px 9px">
+        <input type="checkbox" data-pfev="${i}" data-n="${esc(n)}" ${pf.events.includes(n)?"checked":""}>
+        <span>${esc(n)}</span></label>`).join("")}</div>
+  </div>`).join("")+
+  `<div class="tools"><button class="btn sm" data-pfadd="1">＋ リンクを追加</button></div>`;
+  box.querySelectorAll("[data-pfurl]").forEach(el=>el.oninput=()=>{ list[+el.dataset.pfurl].url=el.value.trim(); });
+  box.querySelectorAll("[data-pfev]").forEach(el=>el.onchange=()=>{
+    const pf=list[+el.dataset.pfev], n=el.dataset.n;
+    if(el.checked){ if(!pf.events.includes(n)) pf.events.push(n); }
+    else pf.events=pf.events.filter(x=>x!==n);
+    el.closest(".pk").classList.toggle("on",el.checked);
+  });
+  box.querySelectorAll("[data-pfdel]").forEach(b=>b.onclick=()=>{
+    list.splice(+b.dataset.pfdel,1); renderProofs(boxId,events,list);});
+  box.querySelector("[data-pfadd]").onclick=()=>{ list.push({url:"",events:[]}); renderProofs(boxId,events,list);};
+}
+/** 入力内容を検証する。needs は証明が必要な種目 */
+function checkProofs(list,needs){
+  const used=list.filter(p=>p.url.trim());
+  if(!used.length) return {ok:false,msg:"証明リンクを1本以上貼ってください。"};
+  const badUrl=used.filter(p=>!isXUrl(p.url));
+  if(badUrl.length) return {ok:false,msg:"X（x.com / twitter.com）以外のリンクが混ざっています。"};
+  const covered=new Set(); used.forEach(p=>p.events.forEach(n=>covered.add(n)));
+  const miss=needs.filter(n=>!covered.has(n));
+  if(miss.length) return {ok:false,msg:"次の記録を証明するリンクにチェックが入っていません：\n\n"+miss.join("\n")};
+  const noChk=used.filter(p=>!p.events.length);
+  if(noChk.length) return {ok:false,msg:"どの記録も選ばれていないリンクがあります。チェックを入れるか、リンクを削除してください。"};
+  return {ok:true,list:used};
+}
+function proofsHTML(list,fallback){
+  const arr=normProofs(list,fallback).filter(p=>p.url);
+  if(!arr.length) return "—";
+  return arr.map((p,i)=>`<a href="${esc(p.url)}" target="_blank" rel="noopener" `+
+    `title="${esc(p.events.join("、")||"対象未指定")}">証明${arr.length>1?i+1:""}</a>`+
+    (p.events.length?`<span class="tiny">(${esc(p.events.join("、"))})</span>`:"")).join(" ");
+}
+
 /* =========================================================
    10. Supabase（全体ランキング）
    ========================================================= */
@@ -1822,7 +2124,7 @@ async function loadRanking(force){
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
     const byEv=rkSortKey.startsWith("ev:");
-    const cols="handle,name,role,rating,l_value,s_value,total_score,updated_at"+(byEv?",records":"");
+    const cols="handle,name,role,rating,l_value,s_value,total_score,x_url,proofs,updated_at"+(byEv?",records":"");
     let rows;
     const ck=cols;
     if(!force && rkCache.rows && rkCache.key===ck && Date.now()-rkCache.at<60000){ rows=rkCache.rows; }
@@ -1847,13 +2149,13 @@ async function loadRanking(force){
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
       <p class="tiny">名前を押すとその人のプロフィールが開きます。「＋友達」でフレンドに追加できます。</p>
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th>
-      <th>${esc(SORT_OPTS().find(o=>o[0]===rkSortKey)[1])}</th>
+      ${rkSortKey==="rating"?"":`<th>${esc(SORT_OPTS().find(o=>o[0]===rkSortKey)[1])}</th>`}
       <th>RATING</th><th>ランク</th><th>L値</th><th>S値</th><th></th></tr></thead><tbody>`+
       rows.map((r,i)=>{const v=val(r);
         return `<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
         `<td><a href="#" data-rp="${i}" style="text-decoration:none">${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating)}</a>`+
         `<br><span class="tiny">@${esc(r.handle)}</span></td>`+
-        `<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`+
+        (rkSortKey==="rating"?"":`<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`)+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
@@ -1874,7 +2176,7 @@ async function loadRanking(force){
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
       const rc=await fetchRec(r.handle); if(!rc) return;
-      showPlayer({name:r.name,handle:r.handle,role:r.role,x_url:r.x_url,rating:r.rating,updated_at:r.updated_at,bio:r.bio},rc);});
+      showPlayer({name:r.name,handle:r.handle,role:r.role,x_url:r.x_url,proofs:r.proofs,rating:r.rating,updated_at:r.updated_at},rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
       b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
@@ -1947,6 +2249,7 @@ async function loadMe(){
       if(me.handle) pro.handle=me.handle;
       if(me.name) pro.name=me.name;
       if(me.x_url) pro.x_url=me.x_url;
+      if(Array.isArray(me.proofs)&&me.proofs.length) pro.proofs=me.proofs;
       pro.pub=!!me.is_public;
       const cloud=me.records||{};
       const mine=ORDER.some(n=>rec[n]>0);
@@ -1973,7 +2276,9 @@ async function pushMe(force){
     p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||"",
     p_rating:c.complete?Number(c.total.toFixed(3)):null,
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
-    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub, p_x:pro.x_url||null });
+    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub,
+    p_x:(Array.isArray(pro.proofs)&&pro.proofs.find(x=>x.url))?pro.proofs.find(x=>x.url).url:(pro.x_url||null),
+    p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]) });
   if(!force && body===lastPush) return;          /* 内容が同じなら通信しない */
   await sbAuth("rpc/save_profile",{method:"POST",body});
   lastPush=body;
@@ -2101,8 +2406,7 @@ function cupDir(evs){
   if(lows===evs.length) return "low";
   return "mixed";
 }
-const fmtDT=s=>{const d=new Date(s);return isNaN(d)?"—":
-  `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
+const fmtDT=jstDT;
 
 let cupCache={at:0,rows:null};
 async function loadCups(force){
@@ -2147,7 +2451,7 @@ function renderMyCups(){
 function editCup(id){
   const c=CUPS.find(x=>x.id===id); if(!c) return;
   if(cupPhase(c)==="end") return toast("終了した大会は変更できません");
-  const iso=t=>{const d=new Date(t);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);};
+  const iso=toJstInput;
   const mask=document.createElement("div");mask.className="mask";
   mask.innerHTML=`<div class="modal"><h2>大会の内容を変更</h2>
     <p class="muted" style="margin-top:-8px">種目と勝負の方式は、記録の公平性のため変更できません。</p>
@@ -2171,11 +2475,11 @@ function editCup(id){
     const a=q("#edStart").value,b=q("#edEnd").value;
     if(!q("#edTitle").value.trim()) return toast("大会名を入力してください");
     if(!a||!b) return toast("日時を入れてください");
-    if(Date.parse(b)<=Date.parse(a)) return toast("終了は開始より後にしてください");
+    if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
     try{
       await sbAuth("rpc/update_tournament",{method:"POST",body:JSON.stringify({
         p_id:c.id,p_title:q("#edTitle").value.trim(),p_note:q("#edNote").value.trim(),
-        p_starts:new Date(a).toISOString(),p_ends:new Date(b).toISOString()})});
+        p_starts:fromJstInput(a).toISOString(),p_ends:fromJstInput(b).toISOString()})});
       close(); toast("変更しました"); cupCache.rows=null; await loadCups(true);
       if(cupSel&&cupSel.id===c.id) openCup(c.id);
     }catch(e){ q("#edMsg").innerHTML=`<span class="lose">失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
@@ -2263,13 +2567,13 @@ $("#cCreate").onclick=async()=>{
   if(cupDir(evs)==="mixed") return toast("スコア系とタイム系は混ぜられません");
   const a=$("#cStart").value, b=$("#cEnd").value;
   if(!a||!b) return toast("開始と終了の日時を入れてください");
-  if(Date.parse(b)<=Date.parse(a)) return toast("終了は開始より後にしてください");
+  if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
   try{
     const w={}; evs.forEach(n=>{const el=$(`[data-cw="${CSS.escape(n)}"]`);
       w[n]=(cupMode==="score"&&el)?Math.max(num(el.value)||1,0.01):1;});
     await sbAuth("rpc/create_tournament",{method:"POST",body:JSON.stringify({
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
-      p_starts:new Date(a).toISOString(), p_ends:new Date(b).toISOString(),
+      p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
       p_note:$("#cNote").value.trim()})});
     m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
     $("#cTitle").value="";$("#cNote").value="";
@@ -2299,25 +2603,30 @@ async function openCup(id){
     <p class="muted" style="margin-top:-8px">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"（不明）")}</b>
       ${c.owner_handle?`<span class="tiny">@${esc(c.owner_handle)}</span>`:""}　／　種目 ${esc(evs.join("、"))}
       （${c.mode==="score"?"スコアモード：比重付き合計":dir==="low"?"合計タイムが短いほど上位":"合計スコアが高いほど上位"}）</p>
-    ${c.mode==="score"?`<p class="tiny">比重 ${evs.map(n=>`${esc(n)}×${(c.weights&&c.weights[n])||1}`).join("　")}</p>`:""}
+    ${c.mode==="score"?`<h3>比重リスト（倍率の高い順）</h3>
+      <div class="scroll"><table><thead><tr><th>順</th><th>種目</th><th>比重</th><th>影響</th></tr></thead><tbody>`+
+      evs.map(n=>({n,w:+(c.weights&&c.weights[n])||1})).sort((a,b)=>b.w-a.w)
+        .map((x,i)=>`<tr class="${i===0?"used":""}"><td>${i+1}</td><td>${esc(x.n)}</td>`+
+          `<td><b style="color:var(--warn)">×${x.w}</b></td>`+
+          `<td class="tiny">${i===0?"最も勝敗を左右します":x.w>=1?"標準以上":"控えめ"}</td></tr>`).join("")+
+      `</tbody></table></div>`:""}
     ${c.note?`<p class="tiny">${esc(c.note)}</p>`:""}
     <div style="margin:10px 0"><span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
       <span class="tiny">　${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</span></div>
-    ${ph==="live"?(sess?`<div id="entForm"></div>`
+    ${ph==="live"?(sess?`<div class="tools"><button class="btn pri" id="openEnt">記録を提出する</button></div>
+      <div id="entForm"></div>`
       :`<div class="hintbox">記録を提出するにはログインが必要です（設定タブから）。順位表の閲覧は誰でもできます。</div>`):""}
     ${ph==="pre"?`<div class="hintbox">まだ開始していません。開始時刻になると記録を提出できます。</div>`:""}
     <h3>順位表（${ent.length}人）</h3>
     ${ent.length?`<div class="scroll"><table><thead><tr><th>順位</th><th>プレイヤー</th>`+
-      evs.map(n=>`<th>${esc(n)}</th>`).join("")+`<th>合計</th><th>証明</th>${owner?"<th></th>":""}</tr></thead><tbody>`+
-      ent.map(e=>`<tr class="${sess&&e.user_id===sess.user.id?"me":""}">`+
+      `<th>合計${c.mode==="score"?"（比重後）":""}</th><th>証明</th><th></th></tr></thead><tbody>`+
+      ent.map((e,ix)=>`<tr class="${sess&&e.user_id===sess.user.id?"me":""}">`+
         `<td>${e._rank}${e._rank===1?" 🏆":""}</td>`+
         `<td>${nameHTML(e.name||e.handle||"",e.role)}</td>`+
-        evs.map(n=>`<td>${(e.scores&&e.scores[n]>0)?nice(e.scores[n]):"—"}</td>`).join("")+
-        `<td><b>${nice(e.total)}</b></td>`+
-        `<td>${e.proof_url?`<a href="${esc(e.proof_url)}" target="_blank" rel="noopener">見る</a>`:"—"}</td>`+
-        (owner?`<td><button class="btn sm" data-ee="${esc(e.id)}">編集</button> `+
-               `<button class="btn sm" data-ed="${esc(e.id)}">削除</button></td>`:"")+
-        `</tr>`).join("")+`</tbody></table></div>`
+        `<td><b>${nice(e.total)}</b>${c.mode==="score"?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
+        `<td>${proofsHTML(e.proofs,e.proof_url)}</td>`+
+        `<td><button class="btn sm" data-dt="${ix}">詳細データ</button></td></tr>`).join("")+
+      `</tbody></table></div><div id="entDetail"></div>`
       :`<p class="muted">まだ記録がありません。</p>`}
     <div class="tools">
       ${owner&&ph!=="end"?`<button class="btn pri" id="cupEdit">内容を変更</button>`:""}
@@ -2326,7 +2635,11 @@ async function openCup(id){
     </div>
   </div>`;
   tickCups();
-  if(ph==="live"&&sess) entryForm(c,evs,dir,mine);
+  if(ph==="live"&&sess){
+    $("#openEnt").onclick=()=>{ entryForm(c,evs,dir,mine);
+      $("#entForm").scrollIntoView({behavior:"smooth",block:"start"}); };
+    if(mine) entryForm(c,evs,dir,mine);
+  }
   if($("#cupEdit")) $("#cupEdit").onclick=()=>editCup(c.id);
   if($("#cupEnd")) $("#cupEnd").onclick=async()=>{
     if(!confirm("この大会を今すぐ終了します。以降は記録を提出できなくなります。よろしいですか？")) return;
@@ -2340,19 +2653,53 @@ async function openCup(id){
         box.innerHTML=""; toast("削除しました"); cupCache.rows=null; loadCups(true); }
       catch(e){ toast("削除に失敗しました"); }};
   }
+  $$("[data-dt]").forEach(b=>b.onclick=()=>showEntryDetail(c,evs,ent[+b.dataset.dt],owner,()=>openCup(id)));
+}
+/** 比重をかける前の素点合計 */
+function rawSum(e,evs){ return evs.reduce((a,n)=>a+((e.scores&&e.scores[n])||0),0); }
+/** 証明リンク（複数対応：改行や空白区切りも受ける） */
+function proofLinks(u){
+  if(!u) return "—";
+  const arr=String(u).split(/[\s,]+/).filter(x=>/^https?:\/\//.test(x));
+  if(!arr.length) return "—";
+  return arr.map((x,i)=>`<a href="${esc(x)}" target="_blank" rel="noopener">${arr.length>1?`証明${i+1}`:"見る"}</a>`).join(" ");
+}
+/** 詳細データ（比重の前後を並べる） */
+function showEntryDetail(c,evs,e,owner,reload){
+  const W=(c.mode==="score"&&c.weights)?c.weights:null;
+  const box=$("#entDetail"); if(!box) return;
+  box.innerHTML=`<div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">${esc(e.name||e.handle||"")} の詳細</h3>
+    <div class="scroll"><table><thead><tr><th>種目</th>`+
+      (W?`<th>比重</th><th>比重後</th><th>元の記録</th>`:`<th>記録</th>`)+
+      `</tr></thead><tbody>`+
+      evs.map(n=>{const v=(e.scores&&e.scores[n])||0, w=W?(+W[n]||1):1;
+        return `<tr><td>${esc(n)}${LOW.has(n)?' <span class="tiny">(秒)</span>':""}</td>`+
+          (W?`<td class="tiny">×${w}</td><td><b>${nice(v*w)}</b></td><td class="tiny">${v?nice(v):"—"}</td>`
+             :`<td><b>${v?nice(v):"—"}</b></td>`)+`</tr>`;}).join("")+
+      `<tr style="border-top:2px solid var(--line)"><td><b>合計</b></td>`+
+      (W?`<td></td><td><b style="color:var(--acc2)">${nice(e.total)}</b></td>`+
+          `<td class="tiny">${nice(rawSum(e,evs))}</td>`
+         :`<td><b style="color:var(--acc2)">${nice(e.total)}</b></td>`)+`</tr>`+
+      `</tbody></table></div>
+    <p class="tiny">証明：${proofsHTML(e.proofs,e.proof_url)}　／　提出 ${jstFull(e.updated_at)} (JST)</p>
+    ${owner?`<div class="tools"><button class="btn sm" id="edEnt">記録を編集</button>
+      <button class="btn sm" id="dlEnt">記録を削除</button></div>`:""}
+    <div class="tools"><button class="btn sm" id="clEnt">閉じる</button></div></div>`;
+  box.scrollIntoView({behavior:"smooth"});
+  $("#clEnt").onclick=()=>{box.innerHTML="";};
   if(owner){
-    $$("[data-ed]").forEach(b=>b.onclick=async()=>{
+    $("#dlEnt").onclick=async()=>{
       if(!confirm("この記録を削除します。よろしいですか？")) return;
-      try{ await sbAuth("rpc/owner_delete_entry",{method:"POST",body:JSON.stringify({p_id:b.dataset.ed})});
-        toast("削除しました"); openCup(id); }catch(e){ toast("削除に失敗しました"); }});
-    $$("[data-ee]").forEach(b=>b.onclick=()=>{
-      const e=ent.find(x=>x.id===b.dataset.ee);
+      try{ await sbAuth("rpc/owner_delete_entry",{method:"POST",body:JSON.stringify({p_id:e.id})});
+        toast("削除しました"); reload(); }catch(x){ toast("削除に失敗しました"); }};
+    $("#edEnt").onclick=()=>{
       const vals=evs.map(n=>prompt(`${n} の記録`,e.scores&&e.scores[n]!=null?e.scores[n]:""));
       if(vals.some(v=>v===null)) return;
       const sc={}; evs.forEach((n,i)=>sc[n]=num(vals[i]));
-      const tot=evs.reduce((a,n)=>a+(sc[n]||0),0);
+      const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
       sbAuth("rpc/owner_edit_entry",{method:"POST",body:JSON.stringify({p_id:e.id,p_scores:sc,p_total:tot})})
-        .then(()=>{toast("修正しました");openCup(id);}).catch(()=>toast("修正に失敗しました"));});
+        .then(()=>{toast("修正しました");reload();}).catch(()=>toast("修正に失敗しました"));};
   }
 }
 function entryForm(c,evs,dir,mine){
@@ -2364,18 +2711,38 @@ function entryForm(c,evs,dir,mine){
       `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}</label>
        <input type="text" inputmode="decimal" data-en="${esc(n)}" style="max-width:none"
         value="${mine&&mine.scores&&mine.scores[n]!=null?mine.scores[n]:""}"></div>`).join("")}</div>
-    <label class="fl">記録のXリンク（必須）</label>
-    <input type="text" class="txt" id="enProof" placeholder="https://x.com/..." style="max-width:none"
-      value="${mine?esc(mine.proof_url||""):""}">
+    <label class="fl">記録の証明リンク（必須・複数可）</label>
+    <div id="enProofs"></div>
     <div class="tools"><button class="btn pri" id="enSend">${mine?"記録を更新する":"記録を提出する"}</button></div>
     <div id="enMsg" class="tiny"></div>`;
+  const pfList=normProofs(mine&&mine.proofs,mine&&mine.proof_url);
+  renderProofs("enProofs",evs,pfList);
   $("#enSend").onclick=async()=>{
-    const sc={}; let bad=false;
-    evs.forEach(n=>{const v=num($(`[data-en="${CSS.escape(n)}"]`).value); if(!(v>0)) bad=true; sc[n]=v;});
-    if(bad) return toast("すべての種目の記録を入力してください");
-    const url=$("#enProof").value.trim();
-    if(!/^https?:\/\/(www\.)?(x\.com|twitter\.com)\//i.test(url))
-      return toast("X（twitter.com / x.com）の投稿リンクを貼ってください");
+    const sc={}; const blanks=[];
+    evs.forEach(n=>{const el=$(`[data-en="${CSS.escape(n)}"]`);
+      const raw=(el.value||"").trim(); const v=num(raw);
+      if(raw==="") blanks.push(n); sc[n]=v;});
+    /* 未入力があれば、まず「記録が無いので0点か」を確認する */
+    if(blanks.length){
+      const ok=confirm(`次の種目が未入力です。\n\n${blanks.join("\n")}\n\n`+
+        `記録が無いため 0点 として提出しますか？\n`+
+        `「キャンセル」を押すと提出せずに戻ります。`);
+      if(!ok) return;
+      blanks.forEach(n=>{const el=$(`[data-en="${CSS.escape(n)}"]`); el.value="0"; sc[n]=0;});
+    }
+    /* 0点でないのに数値として読めない欄が残っていないか */
+    const broken=evs.filter(n=>{const el=$(`[data-en="${CSS.escape(n)}"]`);
+      const raw=(el.value||"").trim();
+      return raw!==""&&!(num(raw)>0)&&num(raw)!==0;});
+    if(broken.length) return toast("数値として読めない欄があります："+broken.join("、"));
+    const neg=evs.filter(n=>sc[n]<0);
+    if(neg.length) return toast("マイナスの記録は提出できません："+neg.join("、"));
+    const over=evs.filter(n=>!LOW.has(n)&&DECA.concat(["素数判定"]).includes(n)&&sc[n]>MAXSCORE);
+    if(over.length) return toast(`理論値 ${jp(MAXSCORE)} 点を超えています：`+over.join("、"));
+    /* 0点でない種目は必ず証明が要る */
+    const needs=evs.filter(n=>sc[n]>0);
+    const pv=checkProofs(pfList,needs);
+    if(!pv.ok){ alert(pv.msg); return; }
     /* 自己ベスト更新の確認 */
     const better=evs.filter(n=>{const cur=rec[n]||0; if(!cur) return sc[n]>0;
       return LOW.has(n)?sc[n]<cur:sc[n]>cur;});
@@ -2390,7 +2757,7 @@ function entryForm(c,evs,dir,mine){
     const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
     try{
       await sbAuth("rpc/submit_entry",{method:"POST",body:JSON.stringify({
-        p_tid:c.id,p_scores:sc,p_total:tot,p_proof:url})});
+        p_tid:c.id,p_scores:sc,p_total:tot,p_proof:pv.list.map(x=>x.url).join(" "),p_proofs:pv.list})});
       toast("記録を提出しました"); openCup(c.id);
     }catch(e){ $("#enMsg").innerHTML=`<span class="lose">提出に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
   };
@@ -2405,12 +2772,11 @@ function showPlayer(p,rc){
       <div>${avatarHTML({name:p.name,handle:p.handle,img:""})}</div>
       <div><div class="pname">${nameHTML(p.name||p.handle,p.role,p.rating==null?null:+p.rating)}</div>
         <div class="phandle">${p.handle?"@"+esc(p.handle):""}</div>
-        <div class="tiny">${p.updated_at?"最終更新 "+esc(String(p.updated_at).replace("T"," ").slice(0,16)):"更新日時 不明"}</div>
+        <div class="tiny">${p.updated_at?"最終更新 "+jstFull(p.updated_at)+" (JST)":"更新日時 不明"}</div>
         <div class="ratebox"><div><div class="rtlabel">RATING</div>${ratingHTML(c.complete?c.total:null,.75)}</div>
         ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div></div>
     </div>
-    ${p.x_url?`<p class="tiny" style="margin-top:10px">記録の証明：
-      <a href="${esc(p.x_url)}" target="_blank" rel="noopener">${esc(p.x_url).slice(0,60)}</a></p>`:""}
+    <p class="tiny" style="margin-top:10px">記録の証明：${proofsHTML(p.proofs,p.x_url)}</p>
     <div class="stats">
       <div class="stat"><div class="t">十種競技総合スコア</div><div class="v">${rc["合計スコア"]>0?jp(rc["合計スコア"]):"—"}</div></div>
       <div class="stat"><div class="t">L値</div><div class="v">${c.L===null?"—":f3(c.L)}</div>
@@ -2433,8 +2799,8 @@ function showPlayer(p,rc){
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   q("#mpX").onclick=close;
   q("#mpFr").onclick=()=>{
-    saveFriend({name:p.name,handle:p.handle,img:"",role:p.role,rating:p.rating},rc);
-    render(); renderHomeFriends(); close(); toast("フレンドに登録しました");};
+    if(saveFriend({name:p.name,handle:p.handle,img:"",role:p.role,rating:p.rating},rc)){
+      render(); renderHomeFriends(); close(); toast("フレンドに登録しました"); }};
   q("#mpCup").onclick=async()=>{
     q("#mpCup").disabled=true;
     const h=await fetchCupHistory(p.handle);
@@ -2444,6 +2810,175 @@ function showPlayer(p,rc){
   q("#mpCmp").onclick=()=>{ close(); goTab("friends");
     renderCompare({pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc}); };
 }
+
+
+/* =========================================================
+   10d. LSやりこみ
+   ========================================================= */
+const K_LS="sa-ls-v1", K_LSLOG="sa-lslog-v1";
+let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0});
+let lsLog=ls(K_LSLOG,[]);
+let lsRun=null;      /* {start, count} */
+let lsTimer=null, lsCool=0;
+const saveLs=()=>{try{localStorage.setItem(K_LS,JSON.stringify(lsCfg));
+  localStorage.setItem(K_LSLOG,JSON.stringify(lsLog));}catch(e){}};
+const lsB=()=>{const w=DATA(); return (w&&w.lsBorders)||{rand:{},score:{}};};
+
+/** 現在値の次のボーダー（上位方向）を返す */
+function nextLsBorder(kind,v){
+  const b=lsB()[kind]||{};
+  const arr=Object.keys(b).map(k=>({rank:+k,val:+b[k]})).sort((a,b2)=>a.val-b2.val);
+  for(const x of arr) if(x.val>v) return x;
+  return null;
+}
+function lsRankOf(kind,v){
+  const b=lsB()[kind]||{};
+  const arr=Object.keys(b).map(k=>({rank:+k,val:+b[k]})).sort((a,b2)=>b2.val-a.val);
+  for(const x of arr) if(v>=x.val) return x.rank;
+  return null;
+}
+/** 数字をパラパラ動かして最終値に着地させる */
+function animNum(el,from,to,fmt){
+  if(!el) return;
+  const t0=performance.now(), dur=420;
+  el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+  function step(t){
+    const k=Math.min((t-t0)/dur,1);
+    const e=1-Math.pow(1-k,3);
+    el.textContent=fmt(Math.round(from+(to-from)*e));
+    if(k<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function lsElapsed(){ return lsRun?Date.now()-lsRun.start:0; }
+function lsFmtTime(ms){
+  const t=Math.floor(ms/1000), h=Math.floor(t/3600);
+  const p=n=>String(n).padStart(2,"0");
+  return `${h}:${p(Math.floor(t%3600/60))}:${p(t%60)}`;
+}
+function renderLs(prev){
+  const n=lsRun?lsRun.count:0;
+  const baseS=rec["スコア累積"]||0, baseR=rec["乱数累積"]||0;
+  const s=baseS+n*(lsCfg.perScore||0), r=baseR+n*(lsCfg.perRand||0);
+  const ps=prev?baseS+prev*(lsCfg.perScore||0):s;
+  const pr=prev?baseR+prev*(lsCfg.perRand||0):r;
+  $("#lsCount").textContent=jp(n);
+  animNum($("#lsScore"),ps,s,jp);
+  animNum($("#lsRand"),pr,r,jp);
+  const sv=s>0?Math.max(logb(s,S_BASE)-S_SUB,0):null;
+  const lv=r>0?Math.max(logb(r,L_BASE)-L_SUB,0):null;
+  $("#lsSv").textContent=sv===null?"—":f3(sv);
+  $("#lsLv").textContent=lv===null?"—":f3(lv);
+  /* 次の目標まで */
+  const info=(kind,cur,goal,per,elS,elN)=>{
+    let tgt=goal>0?{rank:null,val:goal}:nextLsBorder(kind,cur);
+    if(!tgt){ elN.textContent="ボーダー1位に到達しています"; return; }
+    const left=Math.max(tgt.val-cur,0);
+    const need=per>0?Math.ceil(left/per):null;
+    elN.innerHTML=`${tgt.rank?tgt.rank+"位ボーダー":"目標"} ${jp(tgt.val)}<br>`+
+      `あと ${jp(left)}${need!==null?`（約 ${jp(need)} 回）`:"（1回あたりの増加量を登録すると回数が出ます）"}`;
+  };
+  info("score",s,lsCfg.goalS,lsCfg.perScore,$("#lsScore"),$("#lsScoreNext"));
+  info("rand", r,lsCfg.goalR,lsCfg.perRand,$("#lsRand"), $("#lsRandNext"));
+  const rkS=lsRankOf("score",s), rkR=lsRankOf("rand",r);
+  $("#lsSvNext").textContent=rkS?`スコア累積 ${rkS}位以内`:"ランキング圏外";
+  $("#lsLvNext").textContent=rkR?`乱数累積 ${rkR}位以内`:"ランキング圏外";
+  $("#lsTime").textContent=lsFmtTime(lsElapsed());
+  $("#lsStart").textContent=lsRun?`開始 ${jstFull(lsRun.start)}`:"未開始";
+  renderLsLog();
+}
+function renderLsLog(){
+  const box=$("#lsLog"); if(!box) return;
+  if(!lsLog.length){ box.innerHTML=`<p class="muted">まだ記録がありません。スタート→終了で残ります。</p>`; return; }
+  box.innerHTML=`<div class="scroll"><table><thead><tr><th>開始時刻(JST)</th><th>時間</th><th>回数</th>`+
+    `<th>1時間あたり</th><th>スコア累積</th><th>乱数累積</th><th></th></tr></thead><tbody>`+
+    lsLog.slice().reverse().map((L,i)=>{
+      const hr=L.ms>0?(L.count/(L.ms/3600000)):0;
+      return `<tr><td>${jstFull(L.start)}</td><td>${lsFmtTime(L.ms)}</td><td><b>${jp(L.count)}</b></td>`+
+        `<td class="tiny">${hr.toFixed(1)} 回</td>`+
+        `<td>${L.score?jp(L.score):"—"}</td><td>${L.rand?jp(L.rand):"—"}</td>`+
+        `<td><button class="btn sm" data-lsdel="${lsLog.length-1-i}">削除</button></td></tr>`;}).join("")+
+    `</tbody></table></div>`;
+  $$("[data-lsdel]").forEach(b=>b.onclick=()=>{
+    if(!confirm("この記録を削除しますか？")) return;
+    lsLog.splice(+b.dataset.lsdel,1); saveLs(); renderLsLog();});
+}
+function lsHit(){
+  if(!lsRun) return;
+  const now=Date.now();
+  if(now-lsCool<1000) return;      /* 二重クリック防止：1秒 */
+  lsCool=now;
+  const prev=lsRun.count;
+  lsRun.count++;
+  $("#lsHit").disabled=true;
+  setTimeout(()=>{ if(lsRun) $("#lsHit").disabled=false; },1000);
+  renderLs(prev);
+}
+function lsFill(){
+  $("#lsPerScore").value=lsCfg.perScore?commaFmt(String(lsCfg.perScore)):"";
+  $("#lsPerRand").value =lsCfg.perRand ?commaFmt(String(lsCfg.perRand )):"";
+  $("#lsGoalS").value   =lsCfg.goalS   ?commaFmt(String(lsCfg.goalS   )):"";
+  $("#lsGoalR").value   =lsCfg.goalR   ?commaFmt(String(lsCfg.goalR   )):"";
+  $("#lsKey").value=lsCfg.key||" ";
+}
+document.addEventListener("input",e=>{
+  const t=e.target; if(!t.id||!t.id.startsWith("ls")) return;
+  const map={lsPerScore:"perScore",lsPerRand:"perRand",lsGoalS:"goalS",lsGoalR:"goalR"};
+  if(map[t.id]){ applyComma(t); lsCfg[map[t.id]]=num(t.value); saveLs(); renderLs(); }
+  else if(t.id==="lsKey"){ lsCfg.key=t.value||" "; saveLs(); }
+});
+document.addEventListener("keydown",e=>{
+  if(!lsRun) return;
+  const tag=(e.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea"||tag==="select") return;
+  const k=lsCfg.key||" ";
+  if(e.key===k||(k===" "&&e.code==="Space")){ e.preventDefault(); lsHit(); }
+});
+$("#lsCalc").onclick=()=>{
+  const a=num($("#lsA").value), b=num($("#lsB").value);
+  if(!(b>a)) return toast("10回プレイ後の値のほうが大きくなるように入れてください");
+  const per=Math.round((b-a)/10);
+  lsCfg.perRand=per; saveLs(); lsFill(); renderLs();
+  $("#lsCalcOut").innerHTML=`<span class="win">1回あたり ${jp(per)} と算出し、上の欄に入れました。</span>`;
+};
+$("#lsStartBtn").onclick=()=>{
+  lsRun={start:Date.now(),count:0}; lsCool=0;
+  $("#lsHit").disabled=false;
+  $("#lsStartBtn").hidden=true; $("#lsStopBtn").hidden=false;
+  $("#lsHint").textContent="カウント中。ボタンか設定したキーで数えてください（1秒間隔）。";
+  clearInterval(lsTimer);
+  lsTimer=setInterval(()=>{ $("#lsTime").textContent=lsFmtTime(lsElapsed()); },250);
+  renderLs();
+};
+$("#lsStopBtn").onclick=()=>{
+  if(!lsRun) return;
+  const L={start:lsRun.start,ms:lsElapsed(),count:lsRun.count,score:0,rand:0};
+  clearInterval(lsTimer); lsTimer=null;
+  const doAsk=confirm(`お疲れさまでした。\n\n`+
+    `回数 ${jp(L.count)} 回 ／ 時間 ${lsFmtTime(L.ms)}\n\n`+
+    `いまのスコア累積と乱数累積を入力しますか？（任意）\n`+
+    `「キャンセル」を押すと回数と時間だけ記録します。`);
+  if(doAsk){
+    const sv=prompt("いまのスコア累積（ゲーム内の実際の値）", rec["スコア累積"]||"");
+    const rv=prompt("いまの乱数累積（ゲーム内の実際の値）", rec["乱数累積"]||"");
+    L.score=num(sv); L.rand=num(rv);
+    if(L.score>0){ rec["スコア累積"]=L.score; }
+    if(L.rand>0){ rec["乱数累積"]=L.rand; }
+    if(L.score>0||L.rand>0){ fillInputs(); render(); }
+  }
+  lsLog.push(L); saveLs();
+  lsRun=null; $("#lsHit").disabled=true;
+  $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
+  $("#lsHint").textContent="記録しました。もう一度スタートを押すと新しい計測を始めます。";
+  renderLs(); toast("記録しました");
+};
+$("#lsReset").onclick=()=>{
+  if(lsRun&&lsRun.count&&!confirm("いまの計測を破棄します。よろしいですか？")) return;
+  clearInterval(lsTimer); lsTimer=null; lsRun=null;
+  $("#lsHit").disabled=true; $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
+  renderLs();
+};
+$("#lsHit").onclick=lsHit;
 
 /* =========================================================
    11. 開発者モード（PBKDF2＋パスキー＋ロックアウト）
@@ -2470,49 +3005,21 @@ async function passkeyVerify(){
   return !!a;
 }
 function openDev(){
+  if(!isAdmin()) return toast("開発者モードは管理者のみ利用できます");
   const mask=document.createElement("div");mask.className="mask";
-  const hasPk=!!localStorage.getItem(K_PK);
   mask.innerHTML=`<div class="modal"><h2>開発者モード</h2>
-    <div id="dvGate">
-      ${hasPk?`<div class="tools" style="margin-top:0"><button class="btn pri" id="dvBio">生体認証で解除</button></div><hr>`:""}
-      <label class="fl">開発者コード</label>
-      <input type="password" class="txt" id="dvCode" style="max-width:300px" autocomplete="off">
-      <div class="tools"><button class="btn pri" id="dvGo">解除</button><button class="btn" id="dvX">閉じる</button></div>
-      <p class="tiny" id="dvMsg">照合には数百ミリ秒かかります（PBKDF2 31万回）。5回失敗すると5分間ロックされます。</p>
-    </div>
+    <p class="muted" style="margin-top:-8px">管理者アカウントでログイン中のため、そのまま利用できます。</p>
     <div id="dvBody"></div></div>`;
   document.body.appendChild(mask);
   const close=()=>mask.remove();
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
-  const q=s=>mask.querySelector(s);
-  q("#dvX").onclick=close;
-  const unlock=()=>{setLock({f:0,until:0});q("#dvGate").remove();devEditor(q("#dvBody"),close);};
-  if(hasPk) q("#dvBio").onclick=async()=>{
-    try{ if(await passkeyVerify()) unlock(); else toast("認証できませんでした"); }
-    catch(e){ toast("生体認証に失敗しました"); }};
-  const go=async()=>{
-    const st=lockState();
-    if(Date.now()<st.until) return toast(`ロック中です。あと ${Math.ceil((st.until-Date.now())/1000)} 秒`);
-    const btn=q("#dvGo"); btn.disabled=true; q("#dvMsg").textContent="照合中…";
-    const h=await pbkdf2(q("#dvCode").value,DEV_SALT,DEV_ITER);
-    btn.disabled=false;
-    if(h===DEV_HASH){ unlock(); }
-    else{ const f=st.f+1;
-      setLock({f, until: f>=5?Date.now()+300000:0});
-      q("#dvMsg").textContent=`コードが違います（${f}/5）`;
-      if(f>=5) toast("5回失敗しました。5分間ロックします"); }
-  };
-  q("#dvGo").onclick=go;
-  q("#dvCode").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
-  q("#dvCode").focus();
+  devEditor(mask.querySelector("#dvBody"),close);
 }
 function devEditor(box,close){
   const ranks=[1,5,10,50,100,200], tRanks=[1,5,10,25,50,100,500,1000];
-  const today=new Date().toLocaleDateString("sv-SE");
+  const today=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
   const w=DATA();
   let h=`<p class="muted">表示中の週：<b>${w.date}</b>　保存時の日付：<b>${today}</b></p>
-  <div class="tools" style="margin-top:0">
-    <button class="btn" id="dvPk">${localStorage.getItem(K_PK)?"生体認証を再登録":"この端末に生体認証を登録"}</button></div>
   <h3>Supabase 接続</h3>
   <div class="tools" style="margin-top:0"><button class="btn pri" id="dvSbTest">接続テスト</button></div>
   <div id="sbMsg" class="lockbox" hidden style="margin-top:10px"></div>
@@ -2526,6 +3033,11 @@ function devEditor(box,close){
     <button class="btn" id="dvSbSave">この値で試す</button>
     <button class="btn" id="dvSbClear">一時設定を消す</button></div>
   <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
+  <div class="tabs" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+    <button id="bdGame" class="on">素数ゲームのボーダー</button>
+    <button id="bdLS">乱数累積・スコア累積のボーダー</button>
+  </div>
+  <div id="bdGameBox">
   <h3>個別18種目</h3><div class="scroll devgrid"><table><thead><tr><th>種目</th>`+
   ranks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody>`;
   for(const n of EVENTS) h+=`<tr><td>${n}</td>`+ranks.map(r=>
@@ -2533,7 +3045,18 @@ function devEditor(box,close){
   h+=`</tbody></table></div><h3>十種競技総合（判定除外）</h3><div class="scroll devgrid"><table><thead><tr>`+
     tRanks.map(r=>`<th>${r}位</th>`).join("")+`</tr></thead><tbody><tr>`+
     tRanks.map(r=>`<td><input type="text" inputmode="decimal" data-t="${r}" value="${w.totalBorders[r]}"></td>`).join("")+
-    `</tr></tbody></table></div>
+    `</tr></tbody></table></div></div>
+  <div id="bdLSBox" hidden>
+    <p class="muted">乱数累積・スコア累積のランキングボーダーです。LSやりこみタブで使われます。</p>
+    <h3>乱数累積</h3><div class="scroll devgrid"><table><tbody>`+
+    LS_RANKS.map(r=>`<tr><td class="tiny">${r}位</td><td><input type="text" inputmode="numeric"
+      data-lr="${r}" value="${(w.lsBorders&&w.lsBorders.rand&&w.lsBorders.rand[r])||""}" style="max-width:170px"></td></tr>`).join("")+
+    `</tbody></table></div>
+    <h3>スコア累積</h3><div class="scroll devgrid"><table><tbody>`+
+    LS_RANKS.map(r=>`<tr><td class="tiny">${r}位</td><td><input type="text" inputmode="numeric"
+      data-ls2="${r}" value="${(w.lsBorders&&w.lsBorders.score&&w.lsBorders.score[r])||""}" style="max-width:170px"></td></tr>`).join("")+
+    `</tbody></table></div>
+  </div>
   <h3>保存</h3>
   <div class="tools" style="margin-top:0">
     <button class="btn pri" id="dvAdd">新しい週として追加してダウンロード</button>
@@ -2547,7 +3070,13 @@ function devEditor(box,close){
     for(const n of EVENTS){b[n]={};for(const r of ranks)
       b[n][r]=num(box.querySelector(`[data-b="${CSS.escape(n)}"][data-r="${r}"]`).value);}
     const t={};for(const r of tRanks) t[r]=num(box.querySelector(`[data-t="${r}"]`).value);
-    return {date:today,borders:b,totalBorders:t};};
+    const lr={},lsc={};
+    for(const r of LS_RANKS){
+      const a=box.querySelector(`[data-lr="${r}"]`), c2=box.querySelector(`[data-ls2="${r}"]`);
+      if(a&&num(a.value)>0) lr[r]=num(a.value);
+      if(c2&&num(c2.value)>0) lsc[r]=num(c2.value);
+    }
+    return {date:today,borders:b,totalBorders:t,lsBorders:{rand:lr,score:lsc}};};
   const build=mode=>{
     const wk=collect(), arr=WEEKS.slice();
     if(mode==="add"){ const i=arr.findIndex(x=>x.date===wk.date);
@@ -2557,6 +3086,12 @@ function devEditor(box,close){
     return {current:arr[arr.length-1].date,weeks:arr};};
   const dl=json=>{const blob=new Blob([JSON.stringify(json,null,2)],{type:"application/json"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();};
+  box.querySelector("#bdGame").onclick=()=>{box.querySelector("#bdGameBox").hidden=false;
+    box.querySelector("#bdLSBox").hidden=true;
+    box.querySelector("#bdGame").classList.add("on");box.querySelector("#bdLS").classList.remove("on");};
+  box.querySelector("#bdLS").onclick=()=>{box.querySelector("#bdGameBox").hidden=true;
+    box.querySelector("#bdLSBox").hidden=false;
+    box.querySelector("#bdLS").classList.add("on");box.querySelector("#bdGame").classList.remove("on");};
   box.querySelector("#dvAdd").onclick=()=>{dl(build("add"));toast("新しい週として data.json を書き出しました");};
   box.querySelector("#dvOw").onclick =()=>{dl(build("over"));toast("この週を上書きして書き出しました");};
   box.querySelector("#dvCp").onclick=async()=>{
@@ -2567,12 +3102,7 @@ function devEditor(box,close){
     try{localStorage.setItem(K_DATA,JSON.stringify(j));}catch(e){}
     $("#localBanner").hidden=false;applyData();close();toast("この端末に反映しました");};
   box.querySelector("#dvC2").onclick=close;
-  box.querySelector("#dvPk").onclick=async()=>{
-    if(!window.PublicKeyCredential) return toast("この端末は生体認証に対応していません");
-    if(location.protocol!=="https:"&&location.hostname!=="localhost")
-      return toast("生体認証は https のサイトでのみ使えます");
-    try{ await passkeyRegister(); toast("登録しました。次回から生体認証で解除できます"); }
-    catch(e){ toast("登録できませんでした："+String(e.message||e).slice(0,60)); }};
+
   if(sbCfg){ box.querySelector("#sbUrl").value=sbCfg.url||""; box.querySelector("#sbKey").value=sbCfg.key||""; }
   box.querySelector("#sbLocal").hidden=!sbCfg;
   box.querySelector("#dvSbTest").onclick=sbTest;
@@ -2624,7 +3154,7 @@ function cupHistHTML(h,limit){
       `<td>${ended?`<b>${r.pos}位</b>${+r.pos===1?" 🏆":""}<span class="tiny"> / ${r.players}人</span>`:"—"}</td>`+
       `<td>${nice(+r.total)}</td>`+
       `<td class="tiny">${ended?"終了":"開催中"}</td>`+
-      `<td>${r.proof_url?`<a href="${esc(r.proof_url)}" target="_blank" rel="noopener">見る</a>`:"—"}</td></tr>`;}).join("")+
+      `<td>${proofsHTML(r.proofs,r.proof_url)}</td></tr>`;}).join("")+
     `</tbody></table></div>`+
     (limit&&h.rows.length>limit?`<p class="tiny">ほか ${h.rows.length-limit} 件</p>`:"");
 }
@@ -2693,6 +3223,9 @@ async function renderHome(){
 /** フレンド情報を差し替えるとき、前回との差分を「更新履歴」として残す */
 function saveFriend(pro2,rec2){
   const key=(pro2.handle||pro2.name||"").toLowerCase();
+  const mine=(pro.handle||"").toLowerCase();
+  if(key&&mine&&key===mine){ toast("自分自身はフレンドに登録できません"); return false; }
+  if(sess&&pro2.user_id&&pro2.user_id===sess.user.id){ toast("自分自身はフレンドに登録できません"); return false; }
   const i=friends.findIndex(f=>((f.pro.handle||f.pro.name||"").toLowerCase())===key);
   const now=Date.now();
   let log=(i>=0&&Array.isArray(friends[i].log))?friends[i].log:[];
@@ -2709,6 +3242,7 @@ function saveFriend(pro2,rec2){
   }
   const item={pro:pro2,rec:rec2,at:now,log};
   if(i>=0) friends[i]=item; else friends.push(item);
+  return true;
 }
 function renderHomeFriends(){
   const box=$("#homeFriends"); if(!box) return;
@@ -2717,8 +3251,7 @@ function renderHomeFriends(){
   const feed=[];
   for(const f of friends) for(const e of (f.log||[])) feed.push({f,e});
   feed.sort((a,b)=>b.e.at-a.e.at);
-  const dt=t=>{const d=new Date(t);
-    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
+  const dt=jstDT;
   if(!feed.length){
     box.innerHTML=`<p class="muted">まだ更新はありません。`+
       `<br><span class="tiny">フレンドの共有リンクを貼り直すか、ランキングから「＋友達」を押し直すと、前回との差分がここに並びます。</span></p>`+
@@ -2847,7 +3380,8 @@ function normalize(j){
   }
   fillInputs();
   try{ applyData(); }catch(e){ console.error(e); }
-  if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){} }
+  if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
+    try{ await loadFriendReq(); renderFriendReq(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
   if(wantDev&&isAdmin()) openDev();
   /* どの経路を通っても最後に必ず描き直す */
