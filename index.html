@@ -29,6 +29,9 @@ body{background:
 h1{font-size:1.22rem;margin:0;letter-spacing:.06em;font-weight:700}
 h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:text;
   background-clip:text;color:transparent}
+.ver{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;
+  letter-spacing:.06em;background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;
+  font-variant-numeric:tabular-nums}
 h2{font-size:.95rem;margin:0 0 14px;color:var(--acc);letter-spacing:.06em;font-weight:600}
 h3{font-size:.84rem;margin:20px 0 8px;color:var(--dim);letter-spacing:.04em}
 a{color:var(--acc)}
@@ -213,6 +216,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
 <header>
   <h1>素数あつめ <span class="g">RATING</span></h1>
+  <span class="ver" id="verBadge">—</span>
   <button class="btn sm" id="histBtn" style="margin-left:auto">過去のランキングを見る</button>
 </header>
 <nav class="tabs">
@@ -490,7 +494,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v7 (大会タブあり)";
+const APP_VERSION = "v8";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
