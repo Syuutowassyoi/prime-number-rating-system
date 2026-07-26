@@ -18,15 +18,26 @@
 /* クラス側の display 指定が [hidden] を打ち消してしまうのを防ぐ */
 [hidden]{display:none !important}
 html,body{margin:0;padding:0}
-body{background:radial-gradient(1200px 600px at 50% -200px,#1b2740,#0d1220 60%),#0d1220;color:var(--tx);
+body{background:
+    radial-gradient(900px 500px at 12% -10%,#24407055,transparent 60%),
+    radial-gradient(900px 500px at 88% 0%,#1d5e5a44,transparent 60%),
+    linear-gradient(180deg,#0d1220,#0a0f1a 60%,#0d1220);
+  background-attachment:fixed;color:var(--tx);
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
   font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;min-height:100vh}
 .wrap{max-width:980px;margin:0 auto;padding:20px 16px 100px}
 h1{font-size:1.22rem;margin:0;letter-spacing:.06em;font-weight:700}
+h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:text;
+  background-clip:text;color:transparent}
 h2{font-size:.95rem;margin:0 0 14px;color:var(--acc);letter-spacing:.06em;font-weight:600}
 h3{font-size:.84rem;margin:20px 0 8px;color:var(--dim);letter-spacing:.04em}
 a{color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+.card{background:linear-gradient(180deg,#1a2437ee,#141d2ceE);border:1px solid var(--line);
+  border-radius:18px;padding:20px;margin-bottom:16px;
+  box-shadow:0 1px 0 #ffffff0d inset, 0 18px 40px -28px #000}
+h2{position:relative;padding-left:12px}
+h2::before{content:"";position:absolute;left:0;top:.15em;bottom:.15em;width:3px;border-radius:2px;
+  background:linear-gradient(180deg,var(--acc),var(--acc2))}
 .muted{color:var(--dim);font-size:.8rem}
 .tiny{font-size:.74rem;color:var(--dim2)}
 hr{border:none;border-top:1px solid var(--line);margin:18px 0}
@@ -36,7 +47,9 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wra
   border-radius:11px;padding:4px;margin-bottom:16px;width:100%}
 .tabs button{background:none;border:none;color:var(--dim);font:inherit;font-size:.8rem;
   padding:7px 13px;border-radius:8px;cursor:pointer;flex:1 1 auto;white-space:nowrap}
-.tabs button.on{background:#26364f;color:var(--tx)}
+.tabs button.on{background:linear-gradient(180deg,#31456610,#2b3d5a);color:var(--tx);
+  box-shadow:0 0 0 1px #4da3ff55, 0 6px 16px -10px #4da3ff}
+.tabs button:hover:not(.on){color:var(--tx);background:#1c2739}
 section[hidden]{display:none}
 select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:8px;
   padding:6px 10px;font:inherit;font-size:.82rem}
@@ -61,12 +74,15 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .phandle{color:var(--dim);font-size:.85rem}
 .ratebox{margin-top:10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 
-.badge{display:inline-block;padding:3px 14px;border-radius:999px;font-size:.72rem;font-weight:700;
-  letter-spacing:.14em;border:1px solid;background:#0f182880}
+.badge{display:inline-block;padding:4px 15px;border-radius:999px;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;border:1px solid;background:#0f182880;
+  box-shadow:0 0 22px -8px currentColor}
 
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
 @media(max-width:640px){.stats{grid-template-columns:1fr}}
-.stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat{background:linear-gradient(180deg,#131c2b,#0f1726);border:1px solid var(--line);
+  border-radius:13px;padding:13px 15px;transition:border-color .2s}
+.stat:hover{border-color:#3a4d6d}
 .stat .t{font-size:.72rem;color:var(--dim)}
 .stat .v{font-size:1.5rem;font-weight:700;line-height:1.25;
   font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
@@ -76,12 +92,22 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .brk .row{display:grid;grid-template-columns:1fr auto;gap:3px 12px;align-items:center}
 .brk .lb{font-size:.8rem;color:var(--dim)}
 .brk .nm{font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--dim)}
-.bar{grid-column:1/-1;height:6px;background:#1e2a3d;border-radius:4px;overflow:hidden}
+.bar{grid-column:1/-1;height:7px;background:#18222f;border-radius:5px;overflow:hidden;
+  box-shadow:inset 0 1px 2px #0006}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));
   border-radius:4px;transition:width .4s cubic-bezier(.3,.9,.3,1)}
 
 .lockbox{background:#20263a;border:1px dashed #40506e;border-radius:12px;padding:14px;margin-top:14px}
 .lockbox b{color:var(--warn)}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin-top:10px}
+.pk{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);
+  border-radius:9px;padding:7px 10px;font-size:.82rem;cursor:pointer;user-select:none}
+.pk:hover{border-color:var(--acc)}
+.pk input{width:auto;margin:0;accent-color:var(--acc)}
+.pk .v{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--acc2);font-size:.78rem}
+.pk.on{border-color:var(--acc);background:#1b2a41}
+.hintbox{margin-top:10px;background:#20263a;border:1px solid #40506e;border-radius:10px;
+  padding:10px 12px;font-size:.8rem}
 .goal{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:10px 0;border-bottom:1px solid #1f2c40}
 .goal:last-child{border-bottom:none}
 .goal .n{font-size:.9rem}
@@ -100,9 +126,9 @@ td{padding:6px 8px;border-bottom:1px solid #1e2b40;text-align:right;font-size:.8
   font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 td:first-child,tr.sec td{font-family:inherit}
 td:first-child{text-align:left;white-space:normal}
-tr.sec td{background:#1d2a3e;color:var(--acc);font-size:.79rem;font-weight:600;text-align:left;padding:8px}
-tr.used{background:#16291f}
-tr.me{background:#1b2b44}
+tr.sec td{background:linear-gradient(90deg,#22324a,#1a2536);color:var(--acc);font-size:.79rem;font-weight:600;text-align:left;padding:8px}
+tr.used{background:linear-gradient(90deg,#16291f,#16291f00)}
+tr.me{background:linear-gradient(90deg,#1b2b44,#1b2b4400);box-shadow:inset 3px 0 0 var(--acc)}
 .pct{color:var(--acc2);font-weight:600}
 .band{color:var(--dim);font-size:.75rem}
 .chk{color:var(--acc2);font-weight:700}
@@ -120,10 +146,12 @@ label.fl{display:block;font-size:.76rem;color:var(--dim);margin:10px 0 4px}
 textarea{width:100%;background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:9px;
   padding:9px;font:inherit;font-size:.8rem;min-height:66px;resize:vertical}
 
-button.btn{background:#25344c;color:var(--tx);border:1px solid var(--line);border-radius:9px;
-  padding:9px 17px;font:inherit;font-size:.84rem;cursor:pointer}
+button.btn{background:#22314799;color:var(--tx);border:1px solid var(--line);border-radius:10px;
+  padding:9px 17px;font:inherit;font-size:.84rem;cursor:pointer;transition:.15s}
+button.btn:active{transform:translateY(1px)}
 button.btn:hover{background:#2f4160}
-button.btn.pri{background:linear-gradient(135deg,#2f6fd0,#3f9de0);border-color:#4da3ff}
+button.btn.pri{background:linear-gradient(135deg,#2f6fd0,#3f9de0);border-color:#4da3ff;
+  box-shadow:0 8px 22px -14px #4da3ff}
 button.btn.pri:hover{filter:brightness(1.12)}
 button.btn.sm{padding:4px 11px;font-size:.76rem}
 button.btn:disabled{opacity:.45;cursor:not-allowed}
@@ -159,14 +187,15 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .banner{background:#3a2a12;border:1px solid #6b4d1c;border-radius:10px;padding:9px 13px;
   font-size:.8rem;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .banner.info{background:#14283a;border-color:#2b567c}
-#cardCanvas{width:100%;max-width:680px;height:auto;border-radius:14px;border:1px solid var(--line);display:block}
+#cardCanvas{width:100%;max-width:680px;height:auto;border-radius:14px;border:1px solid var(--line);
+  display:block;box-shadow:0 24px 50px -30px #000}
 </style>
 </head>
 <body>
 <div class="wrap">
 
 <header>
-  <h1>素数あつめ <span style="color:var(--acc)">RATING</span></h1>
+  <h1>素数あつめ <span class="g">RATING</span></h1>
   <button class="btn sm" id="histBtn" style="margin-left:auto">過去のランキングを見る</button>
 </header>
 <nav class="tabs">
@@ -175,6 +204,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <button data-tab="input">入力</button>
   <button data-tab="friends">フレンド</button>
   <button data-tab="rank">ランキング</button>
+  <button data-tab="settings">設定</button>
 </nav>
 
 <div id="localBanner" class="banner" hidden>
@@ -230,6 +260,15 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <input type="text" inputmode="decimal" id="tgtRate" style="max-width:110px">
       <button class="btn pri" id="doPlan">プランを作る</button>
     </div>
+    <details style="margin-top:12px"><summary class="muted">伸ばす種目を指定する（未選択なら全種目から自動で選びます）</summary>
+      <div class="tools" style="margin-top:8px">
+        <button class="btn sm" id="pkAll">全選択</button>
+        <button class="btn sm" id="pkNone">全解除</button>
+        <button class="btn sm" id="pkWeak">レートが低い5種目</button>
+      </div>
+      <div id="pickList" class="picks"></div>
+      <div id="pickHint" class="hintbox" hidden></div>
+    </details>
     <div id="planOut" style="margin-top:12px"></div>
   </div>
 
@@ -267,11 +306,14 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <section id="card" hidden>
   <div class="card">
     <h2>プロフィールカード</h2>
-    <p class="muted" style="margin-top:-8px">RATING・L値・S値を載せた画像を生成します。SNSにそのまま貼れるサイズ（1200×630）です。</p>
+    <p class="muted" style="margin-top:-8px">SNSにそのまま貼れる 1200×630 の画像を生成します。裏面には18種目すべての記録とレート値が入ります。</p>
+    <div class="tabs" style="max-width:280px;margin-bottom:14px">
+      <button id="cbFront" class="on">表面</button><button id="cbBack">裏面</button>
+    </div>
     <canvas id="cardCanvas" width="1200" height="630"></canvas>
     <div class="tools">
-      <button class="btn pri" id="dlCard">画像を保存（PNG）</button>
-      <button class="btn" id="reCard">作り直す</button>
+      <button class="btn pri" id="dlCard">この面を保存</button>
+      <button class="btn" id="dlBoth">表裏まとめて保存</button>
       <select id="cardTheme">
         <option value="deep">ディープブルー</option>
         <option value="mid">ミッドナイト</option>
@@ -350,6 +392,45 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>全体ランキング</h2>
     <div id="rankBody"></div>
+  </div>
+</section>
+
+<section id="settings" hidden>
+  <div class="card">
+    <h2>アカウント</h2>
+    <div id="acctBox"></div>
+  </div>
+  <div class="card">
+    <h2>表示と動作</h2>
+    <div class="sw">
+      <div><div class="t">データの公開</div>
+        <div class="tiny">公開にすると全体ランキングに名前・RATING・記録が載ります。</div></div>
+      <div class="toggle"><button id="pubOff2">非公開</button><button id="pubOn2">公開</button></div>
+    </div>
+    <div class="sw">
+      <div><div class="t">記録の自動送信</div>
+        <div class="tiny">公開中に記録を編集したら自動でランキングへ反映します。</div></div>
+      <div class="toggle"><button id="autoOff">しない</button><button id="autoOn">する</button></div>
+    </div>
+    <div id="pubMsg2" class="lockbox" hidden style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h2>データの持ち出し</h2>
+    <p class="muted" style="margin-top:-8px">ログインしていれば自動で保存されますが、手元に控えを残すこともできます。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn" id="expJson">バックアップを保存</button>
+      <button class="btn" id="impJson">バックアップを読み込む</button>
+      <input type="file" id="impFile" accept="application/json" hidden>
+      <button class="btn" id="wipe">この端末のデータを消す</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>サポーター</h2>
+    <div id="supBox"></div>
+  </div>
+  <div class="card" id="adminCard" hidden>
+    <h2>管理者メニュー</h2>
+    <div id="adminBox"></div>
   </div>
 </section>
 
@@ -492,33 +573,79 @@ function nextTarget(n,rc){
   const after =compute(Object.assign({},rc,{[n]:req})).total;
   return {rank,req,gain:after-before,cur};
 }
-/** 目標RATINGまでの強化プラン。
- *  「1種目を極める」のではなく「伸ばしやすい種目から少しずつ」になるよう、
- *  上昇量 ÷ 必要な伸び幅（費用対効果）が最大の一手を選び続ける。 */
-function stepCost(t){
-  if(!(t.cur>0)) return 1;                       // 未入力はゼロから作る想定
-  return Math.max(Math.abs(t.req-t.cur)/t.cur, 0.002);
+/** レート割合 r をちょうど得るのに必要な記録を逆算する（ボーダー間も含む） */
+function recordForRate(n,r){
+  const isTot=n==="合計スコア";
+  const nodes=isTot?totNodes():indNodes(n), pct=isTot?TOT_PCT:IND_PCT;
+  const last=nodes.length-1;
+  if(r>=pct[last]) return LOW.has(n)?1/nodes[last]:nodes[last];
+  let k=0;
+  for(let i=0;i<last;i++) if(r>=pct[i]&&pct[i+1]>pct[i]) k=i;
+  const dp=pct[k+1]-pct[k];
+  const x=dp<=0?nodes[k+1]:nodes[k]+(r-pct[k])/dp*(nodes[k+1]-nodes[k]);
+  return LOW.has(n)?1/x:x;
 }
-function makePlan(target,rc){
+/** 記録の刻みに合わせて丸める。足りなくならない方向へ寄せる */
+function roundReq(n,v){
+  const B=n==="合計スコア"?DATA().totalBorders:DATA().borders[n];
+  const dec=Object.values(B||{}).some(x=>!Number.isInteger(x))?3:0;
+  const m=Math.pow(10,dec);
+  return LOW.has(n)?Math.floor(v*m)/m:Math.ceil(v*m)/m;
+}
+function stepCost(t){
+  if(!(t.cur>0)) return 1;
+  return Math.max(Math.abs(t.req-t.cur)/t.cur,0.002);
+}
+/** 端数をぴったり合わせる最後の一手。加点対象の種目だけが対象 */
+function finishExact(target,r,pool){
+  const c=compute(r), need=target-c.total;
+  if(need<=1e-9) return null;
+  let best=null;
+  for(const n of pool){
+    if(!c.used[n]) continue;
+    const w=(n==="合計スコア")?6:2;
+    const want=c.rates[n]+need/w;
+    if(want>1+1e-12) continue;
+    const req=roundReq(n,recordForRate(n,want));
+    const cur=r[n]||0;
+    if(cur>0&&(LOW.has(n)?req>=cur:req<=cur)) continue;
+    const got=compute(Object.assign({},r,{[n]:req})).total;
+    if(got<target-0.0015) continue;
+    const cost=cur>0?Math.abs(req-cur)/cur:1;
+    if(!best||cost<best.cost) best={n,req,from:cur,cost,to:got};
+  }
+  return best;
+}
+/** 目標RATINGへちょうど届くルート。
+ *  pool を指定するとその種目だけを使う。ボーダー間の中途半端な値も目標に使う。 */
+function makePlan(target,rc,pool){
+  const use=(pool&&pool.length)?pool:["合計スコア"].concat(EVENTS);
   let r=Object.assign({},rc), steps=[], cur=compute(r).total;
   const start=cur;
-  for(let i=0;i<80 && cur<target-1e-9;i++){
-    let best=null, cheap=null;
-    for(const n of ["合計スコア"].concat(EVENTS)){
+  for(let i=0;i<80&&cur<target-1e-9;i++){
+    let best=null,cheap=null;
+    for(const n of use){
       const t=nextTarget(n,r); if(!t) continue;
+      const after=compute(Object.assign({},r,{[n]:t.req})).total;
+      if(after>target+1e-9) continue;            /* 目標を飛び越す手は使わない */
       const cost=stepCost(t), eff=t.gain/cost;
-      if(t.gain>1e-9 && (!best||eff>best.eff)) best={n,t,eff,cost};
+      if(t.gain>1e-9&&(!best||eff>best.eff)) best={n,t,eff,cost};
       if(!cheap||cost<cheap.cost) cheap={n,t,eff:0,cost};
     }
-    const pick=best||cheap;
-    if(!pick) break;
+    const pick=best||cheap; if(!pick) break;
     r[pick.n]=pick.t.req;
     const nt=compute(r).total;
-    steps.push({n:pick.n,rank:pick.t.rank,req:pick.t.req,from:pick.t.cur,
-                cost:pick.cost,gain:nt-cur,to:nt});
+    steps.push({n:pick.n,rank:pick.t.rank,req:pick.t.req,from:pick.t.cur,gain:nt-cur,to:nt,border:true});
     cur=nt;
   }
-  return {steps,start,end:cur,reached:cur>=target-1e-9};
+  const fin=finishExact(target,r,use);
+  if(fin){
+    r[fin.n]=fin.req;
+    const nt=compute(r).total;
+    steps.push({n:fin.n,rank:null,req:fin.req,from:fin.from,gain:nt-cur,to:nt,border:false});
+    cur=nt;
+  }
+  return {steps,start,end:cur,reached:cur>=target-0.0015,exact:Math.abs(cur-target)<0.0015,use};
 }
 
 /* =========================================================
@@ -754,11 +881,17 @@ function render(){
   $("#pubOff").classList.toggle("on",!pro.pub);
   renderFriends();
   renderPyramid();
+  if($("#pickList")) renderPicks();
   save();
-  if(pro.pub&&sbOn()&&pro.handle) schedulePublish();
+  if(autoSync&&sbOn()&&(sess||pro.pub&&pro.handle)) schedulePublish();
 }
 let pubT=null;
-function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(()=>publishNow(),2500); }
+function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(syncNow,2500); }
+async function syncNow(){
+  if(!sbOn()) return;
+  try{ if(sess) await pushMe(); else await publishNow(); }
+  catch(e){ sbShow("同期に失敗しました",e.message||e); }
+}
 
 /** ランクのピラミッド図。現在地を光らせる */
 function drawPyramid(total,complete){
@@ -849,58 +982,102 @@ $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
     pro.img=cv.toDataURL("image/jpeg",.85);render();toast("画像を設定しました");};img.src=fr.result;};
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";render();toast("画像を消しました");};
-$("#pubOn").onclick=()=>{pro.pub=true;render();publishNow();};
+$("#pubOn").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
+$("#pubOn2").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
+$("#pubOff2").onclick=()=>{pro.pub=false;render();renderSettings();syncNow();};
+$("#autoOn").onclick=()=>{autoSync=true;localStorage.setItem(K_AUTO,"true");renderSettings();};
+$("#autoOff").onclick=()=>{autoSync=false;localStorage.setItem(K_AUTO,"false");renderSettings();};
+$("#expJson").onclick=()=>{
+  const blob=new Blob([JSON.stringify({v:3,pro,rec,friends,at:new Date().toISOString()},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download=`sosu-rating-backup-${new Date().toLocaleDateString("sv-SE")}.json`;a.click();
+  toast("バックアップを保存しました");};
+$("#impJson").onclick=()=>$("#impFile").click();
+$("#impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;
+  const fr=new FileReader();
+  fr.onload=()=>{try{const j=JSON.parse(fr.result);
+    if(j.rec) rec=j.rec; if(j.pro) pro=Object.assign(pro,j.pro); if(Array.isArray(j.friends)) friends=j.friends;
+    fillInputs();render();renderSettings();toast("読み込みました");}
+    catch(x){toast("ファイルを読めませんでした");}};
+  fr.readAsText(f);};
+$("#wipe").onclick=()=>{
+  if(!confirm("この端末に保存された記録・プロフィール・フレンドを消します。よろしいですか？")) return;
+  [K_REC,K_PRO,K_FR].forEach(k=>localStorage.removeItem(k));
+  rec={};pro={name:"",handle:"",img:"",pub:false};friends=[];
+  fillInputs();render();renderSettings();toast("消去しました");};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","card","input","friends","rank"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","card","input","friends","rank","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   if(b.dataset.tab==="card") drawCard();
   if(b.dataset.tab==="rank") loadRanking();
+  if(b.dataset.tab==="settings") renderSettings();
   scrollTo({top:0,behavior:"smooth"});});
 
 /* =========================================================
    7. 目標プラン
    ========================================================= */
+const PLAN_POOL=["合計スコア"].concat(EVENTS);
+let picked=new Set();
+function renderPicks(){
+  const c=compute(rec);
+  $("#pickList").innerHTML=PLAN_POOL.map(n=>
+    `<label class="pk ${picked.has(n)?"on":""}"><input type="checkbox" data-pk="${esc(n)}" ${picked.has(n)?"checked":""}>`+
+    `<span>${n}</span><span class="v">${pctf(c.rates[n])}</span></label>`).join("");
+  $$("[data-pk]").forEach(el=>el.onchange=()=>{
+    el.checked?picked.add(el.dataset.pk):picked.delete(el.dataset.pk);
+    renderPicks();});
+  const hint=$("#pickHint");
+  if(picked.size>=2){
+    const arr=[...picked].map(n=>({n,r:c.rates[n]})).sort((a,b)=>a.r-b.r);
+    hint.hidden=false;
+    hint.innerHTML=`<b>提案：</b>選んだ ${picked.size} 種目のうち、レート割合が低い`+
+      `<b style="color:var(--warn)">${esc(arr[0].n)}（${pctf(arr[0].r)}）</b>`+
+      `から伸ばすのが効率的です。割合が低いほど残りの伸びしろが大きく、同じ努力で上がる点数が多くなります。`+
+      `<br><span class="tiny">おすすめ順：${arr.map(x=>`${esc(x.n)} ${pctf(x.r)}`).join(" → ")}</span>`;
+  }else hint.hidden=true;
+}
+$("#pkAll").onclick=()=>{picked=new Set(PLAN_POOL);renderPicks();};
+$("#pkNone").onclick=()=>{picked=new Set();renderPicks();};
+$("#pkWeak").onclick=()=>{const c=compute(rec);
+  picked=new Set(PLAN_POOL.slice().sort((a,b)=>c.rates[a]-c.rates[b]).slice(0,5));renderPicks();};
+
 $("#doPlan").onclick=()=>{
   const c=compute(rec);
   if(!c.complete) return toast("全項目を入力するとプランを作成できます");
   const tgt=num($("#tgtRate").value)||(nextRank(c.total)?nextRank(c.total).min:MAXPT);
   $("#tgtRate").value=f3(tgt);
   if(tgt<=c.total) return $("#planOut").innerHTML=`<p class="muted">現在のRATING ${f3(c.total)} はすでに目標を超えています。</p>`;
-  const p=makePlan(tgt,rec);
+  const pool=picked.size?[...picked]:null;
+  const p=makePlan(tgt,rec,pool);
   const kinds=new Set(p.steps.map(x=>x.n)).size;
   const rows=p.steps.map((x,i)=>{
     const dir=LOW.has(x.n)?"短縮":"上乗せ";
     const pct=x.from>0?`${(Math.abs(x.req-x.from)/x.from*100).toFixed(1)}% ${dir}`:"新規";
-    return `<tr><td>${i+1}</td><td>${x.n}</td>`+
-      `<td>${x.from>0?nice(x.from):"—"}</td>`+
-      `<td><b>${nice(x.req)}</b><br><span class="tiny">${x.rank}位ボーダー</span></td>`+
-      `<td class="tgt">${pct}</td><td class="pct">＋${f3(x.gain)}</td><td>${f3(x.to)}</td></tr>`;
-  });
-  /* 種目ごとの最終到達点だけをまとめた要約 */
+    return `<tr><td>${i+1}</td><td>${x.n}</td><td>${x.from>0?nice(x.from):"—"}</td>`+
+      `<td><b>${nice(x.req)}</b><br><span class="tiny">${x.border?x.rank+"位ボーダー":"ぴったり調整"}</span></td>`+
+      `<td class="tgt">${pct}</td><td class="pct">＋${f3(x.gain)}</td><td>${f3(x.to)}</td></tr>`;});
   const fin=[];
-  for(const st of p.steps){
-    const e=fin.find(x=>x.n===st.n);
-    if(e){ e.rank=st.rank; e.req=st.req; e.gain+=st.gain; e.hops++; }
-    else fin.push(Object.assign({hops:1},st));
-  }
+  for(const st of p.steps){const e=fin.find(x=>x.n===st.n);
+    if(e){e.req=st.req;e.gain+=st.gain;e.hops++;e.border=st.border;} else fin.push(Object.assign({hops:1},st));}
   fin.sort((a,b)=>b.gain-a.gain);
   $("#planOut").innerHTML=
     `<p class="muted">現在 <b>${f3(p.start)}</b> → 到達 <b>${f3(p.end)}</b>　`+
-    `${p.reached?'<span class="win">目標達成 ✓</span>':'<span class="lose">この組み合わせでは届きません</span>'}`+
-    `　<b>${kinds}種目</b>に分散・全<b>${p.steps.length}手</b></p>`+
+    (p.reached?(p.exact?'<span class="win">目標にぴったり到達 ✓</span>':'<span class="win">目標達成 ✓</span>')
+              :'<span class="lose">この条件では届きません</span>')+
+    `　<b>${kinds}種目</b>に分散・全<b>${p.steps.length}手</b>`+
+    (pool?`　<span class="tiny">（指定した${pool.length}種目のみ使用）</span>`:"")+`</p>`+
+    (p.reached?"":`<div class="hintbox">選んだ種目をすべて1位にしても届きません。対象の種目を増やすか、目標を下げてください。</div>`)+
     `<h3>種目ごとの最終目標</h3>`+
-    fin.map(x=>{
-      const dir=LOW.has(x.n)?"以下":"以上";
+    fin.map(x=>{const dir=LOW.has(x.n)?"以下":"以上";
       return `<div class="goal"><span class="n">${x.n}</span><span class="g">＋${f3(x.gain)}</span>`+
         `<span class="d">${x.from>0?nice(x.from)+" → ":""}<b>${nice(x.req)}</b> ${dir}`+
-        `（${x.rank}位ボーダー／${x.hops}段階）</span></div>`;}).join("")+
+        `（${x.hops}段階${x.border?"":"／最後はぴったり調整"}）</span></div>`;}).join("")+
     `<h3>おすすめの順番</h3>`+
-    `<p class="tiny" style="margin-top:-4px">伸ばしやすさ（上昇量 ÷ 必要な伸び幅）が高い順です。上から片付けるのが最短になります。</p>`+
+    `<p class="tiny" style="margin-top:-4px">上昇量 ÷ 必要な伸び幅 が大きい順です。最後の一手で目標にぴったり合わせます。</p>`+
     `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>目標</th>`+
-    `<th>必要な伸び</th><th>上昇</th><th>到達RATING</th></tr></thead><tbody>`+
-    rows.join("")+`</tbody></table></div>`;
+    `<th>必要な伸び</th><th>上昇</th><th>到達RATING</th></tr></thead><tbody>`+rows.join("")+`</tbody></table></div>`;
 };
 
 /* =========================================================
@@ -984,19 +1161,27 @@ function loadImg(src,cors){return new Promise(res=>{const i=new Image();
 function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);
   g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
   g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
-async function drawCard(){
-  const cv=$("#cardCanvas"), g=cv.getContext("2d"), W=1200,H=630, c=compute(rec);
-  const rk=c.complete?rankOf(c.total):null;
+let cardSide="front";
+const IMPACT=`Impact,"Anton","Arial Black","Haettenschweiler","Franklin Gothic Bold",sans-serif`;
+function cardBase(g,W,H,rk){
   const theme=$("#cardTheme").value;
   const base=theme==="mid"?["#0a0f1a","#16203a"]:theme==="rank"&&rk?["#0b1120",rk.c+"33"]:["#0f1830","#1d2c4d"];
   const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,base[0]);gr.addColorStop(1,base[1]);
   g.fillStyle=gr;g.fillRect(0,0,W,H);
-  g.strokeStyle="#ffffff14";g.lineWidth=1;
+  g.strokeStyle="#ffffff10";g.lineWidth=1;
   for(let i=0;i<26;i++){g.beginPath();g.moveTo(i*60,0);g.lineTo(i*60-160,H);g.stroke();}
   g.fillStyle=rk?rk.c:"#4da3ff";g.fillRect(0,0,W,8);
-
+}
+async function drawCard(){
+  const cv=$("#cardCanvas"), g=cv.getContext("2d"), W=1200,H=630, c=compute(rec);
+  const rk=c.complete?rankOf(c.total):null;
   const F=(w,s)=>`${w} ${s}px ${FONTS}`;
-  /* アイコン */
+  cardBase(g,W,H,rk);
+  g.textAlign="left";g.textBaseline="alphabetic";
+
+  if(cardSide==="back"){ drawBack(g,W,H,c,rk,F); return; }
+
+  /* ---- 表面 ---- */
   let img=null;
   if(pro.img) img=await loadImg(pro.img,false);
   else if(pro.handle){ for(const u of avatarSources(pro.handle)){ img=await loadImg(u,true); if(img) break; } }
@@ -1015,59 +1200,97 @@ async function drawCard(){
   g.fillStyle="#8ba0bd";g.font=F(400,26);
   g.fillText(pro.handle?"@"+pro.handle.slice(0,24):"",248,186);
 
-  /* RATING（7セグメント。桁幅を実測して配置するので重なりません） */
   g.fillStyle="#8ba0bd";g.font=F(600,22);
   if(g.letterSpacing!==undefined) g.letterSpacing="8px";
   g.fillText("RATING",80,290);
   if(g.letterSpacing!==undefined) g.letterSpacing="0px";
+
   const lock=!c.complete;
-  const s=lock?"--.---":f3(c.total).replace(/,/g,""), di=s.indexOf(".");
+  const str=lock?"--.---":f3(c.total).replace(/,/g,""), di=str.indexOf(".");
   const on=lock?"#43536e":"#eef3fa";
-  const big={W:60,H:110,T:15,gap:19,on};
-  const sml={W:34,H:62,T:9,gap:11,on};
-  const topBig=316, yBase=topBig+big.H;
-  if(!DIGITAL){
-    g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
-    const fBig=`800 150px ${FONTS}`, fSml=`800 84px ${FONTS}`;
-    g.font=fBig;
-    const wInt=g.measureText(s.slice(0,di)).width;   // 縮小前に実測する
-    g.fillText(s.slice(0,di),80,yBase);
-    g.font=fSml;
-    g.fillText(s.slice(di),80+wInt+8,yBase);
-  }else if(SEG_FONT){
-    g.fillStyle=on; g.textAlign="left"; g.textBaseline="alphabetic";
-    g.font='700 118px DSEG7';
-    const w=g.measureText(s.slice(0,di)).width;
-    g.fillText(s.slice(0,di),80,yBase);
-    g.font='700 68px DSEG7';
-    g.fillText(s.slice(di),80+w+14,yBase);
-  }else{
-    const wI=segCanvas(g,s.slice(0,di),80,topBig,big);
-    segCanvas(g,s.slice(di),80+wI+12,topBig+(big.H-sml.H),sml);
-  }
+  const yBase=436;
+  g.fillStyle=on;
+  g.font=`400 168px ${IMPACT}`;
+  const wInt=g.measureText(str.slice(0,di)).width;
+  g.fillText(str.slice(0,di),78,yBase);
+  g.font=`400 96px ${IMPACT}`;
+  g.fillText(str.slice(di),78+wInt+10,yBase);
   if(!lock){ g.fillStyle=rk.c;g.font=F(700,30);
     if(g.letterSpacing!==undefined) g.letterSpacing="6px";
-    g.fillText(rk.n,82,topBig+big.H+40);
+    g.fillText(rk.n,82,486);
     if(g.letterSpacing!==undefined) g.letterSpacing="0px"; }
   else { g.fillStyle="#8ba0bd";g.font=F(400,24);
-    g.fillText(`未入力 ${c.missing.length} 項目`,82,topBig+big.H+38); }
-  /* ステータス */
-  const box=[["十種競技総合スコア",rec["合計スコア"]>0?jp(rec["合計スコア"]):"—"],
-             ["L値",c.L===null?"—":f3(c.L)],["S値",c.S===null?"—":f3(c.S)]];
-  box.forEach((b,i)=>{const x=660,y=272+i*98;
-    g.fillStyle="#ffffff0d";rrect(g,x,y,470,82,14);g.fill();
-    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,82,14);g.stroke();
-    g.fillStyle="#8ba0bd";g.font=F(500,21);g.fillText(b[0],x+22,y+32);
-    g.fillStyle="#eef3fa";g.font=`700 36px ui-monospace,"SF Mono",Menlo,Consolas,monospace`;
-    g.textAlign="right";g.fillText(b[1],x+448,y+64);g.textAlign="left";});
+    g.fillText(`未入力 ${c.missing.length} 項目`,82,486); }
+
+  const box=[["十種競技総合スコア",rec["合計スコア"]>0?jp(rec["合計スコア"]):"—",""],
+             ["L値",c.L===null?"—":f3(c.L),rec["乱数累積"]>0?"乱数累積 "+jp(rec["乱数累積"]):""],
+             ["S値",c.S===null?"—":f3(c.S),rec["スコア累積"]>0?"スコア累積 "+jp(rec["スコア累積"]):""]];
+  box.forEach((b,i)=>{const x=660,y=262+i*98;
+    g.fillStyle="#ffffff0d";rrect(g,x,y,470,86,14);g.fill();
+    g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,86,14);g.stroke();
+    g.textAlign="left";g.fillStyle="#8ba0bd";g.font=F(500,21);g.fillText(b[0],x+22,y+30);
+    if(b[2]){ g.fillStyle="#61748f";g.font=F(400,16);g.fillText(b[2],x+22,y+56); }
+    g.fillStyle="#eef3fa";g.font=`400 40px ${IMPACT}`;
+    g.textAlign="right";g.fillText(b[1],x+448,y+62);g.textAlign="left";});
 
   g.fillStyle="#61748f";g.font=F(400,20);
   g.fillText("素数あつめ RATING",80,570);
   g.textAlign="right";g.fillText(`ボーダー ${DATA().date} 時点`,W-80,570);
   g.textAlign="left";
-  $("#cardNote").textContent = c.complete ? "" : "※ 全項目を入力するとRATINGが表示されます。";
+  $("#cardNote").textContent=c.complete?"":"※ 全項目を入力するとRATINGが表示されます。";
 }
-$("#reCard").onclick=drawCard;
+/* ---- 裏面：18種目の記録とレート値 ---- */
+function drawBack(g,W,H,c,rk,F){
+  g.fillStyle="#eef3fa";g.font=F(700,32);
+  g.fillText((pro.name||"NO NAME").slice(0,16),80,64);
+  g.fillStyle="#8ba0bd";g.font=F(400,20);
+  g.fillText(pro.handle?"@"+pro.handle.slice(0,20):"",80,92);
+  g.textAlign="right";
+  g.fillStyle="#8ba0bd";g.font=F(500,18);g.fillText("RATING",W-80,54);
+  g.fillStyle=rk?rk.c:"#43536e";g.font=`400 46px ${IMPACT}`;
+  g.fillText(c.complete?f3(c.total).replace(/,/g,""):"--.---",W-80,96);
+  g.textAlign="left";
+  g.strokeStyle="#ffffff22";g.beginPath();g.moveTo(80,112);g.lineTo(W-80,112);g.stroke();
+
+  const cols=[{x:80,list:CAT2},{x:640,list:CAT3.concat(["合計スコア"])}];
+  for(const col of cols){
+    let y=146;
+    g.fillStyle="#4da3ff";g.font=F(600,17);
+    g.fillText(col.list===CAT2?"素数ゲーム／暗素因数分解":"EX・タイムアタック／総合",col.x,y);
+    y+=12;
+    for(const n of col.list){
+      y+=38;
+      const v=rec[n]||0, r=c.rates[n], used=c.used[n];
+      g.fillStyle=used?"#ffffff0e":"#ffffff06";rrect(g,col.x,y-24,480,32,7);g.fill();
+      g.fillStyle=used?"#eef3fa":"#8ba0bd";g.font=F(used?600:400,17);
+      g.fillText(n.length>13?n.slice(0,13)+"…":n,col.x+10,y-2);
+      g.textAlign="right";
+      g.fillStyle="#cfe0f5";g.font=`400 20px ${IMPACT}`;
+      g.fillText(v>0?nice(v):"—",col.x+346,y-2);
+      g.fillStyle=used?"#57e0a0":"#5f7391";g.font=`400 20px ${IMPACT}`;
+      g.fillText((r*100).toFixed(1)+"%",col.x+470,y-2);
+      g.textAlign="left";
+    }
+  }
+  g.fillStyle="#61748f";g.font=F(400,16);
+  g.fillText("緑＝RATINGに加算された種目（②上位4種／③上位3種）",80,584);
+  g.textAlign="right";g.fillText(`ボーダー ${DATA().date} 時点`,W-80,584);
+  g.textAlign="left";
+  $("#cardNote").textContent="";
+}
+$("#cbFront").onclick=()=>{cardSide="front";$("#cbFront").classList.add("on");$("#cbBack").classList.remove("on");drawCard();};
+$("#cbBack").onclick=()=>{cardSide="back";$("#cbBack").classList.add("on");$("#cbFront").classList.remove("on");drawCard();};
+$("#dlBoth").onclick=async()=>{
+  const keep=cardSide;
+  for(const side of ["front","back"]){
+    cardSide=side; await drawCard();
+    await new Promise(res=>$("#cardCanvas").toBlob(b=>{
+      if(b){const a=document.createElement("a");a.href=URL.createObjectURL(b);
+        a.download=`sosu-rating-${(pro.handle||pro.name||"card")}-${side==="front"?"表":"裏"}.png`;a.click();}
+      setTimeout(res,350);},"image/png"));
+  }
+  cardSide=keep; drawCard(); toast("表裏2枚を保存しました");
+};
 $("#cardTheme").onchange=drawCard;
 $("#dlCard").onclick=()=>{
   $("#cardCanvas").toBlob(b=>{ if(!b) return toast("画像を生成できませんでした");
@@ -1118,7 +1341,7 @@ function sbHint(msg){
   return "";
 }
 function sbShow(title,detail){
-  const box=$("#sbMsg")||$("#pubMsg"); if(!box) return;
+  const box=$("#sbMsg")||$("#pubMsg2")||$("#pubMsg"); if(!box) return;
   box.hidden=false;
   const hint=sbHint(detail);
   box.innerHTML=`<b>${esc(title)}</b>`+
@@ -1230,7 +1453,7 @@ async function loadRanking(){
      設定するまでは「フレンド」タブのランキングが使えます。</p>`; return; }
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
   try{
-    const rows=await sb("profiles_public?select=handle,name,rating,l_value,s_value,total_score,updated_at&order=rating.desc.nullslast&limit=300");
+    const rows=await sb("profiles_public?select=handle,name,role,rating,l_value,s_value,total_score,updated_at&order=rating.desc.nullslast&limit=300");
     if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>
       <div class="tools"><button class="btn pri" id="rkPush">自分の記録を公開／更新</button>
       <button class="btn" id="rkReload">再読み込み</button></div>`;
@@ -1244,7 +1467,9 @@ async function loadRanking(){
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th>
       <th>L値</th><th>S値</th><th>総合スコア</th><th></th></tr></thead><tbody>`+
       rows.map((r,i)=>`<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
-        `<td>${esc(r.name||r.handle)}<br><span class="tiny">@${esc(r.handle)}</span></td>`+
+        `<td><span style="color:${roleColor(r.role)};font-weight:${r.role&&r.role!=="user"?700:400}">`+
+          `${esc(r.name||r.handle)}</span>${roleLabel(r.role)?` <span class="tiny" style="color:${roleColor(r.role)}">${roleLabel(r.role)}</span>`:""}`+
+          `<br><span class="tiny">@${esc(r.handle)}</span></td>`+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
@@ -1253,14 +1478,22 @@ async function loadRanking(){
           `<button class="btn sm" data-rf="${i}">＋友達</button>`}</td></tr>`).join("")+
       `</tbody></table></div><div id="rkCmp"></div>`;
     RANK_ROWS=rows;
-    $$("[data-rc]").forEach(b=>b.onclick=()=>{
+    /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
+    const fetchRec=async h=>{
+      try{ return (await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}))||{}; }
+      catch(e){ toast("記録を取得できませんでした"); return null; }};
+    $$("[data-rc]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rc];
-      renderCompare({pro:{name:r.name,handle:r.handle,img:""},rec:r.records||{}},"#rkCmp");});
-    $$("[data-rf]").forEach(b=>b.onclick=()=>{
+      b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
+      if(!rc) return;
+      renderCompare({pro:{name:r.name,handle:r.handle,img:""},rec:rc},"#rkCmp");});
+    $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
+      b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
+      if(!rc) return;
       const key=(r.handle||"").toLowerCase();
       const i=friends.findIndex(f=>((f.pro.handle||"").toLowerCase())===key);
-      const item={pro:{name:r.name,handle:r.handle,img:""},rec:r.records||{},at:Date.now()};
+      const item={pro:{name:r.name,handle:r.handle,img:""},rec:rc,at:Date.now()};
       if(i>=0) friends[i]=item; else friends.push(item);
       render(); toast("フレンドに登録しました");});
     const rl=$("#rkReload"); if(rl) rl.onclick=loadRanking;
@@ -1268,6 +1501,165 @@ async function loadRanking(){
       if(!pro.pub){ pro.pub=true; render(); }
       await publishNow(); loadRanking(); };
   }catch(e){ el.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
+}
+
+
+/* =========================================================
+   10b. Google ログイン（Supabase Auth をライブラリ無しで利用）
+   ========================================================= */
+const K_SESS="sa-sess-v3", K_AUTO="sa-auto-v3";
+let sess=ls(K_SESS,null), me=null;          /* me = profiles の自分の行 */
+let autoSync=ls(K_AUTO,true);
+const saveSess=()=>{try{sess?localStorage.setItem(K_SESS,JSON.stringify(sess)):localStorage.removeItem(K_SESS);}catch(e){}};
+
+function signIn(){
+  if(!sbOn()) return toast("Supabase が未設定です");
+  const back=location.origin+location.pathname;
+  location.href=SB_URL+"/auth/v1/authorize?provider=google&redirect_to="+encodeURIComponent(back);
+}
+async function signOut(){
+  try{ if(sess) await fetch(SB_URL+"/auth/v1/logout",{method:"POST",
+    headers:{apikey:SB_KEY,Authorization:"Bearer "+sess.access_token}}); }catch(e){}
+  sess=null; me=null; saveSess(); renderSettings(); render(); toast("ログアウトしました");
+}
+/** 認証付きリクエスト。期限切れなら自動で更新する */
+async function sbAuth(path,opt){
+  if(!sess) throw new Error("未ログイン");
+  if(sess.expires_at && Date.now()/1000 > sess.expires_at-60) await refreshSess();
+  const o=opt||{}, h={apikey:SB_KEY,Authorization:"Bearer "+sess.access_token};
+  if(o.method&&o.method!=="GET") h["Content-Type"]="application/json";
+  const r=await fetch(SB_URL+"/rest/v1/"+path,Object.assign({},o,{headers:h}));
+  if(!r.ok){const t=await r.text();const e=new Error(t||("HTTP "+r.status));e.status=r.status;throw e;}
+  return r.status===204?null:r.json();
+}
+async function refreshSess(){
+  const r=await fetch(SB_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",
+    headers:{apikey:SB_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({refresh_token:sess.refresh_token})});
+  if(!r.ok){ sess=null; saveSess(); throw new Error("セッションが切れました。再ログインしてください"); }
+  const j=await r.json();
+  sess={access_token:j.access_token,refresh_token:j.refresh_token,
+        expires_at:Math.floor(Date.now()/1000)+(j.expires_in||3600),user:j.user||sess.user};
+  saveSess();
+}
+/** ログイン直後：自分の行を取得し、無ければ作る。クラウドの記録を取り込む */
+async function loadMe(){
+  if(!sess||!sbOn()) return;
+  try{
+    let rows=await sbAuth("profiles?select=*&user_id=eq."+sess.user.id);
+    if(!rows.length){
+      await sbAuth("rpc/ensure_profile",{method:"POST",body:JSON.stringify({
+        p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||""})});
+      rows=await sbAuth("profiles?select=*&user_id=eq."+sess.user.id);
+    }
+    me=rows[0]||null;
+    if(me){
+      if(me.handle) pro.handle=me.handle;
+      if(me.name) pro.name=me.name;
+      pro.pub=!!me.is_public;
+      const cloud=me.records||{};
+      const mine=ORDER.some(n=>rec[n]>0);
+      if(!mine && Object.keys(cloud).length) rec=cloud;         /* 手元が空ならクラウドを採用 */
+      else if(Object.keys(cloud).length) mergeCloud(cloud);
+      fillInputs(); render();
+    }
+  }catch(e){ console.warn(e); }
+}
+/** 各項目ごとに良い方を残す（タイム系は小さい方） */
+function mergeCloud(cloud){
+  for(const n of ORDER){
+    const a=rec[n]||0, b=cloud[n]||0;
+    if(!b) continue;
+    if(!a){ rec[n]=b; continue; }
+    rec[n]=LOW.has(n)?Math.min(a,b):Math.max(a,b);
+  }
+}
+async function pushMe(){
+  if(!sess||!sbOn()) return;
+  const c=compute(rec);
+  await sbAuth("rpc/save_profile",{method:"POST",body:JSON.stringify({
+    p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||"",
+    p_rating:c.complete?Number(c.total.toFixed(3)):null,
+    p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
+    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub })});
+}
+const isAdmin=()=>!!(me&&me.role==="admin");
+const isSupporter=()=>!!(me&&(me.role==="supporter"||me.role==="admin"));
+const roleColor=r=>r==="admin"?"var(--warn)":r==="supporter"?"var(--acc2)":"var(--tx)";
+const roleLabel=r=>r==="admin"?"管理者":r==="supporter"?"サポーター":"";
+
+/* 画面 */
+function renderSettings(){
+  const a=$("#acctBox");
+  if(!sbOn()){ a.innerHTML=`<p class="muted">Supabase が未設定のため、ログインは使えません。</p>
+    <p class="tiny">現在の記録はこの端末のブラウザにのみ保存されています。下の「バックアップを保存」で控えを取れます。</p>`; }
+  else if(!sess){
+    a.innerHTML=`<p class="muted">Googleでログインすると、記録がクラウドに保存され、機種変更やブラウザの掃除でも消えなくなります。</p>
+      <div class="tools" style="margin-top:0"><button class="btn pri" id="btnIn">Googleでログイン</button></div>
+      <p class="tiny">取得するのはメールアドレスと表示名だけです。X（Twitter）連携は後日追加予定です。</p>`;
+    $("#btnIn").onclick=signIn;
+  }else{
+    const u=sess.user||{}, r=me?me.role:"user";
+    a.innerHTML=`<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      ${u.user_metadata&&u.user_metadata.avatar_url?`<img class="av" style="width:56px;height:56px" src="${esc(u.user_metadata.avatar_url)}" referrerpolicy="no-referrer" alt="">`:""}
+      <div><div style="font-weight:700">${esc((u.user_metadata&&u.user_metadata.full_name)||u.email||"")}</div>
+      <div class="tiny">${esc(u.email||"")}</div>
+      ${roleLabel(r)?`<span class="badge" style="color:${roleColor(r)};border-color:${roleColor(r)}66;margin-top:6px">${roleLabel(r)}</span>`:""}</div>
+      <div style="margin-left:auto" class="tools"><button class="btn" id="btnSync">今すぐ同期</button>
+      <button class="btn" id="btnOut">ログアウト</button></div></div>
+      <p class="tiny">記録は自動でクラウドに保存されます。別の端末で同じGoogleアカウントでログインすれば続きから使えます。</p>`;
+    $("#btnOut").onclick=signOut;
+    $("#btnSync").onclick=async()=>{try{await pushMe();await loadMe();toast("同期しました");}
+      catch(e){toast("同期に失敗しました："+String(e.message||e).slice(0,60));}};
+  }
+  $("#pubOn2").classList.toggle("on",!!pro.pub);
+  $("#pubOff2").classList.toggle("on",!pro.pub);
+  $("#autoOn").classList.toggle("on",!!autoSync);
+  $("#autoOff").classList.toggle("on",!autoSync);
+  renderSupporter();
+  $("#adminCard").hidden=!isAdmin();
+  if(isAdmin()) renderAdmin();
+}
+function renderSupporter(){
+  const b=$("#supBox");
+  if(!sess){ b.innerHTML=`<p class="muted">サポーターになるにはログインが必要です。</p>
+    <p class="tiny">サポーターになると大会を開催でき、名前が緑色で表示されます。</p>`; return; }
+  if(isAdmin()){ b.innerHTML=`<p class="muted">あなたは管理者です。サポーターの承認は管理者メニューから行えます。</p>`; return; }
+  if(isSupporter()){ b.innerHTML=`<p class="win" style="font-weight:700">サポーターとして登録されています。</p>
+    <p class="tiny">大会の開催ができ、ランキングでは名前が緑色で表示されます。</p>`; return; }
+  b.innerHTML=`<p class="muted">サポーターになると大会を開催でき、名前が緑色で表示されます。管理者へ申請してください。</p>
+    <label class="fl">申請理由（任意）</label>
+    <input type="text" class="txt" id="supMsg" placeholder="例：週末に大会を開きたいです" style="max-width:none">
+    <div class="tools"><button class="btn pri" id="supSend">サポーター申請を送る</button></div>
+    <div id="supState" class="tiny"></div>`;
+  $("#supSend").onclick=async()=>{
+    try{ await sbAuth("rpc/request_supporter",{method:"POST",
+      body:JSON.stringify({p_message:$("#supMsg").value.slice(0,200)})});
+      $("#supState").textContent="申請を送りました。管理者の承認をお待ちください。";
+      toast("申請を送りました"); }
+    catch(e){ $("#supState").textContent="送信に失敗しました："+String(e.message||e).slice(0,100); }};
+}
+async function renderAdmin(){
+  const b=$("#adminBox");
+  b.innerHTML=`<p class="muted">読み込み中…</p>`;
+  try{
+    const reqs=await sbAuth("supporter_requests?select=*&status=eq.pending&order=created_at.desc");
+    b.innerHTML=(reqs.length?`<div class="scroll"><table><thead><tr><th>申請者</th><th>理由</th><th>日時</th><th></th></tr></thead><tbody>`+
+      reqs.map(q=>`<tr><td>${esc(q.name||q.handle||q.user_id.slice(0,8))}<br><span class="tiny">${esc(q.email||"")}</span></td>`+
+        `<td class="tiny">${esc(q.message||"")}</td><td class="tiny">${esc(String(q.created_at||"").slice(0,16).replace("T"," "))}</td>`+
+        `<td><button class="btn sm" data-ok="${esc(q.user_id)}">承認</button> `+
+        `<button class="btn sm" data-ng="${esc(q.user_id)}">却下</button></td></tr>`).join("")+
+      `</tbody></table></div>`:`<p class="muted">保留中の申請はありません。</p>`)+
+      `<div class="tools"><button class="btn" id="admReload">再読み込み</button></div>`;
+    $("#admReload").onclick=renderAdmin;
+    $$("[data-ok]").forEach(x=>x.onclick=()=>setRole(x.dataset.ok,"supporter"));
+    $$("[data-ng]").forEach(x=>x.onclick=()=>setRole(x.dataset.ng,"rejected"));
+  }catch(e){ b.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
+}
+async function setRole(uid,role){
+  try{ await sbAuth("rpc/set_role",{method:"POST",body:JSON.stringify({p_user:uid,p_role:role})});
+  }catch(e){ return toast("失敗しました："+String(e.message||e).slice(0,60)); }
+  toast(role==="supporter"?"サポーターに承認しました":"却下しました"); renderAdmin();
 }
 
 /* =========================================================
@@ -1489,8 +1881,20 @@ function normalize(j){
       history.replaceState(null,"",location.pathname);
     }catch(e){} }
   applySb();
+  /* Google ログインからの戻り */
+  if(location.hash.includes("access_token")){
+    const q=new URLSearchParams(location.hash.slice(1));
+    if(q.get("access_token")){
+      sess={access_token:q.get("access_token"),refresh_token:q.get("refresh_token"),
+            expires_at:Math.floor(Date.now()/1000)+(+q.get("expires_in")||3600),user:null};
+      try{ const r=await fetch(SB_URL+"/auth/v1/user",{headers:{apikey:SB_KEY,Authorization:"Bearer "+sess.access_token}});
+        sess.user=await r.json(); }catch(e){}
+      saveSess(); history.replaceState(null,"",location.pathname); toast("ログインしました");
+    }
+  }
   fillInputs();
   applyData();
+  if(sess&&sbOn()){ await loadMe(); renderSettings(); }
 })();
 </script>
 </body>
