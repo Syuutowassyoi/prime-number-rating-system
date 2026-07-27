@@ -547,7 +547,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
   <div class="card">
     <h2>@ID で申請する</h2>
-    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認したときに双方のフレンドになります。</p>
+    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認したときに双方のフレンドになります。
+      <br><span class="tiny">相手も一度ログインして、公開設定をONにしている必要があります。</span></p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <input type="text" class="txt" id="frTo" placeholder="aaa111" style="max-width:220px">
       <button class="btn pri" id="frSend">申請を送る</button>
@@ -712,7 +713,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v21";
+const APP_VERSION = "v23";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1210,10 +1211,14 @@ function render(){
       `素数ゲームV1・V2／暗素因数分解lv.1-3 の10種は ${jp(MAXSCORE)} 点が上限です。</span><br>`+
       over.map(n=>`<span class="tiny">${esc(n)}：${jp(rec[n])} 点</span>`).join("　");
   }
-  if($("#cupStat")&&pro.handle!==lastCupHandle){ lastCupHandle=pro.handle; renderCupStat(); }
-  renderFriends();
-  renderPyramid();
-  if($("#pickList")) renderPicks();
+  const step=(name,fn)=>{ try{ fn(); }catch(e){
+    console.error(name,e);
+    const b=$("#errBanner"); if(b){ b.hidden=false;
+      $("#errMsg").textContent=`「${name}」の表示でエラーが起きました：${e.message||e}`; } } };
+  if($("#cupStat")&&pro.handle!==lastCupHandle){ lastCupHandle=pro.handle; step("大会成績",renderCupStat); }
+  step("フレンド一覧",renderFriends);
+  step("ランクとレートの仕組み",renderPyramid);
+  if($("#pickList")) step("プランの種目一覧",renderPicks);
   save();
   if(autoSync&&sbOn()&&sess&&pro.handle) schedulePublish();
 }
@@ -1405,7 +1410,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
-  if(b.dataset.tab==="rank") loadRanking();
+  if(b.dataset.tab==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
   if(b.dataset.tab==="profile") renderHome();
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); }
   if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
@@ -1588,19 +1593,9 @@ const readLink=v=>{const m=String(v).trim().match(/#p=([A-Za-z0-9_-]+)/)||String
   return m?unpack(m[1]):null;};
 $("#frSend").onclick=async()=>{
   const h=$("#frTo").value.replace(/^@/,"").trim();
-  const msg=$("#frSendMsg");
-  if(!sess) return toast("ログインが必要です（設定タブ）");
   if(!h) return toast("相手の @ID を入力してください");
-  if(h.toLowerCase()===(pro.handle||"").toLowerCase()) return toast("自分自身には申請できません");
-  try{
-    const r=await sbAuth("rpc/send_friend_request",{method:"POST",body:JSON.stringify({p_to_handle:h})});
-    const res=(typeof r==="string")?r:(r&&r[0])||"sent";
-    msg.innerHTML=res==="accepted"?`<span class="win">相手からも申請が来ていたため、その場でフレンドになりました。</span>`
-      :res==="already"?`<span class="muted">すでにフレンドです。</span>`
-      :`<span class="win">申請を送りました。相手の承認をお待ちください。</span>`;
-    $("#frTo").value="";
-    await loadFriendReq(); renderFriendReq(); render();
-  }catch(e){ msg.innerHTML=`<span class="lose">${esc(String(e.message||e)).slice(0,200)}</span>`; }
+  await sendFriendReq(h,$("#frSend"));
+  $("#frTo").value="";
 };
 $("#addFr").onclick=()=>{
   let g; try{g=readLink($("#oppo").value);}catch(e){g=null;}
@@ -1615,7 +1610,8 @@ $("#cmpOnly").onclick=()=>{let g;try{g=readLink($("#oppo").value);}catch(e){g=nu
   if(!g) return toast("共有リンクを正しく貼り付けてください"); renderCompare(g);};
 function renderFriends(){
   const me=compute(rec);
-  const rows=friends.map((f,i)=>({i,pro:f.pro,c:compute(f.rec),rec:f.rec}));
+  friends=friends.filter(f=>f&&f.pro);
+  const rows=friends.map((f,i)=>({i,pro:f.pro||{},c:compute(f.rec||{}),rec:f.rec||{}}));
   const list=rows.concat([{i:-1,pro,c:me,rec}])
     .sort((a,b)=>(b.c.complete?b.c.total:-1)-(a.c.complete?a.c.total:-1));
   $("#frList").innerHTML = friends.length===0
@@ -1689,6 +1685,45 @@ async function loadFriendReq(){
   }catch(e){ /* 未設定・未実行なら黙って諦める */ }
 }
 function badgeCount(){ return FR.in.length; }
+/** その@IDとの関係を返す */
+function frState(handle){
+  const h=(handle||"").toLowerCase();
+  if(!h) return "none";
+  if((pro.handle||"").toLowerCase()===h) return "self";
+  if(FR.list.some(f=>(f.handle||"").toLowerCase()===h)) return "friend";
+  if(FR.out.some(r=>(r.to_handle||"").toLowerCase()===h)) return "sent";
+  if(FR.in.some(r=>(r.from_handle||"").toLowerCase()===h)) return "incoming";
+  return "none";
+}
+const FR_LABEL={friend:"フレンド",sent:"申請中",incoming:"承認する",self:"あなた",none:"フレンド申請"};
+/** ランキングや相手ページから申請を送る */
+async function sendFriendReq(handle,btn){
+  if(!sess) return toast("フレンド申請にはログインが必要です（設定タブ）");
+  const h=(handle||"").replace(/^@/,"").trim();
+  if(!h) return toast("相手の @ID がわかりません");
+  const st=frState(h);
+  if(st==="self")   return toast("自分自身には申請できません");
+  if(st==="friend") return toast("すでにフレンドです");
+  if(st==="sent")   return toast("すでに申請済みです。相手の承認をお待ちください");
+  if(st==="incoming"){
+    const r=FR.in.find(x=>(x.from_handle||"").toLowerCase()===h.toLowerCase());
+    if(r) return respondFr(r.from_id,true);
+  }
+  if(btn) btn.disabled=true;
+  try{
+    const r=await sbAuth("rpc/send_friend_request",{method:"POST",body:JSON.stringify({p_to_handle:h})});
+    const res=(typeof r==="string")?r:(r&&r[0])||"sent";
+    toast(res==="accepted"?"相手からも申請が来ていたため、フレンドになりました"
+         :res==="already"?"すでにフレンドです":"申請を送りました");
+    await loadFriendReq(); renderFriendReq(); render();
+    if(!$("#rank").hidden) loadRanking(true);
+  }catch(e){
+    const m=String(e.message||e);
+    toast(/見つかりません/.test(m)?"その@IDのプレイヤーはまだログインしていません"
+         :/PGRST202|Could not find/.test(m)?"データベースの準備がまだです（SETUP.mdのSQLを実行してください）"
+         :m.slice(0,80));
+  }finally{ if(btn) btn.disabled=false; }
+}
 function renderFriendReq(){
   const box=$("#frReqBody"); if(!box) return;
   if(!sbOn()||!sess){
@@ -1764,23 +1799,39 @@ function wrapText(g,text,x,y,maxW,lh,maxLines){
 function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);
   g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
   g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
-let cardSide="front";
+let cardSide="front", cardBusy=null;
 const IMPACT=`Impact,"Anton","Arial Black","Haettenschweiler","Franklin Gothic Bold",sans-serif`;
+/** 16進の色を不透明な色に合成する（半透明のままだと前の絵が透けてしまう） */
+function mixHex(base,over,a){
+  const h=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));
+  const [r1,g1,b1]=h(base), [r2,g2,b2]=h(over);
+  const c=(x,y)=>Math.round(x+(y-x)*a).toString(16).padStart(2,"0");
+  return "#"+c(r1,r2)+c(g1,g2)+c(b1,b2);
+}
 function cardBase(g,W,H,rk){
   const theme=$("#cardTheme").value;
-  const base=theme==="mid"?["#0a0f1a","#16203a"]:theme==="rank"&&rk?["#0b1120",rk.c+"33"]:["#0f1830","#1d2c4d"];
+  const base=theme==="mid"?["#0a0f1a","#16203a"]
+    :theme==="rank"&&rk?["#0b1120",mixHex("#0b1120",rk.c,0.30)]
+    :["#0f1830","#1d2c4d"];
+  /* いったん完全に消してから、不透明な下地を敷く */
+  g.setTransform(1,0,0,1,0,0);
+  g.globalAlpha=1; g.globalCompositeOperation="source-over";
+  g.clearRect(0,0,W,H);
+  g.fillStyle="#0b1120"; g.fillRect(0,0,W,H);
   const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,base[0]);gr.addColorStop(1,base[1]);
   g.fillStyle=gr;g.fillRect(0,0,W,H);
   g.strokeStyle="#ffffff10";g.lineWidth=1;
   for(let i=0;i<26;i++){g.beginPath();g.moveTo(i*60,0);g.lineTo(i*60-160,H);g.stroke();}
   g.fillStyle=rk?rk.c:"#4da3ff";g.fillRect(0,0,W,8);
 }
-async function drawCard(){
+function drawCard(){ cardBusy=(cardBusy||Promise.resolve()).then(drawCardNow).catch(e=>console.error(e)); return cardBusy; }
+async function drawCardNow(){
   const cv=$("#cardCanvas"), g=cv.getContext("2d"), W=1200,H=630, c=compute(rec);
   const rk=c.complete?rankOf(c.total):null;
   const F=(w,s)=>`${w} ${s}px ${FONTS}`;
   cardBase(g,W,H,rk);
   g.textAlign="left";g.textBaseline="alphabetic";
+  if(g.letterSpacing!==undefined) g.letterSpacing="0px";
 
   if(cardSide==="back"){ drawBack(g,W,H,c,rk,F); return; }
 
@@ -2192,8 +2243,14 @@ async function loadRanking(force){
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
-        `<td>${r.handle===mine?"<span class='tiny'>あなた</span>":`<button class="btn sm" data-rc="${i}">比較</button> `+
-          `<button class="btn sm" data-rf="${i}">＋友達</button>`}</td></tr>`;}).join("")+
+        `<td>${r.handle===mine?"<span class='tiny'>あなた</span>":(()=>{
+          const st=frState(r.handle);
+          const dis=(st==="friend"||st==="sent")?" disabled":"";
+          const cls=(st==="incoming")?"btn sm pri":"btn sm";
+          return `<button class="btn sm" data-rc="${i}">比較</button> `+
+            (sess?`<button class="${cls}" data-rq="${i}"${dis}>${FR_LABEL[st]}</button>`
+                 :`<button class="btn sm" data-rf="${i}">＋友達</button>`);
+        })()}</td></tr>`;}).join("")+
       `</tbody></table></div><div id="rkCmp"></div>`;
     RANK_ROWS=rows;
     /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
@@ -2205,6 +2262,7 @@ async function loadRanking(force){
       b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
       if(!rc) return;
       renderCompare({pro:{name:r.name,handle:r.handle,img:""},rec:rc},"#rkCmp");});
+    $$("[data-rq]").forEach(b=>b.onclick=()=>sendFriendReq(RANK_ROWS[+b.dataset.rq].handle,b));
     $$("[data-rp]").forEach(a=>a.onclick=async e=>{
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
@@ -2873,7 +2931,7 @@ function showPlayer(p,rc){
       `<td>${rc[n]>0?nice(rc[n]):"—"}</td><td class="pct">${pctf(c.rates[n])}</td>`+
       `<td class="chk">${c.used[n]?"○":""}</td></tr>`).join("")+
     `</tbody></table></div>
-    <div class="tools"><button class="btn pri" id="mpFr">フレンドに追加</button>
+    <div class="tools"><button class="btn pri" id="mpFr"></button>
       <button class="btn" id="mpCup">大会記録を見る</button>
       <button class="btn" id="mpCmp">自分と比較</button>
       <button class="btn" id="mpX">閉じる</button></div></div>`;
@@ -2881,8 +2939,14 @@ function showPlayer(p,rc){
   const q=x=>mask.querySelector(x), close=()=>mask.remove();
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   q("#mpX").onclick=close;
-  q("#mpFr").onclick=()=>{
-    if(saveFriend({name:p.name,handle:p.handle,img:"",role:p.role,rating:p.rating},rc)){
+  const st=frState(p.handle);
+  const fb=q("#mpFr");
+  fb.textContent=sess?FR_LABEL[st]:"フレンドに追加（この端末）";
+  fb.disabled=(st==="friend"||st==="sent"||st==="self");
+  fb.onclick=async()=>{
+    if(sess){ await sendFriendReq(p.handle,fb); fb.textContent=FR_LABEL[frState(p.handle)];
+      fb.disabled=["friend","sent","self"].includes(frState(p.handle)); }
+    else if(saveFriend({name:p.name,handle:p.handle,img:"",role:p.role,rating:p.rating},rc)){
       render(); renderHomeFriends(); close(); toast("フレンドに登録しました"); }};
   q("#mpCup").onclick=async()=>{
     q("#mpCup").disabled=true;
@@ -3653,7 +3717,8 @@ function renderHomeFriends(){
   if(!friends.length){ box.innerHTML=`<p class="muted">フレンドを登録すると、ここに更新が並びます。`+
     `<br><span class="tiny">「フレンド」タブ、またはランキングの名前から追加できます。</span></p>`; return; }
   const feed=[];
-  for(const f of friends) for(const e of (f.log||[])) feed.push({f,e});
+  for(const f of friends){ if(!f||!f.pro) continue;
+    for(const e of (Array.isArray(f.log)?f.log:[])) feed.push({f,e}); }
   feed.sort((a,b)=>b.e.at-a.e.at);
   const dt=jstDT;
   if(!feed.length){
@@ -3694,6 +3759,9 @@ async function checkUpdate(){
 $("#updGo").onclick=()=>{ try{ save(); }catch(e){} location.reload(); };
 $("#updLater").onclick=()=>{ $("#updBanner").hidden=true; };
 setInterval(checkUpdate,5*60*1000);
+/* 届いた申請に気づけるよう、2分おきに確認する */
+setInterval(()=>{ if(sess&&sbOn()&&document.visibilityState==="visible")
+  loadFriendReq().then(()=>{ updateMenuBadge(); if(!$("#friends").hidden) renderFriendReq(); }); },120000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 
 /* =========================================================
