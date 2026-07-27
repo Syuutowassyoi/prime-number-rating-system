@@ -712,7 +712,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v19";
+const APP_VERSION = "v21";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2002,8 +2002,8 @@ function sbHint(msg){
   if(/PGRST205|does not exist|Could not find the table/i.test(m))
     return "SQLがまだ実行されていないようです。Supabase の SQL Editor で SETUP.md のSQLを実行してください。";
   if(/PGRST202|Could not find the function/i.test(m))
-    return "この画面のアプリが古い可能性があります。ページを再読み込み（Ctrl+Shift+R）してからもう一度お試しください。"+
-           "それでも直らない場合は、SETUP.md のSQLが最後まで実行されているか確認してください。";
+    return "データベース側の準備がまだのようです。Supabase の SQL Editor で SETUP.md の最新のSQLを"+
+           "最後まで実行してください。実行すると証明リンクなどの新しい機能も使えるようになります。";
   if(/__never__/.test(m))
     return "必要な関数が見つかりません。SETUP.md の新しいSQLを最後まで実行してください（古い版のSQLだけでは足りません）。";
   if(/Invalid API key|JWSError|JWT|401/i.test(m))
@@ -2103,8 +2103,8 @@ async function sbTest(){
   }catch(e){
     const m=String(e.message||"");
     if(/PGRST202|Could not find the function/i.test(m))
-    return "この画面のアプリが古い可能性があります。ページを再読み込み（Ctrl+Shift+R）してからもう一度お試しください。"+
-           "それでも直らない場合は、SETUP.md のSQLが最後まで実行されているか確認してください。";
+    return "データベース側の準備がまだのようです。Supabase の SQL Editor で SETUP.md の最新のSQLを"+
+           "最後まで実行してください。実行すると証明リンクなどの新しい機能も使えるようになります。";
   if(/__never__/.test(m)){
       put(false,"関数が見つかりません",m);
       return stop("SETUP.md の新しいSQLを最後まで実行してください。古い版のSQLしか入っていない可能性があります。");
@@ -2256,6 +2256,26 @@ async function sbAuth(path,opt){
   if(!r.ok){const t=await r.text();const e=new Error(t||("HTTP "+r.status));e.status=r.status;throw e;}
   return r.status===204?null:r.json();
 }
+/** SQLが古くて引数が足りない場合、新しい引数を外して呼び直す。
+ *  drops は「外していく引数名の組」を新しい順に並べたもの。 */
+async function rpcTry(name,body,drops){
+  const attempts=[body];
+  let cur=body;
+  for(const keys of (drops||[])){
+    cur=Object.assign({},cur);
+    keys.forEach(k=>delete cur[k]);
+    attempts.push(cur);
+  }
+  let lastErr=null;
+  for(const b of attempts){
+    try{ return await sbAuth("rpc/"+name,{method:"POST",body:JSON.stringify(b)}); }
+    catch(e){
+      lastErr=e;
+      if(!/PGRST202|Could not find the function/i.test(String(e.message||""))) throw e;
+    }
+  }
+  throw lastErr;
+}
 async function refreshSess(){
   const r=await fetch(SB_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",
     headers:{apikey:SB_KEY,"Content-Type":"application/json"},
@@ -2313,7 +2333,7 @@ async function pushMe(force){
     p_x:(Array.isArray(pro.proofs)&&pro.proofs.find(x=>x.url))?pro.proofs.find(x=>x.url).url:(pro.x_url||null),
     p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]) });
   if(!force && body===lastPush) return;          /* 内容が同じなら通信しない */
-  await sbAuth("rpc/save_profile",{method:"POST",body});
+  await rpcTry("save_profile",JSON.parse(body),[["p_proofs"],["p_x"]]);
   lastPush=body;
 }
 const ADMIN_HINT="syuuto5107@gmail.com";
@@ -2510,9 +2530,9 @@ function editCup(id){
     if(!a||!b) return toast("日時を入れてください");
     if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
     try{
-      await sbAuth("rpc/update_tournament",{method:"POST",body:JSON.stringify({
+      await rpcTry("update_tournament",{
         p_id:c.id,p_title:q("#edTitle").value.trim(),p_note:q("#edNote").value.trim(),
-        p_starts:fromJstInput(a).toISOString(),p_ends:fromJstInput(b).toISOString()})});
+        p_starts:fromJstInput(a).toISOString(),p_ends:fromJstInput(b).toISOString()},[]);
       close(); toast("変更しました"); cupCache.rows=null; await loadCups(true);
       if(cupSel&&cupSel.id===c.id) openCup(c.id);
     }catch(e){ q("#edMsg").innerHTML=`<span class="lose">失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
@@ -2604,10 +2624,10 @@ $("#cCreate").onclick=async()=>{
   try{
     const w={}; evs.forEach(n=>{const el=$(`[data-cw="${CSS.escape(n)}"]`);
       w[n]=(cupMode==="score"&&el)?Math.max(num(el.value)||1,0.01):1;});
-    await sbAuth("rpc/create_tournament",{method:"POST",body:JSON.stringify({
+    await rpcTry("create_tournament",{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
-      p_note:$("#cNote").value.trim()})});
+      p_note:$("#cNote").value.trim()},[["p_mode","p_weights"]]);
     m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
     $("#cTitle").value="";$("#cNote").value="";
     cupEvents=new Set(); $("#cEvents").innerHTML=""; $("#cupNew").hidden=true; renderCupNew();
@@ -2818,8 +2838,9 @@ function entryForm(c,evs,dir,mine){
     const W=(c.mode==="score"&&c.weights)?c.weights:null;
     const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
     try{
-      await sbAuth("rpc/submit_entry",{method:"POST",body:JSON.stringify({
-        p_tid:c.id,p_scores:sc,p_total:tot,p_proof:pv.list.map(x=>x.url).join(" "),p_proofs:pv.list})});
+      await rpcTry("submit_entry",{
+        p_tid:c.id,p_scores:sc,p_total:tot,
+        p_proof:pv.list.map(x=>x.url).join(" "),p_proofs:pv.list},[["p_proofs"]]);
       toast("記録を提出しました"); openCup(c.id);
     }catch(e){ $("#enMsg").innerHTML=`<span class="lose">提出に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
   };
@@ -3230,15 +3251,29 @@ const K_GH="sa-gh-v1";
 let gh=ls(K_GH,{owner:"",repo:"",branch:"main",path:"data.json",token:""});
 const saveGh=()=>{try{localStorage.setItem(K_GH,JSON.stringify(gh));}catch(e){}};
 const ghReady=()=>!!(gh.owner&&gh.repo&&gh.token);
+let ghExp=null;   /* トークンの有効期限 */
 async function ghApi(path,opt){
   const r=await fetch("https://api.github.com/"+path,Object.assign({},opt,{headers:Object.assign({
     "Authorization":"Bearer "+gh.token,
     "Accept":"application/vnd.github+json",
     "X-GitHub-Api-Version":"2022-11-28"},(opt&&opt.headers)||{})}));
+  const exp=r.headers.get("github-authentication-token-expiration");
+  if(exp) ghExp=exp;
   const t=await r.text();
   let j=null; try{ j=JSON.parse(t); }catch(e){}
   if(!r.ok){ const e=new Error((j&&j.message)||t||("HTTP "+r.status)); e.status=r.status; throw e; }
   return j;
+}
+/** 期限が近ければ注意を返す */
+function ghExpNote(){
+  if(!ghExp) return "";
+  const d=new Date(ghExp.replace(" UTC","Z").replace(" ","T"));
+  if(isNaN(d)) return "";
+  const days=Math.floor((d-Date.now())/86400000);
+  const txt=`トークンの有効期限：${jstFull(d)}（あと ${days} 日）`;
+  return days<=14
+    ? `<br><span class="lose">${txt} — 期限が近いので、新しいトークンを作り直してください。</span>`
+    : `<br><span class="tiny">${txt}</span>`;
 }
 /** ファイルを1本コミットする */
 async function ghPut(path,content,message){
@@ -3397,12 +3432,15 @@ function devEditor(box,close){
       M.q("#ghMsg").innerHTML="確認中…";
       try{
         const j=await ghApi(`repos/${gh.owner}/${gh.repo}/contents/${gh.path}?ref=${gh.branch}`);
-        M.q("#ghMsg").innerHTML=`<span class="win">接続できました。${esc(gh.path)} が見つかりました（${jp(j.size||0)} バイト）。</span>`;
+        M.q("#ghMsg").innerHTML=`<span class="win">接続できました。${esc(gh.path)} が見つかりました（${jp(j.size||0)} バイト）。</span>`+ghExpNote();
       }catch(e){
         const m=String(e.message||e);
         M.q("#ghMsg").innerHTML=`<span class="lose">失敗：${esc(m).slice(0,200)}</span><br>`+
-          `<span class="tiny">${/Not Found/i.test(m)?"ユーザー名・リポジトリ名・ファイル名を確認してください。トークンの Repository access にこのリポジトリが含まれているかも確認を。"
-            :/Bad credentials/i.test(m)?"トークンが正しくありません。":"Contents の権限が Read and write になっているか確認してください。"}</span>`;
+          `<span class="tiny">${
+            /Not Found/i.test(m)?"ユーザー名・リポジトリ名・ファイル名を確認してください。トークン作成時に Repository access を「Only select repositories」にして、このリポジトリを選べているかも確認してください。"
+            :/Bad credentials/i.test(m)?"トークンが正しくありません。期限切れの可能性もあります。"
+            :/Resource not accessible|403/i.test(m)?"書き込み権限がありません。Permissions → Repository permissions → Contents を「Read and write」にしてください。"
+            :"Contents の権限が Read and write になっているか確認してください。"}</span>`;
       }};
   };
   box.querySelector("#dvGh").onclick=async()=>{
