@@ -82,10 +82,25 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wra
 .mnow{font-size:1.02rem;font-weight:700;letter-spacing:.04em}
 .mbadge{background:var(--bad);color:#fff;font-size:.72rem;font-weight:700;border-radius:999px;
   padding:2px 9px;box-shadow:0 0 14px -4px var(--bad)}
-.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;
   background:#0f1828;border:1px solid var(--line);
-  border-radius:13px;padding:8px;margin-bottom:16px;width:100%}
-@media(max-width:640px){ .tabs{grid-template-columns:1fr 1fr} }
+  border-radius:13px;padding:8px;margin-bottom:16px;width:100%;
+  overflow:hidden;max-height:0;opacity:0;padding-top:0;padding-bottom:0;margin-bottom:0;
+  transform:translateY(-6px);
+  transition:max-height .26s cubic-bezier(.3,.9,.3,1), opacity .2s ease,
+             transform .26s cubic-bezier(.3,.9,.3,1), padding .26s, margin .26s}
+.tabs.open{max-height:620px;opacity:1;padding-top:8px;padding-bottom:8px;margin-bottom:16px;transform:none}
+.tabs .grp{opacity:0;transform:translateY(-5px);transition:opacity .22s ease,transform .22s ease}
+.tabs.open .grp{opacity:1;transform:none}
+.tabs.open .grp:nth-child(1){transition-delay:.03s}
+.tabs.open .grp:nth-child(2){transition-delay:.06s}
+.tabs.open .grp:nth-child(3){transition-delay:.09s}
+.tabs.open .grp:nth-child(4){transition-delay:.12s}
+.tabs.open .grp:nth-child(5){transition-delay:.15s}
+@media(max-width:640px){ .tabs{grid-template-columns:1fr} }
+.grp{display:flex;flex-direction:column;gap:5px;background:#131c2b88;border:1px solid var(--line);
+  border-radius:11px;padding:8px}
+.ghead{font-size:.7rem;color:var(--acc);letter-spacing:.1em;font-weight:700;padding:2px 4px 4px}
 .tabs button{background:#16202f;border:1px solid transparent;color:var(--dim);font:inherit;font-size:.86rem;
   padding:11px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;text-align:center}
 .tabs button.on{background:linear-gradient(180deg,#31456610,#2b3d5a);color:var(--tx);
@@ -108,6 +123,21 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .prof{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
 @media(max-width:520px){.prof{grid-template-columns:1fr;justify-items:center;text-align:center}}
 .av,.avph{width:104px;height:104px;border-radius:50%;border:3px solid var(--line);display:block}
+/* 更新の新しさを示すリング */
+.ring{position:relative;display:inline-block;border-radius:50%;padding:3px;flex:0 0 auto}
+.ring::before{content:"";position:absolute;inset:0;border-radius:50%;padding:3px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;animation:spin 2.4s linear infinite}
+.ring.hot::before{background:conic-gradient(#ff2d55,#ff7b8a,#ffd0d8,#ff2d55,#a30f26,#ff2d55);
+  filter:drop-shadow(0 0 7px #ff2d5599)}
+.ring.warm::before{background:conic-gradient(#ffc861,#fff0b8,#ffa427,#ffc861);
+  filter:drop-shadow(0 0 6px #ffc86188);animation-duration:3.6s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.av.sm,.avph.sm{width:38px;height:38px;border-width:2px;font-size:.95rem}
+.av.md,.avph.md{width:52px;height:52px;border-width:2px;font-size:1.2rem}
+.nmcell{display:flex;align-items:center;gap:9px}
+.nmcell .txt{min-width:0}
 .av{object-fit:cover;background:#25324a}
 .avph{background:linear-gradient(135deg,#2b3a55,#1b2740);display:grid;place-items:center;
   font-size:2.4rem;font-weight:700;color:var(--dim)}
@@ -201,6 +231,8 @@ tr.sec td{background:linear-gradient(90deg,#22324a,#1a2536);color:var(--acc);fon
 tr.used{background:linear-gradient(90deg,#16291f,#16291f00)}
 tr.me{background:linear-gradient(90deg,#1b2b44,#1b2b4400);box-shadow:inset 3px 0 0 var(--acc)}
 .pct{color:var(--acc2);font-weight:600}
+tr.pending td{opacity:.72}
+.pendtag{color:#8b98ab;font-size:.72rem}
 .band{color:var(--dim);font-size:.75rem}
 .chk{color:var(--acc2);font-weight:700}
 .tgt{color:var(--warn);font-size:.8rem}
@@ -261,6 +293,8 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 .badge.bg-MASTER{box-shadow:0 0 24px -6px #ff7b8a;animation:shine 2s ease-in-out infinite}
 .badge.bg-TITAN{box-shadow:0 0 24px -6px #a98bff;animation:shine 2.6s ease-in-out infinite}
 .nm-RAINBOW{font-weight:800}
+.newrec{color:#ff5f6d !important;font-weight:800;text-shadow:0 0 10px #ff2d5599,0 0 3px #ff2d5566;
+  animation:shine 1.8s ease-in-out infinite}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
 .tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
 
@@ -294,21 +328,32 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <span class="mbadge" id="menuBadge" hidden>0</span>
 </div>
 <nav class="tabs" id="tabs" hidden>
-  <button data-tab="profile" class="on">ホーム</button>
-  <button data-tab="plan">プラン</button>
-  <button data-tab="ls">LSやりこみ</button>
-  <button data-tab="card">カード</button>
-  <button data-tab="input">入力</button>
-  <button data-tab="friends">フレンド</button>
-  <button data-tab="rank">ランキング</button>
-  <button data-tab="cup">大会</button>
-  <button data-tab="settings">設定</button>
+  <div class="grp" data-g="home"><div class="ghead">ホーム</div>
+    <button data-tab="profile" class="on">ホーム</button></div>
+  <div class="grp" data-g="me"><div class="ghead">個人データ</div>
+    <button data-tab="card">カード</button>
+    <button data-tab="input">個人データ入力</button></div>
+  <div class="grp" data-g="tool"><div class="ghead">ツール</div>
+    <button data-tab="plan">プラン</button>
+    <button data-tab="analysis">分析</button>
+    <button data-tab="ls">LSやりこみ</button>
+    <button data-tab="friends">フレンド</button></div>
+  <div class="grp" data-g="game"><div class="ghead">競技</div>
+    <button data-tab="rank">ランキング</button>
+    <button data-tab="cup">大会</button></div>
+  <div class="grp" data-g="set"><div class="ghead">設定</div>
+    <button data-tab="settings">設定</button></div>
 </nav>
 
 <div id="updBanner" class="banner" hidden style="background:#12351f;border-color:#2c7a4b">
   <span id="updMsg"></span>
   <button class="btn sm pri" id="updGo">今すぐ更新</button>
   <button class="btn sm" id="updLater">あとで</button>
+</div>
+<div id="friBanner" class="banner" hidden style="background:#1a2d4a;border-color:#3a6ea5">
+  <span id="friMsg"></span>
+  <button class="btn sm pri" id="friGo">入力しに行く</button>
+  <button class="btn sm" id="friX">閉じる</button>
 </div>
 <div id="errBanner" class="banner" hidden style="background:#3a1414;border-color:#7a2b2b">
   <span id="errMsg"></span><button class="btn sm" id="errClose">閉じる</button>
@@ -410,6 +455,28 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <input type="text" inputmode="numeric" id="decaTgt" style="max-width:140px">
       <button class="btn pri" id="decaGo">割り振る</button>
     </div>
+    <details style="margin-top:12px"><summary class="muted">伸ばす種目と「私の理論値」を決める</summary>
+      <p class="tiny" style="margin-top:6px">
+        チェックした種目だけを使います（未選択なら9種目すべて）。<br>
+        <b>私の理論値</b>は「これ以上は無理」と思う記録です。入れると、その値を超える提案はしません。</p>
+      <div class="frow" style="margin-top:8px">
+        <div><label class="fl">1回で上げる順位の割合</label>
+          <select id="decaPct" style="max-width:none">
+            <option value="0.15">15%（控えめ）</option>
+            <option value="0.30" selected>30%（標準）</option>
+            <option value="0.50">50%（意欲的）</option>
+          </select></div>
+        <div><label class="fl">1回の伸び幅の上限</label>
+          <select id="decaMax" style="max-width:none">
+            <option value="0.03">3%（かなり控えめ）</option>
+            <option value="0.05">5%</option>
+            <option value="0.10" selected>10%（標準）</option>
+            <option value="0.20">20%</option>
+            <option value="1">制限なし</option>
+          </select></div>
+      </div>
+      <div id="decaPicks" class="picks"></div>
+    </details>
     <div id="decaOut" style="margin-top:12px"></div>
   </div>
 
@@ -456,15 +523,39 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <div class="lsgrid2">
       <div class="lsbox"><div class="t">S値の予測</div><div class="v" id="lsSv">—</div>
-        <div class="s" id="lsSvNext">—</div></div>
+        <div class="s" id="lsSvNext">—</div>
+        <div class="s" id="lsSvGoal" style="color:var(--warn);margin-top:4px">—</div></div>
       <div class="lsbox"><div class="t">L値の予測</div><div class="v" id="lsLv">—</div>
-        <div class="s" id="lsLvNext">—</div></div>
+        <div class="s" id="lsLvNext">—</div>
+        <div class="s" id="lsLvGoal" style="color:var(--warn);margin-top:4px">—</div></div>
     </div>
   </div>
 
   <div class="card">
     <h2>やりこみ記録</h2>
     <div id="lsLog"></div>
+  </div>
+</section>
+
+<section id="analysis" hidden>
+  <div class="card">
+    <h2>記録更新の難易度</h2>
+    <p class="muted" style="margin-top:-8px">1・5・10・50・100・200位のボーダーの並びから、
+      その種目が「密集しているか、分散しているか」を測っています。<br>
+      <span class="tiny">密集した種目は少しの伸びで順位が大きく動き、分散した種目は順位を上げるのに大きな伸びが必要です。</span></p>
+    <div id="anaTable"></div>
+  </div>
+  <div class="card">
+    <h2>あなたの立ち位置</h2>
+    <p class="muted" style="margin-top:-8px">種目を選ぶと、順位とスコアの関係、そして自分の位置が見られます。</p>
+    <label class="fl">種目</label>
+    <select id="anaPick" style="max-width:260px"></select>
+    <div id="anaChart" style="margin-top:12px"></div>
+    <div id="anaInfo"></div>
+  </div>
+  <div class="card">
+    <h2>十種競技総合スコアの分析</h2>
+    <div id="anaDeca"></div>
   </div>
 </section>
 
@@ -507,7 +598,6 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div id="capWarn" class="lockbox" hidden style="margin-top:12px"></div>
     <div class="tools">
       <button class="btn" id="clear">入力をクリア</button>
-      <button class="btn" id="sample">サンプル値</button>
     </div>
   </div>
   <div class="card">
@@ -586,6 +676,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 </section>
 
 <section id="cup" hidden>
+  <div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
   <div class="card" id="cupNewBar" hidden>
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="cupNewBtn">＋ 大会を作成する</button>
@@ -615,7 +706,6 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div id="cMsg" class="tiny"></div>
   </div>
   <div class="card" id="myCupsCard" hidden><h2>自分が開催した大会</h2><div id="myCups"></div></div>
-  <div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
   <div id="cupDetail"></div>
 </section>
 
@@ -713,7 +803,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v23";
+const APP_VERSION = "v25";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -810,11 +900,14 @@ function totalRate(raw){
 }
 const logb=(v,b)=>Math.log(v)/Math.log(b);
 
-function compute(rc){
+function compute(rc,opt){
+  const pend=(opt&&opt.pending)||(typeof claims!=="undefined"?pendingSet():new Set());
   const rates={},bands={};
   const t=totalRate(rc["合計スコア"]||0);
   rates["合計スコア"]=t.r; bands["合計スコア"]=t.band;
-  for(const n of EVENTS){const e=eventRate(n,rc[n]||0); rates[n]=e.r; bands[n]=e.band;}
+  for(const n of EVENTS){
+    if(pend.has(n)&&rc[n]>0){ rates[n]=1; bands[n]="申請中（暫定1位）"; continue; }
+    const e=eventRate(n,rc[n]||0); rates[n]=e.r; bands[n]=e.band;}
   const top=(l,k)=>l.map(n=>rates[n]).sort((a,b)=>b-a).slice(0,k);
   const t2=top(CAT2,4), t3=top(CAT3,3);
   const pts=[6*rates["合計スコア"],2*t2.reduce((a,b)=>a+b,0),2*t3.reduce((a,b)=>a+b,0)];
@@ -925,6 +1018,105 @@ function makePlan(target,rc,pool,caps){
   return {steps,start,end:cur,reached:cur>=target-0.0015,exact:Math.abs(cur-target)<0.0015,use};
 }
 
+/* ---------- 難易度をふまえた「次の目標値」 ---------- */
+/** 記録から推定順位を出す。順位は対数で補間する（順位分布は指数的なため） */
+function estRank(n,v){
+  const B=DATA().borders[n]; if(!B||!(v>0)) return null;
+  const low=LOW.has(n);
+  const pts=IND_RANKS.slice().reverse().map(r=>({r,v:low?1/B[r]:B[r]}));   /* 1位→200位 */
+  const x=low?1/v:v;
+  if(x>=pts[0].v) return 1;
+  const last=pts[pts.length-1];
+  if(x<=last.v){
+    /* 200位より下は、100→200位の傾きをそのまま延長する */
+    const a=pts[pts.length-2], b=last;
+    const k=(Math.log(b.r)-Math.log(a.r))/(b.v-a.v||1);
+    return Math.min(99999,Math.round(Math.exp(Math.log(b.r)+k*(x-b.v))));
+  }
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i], b=pts[i+1];
+    if(x<=a.v&&x>=b.v){
+      const t=(a.v-x)/((a.v-b.v)||1);
+      return Math.max(1,Math.round(Math.exp(Math.log(a.r)+t*(Math.log(b.r)-Math.log(a.r)))));
+    }
+  }
+  return null;
+}
+/** 目標順位に必要な記録を逆算する */
+function recordForRank(n,rank){
+  const B=DATA().borders[n]; if(!B) return null;
+  const low=LOW.has(n);
+  const pts=IND_RANKS.slice().reverse().map(r=>({r,v:low?1/B[r]:B[r]}));
+  const R=Math.max(1,rank);
+  let x;
+  if(R<=1) x=pts[0].v;
+  else if(R>=pts[pts.length-1].r){
+    const a=pts[pts.length-2], b=pts[pts.length-1];
+    const k=(b.v-a.v)/((Math.log(b.r)-Math.log(a.r))||1);
+    x=b.v+k*(Math.log(R)-Math.log(b.r));
+  }else{
+    for(let i=0;i<pts.length-1;i++){
+      const a=pts[i], b=pts[i+1];
+      if(R>=a.r&&R<=b.r){
+        const t=(Math.log(R)-Math.log(a.r))/((Math.log(b.r)-Math.log(a.r))||1);
+        x=a.v+t*(b.v-a.v); break;
+      }
+    }
+  }
+  if(x===undefined) return null;
+  return low?1/x:x;
+}
+/** ユーザーが「ここまでなら伸ばせる」と決めた自分の理論値 */
+const K_MYMAX="sa-mymax-v1";
+let myMax=ls(K_MYMAX,{});
+const saveMyMax=()=>{try{localStorage.setItem(K_MYMAX,JSON.stringify(myMax));}catch(e){}};
+/** 自分の理論値を超えないように丸める */
+function clampMyMax(n,v){
+  const m=myMax[n];
+  if(!(m>0)) return v;
+  return LOW.has(n)?Math.max(v,m):Math.min(v,m);
+}
+/** 「順位を pct% 上げる」を共通の物差しにした、無理のない次の目標。
+ *  maxRel は1回の伸び幅の上限（既定10%）。自分の理論値も超えない。 */
+function stepTarget(n,rc,pct,maxRel){
+  const cur=rc[n]||0;
+  const B=DATA().borders[n]; if(!B) return null;
+  const p=(pct===undefined?0.30:pct);
+  const mx=(maxRel===undefined?0.10:maxRel);
+  const dec=Object.values(B).some(x=>!Number.isInteger(x))?3:0;
+  const step=Math.pow(10,-dec);
+  const now=estRank(n,cur);
+  if(cur<=0){
+    const req=clampMyMax(n,roundReq(n,B[200]));
+    return {from:0,req,fromRank:null,toRank:estRank(n,req),newRecord:false,capped:false};
+  }
+  const atMax=myMax[n]>0&&(LOW.has(n)?cur<=myMax[n]:cur>=myMax[n]);
+  if(atMax) return {from:cur,req:cur,fromRank:now,toRank:now,newRecord:false,done:true};
+  if(now<=1){
+    const req=clampMyMax(n,roundReq(n,LOW.has(n)?cur*0.995:cur*1.005));
+    return {from:cur,req,fromRank:1,toRank:1,newRecord:true,capped:false};
+  }
+  let tr=Math.max(1,Math.round(now*(1-p)));
+  if(tr>=now) tr=now-1;
+  let req=recordForRank(n,tr);
+  if(req===null) return null;
+  /* 1回の伸び幅を制限する */
+  const lim=LOW.has(n)?cur*(1-mx):cur*(1+mx);
+  let capped=false;
+  if(LOW.has(n)?req<lim:req>lim){ req=lim; capped=true; }
+  req=roundReq(n,req);
+  req=clampMyMax(n,req);
+  const better=LOW.has(n)?(req<cur):(req>cur);
+  if(!better) req=LOW.has(n)?+(cur-step).toFixed(dec):+(cur+step).toFixed(dec);
+  return {from:cur,req,fromRank:now,toRank:estRank(n,req),newRecord:estRank(n,req)<=1,capped};
+}
+/** 1位と200位の幅から見た「密集度」。小さいほど少しの伸びで順位が動く */
+function spreadOf(n){
+  const B=DATA().borders[n]; if(!B) return null;
+  const a=B[1], b=B[200];
+  return Math.abs(a-b)/Math.max(a,b);
+}
+
 /* =========================================================
    2. 小道具
    ========================================================= */
@@ -933,6 +1125,23 @@ const num=s=>{const v=parseFloat(String(s??"").replace(/[,\s　]/g,""));return i
 const f3=v=>v.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
 const pctf=v=>(v*100).toFixed(2)+"%";
 const jp=v=>v.toLocaleString("ja-JP");
+/** 「3日2時間15分前」のような相対表示 */
+function agoText(t){
+  const ms=Date.now()-new Date(t).getTime();
+  if(!isFinite(ms)) return "—";
+  if(ms<60000) return "たった今";
+  const d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000);
+  return (d?`${d}日`:"")+((d||h)?`${h}時間`:"")+`${m}分前`;
+}
+/** 更新の新しさ。3日以内=hot(赤)、7日以内=warm(黄) */
+function freshClass(t){
+  if(!t) return "";
+  const ms=Date.now()-new Date(t).getTime();
+  if(!isFinite(ms)||ms<0) return "";
+  if(ms<=3*86400000) return "hot";
+  if(ms<=7*86400000) return "warm";
+  return "";
+}
 /* 時刻はすべて日本標準時（JST）で表示する */
 const JST={timeZone:"Asia/Tokyo"};
 function jstDT(t){ const d=new Date(t); if(isNaN(d)) return "—";
@@ -949,6 +1158,13 @@ function toJstInput(t){ const d=new Date(t); if(isNaN(d)) return "";
 /* JSTとして入力された値を正しいUTC時刻に直す */
 function fromJstInput(v){ return new Date(v+"+09:00"); }
 const nice=v=>Number.isInteger(v)?jp(v):v.toLocaleString("ja-JP",{maximumFractionDigits:3});
+/** 種目に応じた表記。タイム系は必ず小数第3位まで */
+function fmtRec(n,v){
+  if(v===null||v===undefined||v==="") return "—";
+  const x=+v; if(!isFinite(x)) return "—";
+  if(LOW.has(n)) return x.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
+  return Number.isInteger(x)?jp(x):x.toLocaleString("ja-JP",{maximumFractionDigits:3});
+}
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function ratingParts(v){ const s=f3(v).replace(/,/g,""); const i=s.indexOf("."); return [s.slice(0,i),s.slice(i)]; }
 
@@ -1072,8 +1288,13 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
 const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
       K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
 let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:"",proofs:[]}, friends=[];
+const K_TIMES="sa-times-v1", K_BASE="sa-baseline-v1";
+let recTimes={}, baseline={done:false,at:0};
 const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
+recTimes=ls(K_TIMES,{}); baseline=ls(K_BASE,{done:false,at:0});
+const saveTimes=()=>{try{localStorage.setItem(K_TIMES,JSON.stringify(recTimes));
+  localStorage.setItem(K_BASE,JSON.stringify(baseline));}catch(e){}};
 let editKey=localStorage.getItem(K_EDIT); if(!editKey){editKey=rndHex(24);localStorage.setItem(K_EDIT,editKey);}
 let allowEmptySave=false;
 const K_BK="sa-backup-v3";
@@ -1138,6 +1359,16 @@ window.avNext=function(img){
   if(i<list.length){ img.dataset.i=i; img.src=list[i]; return; }
   img.outerHTML=`<div class="${img.dataset.cls}">${img.dataset.init}</div>`;
 };
+/** リング付きアイコン */
+/** 自分の最終更新（記録・L値・S値のいずれか） */
+function lastMineUpdate(){
+  const t=Object.values(recTimes||{});
+  return t.length?Math.max(...t):null;
+}
+function avatarRing(p,cls,updatedAt){
+  const f=freshClass(updatedAt);
+  return `<span class="ring ${f}">${avatarHTML(p,cls)}</span>`;
+}
 function avatarHTML(p,cls){
   const c=cls||"av", ph=(cls==="av"?"avph":"avph");
   const init=esc((p.name||p.handle||"?").trim()[0]||"?");
@@ -1162,8 +1393,13 @@ function render(){
         : (c.S===null?"—":`S値 ${f3(c.S)}　（log₂₅ ${logb(v,25).toFixed(4)} − 4.75）`);
       return;
     }
-    tr.querySelector("[data-r]").textContent=pctf(c.rates[n]);
-    tr.querySelector("[data-b]").textContent=c.bands[n];
+    const cl=claims[n];
+    const pend=cl&&cl.status!=="approved";
+    tr.querySelector("[data-r]").innerHTML=pend
+      ? `<span style="color:#8b98ab">100.00%</span>` : pctf(c.rates[n]);
+    tr.querySelector("[data-b]").innerHTML=pend
+      ? `<span style="color:#8b98ab">申請中</span>` : c.bands[n];
+    tr.classList.toggle("pending",!!pend);
     tr.querySelector("[data-p]").textContent=f3((n==="合計スコア"?6:2)*c.rates[n]);
     tr.querySelector("[data-c]").textContent=c.used[n]?"○":"";
     tr.classList.toggle("used",c.used[n]);
@@ -1171,7 +1407,7 @@ function render(){
     tr.querySelector("[data-t]").textContent=t?`${t.rank}位 ${nice(t.req)}`:"1位到達";
   });
   /* プロフィール */
-  $("#avwrap").innerHTML=avatarHTML(pro);
+  $("#avwrap").innerHTML=avatarRing(pro,"av",lastMineUpdate());
   $("#pname").innerHTML=nameHTML(pro.name||"プレイヤー名未設定", me?me.role:null);
   $("#phandle").innerHTML=(pro.handle?"@"+esc(pro.handle):"")+
     (pro.x_url?` 　<a href="${esc(pro.x_url)}" target="_blank" rel="noopener" class="tiny">記録の証明 ↗</a>`:"");
@@ -1292,6 +1528,246 @@ function renderGoals(){
   $("#goals").innerHTML=gh;
 }
 
+/* ---------- 世界記録（1位ボーダー超え）の申請 ---------- */
+const K_CLAIM="sa-claim-v1";
+let claims=ls(K_CLAIM,{});     /* {種目: {value, prev, border, at, id, status}} */
+let lastGood={};               /* 世界記録を超える前の記録 */
+const saveClaims=()=>{try{localStorage.setItem(K_CLAIM,JSON.stringify(claims));}catch(e){}};
+/** 1位ボーダーを超えているか（タイム系は下回っているか） */
+let claimTimer=null, claimAsked={};
+/** 入力が世界記録を超えていたら、少し待ってから申請を促す */
+let baseAsking=false;
+/** 全項目そろった新規ユーザーに、初期値の確認を出す */
+function checkBaseline(){
+  if(baseline.done||baseAsking) return;
+  if(ORDER.some(n=>!(rec[n]>0))) return;
+  baseAsking=true;
+  setTimeout(async()=>{
+    const ok=await askYN("この記録を初期値とします",
+      `全${ORDER.length}項目の入力が完了しました。<br>`+
+      `この内容を<b>あなたの初期値</b>として登録します。入力に間違いがないか確認してください。<br><br>`+
+      `<span class="tiny">初期値の登録後は、記録を更新するたびに更新日時が記録され、`+
+      `プロフィールで新しい記録が赤く光るようになります。</span>`,
+      "この内容で確定する","もう一度見直す");
+    baseAsking=false;
+    if(!ok) return;
+    baseline={done:true,at:Date.now()};
+    recTimes={}; saveTimes(); render();
+    toast("初期値を登録しました");
+  },600);
+}
+function maybeClaim(n){
+  if(!EVENTS.includes(n)) return;
+  clearTimeout(claimTimer);
+  claimTimer=setTimeout(()=>{
+    const v=rec[n]||0;
+    if(!isWorldRecord(n,v)){ if(claims[n]&&claims[n].status!=="approved"){ delete claims[n]; saveClaims(); render(); } return; }
+    if(claims[n]&&claims[n].value===v) return;
+    if(claimAsked[n]===v) return;
+    claimAsked[n]=v;
+    askClaim(n,v);
+  },1200);
+}
+async function askClaim(n,v){
+  const B=DATA().borders[n];
+  const prev=(claims[n]&&claims[n].prev!==undefined)?claims[n].prev:undefined;
+  const ok=await askYN("世界最高記録の更新です",
+    `<b>${esc(n)}</b> で <b>${fmtRec(n,v)}</b> を入力しました。<br>`+
+    `これは現在の1位ボーダー <b>${fmtRec(n,B[1])}</b> を超えています。<br><br>`+
+    `不正防止のため、<b>管理者への申請が必要</b>です。申請しますか？<br>`+
+    `<span class="tiny">申請中はランキングで灰色の「申請中」と表示され、`+
+    `プロフィールカードには申請前の記録が載ります。`+
+    `レート計算では暫定で満点（2.000点）として扱います。</span>`,
+    "申請する","いまはしない");
+  if(!ok) return;
+  const M=modal(`<h2>世界最高記録の申請</h2>
+    <p class="muted" style="margin-top:-8px">${esc(n)}　<b>${fmtRec(n,v)}</b>
+      （現在の1位 ${fmtRec(n,B[1])}）</p>
+    <label class="fl">記録のXリンク（任意ですが、あると承認が早くなります）</label>
+    <input type="text" class="txt" id="clUrl" placeholder="https://x.com/..." style="max-width:none">
+    <div class="tools"><button class="btn pri" id="clGo">申請する</button>
+      <button class="btn" id="clX">やめる</button></div>
+    <div id="clMsg" class="tiny"></div>`,{sticky:true});
+  M.q("#clX").onclick=M.close;
+  M.q("#clGo").onclick=async()=>{
+    const url=M.q("#clUrl").value.trim();
+    if(url&&!isXUrl(url)) return toast("X（x.com / twitter.com）のリンクを貼ってください");
+    claims[n]={value:v,prev:prev!==undefined?prev:(claims[n]?claims[n].prev:undefined),
+               border:B[1],at:Date.now(),status:"pending",url};
+    if(claims[n].prev===undefined) claims[n].prev=lastGood[n]||0;
+    saveClaims();
+    if(sess&&sbOn()){
+      try{
+        const id=await sbAuth("rpc/submit_record_claim",{method:"POST",body:JSON.stringify({
+          p_event:n,p_value:v,p_prev:claims[n].prev||null,p_border:B[1],p_proof:url||null})});
+        claims[n].id=(typeof id==="string")?id:(id&&id[0])||null; saveClaims();
+        M.close(); render(); toast("申請しました。管理者の確認をお待ちください");
+        return;
+      }catch(e){ M.q("#clMsg").innerHTML=`<span class="lose">送信に失敗しました：${esc(String(e.message||e)).slice(0,160)}</span>`; return; }
+    }
+    M.close(); render(); toast("この端末に申請を記録しました（送信にはログインが必要です）");
+  };
+}
+function isWorldRecord(n,v){
+  const B=DATA().borders[n]; if(!B||!(v>0)) return false;
+  return LOW.has(n)? v<B[1] : v>B[1];
+}
+/** 申請中の種目は、レート計算では上限（100%）として扱う */
+function pendingSet(){
+  const s=new Set();
+  for(const n of Object.keys(claims)) if(claims[n]&&claims[n].status!=="approved") s.add(n);
+  return s;
+}
+/** 申請中の記録を除いた「証明済みの記録」 */
+function verifiedRec(){
+  const r=Object.assign({},rec);
+  for(const n of Object.keys(claims)){
+    const c=claims[n];
+    if(c&&c.status!=="approved"&&c.prev!==undefined) r[n]=c.prev;
+  }
+  return r;
+}
+
+
+/* =========================================================
+   5b. 分析
+   ========================================================= */
+/** 記録更新の難易度。18種目の中での相対位置で 0(易)〜100(難) に並べる */
+let _diffCache=null, _diffKey="";
+function difficultyAll(){
+  const key=DATA().date+"|"+EVENTS.length;
+  if(_diffCache&&_diffKey===key) return _diffCache;
+  const raw=EVENTS.map(n=>{
+    const B=DATA().borders[n];
+    if(!B) return {n,spread:0,lift:0};
+    const spread=spreadOf(n);
+    const base=B[50], v2=LOW.has(n)?base*0.99:base*1.01;
+    const r1=estRank(n,base), r2=estRank(n,v2);
+    return {n,spread,lift:(r1&&r2)?Math.max(r1-r2,0):0};
+  });
+  /* 「1%伸ばしたときに上がる順位」が少ないほど更新は大変。その順位で並べる */
+  const order=raw.slice().sort((a,b)=>b.lift-a.lift);   /* 上がりやすい順 */
+  const out={};
+  order.forEach((x,i)=>{
+    const score=Math.round(i/(order.length-1)*100);
+    out[x.n]={spread:x.spread,lift:x.lift,score,
+      label:score<25?"やさしい":score<50?"ふつう":score<75?"むずかしい":"とてもむずかしい"};
+  });
+  _diffCache=out; _diffKey=key;
+  return out;
+}
+function difficulty(n){ return difficultyAll()[n]||null; }
+function anaTable(){
+  const rows=EVENTS.map(n=>({n,d:difficulty(n),r:estRank(n,rec[n]||0)}))
+    .filter(x=>x.d).sort((a,b)=>a.d.score-b.d.score);
+  return `<div class="scroll"><table><thead><tr><th>種目</th><th>更新の難易度</th>`+
+    `<th>1位〜200位の幅</th><th>1%伸ばすと</th><th>あなたの推定順位</th></tr></thead><tbody>`+
+    rows.map(x=>{
+      const w=Math.min(100,x.d.score);
+      const col=x.d.score<20?"var(--acc2)":x.d.score<45?"var(--warn)":x.d.score<70?"#ff9f6b":"var(--bad)";
+      return `<tr><td>${x.n}${LOW.has(x.n)?' <span class="tiny">(秒)</span>':""}</td>`+
+        `<td><div style="display:flex;align-items:center;gap:8px">`+
+        `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${w}%;background:${col}"></i></span>`+
+        `<span class="tiny" style="color:${col};white-space:nowrap">${x.d.label}</span></div></td>`+
+        `<td class="tiny">${(x.d.spread*100).toFixed(1)}%</td>`+
+        `<td class="tiny">約 ${jp(x.d.lift)} 位上がる</td>`+
+        `<td>${x.r?`<b>${jp(x.r)}</b> 位相当`:"—"}</td></tr>`;}).join("")+
+    `</tbody></table></div>`;
+}
+/** なめらかな折れ線（Catmull-Rom をベジェに変換） */
+function smoothPath(pts){
+  if(pts.length<2) return "";
+  let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6];
+    const c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6];
+    d+=` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+function anaChart(n){
+  const B=DATA().borders[n]; if(!B) return "";
+  const W=680,H=300,L=64,R=18,T=18,Bt=44;
+  const ranks=[1,5,10,50,100,200];
+  const vals=ranks.map(r=>B[r]);
+  const lo=Math.min(...vals), hi=Math.max(...vals);
+  const cur=rec[n]||0;
+  const yMin=Math.min(lo,cur>0?cur:lo)*0.985, yMax=Math.max(hi,cur>0?cur:hi)*1.015;
+  const X=r=>L+(Math.log(r)/Math.log(200))*(W-L-R);
+  const Y=v=>T+(1-(v-yMin)/((yMax-yMin)||1))*(H-T-Bt);
+  const pts=ranks.map(r=>[X(r),Y(B[r])]);
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:${W}px"
+    xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(n)}の順位とスコアの関係">`;
+  /* 目盛り */
+  for(let i=0;i<=4;i++){ const y=T+i*(H-T-Bt)/4, v=yMax-(yMax-yMin)*i/4;
+    g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#ffffff12"/>`+
+       `<text x="${L-8}" y="${y+4}" text-anchor="end" fill="#61748f" style="font:400 11px ui-monospace,monospace">${esc(fmtRec(n,+v.toFixed(LOW.has(n)?3:0)))}</text>`;}
+  ranks.forEach(r=>{ g+=`<line x1="${X(r)}" y1="${T}" x2="${X(r)}" y2="${H-Bt}" stroke="#ffffff0c"/>`+
+    `<text x="${X(r)}" y="${H-Bt+18}" text-anchor="middle" fill="#61748f" style="font:400 11px ui-sans-serif">${r}位</text>`;});
+  /* 曲線 */
+  g+=`<path d="${smoothPath(pts)}" fill="none" stroke="#4da3ff" stroke-width="2.5" stroke-linecap="round"/>`;
+  pts.forEach((p,i)=>g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#0d1220" stroke="#4da3ff" stroke-width="2"/>`);
+  /* 自分の位置 */
+  if(cur>0){
+    const r=Math.max(1,Math.min(200,estRank(n,cur)||200));
+    const x=X(r), y=Y(cur);
+    g+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="#57e0a0" stroke-width="1.5" stroke-dasharray="5 4"/>`+
+       `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="#57e0a0"/>`+
+       `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" fill="none" stroke="#57e0a066" stroke-width="2"/>`+
+       `<text x="${Math.min(x+16,W-R-90).toFixed(1)}" y="${(y-12).toFixed(1)}" fill="#57e0a0"
+          style="font:700 13px ui-sans-serif">あなた ${esc(fmtRec(n,cur))}</text>`;
+  }
+  g+=`<text x="${W/2}" y="${H-8}" text-anchor="middle" fill="#61748f" style="font:400 11px ui-sans-serif">順位（対数）</text>`;
+  return g+"</svg>";
+}
+function renderAnalysis(){
+  if(!$("#anaTable")) return;
+  $("#anaTable").innerHTML=anaTable();
+  const sel=$("#anaPick");
+  if(!sel.innerHTML) sel.innerHTML=EVENTS.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  const n=sel.value||EVENTS[0]; sel.value=n;
+  $("#anaChart").innerHTML=anaChart(n);
+  const d=difficulty(n), r=estRank(n,rec[n]||0), t=stepTarget(n,rec,decaPct,decaMax);
+  $("#anaInfo").innerHTML=
+    `<div class="stats" style="margin-top:12px">
+      <div class="stat"><div class="t">いまの記録</div><div class="v">${rec[n]>0?fmtRec(n,rec[n]):"—"}</div>
+        <div class="s">${r?jp(r)+"位相当":"未入力"}</div></div>
+      <div class="stat"><div class="t">更新の難易度</div><div class="v">${d?d.label:"—"}</div>
+        <div class="s">1位〜200位の幅 ${d?(d.spread*100).toFixed(1):"—"}%</div></div>
+      <div class="stat"><div class="t">次の目標</div><div class="v">${t?fmtRec(n,t.req):"—"}</div>
+        <div class="s">${t&&t.toRank?jp(t.toRank)+"位相当（推定）":""}</div></div>
+    </div>`;
+}
+function renderAnaDeca(){
+  const box=$("#anaDeca"); if(!box) return;
+  const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
+  const tb=DATA().totalBorders;
+  const rows=DECA.map(n=>({n,v:rec[n]||0,d:difficulty(n),r:estRank(n,rec[n]||0)}));
+  const share=rows.map(x=>({...x,p:cur>0?x.v/cur*100:0})).sort((a,b)=>b.p-a.p);
+  const rank=(()=>{ const ks=Object.keys(tb).map(Number).sort((a,b)=>a-b);
+    for(const k of ks) if(cur>=tb[k]) return k; return null; })();
+  return box.innerHTML=
+    `<div class="stats"><div class="stat"><div class="t">いまの合計</div><div class="v">${jp(cur)}</div>
+      <div class="s">${rank?rank+"位以内":"1000位圏外"}</div></div>
+     <div class="stat"><div class="t">1位ボーダー</div><div class="v">${jp(tb[1])}</div>
+      <div class="s">あと ${jp(Math.max(tb[1]-cur,0))}</div></div>
+     <div class="stat"><div class="t">伸ばしやすい種目</div>
+      <div class="v" style="font-size:1.1rem">${esc(rows.slice().sort((a,b)=>a.d.score-b.d.score)[0].n)}</div>
+      <div class="s">難易度がいちばん低い</div></div></div>`+
+    `<h3>合計に占める割合</h3>`+
+    `<div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>割合</th>`+
+    `<th>推定順位</th><th>更新の難易度</th></tr></thead><tbody>`+
+    share.map(x=>`<tr><td>${x.n}</td><td>${x.v>0?jp(x.v):"—"}</td>`+
+      `<td><div style="display:flex;align-items:center;gap:8px">`+
+      `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${x.p.toFixed(1)}%"></i></span>`+
+      `<span class="tiny">${x.p.toFixed(1)}%</span></div></td>`+
+      `<td>${x.r?jp(x.r)+"位":"—"}</td>`+
+      `<td class="tiny">${x.d.label}</td></tr>`).join("")+
+    `</tbody></table></div>`+
+    `<p class="tiny">割合が小さく、難易度が低い種目ほど「伸ばす余地が大きくて楽」な種目です。</p>`;
+}
+
 /* =========================================================
    6. 入力イベント
    ========================================================= */
@@ -1337,7 +1813,17 @@ function fillInputs(){
 }
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.in){
-    applyComma(t); rec[t.dataset.in]=num(t.value);
+    applyComma(t);
+    { const nm=t.dataset.in, nv=num(t.value), ov=rec[nm]||0;
+      if(!isWorldRecord(nm,nv)&&nv>0) lastGood[nm]=nv;
+      /* 初期値の確認が済んだあとの「更新」だけを記録する */
+      if(baseline.done&&nv>0&&ov>0&&nv!==ov){
+        const better=LOW.has(nm)?nv<ov:nv>ov;
+        if(better){ recTimes[nm]=Date.now(); saveTimes(); }
+      }
+      rec[nm]=nv; }
+    checkBaseline();
+    maybeClaim(t.dataset.in);
     if(DECA.includes(t.dataset.in)){
       const a=autoTotal();
       if(a!==null){ rec["合計スコア"]=a;
@@ -1355,7 +1841,6 @@ $("#clear").onclick=async()=>{
     `<span class="tiny">設定タブの「バックアップを保存」で控えを取れます。</span>`,"消す")) return;
   allowEmptySave=true; rec={}; fillInputs(); render(); allowEmptySave=false;
   toast("入力をクリアしました");};
-$("#sample").onclick=()=>{rec=Object.assign({},SAMPLE);fillInputs();render();toast("サンプル値を入力しました");};
 $("#useX").onclick=()=>{const h=$("#ph").value.replace(/^@/,"").trim();
   if(!h) return toast("先に @ID を入力してください");
   pro.handle=h;pro.img="";if(!pro.name){pro.name=h;$("#pn").value=h;}
@@ -1400,13 +1885,19 @@ $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 function goTab(name){const b=document.querySelector(`.tabs button[data-tab="${name}"]`); if(b) b.click();}
 function toggleMenu(open){
   const t=$("#tabs"), b=$("#menuBtn");
-  const show=(open===undefined)?t.hidden:open;
-  t.hidden=!show; b.classList.toggle("on",show);
+  const show=(open===undefined)?!t.classList.contains("open"):open;
+  t.hidden=false;
+  b.classList.toggle("on",show);
+  if(show){ t.classList.add("open"); }
+  else{
+    t.classList.remove("open");
+    clearTimeout(t._t); t._t=setTimeout(()=>{ if(!t.classList.contains("open")) t.hidden=true; },260);
+  }
 }
 $("#menuBtn").onclick=()=>toggleMenu();
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","ls","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
@@ -1415,7 +1906,8 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); }
   if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
-  if(b.dataset.tab==="plan"){ renderPicks(); renderGoals();
+  if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
+  if(b.dataset.tab==="plan"){ renderPicks(); renderGoals(); renderDecaPicks();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="cup") loadCups();
@@ -1456,6 +1948,35 @@ $("#pkNone").onclick=()=>{picked=new Set();caps={};renderPicks();};
 $("#pkWeak").onclick=()=>{const c=compute(rec);
   picked=new Set(PLAN_POOL.slice().sort((a,b)=>c.rates[a]-c.rates[b]).slice(0,5));renderPicks();};
 
+function renderDecaPicks(){
+  const box=$("#decaPicks"); if(!box) return;
+  box.innerHTML=DECA.map(n=>{
+    const t=stepTarget(n,rec,decaPct,decaMax);
+    const sp=spreadOf(n);
+    return `<label class="pk ${decaPool.includes(n)?"on":""}" style="flex-wrap:wrap">
+      <input type="checkbox" data-dp="${esc(n)}" ${decaPool.includes(n)?"checked":""}>
+      <span style="flex:1">${n}</span>
+      <span class="v">${t&&t.fromRank?jp(t.fromRank)+"位":"—"}</span>
+      <span style="flex-basis:100%;display:flex;align-items:center;gap:6px;margin-top:6px">
+        <span class="tiny">私の理論値</span>
+        <input type="text" inputmode="decimal" data-dm="${esc(n)}" placeholder="未設定"
+          value="${myMax[n]>0?commaFmt(String(myMax[n])):""}" style="width:110px;max-width:110px;padding:3px 6px">
+        <span class="tiny" style="margin-left:auto">${sp<0.05?"密集":sp<0.15?"標準":"分散"}</span>
+      </span></label>`;}).join("");
+  $$("[data-dp]").forEach(el=>el.onchange=()=>{
+    const n=el.dataset.dp;
+    if(el.checked){ if(!decaPool.includes(n)) decaPool.push(n); }
+    else decaPool=decaPool.filter(x=>x!==n);
+    el.closest(".pk").classList.toggle("on",el.checked);});
+  $$("[data-dm]").forEach(el=>{
+    el.onclick=e=>e.preventDefault();
+    el.oninput=()=>{ applyComma(el); const v=num(el.value);
+      if(v>0) myMax[el.dataset.dm]=v; else delete myMax[el.dataset.dm];
+      saveMyMax(); };});
+}
+$("#anaPick").onchange=renderAnalysis;
+$("#decaPct").onchange=()=>{decaPct=+$("#decaPct").value;renderDecaPicks();};
+$("#decaMax").onchange=()=>{decaMax=+$("#decaMax").value;renderDecaPicks();};
 $("#decaGo").onclick=()=>{
   const t=num($("#decaTgt").value);
   if(!(t>0)) return toast("目標の合計スコアを入れてください");
@@ -1505,6 +2026,7 @@ $("#doPlan").onclick=()=>{
 /** 十種競技総合スコアの伸ばし方。
  *  理論値ではなく「次のボーダーラインまであと何点か」を見て、
  *  到達しやすい（必要な伸び率が小さい）種目から順に積み上げる。 */
+let decaPool=[], decaPct=0.30, decaMax=0.10;
 function decaPlan(targetTotal){
   const work=Object.assign({},rec);
   let cur=DECA.reduce((a,n)=>a+(work[n]||0),0);
@@ -1513,8 +2035,8 @@ function decaPlan(targetTotal){
   const save=wIdx;
   for(let i=0;i<80&&cur<targetTotal;i++){
     let best=null;
-    for(const n of DECA){
-      const t=nextTargetFor(n,work); if(!t) continue;
+    for(const n of (decaPool.length?decaPool:DECA)){
+      const t=stepTarget(n,work,decaPct,decaMax); if(!t||t.done) continue;
       const v=work[n]||0, gap=t.req-v;
       if(gap<=0) continue;
       const rel=v>0?gap/v:1;
@@ -1526,7 +2048,8 @@ function decaPlan(targetTotal){
       steps.push({n:best.n,from:best.v,add:remain,to:best.v+remain,rank:null,partial:true,rel:remain/(best.v||1)});
       work[best.n]=best.v+remain; cur=targetTotal; break;
     }
-    steps.push({n:best.n,from:best.v,add:best.gap,to:best.t.req,rank:best.t.rank,rel:best.rel});
+    steps.push({n:best.n,from:best.v,add:best.gap,to:best.t.req,rank:best.t.toRank,
+                fromRank:best.t.fromRank,rel:best.rel,capped:best.t.capped});
     work[best.n]=best.t.req; cur+=best.gap;
   }
   /* 種目ごとに集約（順番＝到達しやすい順） */
@@ -1552,20 +2075,29 @@ function nextTargetFor(n,rc){
 function decaHTML(targetTotal){
   const d=decaPlan(targetTotal);
   if(d.need<=0) return `<p class="muted">十種競技総合スコアは既に目標に届いています（現在 ${jp(d.cur)}）。</p>`;
-  if(!d.agg.length) return `<p class="muted">9種目すべてが1位ボーダーに到達しているため、これ以上の提案はありません。</p>`;
+  if(!d.agg.length) return `<p class="muted">対象の種目がすべて上限に達しています。`+
+    `<br><span class="tiny">「私の理論値」を上げるか、対象の種目を増やしてください。</span></p>`;
+  const diff=n=>{const sp=spreadOf(n);
+    return sp<0.05?["密集","少しの伸びで順位が動きます"]
+         :sp<0.15?["標準",""]
+         :["分散","順位を上げるには大きめの伸びが必要です"];};
   return `<p class="muted">現在 <b>${jp(d.cur)}</b> → 目標 <b>${jp(targetTotal)}</b>（あと <b>${jp(d.need)}</b> 点）`+
-    `${d.ok?"":` <span class="lose">※9種目すべて1位ボーダーでも ${jp(d.end)} 点までです</span>`}</p>`+
-    `<p class="tiny">次のボーダーラインまでの距離が近い順です。上から片付けるのがいちばん楽に総合スコアを伸ばせます。</p>`+
-    `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>次のボーダー</th>`+
-    `<th>必要な伸び</th><th>到達後</th></tr></thead><tbody>`+
-    d.agg.map((r,i)=>`<tr class="used"><td>${i+1}</td><td>${r.n}</td>`+
-      `<td>${r.from>0?jp(r.from):"—"}</td>`+
-      `<td>${r.rank?`<b>${jp(r.to)}</b><br><span class="tiny">${r.rank}位ボーダー${r.hops>1?`（${r.hops}段階）`:""}</span>`
-                   :`<b>${jp(r.to)}</b><br><span class="tiny">目標到達に必要な分だけ</span>`}</td>`+
-      `<td class="pct">＋${jp(r.add)}<br><span class="tiny">${r.from>0?(r.add/r.from*100).toFixed(1)+"%":"—"}</span></td>`+
-      `<td class="tgt">${pctf(eventRate(r.n,r.to).r)}</td></tr>`).join("")+
-    `</tbody></table></div>`+
-    `<p class="tiny">いちばん右は、その記録に到達したときのその種目のレート割合です。</p>`;
+    `${d.ok?"":` <span class="lose">※この条件では ${jp(d.end)} 点までです</span>`}</p>`+
+    `<p class="tiny">「順位を${Math.round(decaPct*100)}%上げる」を共通の物差しにして、`+
+    `1回の伸びは最大${Math.round(decaMax*100)}%までに抑えています。`+
+    `1位ボーダーをいきなり求めるような提案はしません。<br><b>順位はすべて、ボーダーラインから計算した推定値です。</b>実際の順位とは前後します。</p>`+
+    `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>いまの記録</th>`+
+    `<th>次の目標</th><th>必要な伸び</th><th>推定順位の変化</th><th>性質</th></tr></thead><tbody>`+
+    d.agg.map((r,i)=>{const [lb,note]=diff(r.n);
+      return `<tr class="used"><td>${i+1}</td><td>${r.n}`+
+      `${myMax[r.n]>0?`<br><span class="tiny">私の理論値 ${fmtRec(r.n,myMax[r.n])}</span>`:""}</td>`+
+      `<td>${r.from>0?fmtRec(r.n,r.from):"—"}${r.fromRank?`<br><span class="tiny">推定 ${jp(r.fromRank)}位</span>`:""}</td>`+
+      `<td><b>${fmtRec(r.n,r.to)}</b>${r.rank?`<br><span class="tiny">推定 ${jp(r.rank)}位</span>`:""}</td>`+
+      `<td class="pct">＋${fmtRec(r.n,r.add)}<br><span class="tiny">${r.from>0?(r.add/r.from*100).toFixed(2)+"%":"—"}`+
+      `${r.capped?"（上限まで）":""}</span></td>`+
+      `<td class="tgt">${r.fromRank&&r.rank?`${jp(r.fromRank)} → ${jp(r.rank)}位`:"—"}<br><span class="tiny">推定値</span></td>`+
+      `<td class="tiny" title="${esc(note)}">${lb}</td></tr>`;}).join("")+
+    `</tbody></table></div>`;
 }
 
 /* =========================================================
@@ -1616,20 +2148,31 @@ function renderFriends(){
     .sort((a,b)=>(b.c.complete?b.c.total:-1)-(a.c.complete?a.c.total:-1));
   $("#frList").innerHTML = friends.length===0
     ? `<p class="muted">まだフレンドがいません。上の欄に共有リンクを貼って登録してください。</p>`
-    : `<div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th><th></th></tr></thead><tbody>`+
-      list.map((x,n)=>`<tr class="${x.i===-1?"me":""}"><td>${n+1}</td>`+
-        `<td>${x.i>=0?`<a href="#" data-fp="${x.i}" style="text-decoration:none">`:""}`+
+    : `<div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th><th>RATING</th><th>ランク</th></tr></thead><tbody>`+
+      list.map((x,n)=>{
+        const at=x.i===-1?Date.now():(friends[x.i]&&friends[x.i].at);
+        return `<tr class="${x.i===-1?"me":""}"><td>${n+1}</td>`+
+        `<td><div class="nmcell">${avatarRing(x.pro,"av sm",at)}<div class="txt">`+
+        `${x.i>=0?`<a href="#" data-fp="${x.i}" style="text-decoration:none">`:""}`+
         `${nameHTML(x.pro.name||x.pro.handle||"名無し", x.i===-1&&me?me.role:x.pro.role)}`+
         `${x.i>=0?"</a>":""}${x.i===-1?" <span class='tiny'>(自分)</span>":""}`+
-        `${x.pro.handle?`<br><span class="tiny">@${esc(x.pro.handle)}</span>`:""}</td>`+
+        `${x.pro.handle?`<br><span class="tiny">@${esc(x.pro.handle)}</span>`:""}`+
+        `${at?`<br><span class="tiny" style="color:var(--dim2)">${agoText(at)}</span>`:""}`+
+        `${x.i>=0?`<div class="tools" style="margin-top:5px;gap:5px">`+
+          `<button class="btn sm" data-cmp="${x.i}">比較</button>`+
+          `<button class="btn sm" data-del="${x.i}">削除</button></div>`:""}`+
+        `</div></div></td>`+
         `<td>${x.c.complete?f3(x.c.total):"—"}</td>`+
         `<td style="color:${x.c.complete?rankOf(x.c.total).c:"var(--dim)"}">${x.c.complete?rankOf(x.c.total).n:"未完成"}</td>`+
-        `<td>${x.i>=0?`<button class="btn sm" data-cmp="${x.i}">比較</button> <button class="btn sm" data-del="${x.i}">削除</button>`:""}</td></tr>`).join("")+
+        `</tr>`;}).join("")+
       `</tbody></table></div>`;
   $$("[data-fp]").forEach(a=>a.onclick=e=>{ e.preventDefault();
     const f=friends[+a.dataset.fp];
-    showPlayer(Object.assign({},f.pro,{updated_at:f.at?new Date(f.at).toISOString():null}),f.rec);});
+    const times={}; (f.log||[]).forEach(e=>{ if(!times[e.n]||e.at>times[e.n]) times[e.n]=e.at; });
+    showPlayer(Object.assign({},f.pro,{updated_at:f.at?new Date(f.at).toISOString():null,
+      times,baseline:(f.log||[]).length>0}),f.rec);});
   $$("[data-cmp]").forEach(b=>b.onclick=()=>renderCompare(friends[+b.dataset.cmp]));
+  wireProofs();
   $$("[data-del]").forEach(b=>b.onclick=()=>{friends.splice(+b.dataset.del,1);render();toast("削除しました");});
 }
 function renderCompare(op,sel){
@@ -1826,14 +2369,16 @@ function cardBase(g,W,H,rk){
 }
 function drawCard(){ cardBusy=(cardBusy||Promise.resolve()).then(drawCardNow).catch(e=>console.error(e)); return cardBusy; }
 async function drawCardNow(){
-  const cv=$("#cardCanvas"), g=cv.getContext("2d"), W=1200,H=630, c=compute(rec);
+  const cv=$("#cardCanvas"), g=cv.getContext("2d"), W=1200,H=630;
+  const shown=verifiedRec();                    /* 申請中の記録は載せない */
+  const c=compute(shown,{pending:new Set()});
   const rk=c.complete?rankOf(c.total):null;
   const F=(w,s)=>`${w} ${s}px ${FONTS}`;
   cardBase(g,W,H,rk);
   g.textAlign="left";g.textBaseline="alphabetic";
   if(g.letterSpacing!==undefined) g.letterSpacing="0px";
 
-  if(cardSide==="back"){ drawBack(g,W,H,c,rk,F); return; }
+  if(cardSide==="back"){ drawBack(g,W,H,c,rk,F,shown); return; }
 
   /* ---- 表面 ---- */
   let img=null;
@@ -1884,9 +2429,10 @@ async function drawCardNow(){
   else { g.fillStyle="#8ba0bd";g.font=F(400,24);
     g.fillText(`未入力 ${c.missing.length} 項目`,82,486); }
 
-  const box=[["十種競技総合スコア",rec["合計スコア"]>0?jp(rec["合計スコア"]):"—",""],
-             ["L値",c.L===null?"—":f3(c.L),rec["乱数累積"]>0?"乱数累積 "+jp(rec["乱数累積"]):""],
-             ["S値",c.S===null?"—":f3(c.S),rec["スコア累積"]>0?"スコア累積 "+jp(rec["スコア累積"]):""],
+  const nPend=Object.keys(claims).filter(k=>claims[k]&&claims[k].status!=="approved").length;
+  const box=[["十種競技総合スコア",shown["合計スコア"]>0?jp(shown["合計スコア"]):"—",""],
+             ["L値",c.L===null?"—":f3(c.L),shown["乱数累積"]>0?"乱数累積 "+jp(shown["乱数累積"]):""],
+             ["S値",c.S===null?"—":f3(c.S),shown["スコア累積"]>0?"スコア累積 "+jp(shown["スコア累積"]):""],
              ["大会成績", MY_CUP?`${MY_CUP.wins} 優勝`:"—",
               MY_CUP?`参加 ${MY_CUP.played} 回／3位以内 ${MY_CUP.podium} 回`:""]];
   box.forEach((b,i)=>{const x=660,y=(pro.bio?226:238)+i*74;
@@ -1900,10 +2446,11 @@ async function drawCardNow(){
   g.fillText("素数あつめ RATING",80,570);
   g.textAlign="right";g.fillText(`ボーダー ${DATA().date} 時点`,W-80,570);
   g.textAlign="left";
-  $("#cardNote").textContent=c.complete?"":"※ 全項目を入力するとRATINGが表示されます。";
+  $("#cardNote").textContent=(c.complete?"":"※ 全項目を入力するとRATINGが表示されます。")+
+    (nPend?`　※ 申請中の記録 ${nPend} 件は、承認されるまでカードには載りません。`:"");
 }
 /* ---- 裏面：18種目の記録とレート値 ---- */
-function drawBack(g,W,H,c,rk,F){
+function drawBack(g,W,H,c,rk,F,shown){
   g.fillStyle="#eef3fa";g.font=F(700,32);
   g.fillText((pro.name||"NO NAME").slice(0,16),80,64);
   g.fillStyle="#8ba0bd";g.font=F(400,20);
@@ -1923,7 +2470,7 @@ function drawBack(g,W,H,c,rk,F){
     y+=12;
     for(const n of col.list){
       y+=38;
-      const v=rec[n]||0, r=c.rates[n], used=c.used[n];
+      const v=shown[n]||0, r=c.rates[n], used=c.used[n];
       g.fillStyle=used?"#ffffff0e":"#ffffff06";rrect(g,col.x,y-24,480,32,7);g.fill();
       g.fillStyle=used?"#eef3fa":"#8ba0bd";g.font=F(used?600:400,17);
       g.fillText(n.length>13?n.slice(0,13)+"…":n,col.x+10,y-2);
@@ -2014,12 +2561,35 @@ function checkProofs(list,needs){
   if(noChk.length) return {ok:false,msg:"どの記録も選ばれていないリンクがあります。チェックを入れるか、リンクを削除してください。"};
   return {ok:true,list:used};
 }
+let PROOF_BOX=[];
 function proofsHTML(list,fallback){
   const arr=normProofs(list,fallback).filter(p=>p.url);
   if(!arr.length) return "—";
-  return arr.map((p,i)=>`<a href="${esc(p.url)}" target="_blank" rel="noopener" `+
-    `title="${esc(p.events.join("、")||"対象未指定")}">証明${arr.length>1?i+1:""}</a>`+
-    (p.events.length?`<span class="tiny">(${esc(p.events.join("、"))})</span>`:"")).join(" ");
+  const i=PROOF_BOX.length; PROOF_BOX.push(arr);
+  return `<button class="btn sm" data-pf="${i}">証明${arr.length>1?`（${arr.length}）`:""}</button>`;
+}
+/** 証明ボタンの配線。押すと最前面でリンクを選ぶ */
+function wireProofs(scope){
+  (scope||document).querySelectorAll("[data-pf]").forEach(b=>{
+    if(b._w) return; b._w=1;
+    b.onclick=()=>{
+      const arr=PROOF_BOX[+b.dataset.pf]||[];
+      if(arr.length===1&&!arr[0].events.length){ open(arr[0].url,"_blank","noopener"); return; }
+      const M=modal(`<h2>どの記録のリンクに飛びますか？</h2>
+        <p class="muted" style="margin-top:-8px">リンクごとに、証明できる記録が異なります。</p>
+        ${arr.map((p,i)=>`<div class="pfrow">
+          <div class="pfhead"><span class="tiny">リンク ${i+1}</span></div>
+          <div class="tiny" style="margin-bottom:8px">${p.events.length?
+            p.events.map(n=>`<span class="pk" style="display:inline-flex;padding:3px 8px;margin:2px">${esc(n)}</span>`).join("")
+            :"<span class='muted'>対象の記録は指定されていません</span>"}</div>
+          <div class="tools" style="margin-top:0"><button class="btn sm pri" data-go="${i}">このリンクを開く</button>
+            <span class="tiny" style="word-break:break-all;align-self:center">${esc(p.url).slice(0,52)}…</span></div>
+        </div>`).join("")}
+        <div class="tools"><button class="btn" id="pfX">閉じる</button></div>`);
+      M.q("#pfX").onclick=M.close;
+      M.qa("[data-go]").forEach(g=>g.onclick=()=>{ open(arr[+g.dataset.go].url,"_blank","noopener"); });
+    };
+  });
 }
 
 /* =========================================================
@@ -2170,7 +2740,7 @@ async function sbTest(){
 
   stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
-let RANK_ROWS=[], rkSortKey="rating";
+let RANK_ROWS=[], rkSortKey="rating", PEND_CLAIMS=[];
 const SORT_OPTS=()=>[["rating","RATING（総合）"],["l_value","L値"],["s_value","S値"],
   ["total_score","十種競技総合スコア"]].concat(EVENTS.map(n=>["ev:"+n,n]));
 let rkCache={key:"",at:0,rows:null};
@@ -2188,6 +2758,7 @@ async function loadRanking(force){
   }
   $("#rkSort").value=rkSortKey;
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
+  try{ PEND_CLAIMS=await sb("record_claims_public?select=*"); }catch(e){ PEND_CLAIMS=[]; }
   try{
     const byEv=rkSortKey.startsWith("ev:");
     /* 新しいSQLをまだ実行していない環境でも動くよう、列を段階的に減らして試す */
@@ -2231,26 +2802,31 @@ async function loadRanking(force){
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
       <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
-      <p class="tiny">名前を押すとその人のプロフィールが開きます。「＋友達」でフレンドに追加できます。</p>
+      <p class="tiny">名前を押すとその人のプロフィールが開きます。
+        アイコンの<span style="color:#ff2d55">赤いリング</span>は3日以内、
+        <span style="color:#ffc861">黄色いリング</span>は7日以内に記録を更新した人です。</p>
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th>
       ${rkSortKey==="rating"?"":`<th>${esc(SORT_OPTS().find(o=>o[0]===rkSortKey)[1])}</th>`}
-      <th>RATING</th><th>ランク</th><th>L値</th><th>S値</th><th></th></tr></thead><tbody>`+
+      <th>RATING</th><th>ランク</th><th>L値</th><th>S値</th></tr></thead><tbody>`+
       rows.map((r,i)=>{const v=val(r);
         return `<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
-        `<td><a href="#" data-rp="${i}" style="text-decoration:none">${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating)}</a>`+
-        `<br><span class="tiny">@${esc(r.handle)}</span></td>`+
+        `<td><div class="nmcell">${avatarRing({name:r.name,handle:r.handle,img:""},"av sm",r.updated_at)}`+
+        `<div class="txt"><a href="#" data-rp="${i}" style="text-decoration:none">`+
+        `${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating)}</a>`+
+        `<br><span class="tiny">@${esc(r.handle)}</span>`+
+        `<br><span class="tiny" style="color:var(--dim2)">${r.updated_at?agoText(r.updated_at):"更新日時不明"}</span>`+
+        `${r.handle===mine?"":`<div class="tools" style="margin-top:5px;gap:5px">`+
+          `<button class="btn sm" data-rc="${i}">比較</button>`+
+          (sess?(()=>{const st=frState(r.handle);
+            return `<button class="${st==="incoming"?"btn sm pri":"btn sm"}" data-rq="${i}"`+
+              `${(st==="friend"||st==="sent")?" disabled":""}>${FR_LABEL[st]}</button>`;})()
+               :`<button class="btn sm" data-rf="${i}">＋友達</button>`)+
+          `</div>`}</div></div></td>`+
         (rkSortKey==="rating"?"":`<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`)+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
-        `<td>${r.handle===mine?"<span class='tiny'>あなた</span>":(()=>{
-          const st=frState(r.handle);
-          const dis=(st==="friend"||st==="sent")?" disabled":"";
-          const cls=(st==="incoming")?"btn sm pri":"btn sm";
-          return `<button class="btn sm" data-rc="${i}">比較</button> `+
-            (sess?`<button class="${cls}" data-rq="${i}"${dis}>${FR_LABEL[st]}</button>`
-                 :`<button class="btn sm" data-rf="${i}">＋友達</button>`);
-        })()}</td></tr>`;}).join("")+
+        `</tr>`;}).join("")+
       `</tbody></table></div><div id="rkCmp"></div>`;
     RANK_ROWS=rows;
     /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
@@ -2277,6 +2853,7 @@ async function loadRanking(force){
       const item={pro:{name:r.name,handle:r.handle,img:""},rec:rc,at:Date.now()};
       if(i>=0) friends[i]=item; else friends.push(item);
       render(); toast("フレンドに登録しました");});
+    wireProofs();
     const rl=$("#rkReload"); if(rl) rl.onclick=()=>loadRanking(true);
     const rp=$("#rkPush"); if(rp) rp.onclick=async()=>{
       if(!sess) return toast("ランキングに載せるには設定タブでログインしてください");
@@ -2476,9 +3053,27 @@ function renderSupporter(){
 async function renderAdmin(){
   const b=$("#adminBox");
   b.innerHTML=`<p class="muted">読み込み中…</p>`;
+  let claimHtml="";
+  try{
+    const cl=await sbAuth("record_claims?select=*&status=eq.pending&order=created_at.desc");
+    claimHtml=`<h3>世界記録の申請（${cl.length}）</h3>`+
+      (cl.length?`<div class="scroll"><table><thead><tr><th>申請者</th><th>種目</th><th>記録</th>`+
+        `<th>現在の1位</th><th>証明</th><th>日時</th><th></th></tr></thead><tbody>`+
+        cl.map(c=>`<tr><td>${esc(c.name||c.handle||"")}<br><span class="tiny">@${esc(c.handle||"")}</span></td>`+
+          `<td>${esc(c.event)}</td>`+
+          `<td><b style="color:var(--warn)">${fmtRec(c.event,+c.value)}</b>`+
+          `<br><span class="tiny">前 ${c.prev_value!=null?fmtRec(c.event,+c.prev_value):"—"}</span></td>`+
+          `<td>${c.border!=null?fmtRec(c.event,+c.border):"—"}</td>`+
+          `<td>${c.proof_url?`<a href="${esc(c.proof_url)}" target="_blank" rel="noopener">見る</a>`:"—"}</td>`+
+          `<td class="tiny">${jstFull(c.created_at)}</td>`+
+          `<td><button class="btn sm pri" data-cok="${esc(c.id)}">承諾</button> `+
+          `<button class="btn sm" data-cng="${esc(c.id)}">却下</button></td></tr>`).join("")+
+        `</tbody></table></div>`
+       :`<p class="muted">保留中の記録申請はありません。</p>`);
+  }catch(e){ claimHtml=`<h3>世界記録の申請</h3><p class="tiny">読み込めませんでした（SQL未実行の可能性）。</p>`; }
   try{
     const reqs=await sbAuth("supporter_requests?select=*&status=eq.pending&order=created_at.desc");
-    b.innerHTML=(reqs.length?`<div class="scroll"><table><thead><tr><th>申請者</th><th>理由</th><th>日時</th><th></th></tr></thead><tbody>`+
+    b.innerHTML=claimHtml+`<h3>サポーター申請（${reqs.length}）</h3>`+(reqs.length?`<div class="scroll"><table><thead><tr><th>申請者</th><th>理由</th><th>日時</th><th></th></tr></thead><tbody>`+
       reqs.map(q=>`<tr><td>${esc(q.name||q.handle||q.user_id.slice(0,8))}<br><span class="tiny">${esc(q.email||"")}</span></td>`+
         `<td class="tiny">${esc(q.message||"")}</td><td class="tiny">${esc(String(q.created_at||"").slice(0,16).replace("T"," "))}</td>`+
         `<td><button class="btn sm" data-ok="${esc(q.user_id)}">承認</button> `+
@@ -2488,7 +3083,76 @@ async function renderAdmin(){
     $("#admReload").onclick=renderAdmin;
     $$("[data-ok]").forEach(x=>x.onclick=()=>setRole(x.dataset.ok,"supporter"));
     $$("[data-ng]").forEach(x=>x.onclick=()=>setRole(x.dataset.ng,"rejected"));
-  }catch(e){ b.innerHTML=`<p class="muted">読み込みに失敗しました。</p><p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`; }
+    $$("[data-cok]").forEach(x=>x.onclick=()=>reviewClaim(x.dataset.cok,true));
+    $$("[data-cng]").forEach(x=>x.onclick=()=>reviewClaim(x.dataset.cng,false));
+  }catch(e){ b.innerHTML=claimHtml+`<p class="muted">サポーター申請の読み込みに失敗しました。</p>`+
+    `<p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p>`;
+    $$("[data-cok]").forEach(x=>x.onclick=()=>reviewClaim(x.dataset.cok,true));
+    $$("[data-cng]").forEach(x=>x.onclick=()=>reviewClaim(x.dataset.cng,false)); }
+}
+/** 管理者が世界記録の申請を確認する。承諾すると1位ボーダーを更新する */
+async function reviewClaim(id,ok){
+  let c=null;
+  try{ const rows=await sbAuth(`record_claims?select=*&id=eq.${encodeURIComponent(id)}`); c=rows[0]; }
+  catch(e){ return toast("申請を読み込めませんでした"); }
+  if(!c) return toast("申請が見つかりません");
+  if(!ok){
+    const M=modal(`<h2>申請を却下しますか？</h2>
+      <p class="muted">${esc(c.name||c.handle||"")} さんの ${esc(c.event)} ${fmtRec(c.event,+c.value)}</p>
+      <label class="fl">理由（任意・申請者に伝わります）</label>
+      <input type="text" class="txt" id="rjN" style="max-width:none">
+      <div class="tools"><button class="btn pri" id="rjGo">却下する</button>
+        <button class="btn" id="rjX">やめる</button></div>`,{sticky:true});
+    M.q("#rjX").onclick=M.close;
+    M.q("#rjGo").onclick=async()=>{
+      try{ await sbAuth("rpc/review_record_claim",{method:"POST",
+        body:JSON.stringify({p_id:id,p_ok:false,p_note:M.q("#rjN").value.slice(0,200)})});
+        M.close(); toast("却下しました"); renderAdmin(); }
+      catch(e){ toast("失敗しました"); }};
+    return;
+  }
+  const M=modal(`<h2>世界記録として承諾しますか？</h2>
+    <p class="muted" style="margin-top:-8px">${esc(c.name||c.handle||"")} さん</p>
+    <div class="lsgrid" style="margin-top:12px">
+      <div class="lsbox"><div class="t">${esc(c.event)}</div>
+        <div class="v" style="font-size:1.4rem">${fmtRec(c.event,+c.value)}</div>
+        <div class="s">申請された記録</div></div>
+      <div class="lsbox"><div class="t">現在の1位ボーダー</div>
+        <div class="v" style="font-size:1.4rem">${c.border!=null?fmtRec(c.event,+c.border):"—"}</div>
+        <div class="s">${c.proof_url?`<a href="${esc(c.proof_url)}" target="_blank" rel="noopener">証明を見る</a>`:"証明リンクなし"}</div></div>
+    </div>
+    <div class="hintbox" style="margin-top:12px">
+      承諾すると、<b>${esc(c.event)} の1位ボーダーを ${fmtRec(c.event,+c.value)} に更新</b>し、
+      GitHub の data.json に直接反映します。
+      ${ghReady()?"":`<br><span class="lose">GitHub連携が未設定のため、いまは data.json を更新できません。`+
+        `⚙ → GitHub連携の設定 を先に済ませてください。</span>`}
+    </div>
+    <div class="tools"><button class="btn pri" id="apGo"${ghReady()?"":" disabled"}>承諾してボーダーを更新</button>
+      <button class="btn" id="apOnly">承諾だけする（ボーダーは手動で）</button>
+      <button class="btn" id="apX">やめる</button></div>
+    <div id="apMsg" class="tiny"></div>`,{sticky:true});
+  M.q("#apX").onclick=M.close;
+  const approve=async(updateBorder)=>{
+    const msg=M.q("#apMsg");
+    try{
+      if(updateBorder){
+        msg.innerHTML="data.json を更新中…";
+        const j={current:WEEKS[WEEKS.length-1].date,weeks:WEEKS.map(w=>JSON.parse(JSON.stringify(w)))};
+        const w=j.weeks[j.weeks.length-1];
+        if(!w.borders[c.event]) throw new Error("その種目が data.json にありません");
+        w.borders[c.event][1]=+c.value;
+        await ghPut(gh.path,JSON.stringify(j,null,2),
+          `世界記録を承諾: ${c.event} ${c.value}（${c.handle||""}）`);
+        WEEKS=j.weeks;
+      }
+      await sbAuth("rpc/review_record_claim",{method:"POST",
+        body:JSON.stringify({p_id:id,p_ok:true,p_note:null})});
+      M.close(); applyData(); renderAdmin();
+      toast(updateBorder?"承諾し、1位ボーダーを更新しました":"承諾しました");
+    }catch(e){ msg.innerHTML=`<span class="lose">失敗：${esc(String(e.message||e)).slice(0,220)}</span>`; }
+  };
+  M.q("#apGo").onclick=()=>approve(true);
+  M.q("#apOnly").onclick=()=>approve(false);
 }
 async function setRole(uid,role){
   try{ await sbAuth("rpc/set_role",{method:"POST",body:JSON.stringify({p_user:uid,p_role:role})});
@@ -2531,6 +3195,7 @@ async function loadCups(force){
   }
   $("#rkSort").value=rkSortKey;
   el.innerHTML=`<p class="muted">読み込み中…</p>`;
+  try{ PEND_CLAIMS=await sb("record_claims_public?select=*"); }catch(e){ PEND_CLAIMS=[]; }
   try{
     if(!force && cupCache.rows && Date.now()-cupCache.at<45000){ CUPS=cupCache.rows; }
     else { CUPS=await sb("tournaments?select=*&order=starts_at.desc&limit=100");
@@ -2745,7 +3410,7 @@ async function openCup(id){
       ${isAdmin()?`<button class="btn" id="cupDel">この大会を削除（管理者）</button>`:""}
     </div>
   </div>`;
-  tickCups();
+  tickCups(); wireProofs();
   if(ph==="live"&&sess){
     $("#openEnt").onclick=()=>{ entryForm(c,evs,dir,mine);
       $("#entForm").scrollIntoView({behavior:"smooth",block:"start"}); };
@@ -2927,9 +3592,14 @@ function showPlayer(p,rc){
     </div>
     <h3>全種目の記録</h3>
     <div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>レート割合</th><th>採用</th></tr></thead><tbody>`+
-    EVENTS.map(n=>`<tr class="${c.used[n]?"used":""}"><td>${n}</td>`+
-      `<td>${rc[n]>0?nice(rc[n]):"—"}</td><td class="pct">${pctf(c.rates[n])}</td>`+
-      `<td class="chk">${c.used[n]?"○":""}</td></tr>`).join("")+
+    EVENTS.map(n=>{
+      const t=(p.times&&p.times[n])||null;
+      const isNew=p.baseline!==false && t && (Date.now()-t)<=7*86400000;
+      return `<tr class="${c.used[n]?"used":""}"><td class="${isNew?"newrec":""}">${n}`+
+      `${isNew?` <span class="tiny">${agoText(t)}</span>`:""}</td>`+
+      `<td class="${isNew?"newrec":""}">${rc[n]>0?fmtRec(n,rc[n]):"—"}</td>`+
+      `<td class="pct">${pctf(c.rates[n])}</td>`+
+      `<td class="chk">${c.used[n]?"○":""}</td></tr>`;}).join("")+
     `</tbody></table></div>
     <div class="tools"><button class="btn pri" id="mpFr"></button>
       <button class="btn" id="mpCup">大会記録を見る</button>
@@ -2938,6 +3608,7 @@ function showPlayer(p,rc){
   document.body.appendChild(mask);
   const q=x=>mask.querySelector(x), close=()=>mask.remove();
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
+  wireProofs(mask);
   q("#mpX").onclick=close;
   const st=frState(p.handle);
   const fb=q("#mpFr");
@@ -2963,7 +3634,7 @@ function showPlayer(p,rc){
    10d. LSやりこみ
    ========================================================= */
 const K_LS="sa-ls-v1", K_LSLOG="sa-lslog-v1";
-let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0});
+let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0,goalSv:0,goalLv:0,stepSv:0.01,stepLv:0.01});
 let lsLog=ls(K_LSLOG,[]);
 let lsRun=null;      /* {start, count} */
 let lsTimer=null, lsCool=0;
@@ -3038,6 +3709,22 @@ function renderLs(prev){
   };
   info("score",baseS,gainS,lsCfg.goalS,perS,$("#lsScoreNext"));
   info("rand", baseR,gainR,lsCfg.goalR,perR,$("#lsRandNext"));
+  /* 次のL値・S値の目標。届いたら自動で繰り上げる */
+  const bump=(key,cur,stepKey)=>{
+    if(cur===null) return null;
+    const st=lsCfg[stepKey]>0?lsCfg[stepKey]:0.010;
+    let g=lsCfg[key];
+    if(!(g>0)){ g=Math.round((cur+st)*1000)/1000; lsCfg[key]=g; saveLs(); }
+    let moved=false;
+    while(cur>=g-1e-9){ g=Math.round((g+st)*1000)/1000; moved=true; }
+    if(moved){ lsCfg[key]=g; saveLs(); toast(`目標を ${f3(g)} に更新しました`); }
+    return g;
+  };
+  const gS=bump("goalSv",sv,"stepSv"), gL=bump("goalLv",lv,"stepLv");
+  $("#lsSvGoal").innerHTML=gS===null?"—":
+    `次の目標 <b>${f3(gS)}</b>（あと ${f3(Math.max(gS-sv,0))}）`;
+  $("#lsLvGoal").innerHTML=gL===null?"—":
+    `次の目標 <b>${f3(gL)}</b>（あと ${f3(Math.max(gL-lv,0))}）`;
   const rkS=lsRankOf("score",totS), rkR=lsRankOf("rand",totR);
   $("#lsSvNext").textContent=totS>0?(rkS?`スコア累積 ${rkS}位以内`:"ランキング圏外"):"未登録";
   $("#lsLvNext").textContent=totR>0?(rkR?`乱数累積 ${rkR}位以内`:"ランキング圏外"):"未登録";
@@ -3092,6 +3779,8 @@ function lsCfgView(){
   v.innerHTML=`1回あたり — スコア <b>${lsCfg.perScore?jp(lsCfg.perScore):"未登録"}</b>　／　`+
     `乱数 <b>${lsCfg.perRand?jp(lsCfg.perRand):"未登録"}</b>　／　`+
     `カウントキー <b>${esc(keyLabel(lsCfg.key))}</b>`+
+    (lsCfg.goalSv||lsCfg.goalLv?`<br>次の目標 — S値 <b>${lsCfg.goalSv?f3(lsCfg.goalSv):"—"}</b>（刻み ${f3(lsCfg.stepSv||0.01)}）`+
+      ` ／ L値 <b>${lsCfg.goalLv?f3(lsCfg.goalLv):"—"}</b>（刻み ${f3(lsCfg.stepLv||0.01)}）`:"")+
     (lsCfg.goalS||lsCfg.goalR?`<br>目標 — スコア ${lsCfg.goalS?jp(lsCfg.goalS):"—"} ／ 乱数 ${lsCfg.goalR?jp(lsCfg.goalR):"—"}`:"");
 }
 /* 増加量の登録（最前面） */
@@ -3115,16 +3804,31 @@ $("#lsOpenCfg").onclick=()=>{
       <div class="tools"><button class="btn sm" id="mCalc">10回分から計算して入れる</button></div>
       <div id="mCalcOut" class="tiny"></div>
     </div>
-    <h3>目標（任意・空なら次のボーダーを目標にします）</h3>
+    <h3>累積の目標（任意・空なら次のボーダーを目標にします）</h3>
     <div class="frow">
       <div><label class="fl">目標スコア累積</label>
         <input type="text" inputmode="numeric" id="mGoalS" style="max-width:none" value="${lsCfg.goalS?commaFmt(String(lsCfg.goalS)):""}"></div>
       <div><label class="fl">目標乱数累積</label>
         <input type="text" inputmode="numeric" id="mGoalR" style="max-width:none" value="${lsCfg.goalR?commaFmt(String(lsCfg.goalR)):""}"></div>
     </div>
+    <h3>次のS値・L値の目標</h3>
+    <p class="tiny" style="margin-top:-6px">達成すると、下の刻み幅ぶんだけ自動で次の目標に進みます。</p>
+    <div class="frow">
+      <div><label class="fl">次の目標S値</label>
+        <input type="text" inputmode="decimal" id="mGSv" style="max-width:none" value="${lsCfg.goalSv?f3(lsCfg.goalSv):""}" placeholder="例：2.100"></div>
+      <div><label class="fl">達成後の刻み幅（S値）</label>
+        <input type="text" inputmode="decimal" id="mSSv" style="max-width:none" value="${lsCfg.stepSv?f3(lsCfg.stepSv):"0.010"}" placeholder="0.010"></div>
+    </div>
+    <div class="frow">
+      <div><label class="fl">次の目標L値</label>
+        <input type="text" inputmode="decimal" id="mGLv" style="max-width:none" value="${lsCfg.goalLv?f3(lsCfg.goalLv):""}" placeholder="例：2.700"></div>
+      <div><label class="fl">達成後の刻み幅（L値）</label>
+        <input type="text" inputmode="decimal" id="mSLv" style="max-width:none" value="${lsCfg.stepLv?f3(lsCfg.stepLv):"0.010"}" placeholder="0.010"></div>
+    </div>
+    <p class="tiny">刻み幅は 0.001 の倍数で指定してください（0.001 / 0.005 / 0.010 など）。</p>
     <div class="tools"><button class="btn pri" id="mSave">保存する</button>
       <button class="btn" id="mX">やめる</button></div>`);
-  M.qa("input").forEach(el=>el.oninput=()=>applyComma(el));
+  M.qa("input").forEach(el=>{ if(!/^m(GSv|SSv|GLv|SLv)$/.test(el.id)) el.oninput=()=>applyComma(el); });
   M.q("#mCalc").onclick=()=>{
     const a=num(M.q("#mA").value), b=num(M.q("#mB").value);
     if(!(b>a)) return toast("10回プレイ後の値のほうが大きくなるように入れてください");
@@ -3136,6 +3840,10 @@ $("#lsOpenCfg").onclick=()=>{
   M.q("#mSave").onclick=()=>{
     lsCfg.perScore=num(M.q("#mPerS").value); lsCfg.perRand=num(M.q("#mPerR").value);
     lsCfg.goalS=num(M.q("#mGoalS").value);   lsCfg.goalR=num(M.q("#mGoalR").value);
+    const r3=v=>Math.round(v*1000)/1000;
+    lsCfg.goalSv=r3(num(M.q("#mGSv").value));  lsCfg.goalLv=r3(num(M.q("#mGLv").value));
+    lsCfg.stepSv=Math.max(r3(num(M.q("#mSSv").value)),0.001);
+    lsCfg.stepLv=Math.max(r3(num(M.q("#mSLv").value)),0.001);
     saveLs(); lsCfgView(); renderLs(); M.close(); toast("登録しました");
   };
 };
@@ -3656,6 +4364,22 @@ function showCupHistory(p,h){
 }
 
 /* ---- ホーム画面 ---- */
+/** 金曜日は記録入力デー */
+function renderFriday(){
+  const b=$("#friBanner"); if(!b) return;
+  const now=new Date();
+  const jstDay=+new Intl.DateTimeFormat("en-US",{weekday:"short",timeZone:"Asia/Tokyo"})
+    .format(now).replace(/Sun|Mon|Tue|Wed|Thu|Fri|Sat/,m=>({Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[m]));
+  const key="sa-fri-"+new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(now);
+  if(jstDay!==5||localStorage.getItem(key)==="1"){ b.hidden=true; return; }
+  b.hidden=false;
+  $("#friMsg").innerHTML=`<b>本日は金曜日です。記録を入力しましょう。</b>`+
+    `乱数累積やスコア累積など、すべての記録を入力してください。`+
+    `<br><span class="tiny">入力済みの記録が消えることはありません。`+
+    `素数ゲームの記録更新は難しいので、まずは L値・S値（乱数累積・スコア累積）の更新から試してみてください。もちろん任意です。</span>`;
+  $("#friGo").onclick=()=>goTab("input");
+  $("#friX").onclick=()=>{ localStorage.setItem(key,"1"); b.hidden=true; };
+}
 async function renderHome(){
   const box=$("#homeCups");
   if(box){
@@ -3686,6 +4410,7 @@ async function renderHome(){
     }
   }
   renderHomeFriends();
+  renderFriday();
 }
 /** フレンドの更新履歴（登録時に取り込んだ記録の新しい順）*/
 /** フレンド情報を差し替えるとき、前回との差分を「更新履歴」として残す */
@@ -3727,15 +4452,38 @@ function renderHomeFriends(){
       `<div class="tools"><button class="btn sm" id="hfMore">フレンド一覧へ</button></div>`;
     $("#hfMore").onclick=()=>goTab("friends"); return;
   }
-  box.innerHTML=feed.slice(0,8).map(({f,e})=>{
-    const unit=LOW.has(e.n)?"秒":"点";
-    const verb=LOW.has(e.n)?"短縮":"更新";
+  /* 同じ人の連続した更新をひとまとめにする */
+  const groups=[];
+  for(const it of feed){
+    const key=(it.f.pro.handle||it.f.pro.name||"").toLowerCase();
+    const last=groups[groups.length-1];
+    if(last&&last.key===key&&Math.abs(last.at-it.e.at)<6*3600000){ last.items.push(it.e); last.at=Math.min(last.at,it.e.at); }
+    else groups.push({key,f:it.f,items:[it.e],at:it.e.at});
+  }
+  const top=groups.slice(0,5);
+  box.innerHTML=top.map(g=>{
+    const nm=nameHTML(g.f.pro.name||g.f.pro.handle||"名無し",g.f.pro.role);
+    /* 十種競技総合スコアは件数に数えない */
+    const body=g.items.filter(e=>e.n!=="合計スコア");
+    const when=jstDT(g.at);
+    if(body.length===0){
+      return `<div class="goal"><span class="n">${nm} <span class="tiny">が総合スコアを更新</span></span>`+
+        `<span class="g">${nice(g.items[0].to)}</span><span class="d">${when}</span></div>`;
+    }
+    if(body.length===1){
+      const e=body[0], unit=LOW.has(e.n)?"秒":"点", verb=LOW.has(e.n)?"短縮":"更新";
+      return `<div class="goal">
+        <span class="n">${nm} <span class="tiny">が ${esc(e.n)} を${verb}</span></span>
+        <span class="g">${fmtRec(e.n,e.to)}${unit}</span>
+        <span class="d">${e.d!==null?`${fmtRec(e.n,e.from)}${unit} → <b>${fmtRec(e.n,e.to)}${unit}</b>（${verb} ${fmtRec(e.n,e.d)}${unit}）`
+          :`新しく登録 <b>${fmtRec(e.n,e.to)}${unit}</b>`}　${when}</span></div>`;
+    }
     return `<div class="goal">
-      <span class="n">${nameHTML(f.pro.name||f.pro.handle||"名無し",f.pro.role)}
-        <span class="tiny">が ${esc(e.n)} を${verb}</span></span>
-      <span class="g">${nice(e.to)}${unit}</span>
-      <span class="d">${e.d!==null?`${nice(e.from)}${unit} → <b>${nice(e.to)}${unit}</b>（${verb} ${nice(e.d)}${unit}）`
-        :`新しく登録 <b>${nice(e.to)}${unit}</b>`}　${dt(e.at)}</span></div>`;}).join("")+
+      <span class="n">${nm} <span class="tiny">が記録を更新</span></span>
+      <span class="g">${body.length} 個</span>
+      <span class="d">${esc(body.slice(0,4).map(e=>e.n).join("、"))}`+
+      `${body.length>4?` ほか${body.length-4}種目`:""}　${when}</span></div>`;
+  }).join("")+
     `<div class="tools"><button class="btn sm" id="hfMore">フレンド一覧へ</button></div>`;
   $("#hfMore").onclick=()=>goTab("friends");
 }
