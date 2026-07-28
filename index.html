@@ -426,16 +426,17 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <section id="plan" hidden>
 <div class="card">
     <h2>目標RATING 達成プラン</h2>
-    <p class="muted" style="margin-top:-8px">目標RATINGを決めると、どの種目をどこまで伸ばせば届くかを効率順に計算します。</p>
+    <p class="muted" style="margin-top:-8px">全種目を<b>均等に伸ばす</b>のが基本です。
+      1位ボーダーまでの残りを同じ割合ずつ詰めるので、<b>1位に近い種目ほど控えめ、伸びしろのある種目ほど大きく</b>配分されます。</p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <label class="fl" style="margin:0">目標RATING</label>
       <input type="text" inputmode="decimal" id="tgtRate" style="max-width:110px">
-      <button class="btn pri" id="doPlan">プランを作る</button>
+      <button class="btn pri" id="doPlan">均等に伸ばすプランを作る</button>
+      <button class="btn" id="doPlanStep">ボーダー単位で作る</button>
     </div>
-    <details style="margin-top:12px" open><summary class="muted">伸ばす種目と、種目ごとの上げ幅を指定する</summary>
+    <details style="margin-top:12px"><summary class="muted">伸ばす種目と、種目ごとの上限を指定する</summary>
       <p class="tiny" style="margin-top:6px">チェックを付けた種目だけを使います（未選択なら全種目）。
-        右の欄に数字を入れると、<b>その種目で上げるRATINGの上限</b>になります。
-        例：素因数分解（初級）に <b>0.100</b> と入れると、その種目は0.100までしか伸ばさず、残りを他の種目で埋めます。</p>
+        右の欄は「この種目で上げるRATINGの上限」です。</p>
       <div class="tools" style="margin-top:8px">
         <button class="btn sm" id="pkAll">全選択</button>
         <button class="btn sm" id="pkNone">全解除</button>
@@ -480,10 +481,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div id="decaOut" style="margin-top:12px"></div>
   </div>
 
-<div class="card">
-    <h2>次の目標</h2>
-    <div id="goals"></div>
-  </div>
+
 </section>
 
 <section id="ls" hidden>
@@ -806,7 +804,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v26";
+const APP_VERSION = "v27";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1118,6 +1116,56 @@ function spreadOf(n){
   const B=DATA().borders[n]; if(!B) return null;
   const a=B[1], b=B[200];
   return Math.abs(a-b)/Math.max(a,b);
+}
+
+/** 全種目に同じ「努力量」をかけて均等に伸ばす。
+ *  伸びしろの対数比で配るので、1位に近い種目は自然と控えめになる。 */
+function evenPlan(pool,E,rc){
+  const r=Object.assign({},rc||rec);
+  const out=[];
+  for(const n of pool){
+    const v=r[n]||0;
+    const h=headroom(n,v);
+    if(!(v>0)||h===null||h<=0) continue;
+    let to=targetForEffort(n,v,E);
+    to=clampMyMax(n,to);
+    const better=LOW.has(n)?to<v:to>v;
+    if(!better) continue;
+    out.push({n,from:v,to,add:Math.abs(to-v),head:h,
+              use:Math.abs(to-v)/h});
+    r[n]=to;
+  }
+  return {rows:out,rec:r};
+}
+/** 目標に届く努力量を二分探索で求める */
+function findEffort(pool,eval1,target,lo,hi){
+  let a=(lo===undefined?0:lo), b=(hi===undefined?3:hi);
+  if(eval1(b)<target) return {E:b,reached:false};
+  for(let i=0;i<40;i++){
+    const m=(a+b)/2;
+    if(eval1(m)>=target) b=m; else a=m;
+  }
+  return {E:b,reached:true};
+}
+/** 目標RATINGに均等に届くプラン */
+function evenRatingPlan(target,pool,rc){
+  const use=(pool&&pool.length)?pool:EVENTS;
+  const base=rc||rec;
+  const f=E=>compute(evenPlan(use,E,base).rec).total;
+  const {E,reached}=findEffort(use,f,target);
+  const p=evenPlan(use,E,base);
+  return {E,reached,rows:p.rows,start:compute(base).total,end:compute(p.rec).total};
+}
+/** 目標の十種競技総合スコアに均等に届くプラン */
+function evenDecaPlan(targetTotal,pool,rc){
+  const use=(pool&&pool.length)?pool:DECA;
+  const base=rc||rec;
+  const f=E=>{const r=evenPlan(use,E,base).rec; return DECA.reduce((a,n)=>a+(r[n]||0),0);};
+  const {E,reached}=findEffort(use,f,targetTotal);
+  const p=evenPlan(use,E,base);
+  return {E,reached,rows:p.rows,
+    start:DECA.reduce((a,n)=>a+(base[n]||0),0),
+    end:DECA.reduce((a,n)=>a+(p.rec[n]||0),0)};
 }
 
 /* =========================================================
@@ -1436,7 +1484,6 @@ function render(){
   $("#sSsub").textContent=rec["スコア累積"]>0?`スコア累積 ${jp(rec["スコア累積"])}`:"未入力";
   c.pts.forEach((p,i)=>{$("#p"+i).textContent=f3(p);
     $("#b"+i).style.width=(100*p/BRK[i].max).toFixed(2)+"%";});
-  if($("#goals")&&!$("#plan").hidden) renderGoals();
   /* 公開トグル */
   $("#pubOn").classList.toggle("on",!!pro.pub);
   $("#pubOff").classList.toggle("on",!pro.pub);
@@ -1634,47 +1681,83 @@ function verifiedRec(){
 /* =========================================================
    5b. 分析
    ========================================================= */
-/** 記録更新の難易度。18種目の中での相対位置で 0(易)〜100(難) に並べる */
+/** 1位ボーダーまでの残り伸びしろ */
+function headroom(n,v){
+  const B=DATA().borders[n]; if(!B||!(v>0)) return null;
+  const h=LOW.has(n)?(v-B[1]):(B[1]-v);
+  return h;
+}
+/** 記録を a から b へ伸ばすのに要する「努力量」。
+ *  伸びしろの対数比で測るので、1位に近いほど同じ点数でも重くなる。 */
+function effortOf(n,a,b){
+  const ha=headroom(n,a), hb=headroom(n,b);
+  if(ha===null||hb===null||ha<=0) return Infinity;
+  if(hb<=0) return Infinity;
+  return Math.log(ha/hb);
+}
+/** 努力量 E をかけたときに到達する記録 */
+function targetForEffort(n,v,E){
+  const B=DATA().borders[n]; if(!B) return v;
+  const h=headroom(n,v);
+  if(h===null||h<=0) return v;
+  const h2=h*Math.exp(-E);
+  const t=LOW.has(n)?(B[1]+h2):(B[1]-h2);
+  return roundReq(n,t);
+}
+/** いまの位置での「100点（タイム系は0.1秒）更新の重さ」 */
+function weightNow(n,v){
+  const h=headroom(n,v);
+  if(h===null||h<=0) return null;
+  const unit=LOW.has(n)?0.1:100;
+  return unit/h;              /* 伸びしろの何割を使うか */
+}
+/** 難易度。伸びしろが小さいほど（1位に近いほど）難しい */
 let _diffCache=null, _diffKey="";
-function difficultyAll(){
-  const key=DATA().date+"|"+EVENTS.length;
+function difficultyAll(rc){
+  const r=rc||rec;
+  const key=DATA().date+"|"+EVENTS.map(n=>r[n]||0).join(",");
   if(_diffCache&&_diffKey===key) return _diffCache;
   const raw=EVENTS.map(n=>{
-    const B=DATA().borders[n];
-    if(!B) return {n,spread:0,lift:0};
-    const spread=spreadOf(n);
-    const base=B[50], v2=LOW.has(n)?base*0.99:base*1.01;
-    const r1=estRank(n,base), r2=estRank(n,v2);
-    return {n,spread,lift:(r1&&r2)?Math.max(r1-r2,0):0};
+    const v=r[n]||0, B=DATA().borders[n];
+    const h=headroom(n,v);
+    const room=(v>0&&h!==null&&h>0)?(LOW.has(n)?h/v:h/B[1]):null;   /* 残り伸びしろの割合 */
+    const w=weightNow(n,v);
+    return {n,v,head:h,room,w};
   });
-  /* 「1%伸ばしたときに上がる順位」が少ないほど更新は大変。その順位で並べる */
-  const order=raw.slice().sort((a,b)=>b.lift-a.lift);   /* 上がりやすい順 */
+  const known=raw.filter(x=>x.room!==null).sort((a,b)=>a.room-b.room);  /* 伸びしろが少ない＝難しい */
   const out={};
-  order.forEach((x,i)=>{
-    const score=Math.round(i/(order.length-1)*100);
-    out[x.n]={spread:x.spread,lift:x.lift,score,
-      label:score<25?"やさしい":score<50?"ふつう":score<75?"むずかしい":"とてもむずかしい"};
+  raw.forEach(x=>{ out[x.n]={head:x.head,room:x.room,w:x.w,score:null,label:"未入力"}; });
+  known.forEach((x,i)=>{
+    const score=known.length>1?Math.round((1-i/(known.length-1))*100):50;
+    out[x.n]={head:x.head,room:x.room,w:x.w,score,
+      label:x.head<=0?"1位到達":score<25?"とてもむずかしい":score<50?"むずかしい":score<75?"ふつう":"やさしい"};
   });
+  raw.filter(x=>x.head!==null&&x.head<=0).forEach(x=>{
+    out[x.n]={head:x.head,room:0,w:null,score:0,label:"1位到達"};});
   _diffCache=out; _diffKey=key;
   return out;
 }
 function difficulty(n){ return difficultyAll()[n]||null; }
 function anaTable(){
-  const rows=EVENTS.map(n=>({n,d:difficulty(n),r:estRank(n,rec[n]||0)}))
-    .filter(x=>x.d).sort((a,b)=>a.d.score-b.d.score);
-  return `<div class="scroll"><table><thead><tr><th>種目</th><th>更新の難易度</th>`+
-    `<th>1位〜200位の幅</th><th>1%伸ばすと</th><th>あなたの推定順位</th></tr></thead><tbody>`+
+  const D=difficultyAll();
+  const rows=EVENTS.map(n=>({n,d:D[n],v:rec[n]||0}))
+    .sort((a,b)=>(a.d.score===null?999:a.d.score)-(b.d.score===null?999:b.d.score));
+  const unit=n=>LOW.has(n)?"0.1秒":"100点";
+  return `<div class="scroll"><table><thead><tr><th>種目</th><th>いまの記録</th>`+
+    `<th>1位までの残り</th><th>${"更新の重さ"}</th><th>難易度</th></tr></thead><tbody>`+
     rows.map(x=>{
-      const w=Math.min(100,x.d.score);
-      const col=x.d.score<20?"var(--acc2)":x.d.score<45?"var(--warn)":x.d.score<70?"#ff9f6b":"var(--bad)";
+      const col=x.d.score===null?"var(--dim)":x.d.score<25?"var(--bad)":x.d.score<50?"#ff9f6b":x.d.score<75?"var(--warn)":"var(--acc2)";
+      const w=x.d.w!==null&&x.d.w!==undefined?(x.d.w*100):null;
       return `<tr><td>${x.n}${LOW.has(x.n)?' <span class="tiny">(秒)</span>':""}</td>`+
+        `<td>${x.v>0?fmtRec(x.n,x.v):"—"}</td>`+
+        `<td>${x.d.head>0?fmtRec(x.n,x.d.head):x.d.head!==null?"<b style='color:var(--warn)'>到達済み</b>":"—"}</td>`+
+        `<td class="tiny">${w!==null?`${unit(x.n)}の更新で<br>伸びしろの <b>${w.toFixed(2)}%</b>`:"—"}</td>`+
         `<td><div style="display:flex;align-items:center;gap:8px">`+
-        `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${w}%;background:${col}"></i></span>`+
-        `<span class="tiny" style="color:${col};white-space:nowrap">${x.d.label}</span></div></td>`+
-        `<td class="tiny">${(x.d.spread*100).toFixed(1)}%</td>`+
-        `<td class="tiny">約 ${jp(x.d.lift)} 位上がる</td>`+
-        `<td>${x.r?`<b>${jp(x.r)}</b> 位相当`:"—"}</td></tr>`;}).join("")+
-    `</tbody></table></div>`;
+        `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${x.d.score===null?0:100-x.d.score}%;background:${col}"></i></span>`+
+        `<span class="tiny" style="color:${col};white-space:nowrap">${x.d.label}</span></div></td></tr>`;}).join("")+
+    `</tbody></table></div>`+
+    `<p class="tiny">「更新の重さ」は、いまの記録から ${"100点（タイム系は0.1秒）"} 伸ばすと、
+      1位までの残りをどれだけ使うかです。<b>1位に近い種目ほど、同じ点数でも重くなります。</b></p>`;
 }
 /** なめらかな折れ線（Catmull-Rom をベジェに変換） */
 function smoothPath(pts){
@@ -1710,10 +1793,16 @@ function anaChart(n){
   /* 曲線 */
   g+=`<path d="${smoothPath(pts)}" fill="none" stroke="#4da3ff" stroke-width="2.5" stroke-linecap="round"/>`;
   pts.forEach((p,i)=>g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#0d1220" stroke="#4da3ff" stroke-width="2"/>`);
-  /* 自分の位置 */
+  /* 自分の位置（横線で示す。順位の数値は推定が不安定なので出さない） */
   if(cur>0){
-    const r=Math.max(1,Math.min(200,estRank(n,cur)||200));
-    const x=X(r), y=Y(cur);
+    let x=W-R;
+    const ranks2=[1,5,10,50,100,200];
+    for(let i=0;i<ranks2.length-1;i++){
+      const a=ranks2[i], b=ranks2[i+1], va=B[a], vb=B[b];
+      const inBand=LOW.has(n)?(cur>=va&&cur<=vb):(cur<=va&&cur>=vb);
+      if(inBand){ const t=Math.abs((va-cur)/((va-vb)||1)); x=X(Math.exp(Math.log(a)+t*(Math.log(b)-Math.log(a)))); break; }
+    }
+    const y=Y(cur);
     g+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="#57e0a0" stroke-width="1.5" stroke-dasharray="5 4"/>`+
        `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="#57e0a0"/>`+
        `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" fill="none" stroke="#57e0a066" stroke-width="2"/>`+
@@ -1730,22 +1819,25 @@ function renderAnalysis(){
   if(!sel.innerHTML) sel.innerHTML=EVENTS.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
   const n=sel.value||EVENTS[0]; sel.value=n;
   $("#anaChart").innerHTML=anaChart(n);
-  const d=difficulty(n), r=estRank(n,rec[n]||0), t=stepTarget(n,rec,decaPct,decaMax);
+  const d=difficulty(n), band=eventRate(n,rec[n]||0).band;
+  const nx=targetForEffort(n,rec[n]||0,0.10);
   $("#anaInfo").innerHTML=
     `<div class="stats" style="margin-top:12px">
       <div class="stat"><div class="t">いまの記録</div><div class="v">${rec[n]>0?fmtRec(n,rec[n]):"—"}</div>
-        <div class="s">${r?jp(r)+"位相当":"未入力"}</div></div>
-      <div class="stat"><div class="t">更新の難易度</div><div class="v">${d?d.label:"—"}</div>
-        <div class="s">1位〜200位の幅 ${d?(d.spread*100).toFixed(1):"—"}%</div></div>
-      <div class="stat"><div class="t">次の目標</div><div class="v">${t?fmtRec(n,t.req):"—"}</div>
-        <div class="s">${t&&t.toRank?jp(t.toRank)+"位相当（推定）":""}</div></div>
+        <div class="s">${rec[n]>0?band:"未入力"}</div></div>
+      <div class="stat"><div class="t">1位までの残り</div>
+        <div class="v">${d&&d.head>0?fmtRec(n,d.head):d&&d.head!==null?"到達済み":"—"}</div>
+        <div class="s">${d?d.label:""}</div></div>
+      <div class="stat"><div class="t">次の一歩の目安</div>
+        <div class="v">${rec[n]>0&&d&&d.head>0?fmtRec(n,nx):"—"}</div>
+        <div class="s">残りの約10%を詰める</div></div>
     </div>`;
 }
 function renderAnaDeca(){
   const box=$("#anaDeca"); if(!box) return;
   const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
   const tb=DATA().totalBorders;
-  const rows=DECA.map(n=>({n,v:rec[n]||0,d:difficulty(n),r:estRank(n,rec[n]||0)}));
+  const rows=DECA.map(n=>({n,v:rec[n]||0,d:difficulty(n)}));
   const share=rows.map(x=>({...x,p:cur>0?x.v/cur*100:0})).sort((a,b)=>b.p-a.p);
   const rank=(()=>{ const ks=Object.keys(tb).map(Number).sort((a,b)=>a-b);
     for(const k of ks) if(cur>=tb[k]) return k; return null; })();
@@ -1755,19 +1847,20 @@ function renderAnaDeca(){
      <div class="stat"><div class="t">1位ボーダー</div><div class="v">${jp(tb[1])}</div>
       <div class="s">あと ${jp(Math.max(tb[1]-cur,0))}</div></div>
      <div class="stat"><div class="t">伸ばしやすい種目</div>
-      <div class="v" style="font-size:1.1rem">${esc(rows.slice().sort((a,b)=>a.d.score-b.d.score)[0].n)}</div>
-      <div class="s">難易度がいちばん低い</div></div></div>`+
+      <div class="v" style="font-size:1.1rem">${esc(rows.filter(x=>x.d.score!==null)
+        .sort((a,b)=>b.d.score-a.d.score)[0]?.n||"—")}</div>
+      <div class="s">1位までの残りが大きい</div></div></div>`+
     `<h3>合計に占める割合</h3>`+
-    `<div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>割合</th>`+
-    `<th>推定順位</th><th>更新の難易度</th></tr></thead><tbody>`+
+    `<div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>合計に占める割合</th>`+
+    `<th>1位までの残り</th><th>難易度</th></tr></thead><tbody>`+
     share.map(x=>`<tr><td>${x.n}</td><td>${x.v>0?jp(x.v):"—"}</td>`+
       `<td><div style="display:flex;align-items:center;gap:8px">`+
       `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${x.p.toFixed(1)}%"></i></span>`+
       `<span class="tiny">${x.p.toFixed(1)}%</span></div></td>`+
-      `<td>${x.r?jp(x.r)+"位":"—"}</td>`+
+      `<td>${x.d.head>0?jp(Math.round(x.d.head)):x.d.head!==null?"到達済み":"—"}</td>`+
       `<td class="tiny">${x.d.label}</td></tr>`).join("")+
     `</tbody></table></div>`+
-    `<p class="tiny">割合が小さく、難易度が低い種目ほど「伸ばす余地が大きくて楽」な種目です。</p>`;
+    `<p class="tiny">「1位までの残り」が大きく、難易度が「やさしい」種目ほど、伸ばす余地があります。</p>`;
 }
 
 /* =========================================================
@@ -1909,7 +2002,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
-  if(b.dataset.tab==="plan"){ renderPicks(); renderGoals(); renderDecaPicks();
+  if(b.dataset.tab==="plan"){ renderPicks(); renderDecaPicks();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="cup") loadCups();
@@ -1983,9 +2076,38 @@ $("#decaGo").onclick=()=>{
   const t=num($("#decaTgt").value);
   if(!(t>0)) return toast("目標の合計スコアを入れてください");
   $("#decaTgt").value=commaFmt(String(t));
-  $("#decaOut").innerHTML=decaHTML(t);
+  $("#decaOut").innerHTML=decaEvenHTML(t);
 };
-$("#doPlan").onclick=()=>{
+/** 均等に伸ばすプランを表示する */
+function showEvenPlan(){
+  const c=compute(rec);
+  if(!c.complete) return toast("全項目を入力するとプランを作成できます");
+  const tgt=num($("#tgtRate").value)||(nextRank(c.total)?nextRank(c.total).min:MAXPT);
+  $("#tgtRate").value=f3(tgt);
+  if(tgt<=c.total) return $("#planOut").innerHTML=`<p class="muted">現在のRATING ${f3(c.total)} はすでに目標を超えています。</p>`;
+  const pool=picked.size?[...picked]:null;
+  const p=evenRatingPlan(tgt,pool,rec);
+  const rows=p.rows.slice().sort((a,b)=>b.add-a.add);
+  const D=difficultyAll();
+  $("#planOut").innerHTML=
+    `<p class="muted">現在 <b>${f3(p.start)}</b> → 到達 <b>${f3(p.end)}</b>　`+
+    (p.reached?'<span class="win">目標に到達 ✓</span>':'<span class="lose">全種目を1位まで伸ばしても届きません</span>')+
+    `　<b>${rows.length}種目</b>を均等に強化</p>`+
+    `<div class="hintbox">1位ボーダーまでの残りを、どの種目も同じ割合
+      （約 <b>${(100*(1-Math.exp(-p.E))).toFixed(1)}%</b>）ずつ詰める配分です。
+      <br><span class="tiny">同じ割合でも、1位に近い種目は必要な点数が小さく、
+      伸びしろのある種目は大きくなります。無理な一点突破になりません。</span></div>`+
+    `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>いまの記録</th><th>目標</th>`+
+    `<th>必要な伸び</th><th>1位までの残り</th><th>難易度</th></tr></thead><tbody>`+
+    rows.map((x,i)=>`<tr class="used"><td>${i+1}</td><td>${x.n}</td>`+
+      `<td>${fmtRec(x.n,x.from)}</td><td><b>${fmtRec(x.n,x.to)}</b></td>`+
+      `<td class="pct">＋${fmtRec(x.n,x.add)}<br><span class="tiny">残りの${(x.use*100).toFixed(1)}%</span></td>`+
+      `<td class="tiny">${fmtRec(x.n,x.head)}</td>`+
+      `<td class="tiny">${D[x.n]?D[x.n].label:""}</td></tr>`).join("")+
+    `</tbody></table></div>`;
+}
+$("#doPlan").onclick=showEvenPlan;
+$("#doPlanStep").onclick=()=>{
   const c=compute(rec);
   if(!c.complete) return toast("全項目を入力するとプランを作成できます");
   const tgt=num($("#tgtRate").value)||(nextRank(c.total)?nextRank(c.total).min:MAXPT);
@@ -2018,7 +2140,7 @@ $("#doPlan").onclick=()=>{
         `（${x.hops}段階${x.border?"":"／最後はぴったり調整"}）</span></div>`;}).join("")+
     (p.steps.some(x=>x.n==="合計スコア")?
       `<h3>十種競技総合スコアの上げ方</h3>`+
-      decaHTML(p.steps.filter(x=>x.n==="合計スコア").slice(-1)[0].req):"")+
+      decaEvenHTML(p.steps.filter(x=>x.n==="合計スコア").slice(-1)[0].req):"")+
     `<h3>おすすめの順番</h3>`+
     `<p class="tiny" style="margin-top:-4px">上昇量 ÷ 必要な伸び幅 が大きい順です。最後の一手で目標にぴったり合わせます。</p>`+
     `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>目標</th>`+
@@ -2073,6 +2195,31 @@ function nextTargetFor(n,rc){
   if(cur>0){ if(x>=nodes[last]) return null; for(let i=0;i<last;i++) if(x>=nodes[i]) k=i; }
   const rank=ranks[k];
   return {rank,req:DATA().borders[n][rank],cur};
+}
+/** 均等に伸ばす方式で、十種競技総合スコアの割り振りを出す */
+function decaEvenHTML(targetTotal){
+  const pool=decaPool.length?decaPool:DECA;
+  const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
+  if(targetTotal<=cur) return `<p class="muted">十種競技総合スコアは既に目標に届いています（現在 ${jp(cur)}）。</p>`;
+  const d=evenDecaPlan(targetTotal,pool,rec);
+  const D=difficultyAll();
+  const rows=d.rows.slice().sort((a,b)=>b.add-a.add);
+  if(!rows.length) return `<p class="muted">伸ばせる種目がありません。`+
+    `<br><span class="tiny">「私の理論値」を上げるか、対象の種目を増やしてください。</span></p>`;
+  return `<p class="muted">現在 <b>${jp(d.start)}</b> → 到達 <b>${jp(Math.round(d.end))}</b>`+
+    `（目標 ${jp(targetTotal)}）　${d.reached?'<span class="win">到達 ✓</span>':'<span class="lose">全種目1位でも届きません</span>'}</p>`+
+    `<div class="hintbox">どの種目も、1位までの残りを同じ割合
+      （約 <b>${(100*(1-Math.exp(-d.E))).toFixed(1)}%</b>）ずつ詰めます。
+      <br><span class="tiny">1位に近い種目は少しだけ、伸びしろのある種目は多めに配分されます。</span></div>`+
+    `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>いまの記録</th><th>目標</th>`+
+    `<th>必要な伸び</th><th>1位までの残り</th><th>難易度</th></tr></thead><tbody>`+
+    rows.map((x,i)=>`<tr class="used"><td>${i+1}</td><td>${x.n}`+
+      `${myMax[x.n]>0?`<br><span class="tiny">私の理論値 ${fmtRec(x.n,myMax[x.n])}</span>`:""}</td>`+
+      `<td>${jp(x.from)}</td><td><b>${jp(x.to)}</b></td>`+
+      `<td class="pct">＋${jp(x.add)}<br><span class="tiny">残りの${(x.use*100).toFixed(1)}%</span></td>`+
+      `<td class="tiny">${jp(Math.round(x.head))}</td>`+
+      `<td class="tiny">${D[x.n]?D[x.n].label:""}</td></tr>`).join("")+
+    `</tbody></table></div>`;
 }
 function decaHTML(targetTotal){
   const d=decaPlan(targetTotal);
@@ -3326,7 +3473,7 @@ function updateCupHint(){
   hb.innerHTML = d==="mixed"
     ? `<b style="color:var(--bad)">スコア系とタイム系は混ぜられません。</b>どちらかに揃えてください。`
     : (cupMode==="score"
-        ? `各種目に比重をかけて合計します。比重を大きくした種目ほど勝敗への影響が強くなります。`+
+        ? `各種目に比重をかけて合計します。`+
           `<br><span class="tiny">例：比重2なら、その種目の記録が2倍として扱われます。</span>`
         : (d==="low" ? `合計タイムが<b>短い</b>ほど上位になります。` : `合計スコアが<b>高い</b>ほど上位になります。`));
 }
@@ -3385,8 +3532,7 @@ async function openCup(id){
       <div class="scroll"><table><thead><tr><th>順</th><th>種目</th><th>比重</th><th>影響</th></tr></thead><tbody>`+
       evs.map(n=>({n,w:+(c.weights&&c.weights[n])||1})).sort((a,b)=>b.w-a.w)
         .map((x,i)=>`<tr class="${i===0?"used":""}"><td>${i+1}</td><td>${esc(x.n)}</td>`+
-          `<td><b style="color:var(--warn)">×${x.w}</b></td>`+
-          `<td class="tiny">${i===0?"最も勝敗を左右します":x.w>=1?"標準以上":"控えめ"}</td></tr>`).join("")+
+          `<td><b style="color:var(--warn)">×${x.w}</b></td></tr>`).join("")+
       `</tbody></table></div>`:""}
     ${c.note?`<p class="tiny">${esc(c.note)}</p>`:""}
     <div style="margin:10px 0"><span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
