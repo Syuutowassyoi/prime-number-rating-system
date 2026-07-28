@@ -187,6 +187,23 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
   background:linear-gradient(135deg,#2f6fd0,#3f9de0);box-shadow:0 10px 30px -18px #4da3ff}
 .lshit:active{transform:translateY(2px)}
 .lshit:disabled{opacity:.4;cursor:not-allowed;background:#25344c;border-color:var(--line)}
+/* クリアしたときの光り方 */
+.lshit.hit{animation:lshit .5s ease-out}
+.lshit.hitbig{animation:lshitbig .9s ease-out}
+@keyframes lshit{
+  0%{box-shadow:0 0 0 0 #7fe9ffcc,0 0 34px 6px #4da3ff99;filter:brightness(1.9) saturate(1.3)}
+  100%{box-shadow:0 0 0 26px #7fe9ff00,0 10px 30px -18px #4da3ff;filter:brightness(1)}}
+@keyframes lshitbig{
+  0%{box-shadow:0 0 0 0 #ffd98acc,0 0 44px 10px #ffc861aa;filter:brightness(2.2) saturate(1.5)}
+  55%{box-shadow:0 0 0 20px #ffd98a44,0 0 30px 6px #ffc86166;filter:brightness(1.5)}
+  100%{box-shadow:0 0 0 40px #ffd98a00,0 10px 30px -18px #4da3ff;filter:brightness(1)}}
+#lsFlash{position:fixed;inset:0;pointer-events:none;z-index:70;opacity:0}
+#lsFlash.go{background:radial-gradient(circle at 50% 48%,#7fe9ff44,#7fe9ff00 62%);animation:lsfl .42s ease-out}
+#lsFlash.big{background:radial-gradient(circle at 50% 48%,#ffd98a66,#ffc86100 68%);animation:lsflb .85s ease-out}
+@keyframes lsfl{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
+@keyframes lsflb{0%{opacity:0}10%{opacity:1}45%{opacity:.55}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  #lsFlash.go,#lsFlash.big,.lshit.hit,.lshit.hitbig{animation:none}}
 .pfrow{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
 .pfhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .pfchk{display:flex;flex-wrap:wrap;gap:6px}
@@ -330,6 +347,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <span class="mnow" id="menuNow">ホーム</span>
   <span class="mbadge" id="menuBadge" hidden>0</span>
 </div>
+<div id="lsFlash"></div>
 <nav class="tabs" id="tabs" hidden>
   <div class="grp" data-g="home"><div class="ghead">ホーム</div>
     <button data-tab="profile" class="on">ホーム</button></div>
@@ -502,6 +520,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="lsOpenCfg">1回あたりの増加量を登録</button>
       <button class="btn" id="lsOpenKey">カウントキーを設定</button>
+      <button class="btn" id="lsSnd">音：オン</button>
+      <button class="btn" id="lsLit">光：オン</button>
     </div>
     <div id="lsCfgView" class="tiny" style="margin-top:10px"></div>
   </div>
@@ -815,7 +835,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v28";
+const APP_VERSION = "v29";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -867,6 +887,9 @@ const IND_BAND =["200位以下","100〜200位","50〜100位","10〜50位","1〜1
 const TOT_RANKS=[1000,500,100,50,25,10,5,1], TOT_PCT=[0,0,.3,.4,.5,.6,.7,.8,1.0];
 const TOT_BAND =["1000位以下","500〜1000位","100〜500位","50〜100位","25〜50位","10〜25位","5〜10位","1〜5位","1位"];
 const L_BASE=25, L_SUB=5.5, S_BASE=25, S_SUB=4.75, MAXPT=20;
+/** L値・S値は小数第3位で切り捨てる（四捨五入しない）。
+ *  1e-9 を足しているのは、2.500 がコンピュータ内部で 2.4999999… になる誤差を打ち消すため。 */
+const tr3=v=>(v>0?Math.floor(v*1000+1e-9)/1000:0);
 
 const RANKS=[{min:0,n:"NOVICE",c:"#8ba0bd"},{min:4,n:"BRONZE",c:"#c98a52"},
  {min:7,n:"SILVER",c:"#bfcbdb"},{min:10,n:"GOLD",c:"#f0c04a"},
@@ -911,6 +934,9 @@ function totalRate(raw){
   return {r,band:TOT_BAND[k],k};
 }
 const logb=(v,b)=>Math.log(v)/Math.log(b);
+/** 累積値から L値・S値を出す。どちらも小数第3位で切り捨て */
+const lvalOf=r=>r>0?tr3(Math.max(logb(r,L_BASE)-L_SUB,0)):null;
+const svalOf=s=>s>0?tr3(Math.max(logb(s,S_BASE)-S_SUB,0)):null;
 /** L値・S値から必要な累積値を逆算する */
 const randForL=L=>Math.pow(L_BASE,(+L)+L_SUB);
 const scoreForS=S=>Math.pow(S_BASE,(+S)+S_SUB);
@@ -933,8 +959,7 @@ function compute(rc,opt){
   const a=rc["乱数累積"]||0,b=rc["スコア累積"]||0;
   const missing=ORDER.filter(n=>!(rc[n]>0));
   return {rates,bands,used,pts,total:pts.reduce((x,y)=>x+y,0),missing,complete:!missing.length,
-    L:a>0?Math.max(logb(a,L_BASE)-L_SUB,0):null,
-    S:b>0?Math.max(logb(b,S_BASE)-S_SUB,0):null};
+    L:lvalOf(a), S:svalOf(b)};
 }
 function nextTarget(n,rc){
   const cur=rc[n]||0, isTot=n==="合計スコア";
@@ -3878,7 +3903,8 @@ function showPlayer(p,rc){
    10d. LSやりこみ
    ========================================================= */
 const K_LS="sa-ls-v1", K_LSLOG="sa-lslog-v1";
-let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0,goalSv:0,goalLv:0,stepSv:0.01,stepLv:0.01});
+let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0,goalSv:0,goalLv:0,stepSv:0.01,stepLv:0.01,
+                   mute:false,nolight:false});
 let lsLog=ls(K_LSLOG,[]);
 let lsRun=null;      /* {start, count} */
 let lsTimer=null, lsCool=0;
@@ -3934,29 +3960,39 @@ function renderLs(prev){
   /* 累積の見込み（プロフィールの値＋今回の増加）で、次のボーダーまでを出す */
   const baseS=rec["スコア累積"]||0, baseR=rec["乱数累積"]||0;
   const totS=baseS+gainS, totR=baseR+gainR;
-  const sv=totS>0?Math.max(logb(totS,S_BASE)-S_SUB,0):null;
-  const lv=totR>0?Math.max(logb(totR,L_BASE)-L_SUB,0):null;
+  const sv=svalOf(totS), lv=lvalOf(totR);
   $("#lsSv").textContent=sv===null?"—":f3(sv);
   $("#lsLv").textContent=lv===null?"—":f3(lv);
 
+  /** 目標までの残りと、次のボーダーまでの残りを同時に出す */
   const info=(kind,base,gain,goal,per,elN,vGoal,vLabel)=>{
     const cur=base+gain;
-    /* 目標L値・S値から逆算した累積値を優先する */
-    const auto=vGoal>0?(kind==="rand"?randForL(vGoal):scoreForS(vGoal)):0;
-    const tgt = auto>cur ? {rank:null,val:Math.ceil(auto),vlab:vGoal}
-              : goal>0   ? {rank:null,val:goal}
-              : nextLsBorder(kind,cur);
-    if(!tgt){ elN.innerHTML=`<b>1位ボーダーに到達しています</b>`; return; }
-    const left=Math.max(tgt.val-cur,0);
-    const need=per>0?Math.ceil(left/per):null;
-    const head=tgt.vlab!==undefined
-      ? `<b>${vLabel} ${f3(tgt.vlab)}</b>（${kind==="rand"?"乱数累積":"スコア累積"} ${jp(tgt.val)}）達成まであと`
-      : `${tgt.rank?tgt.rank+"位ボーダー":"目標"} ${jp(tgt.val)} まで あと`;
-    elN.innerHTML=
-      (base>0?`累積の見込み <b>${jp(cur)}</b><br>`:`<span class="tiny">累積を入力タブに登録すると順位も出ます</span><br>`)+
-      `${head} <b>${jp(left)}</b>`+
-      (need!==null?`<br><b style="color:var(--warn)">あと約 ${jp(need)} 回</b>`
-                  :`<br><span class="tiny">1回あたりの増加量を登録すると回数が出ます</span>`);
+    const cname=kind==="rand"?"乱数累積":"スコア累積";
+    /* 1行分。残りと、そこまでに必要なクリア回数 */
+    const row=(head,val)=>{
+      const left=val-cur;
+      if(left<=0) return `${head} <b style="color:var(--acc2)">達成済み</b>`;
+      const need=per>0?Math.ceil(left/per):null;
+      return `${head} あと <b>${jp(left)}</b>`
+        +(need!==null?` ／ <b style="color:var(--warn)">約 ${jp(need)} 回</b>`
+                     :` <span class="tiny">（1回あたりの増加量を登録すると回数も出ます）</span>`);
+    };
+    const out=[];
+    out.push(base>0
+      ? `累積の見込み <b>${jp(cur)}</b>`
+      : `<span class="tiny">累積を入力タブに登録すると、順位やボーダーまでの残りも出ます</span>`);
+    /* ① 目標まで（L値・S値の目標から逆算した累積を優先し、なければ直接指定した累積） */
+    const auto=vGoal>0?Math.ceil(kind==="rand"?randForL(vGoal):scoreForS(vGoal)):0;
+    if(auto>0)      out.push(row(`<b>目標 ${vLabel} ${f3(vGoal)}</b>（${cname} ${jp(auto)}）まで`,auto));
+    else if(goal>0) out.push(row(`<b>目標 ${jp(goal)}</b> まで`,goal));
+    else            out.push(`<span class="tiny">目標を登録すると、達成までの残りが出ます</span>`);
+    /* ② 次のボーダーまで */
+    const hasB=Object.keys(lsB()[kind]||{}).length>0;
+    const b=hasB?nextLsBorder(kind,cur):null;
+    out.push(!hasB ? `<span class="tiny">ボーダーのデータがまだ登録されていません</span>`
+           : b    ? row(`<b>次のボーダー ${b.rank}位</b>（${jp(b.val)}）まで`,b.val)
+                  : `<b style="color:var(--acc2)">1位ボーダーに到達しています</b>`);
+    elN.innerHTML=out.join("<br>");
   };
   info("score",baseS,gainS,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
   info("rand", baseR,gainR,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
@@ -4001,6 +4037,57 @@ function renderLsLog(){
     if(!await askYN("この記録を削除しますか？","やりこみ記録から1件消します。","削除する")) return;
     lsLog.splice(+b.dataset.lsdel,1); saveLs(); renderLsLog();});
 }
+/* ---- クリアしたときの光と音 ---- */
+let lsAC=null;
+/** 電子音。big=true は目標やボーダーを越えたときの少し長い音 */
+function lsBeep(big){
+  if(lsCfg.mute) return;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    if(!lsAC) lsAC=new AC();
+    if(lsAC.state==="suspended") lsAC.resume();
+    const t=lsAC.currentTime, g=lsAC.createGain();
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(big?0.26:0.18,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+(big?0.55:0.22));
+    g.connect(lsAC.destination);
+    /* 上がっていく短い和音。big のときは4音まで伸ばす */
+    const notes=big?[784,988,1175,1568]:[880,1320];
+    const gap=big?0.075:0.055;
+    notes.forEach((f,i)=>{
+      const o=lsAC.createOscillator();
+      o.type=big?"triangle":"square";
+      o.frequency.setValueAtTime(f,t+i*gap);
+      o.connect(g); o.start(t+i*gap); o.stop(t+(big?0.6:0.25));
+    });
+  }catch(e){}
+}
+/** 画面と押したボタンを光らせる */
+function lsFlash(big){
+  if(lsCfg.nolight) return;
+  const el=$("#lsFlash"), b=$("#lsHit");
+  if(el){ el.className=""; void el.offsetWidth; el.className=big?"big":"go"; }
+  if(b){ b.classList.remove("hit","hitbig"); void b.offsetWidth; b.classList.add(big?"hitbig":"hit"); }
+  try{ if(navigator.vibrate) navigator.vibrate(big?[40,60,80]:25); }catch(e){}
+}
+/** この1回で目標かボーダーを越えたか */
+function lsCrossed(a,b){
+  const chk=(kind,base,per,vGoal,goal)=>{
+    if(!(per>0)) return false;
+    const x=base+a*per, y=base+b*per, t=[];
+    if(vGoal>0) t.push(Math.ceil(kind==="rand"?randForL(vGoal):scoreForS(vGoal)));
+    if(goal>0) t.push(goal);
+    const nb=nextLsBorder(kind,x); if(nb) t.push(nb.val);
+    return t.some(v=>x<v&&y>=v);
+  };
+  return chk("score",rec["スコア累積"]||0,lsCfg.perScore,lsCfg.goalSv,lsCfg.goalS)
+      || chk("rand", rec["乱数累積"]||0, lsCfg.perRand, lsCfg.goalLv,lsCfg.goalR);
+}
+function lsFxLabels(){
+  const s=$("#lsSnd"), l=$("#lsLit");
+  if(s) s.textContent="音："+(lsCfg.mute?"オフ":"オン");
+  if(l) l.textContent="光："+(lsCfg.nolight?"オフ":"オン");
+}
 function lsHit(){
   if(!lsRun) return;
   const now=Date.now();
@@ -4008,10 +4095,17 @@ function lsHit(){
   lsCool=now;
   const prev=lsRun.count;
   lsRun.count++;
+  const big=lsCrossed(prev,lsRun.count);
+  lsFlash(big); lsBeep(big);
   $("#lsHit").disabled=true;
   setTimeout(()=>{ if(lsRun) $("#lsHit").disabled=false; },1000);
   renderLs(prev);
 }
+$("#lsSnd").onclick=()=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
+  if(!lsCfg.mute) lsBeep(false); };
+$("#lsLit").onclick=()=>{ lsCfg.nolight=!lsCfg.nolight; saveLs(); lsFxLabels();
+  if(!lsCfg.nolight) lsFlash(false); };
+lsFxLabels();
 function lsFill(){ lsCfgView(); }
 const keyLabel=k=>{
   if(!k) return "スペース";
@@ -4189,9 +4283,9 @@ $("#lsStopBtn").onclick=()=>{
   const upd=()=>{
     const sv=num(M.q("#fS").value), rv=num(M.q("#fR").value);
     const parts=[];
-    if(sv>0) parts.push(`S値 ${f3(Math.max(logb(sv,S_BASE)-S_SUB,0))}`+
+    if(sv>0) parts.push(`S値 ${f3(svalOf(sv))}`+
       (lsRankOf("score",sv)?`（スコア累積 ${lsRankOf("score",sv)}位以内）`:""));
-    if(rv>0) parts.push(`L値 ${f3(Math.max(logb(rv,L_BASE)-L_SUB,0))}`+
+    if(rv>0) parts.push(`L値 ${f3(lvalOf(rv))}`+
       (lsRankOf("rand",rv)?`（乱数累積 ${lsRankOf("rand",rv)}位以内）`:""));
     M.q("#fPrev").innerHTML=parts.length?`入力した値だと ${parts.join("　／　")} になります。`:"";
   };
@@ -4875,7 +4969,7 @@ function normalize(j){
       saveSess(); history.replaceState(null,"",location.pathname); toast("ログインしました");
     }
   }
-  fillInputs();
+  fillInputs(); lsFxLabels();
   try{ applyData(); }catch(e){ console.error(e); }
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
     try{ await loadFriendReq(); renderFriendReq(); }catch(e){} }
