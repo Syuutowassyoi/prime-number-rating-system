@@ -206,6 +206,9 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .cd{font-variant-numeric:tabular-nums;font-weight:700;color:var(--acc2);font-size:1.05rem}
 .cd.pre{color:var(--warn)} .cd.end{color:var(--dim2)}
 .gsec{font-size:.82rem;color:var(--acc);font-weight:600;margin:16px 0 8px;letter-spacing:.06em}
+.segchip{display:inline-block;background:#16202f;border:1px solid var(--line);border-radius:6px;
+  padding:2px 6px;margin:2px;font-size:.68rem;color:var(--dim);white-space:nowrap}
+.segchip b{color:var(--tx);margin-left:4px}
 .hintbox{margin-top:10px;background:#20263a;border:1px solid #40506e;border-radius:10px;
   padding:10px 12px;font-size:.8rem}
 .goal{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:10px 0;border-bottom:1px solid #1f2c40}
@@ -428,15 +431,23 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <h2>目標RATING 達成プラン</h2>
     <p class="muted" style="margin-top:-8px">全種目を<b>均等に伸ばす</b>のが基本です。
       1位ボーダーまでの残りを同じ割合ずつ詰めるので、<b>1位に近い種目ほど控えめ、伸びしろのある種目ほど大きく</b>配分されます。</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <label class="fl">どの種目を伸ばしますか</label>
+    <div class="toggle" style="display:inline-flex;gap:4px;background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:3px;flex-wrap:wrap">
+      <button id="mdUsed" class="on">いまレートに採用中の種目</button>
+      <button id="mdPick">自分で選ぶ</button>
+    </div>
+    <div id="planPickNote" class="tiny" style="margin-top:6px"></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
       <label class="fl" style="margin:0">目標RATING</label>
       <input type="text" inputmode="decimal" id="tgtRate" style="max-width:110px">
       <button class="btn pri" id="doPlan">均等に伸ばすプランを作る</button>
       <button class="btn" id="doPlanStep">ボーダー単位で作る</button>
     </div>
-    <details style="margin-top:12px"><summary class="muted">伸ばす種目と、種目ごとの上限を指定する</summary>
-      <p class="tiny" style="margin-top:6px">チェックを付けた種目だけを使います（未選択なら全種目）。
-        右の欄は「この種目で上げるRATINGの上限」です。</p>
+    <details id="planPicker" style="margin-top:12px" hidden><summary class="muted">伸ばす種目を選ぶ</summary>
+      <p class="tiny" style="margin-top:6px">
+        <b>② 素数ゲーム／暗素因数分解から4種</b>、<b>③ EX系・タイムアタック系から3種</b>を選んでください。
+        十種競技総合スコア（①）は常に対象に含まれます。<br>
+        右の欄は「この種目で上げるRATINGの上限」です（任意）。</p>
       <div class="tools" style="margin-top:8px">
         <button class="btn sm" id="pkAll">全選択</button>
         <button class="btn sm" id="pkNone">全解除</button>
@@ -804,7 +815,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v27";
+const APP_VERSION = "v28";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -900,6 +911,9 @@ function totalRate(raw){
   return {r,band:TOT_BAND[k],k};
 }
 const logb=(v,b)=>Math.log(v)/Math.log(b);
+/** L値・S値から必要な累積値を逆算する */
+const randForL=L=>Math.pow(L_BASE,(+L)+L_SUB);
+const scoreForS=S=>Math.pow(S_BASE,(+S)+S_SUB);
 
 function compute(rc,opt){
   const pend=(opt&&opt.pending)||(typeof claims!=="undefined"?pendingSet():new Set());
@@ -1139,7 +1153,7 @@ function evenPlan(pool,E,rc){
 }
 /** 目標に届く努力量を二分探索で求める */
 function findEffort(pool,eval1,target,lo,hi){
-  let a=(lo===undefined?0:lo), b=(hi===undefined?3:hi);
+  let a=(lo===undefined?0:lo), b=(hi===undefined?12:hi);
   if(eval1(b)<target) return {E:b,reached:false};
   for(let i=0;i<40;i++){
     const m=(a+b)/2;
@@ -1151,10 +1165,16 @@ function findEffort(pool,eval1,target,lo,hi){
 function evenRatingPlan(target,pool,rc){
   const use=(pool&&pool.length)?pool:EVENTS;
   const base=rc||rec;
-  const f=E=>compute(evenPlan(use,E,base).rec).total;
+  /* ①十種競技総合スコアは9種目の合計なので、②③を伸ばせば自動で上がる */
+  const withDeca=r=>{const o=Object.assign({},r);
+    const t=DECA.reduce((a,n)=>a+(o[n]||0),0); if(t>0) o["合計スコア"]=t; return o;};
+  const f=E=>compute(withDeca(evenPlan(use,E,base).rec)).total;
   const {E,reached}=findEffort(use,f,target);
   const p=evenPlan(use,E,base);
-  return {E,reached,rows:p.rows,start:compute(base).total,end:compute(p.rec).total};
+  const fin=withDeca(p.rec);
+  return {E,reached,rows:p.rows,start:compute(base).total,end:compute(fin).total,
+    decaFrom:DECA.reduce((a,n)=>a+(base[n]||0),0),
+    decaTo:DECA.reduce((a,n)=>a+(fin[n]||0),0)};
 }
 /** 目標の十種競技総合スコアに均等に届くプラン */
 function evenDecaPlan(targetTotal,pool,rc){
@@ -1711,53 +1731,62 @@ function weightNow(n,v){
   const unit=LOW.has(n)?0.1:100;
   return unit/h;              /* 伸びしろの何割を使うか */
 }
-/** 難易度。伸びしろが小さいほど（1位に近いほど）難しい */
+/** 200位の人から見た「1位までの登り幅」で種目の難易度を決める。
+ *  登り幅が小さい種目＝200位でも1位に近い＝これ以上の更新が難しい。 */
+const SEGS=[[200,100],[100,50],[50,10],[10,5],[5,1]];
+function climbOf(n){
+  const B=DATA().borders[n]; if(!B) return null;
+  const base=B[200];
+  const total=LOW.has(n)?(base-B[1])/base:(B[1]-base)/base;
+  const segs=SEGS.map(([a,c])=>{
+    const va=B[a], vc=B[c];
+    return {a,c,rel:LOW.has(n)?(va-vc)/va:(vc-va)/va, from:va, to:vc};
+  });
+  /* 一番きつい区間 */
+  const wall=segs.slice().sort((x,y)=>y.rel-x.rel)[0];
+  return {total,segs,wall};
+}
 let _diffCache=null, _diffKey="";
-function difficultyAll(rc){
-  const r=rc||rec;
-  const key=DATA().date+"|"+EVENTS.map(n=>r[n]||0).join(",");
+function difficultyAll(){
+  const key=DATA().date;
   if(_diffCache&&_diffKey===key) return _diffCache;
-  const raw=EVENTS.map(n=>{
-    const v=r[n]||0, B=DATA().borders[n];
-    const h=headroom(n,v);
-    const room=(v>0&&h!==null&&h>0)?(LOW.has(n)?h/v:h/B[1]):null;   /* 残り伸びしろの割合 */
-    const w=weightNow(n,v);
-    return {n,v,head:h,room,w};
-  });
-  const known=raw.filter(x=>x.room!==null).sort((a,b)=>a.room-b.room);  /* 伸びしろが少ない＝難しい */
+  const raw=EVENTS.map(n=>({n,c:climbOf(n)})).filter(x=>x.c);
+  /* 登り幅が小さい順＝難しい順。18種目を 0〜100 に等間隔で並べる */
+  raw.sort((a,b)=>a.c.total-b.c.total);
   const out={};
-  raw.forEach(x=>{ out[x.n]={head:x.head,room:x.room,w:x.w,score:null,label:"未入力"}; });
-  known.forEach((x,i)=>{
-    const score=known.length>1?Math.round((1-i/(known.length-1))*100):50;
-    out[x.n]={head:x.head,room:x.room,w:x.w,score,
-      label:x.head<=0?"1位到達":score<25?"とてもむずかしい":score<50?"むずかしい":score<75?"ふつう":"やさしい"};
+  raw.forEach((x,i)=>{
+    const score=raw.length>1?Math.round((1-i/(raw.length-1))*100):50;
+    out[x.n]={climb:x.c.total,segs:x.c.segs,wall:x.c.wall,score,
+      label:score>=75?"とてもむずかしい":score>=50?"むずかしい":score>=25?"ふつう":"やさしい"};
   });
-  raw.filter(x=>x.head!==null&&x.head<=0).forEach(x=>{
-    out[x.n]={head:x.head,room:0,w:null,score:0,label:"1位到達"};});
   _diffCache=out; _diffKey=key;
   return out;
 }
 function difficulty(n){ return difficultyAll()[n]||null; }
 function anaTable(){
   const D=difficultyAll();
-  const rows=EVENTS.map(n=>({n,d:D[n],v:rec[n]||0}))
-    .sort((a,b)=>(a.d.score===null?999:a.d.score)-(b.d.score===null?999:b.d.score));
-  const unit=n=>LOW.has(n)?"0.1秒":"100点";
-  return `<div class="scroll"><table><thead><tr><th>種目</th><th>いまの記録</th>`+
-    `<th>1位までの残り</th><th>${"更新の重さ"}</th><th>難易度</th></tr></thead><tbody>`+
+  const rows=EVENTS.map(n=>({n,d:D[n],v:rec[n]||0})).sort((a,b)=>b.d.score-a.d.score);
+  const seg=x=>x.d.segs.map(s=>
+    `<span class="segchip" title="${s.a}位→${s.c}位">${s.a}→${s.c}<b>${(s.rel*100).toFixed(1)}%</b></span>`).join("");
+  return `<div class="scroll"><table><thead><tr><th>難易度</th><th>種目</th>`+
+    `<th>200位→1位の登り幅</th><th>区間ごとの必要な伸び</th><th>あなたの位置</th></tr></thead><tbody>`+
     rows.map(x=>{
-      const col=x.d.score===null?"var(--dim)":x.d.score<25?"var(--bad)":x.d.score<50?"#ff9f6b":x.d.score<75?"var(--warn)":"var(--acc2)";
-      const w=x.d.w!==null&&x.d.w!==undefined?(x.d.w*100):null;
-      return `<tr><td>${x.n}${LOW.has(x.n)?' <span class="tiny">(秒)</span>':""}</td>`+
-        `<td>${x.v>0?fmtRec(x.n,x.v):"—"}</td>`+
-        `<td>${x.d.head>0?fmtRec(x.n,x.d.head):x.d.head!==null?"<b style='color:var(--warn)'>到達済み</b>":"—"}</td>`+
-        `<td class="tiny">${w!==null?`${unit(x.n)}の更新で<br>伸びしろの <b>${w.toFixed(2)}%</b>`:"—"}</td>`+
-        `<td><div style="display:flex;align-items:center;gap:8px">`+
-        `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${x.d.score===null?0:100-x.d.score}%;background:${col}"></i></span>`+
-        `<span class="tiny" style="color:${col};white-space:nowrap">${x.d.label}</span></div></td></tr>`;}).join("")+
+      const col=x.d.score>=75?"var(--bad)":x.d.score>=50?"#ff9f6b":x.d.score>=25?"var(--warn)":"var(--acc2)";
+      const h=headroom(x.n,x.v);
+      return `<tr><td style="min-width:150px"><div style="display:flex;align-items:center;gap:8px">`+
+        `<span class="bar" style="flex:1;height:7px;display:block"><i style="width:${x.d.score}%;background:${col}"></i></span>`+
+        `<span class="tiny" style="color:${col};white-space:nowrap">${x.d.score}</span></div>`+
+        `<span class="tiny" style="color:${col}">${x.d.label}</span></td>`+
+        `<td>${x.n}${LOW.has(x.n)?' <span class="tiny">(秒)</span>':""}</td>`+
+        `<td><b>${(x.d.climb*100).toFixed(1)}%</b><br>`+
+        `<span class="tiny">最難関 ${x.d.wall.a}→${x.d.wall.c}位 (${(x.d.wall.rel*100).toFixed(1)}%)</span></td>`+
+        `<td>${seg(x)}</td>`+
+        `<td>${x.v>0?`${fmtRec(x.n,x.v)}<br><span class="tiny">${eventRate(x.n,x.v).band}`+
+          `${h>0?`／1位まで ${fmtRec(x.n,h)}`:h!==null?"／到達済み":""}</span>`:"—"}</td></tr>`;}).join("")+
     `</tbody></table></div>`+
-    `<p class="tiny">「更新の重さ」は、いまの記録から ${"100点（タイム系は0.1秒）"} 伸ばすと、
-      1位までの残りをどれだけ使うかです。<b>1位に近い種目ほど、同じ点数でも重くなります。</b></p>`;
+    `<p class="tiny"><b>200位の人が1位まで登るのに、記録を何%伸ばす必要があるか</b>で測っています。
+      登り幅が小さい種目ほど上位が密集していて、そこから記録を更新するのは大変です。
+      区間ごとの数字を見ると、どこに壁があるかが分かります。</p>`;
 }
 /** なめらかな折れ線（Catmull-Rom をベジェに変換） */
 function smoothPath(pts){
@@ -1826,8 +1855,8 @@ function renderAnalysis(){
       <div class="stat"><div class="t">いまの記録</div><div class="v">${rec[n]>0?fmtRec(n,rec[n]):"—"}</div>
         <div class="s">${rec[n]>0?band:"未入力"}</div></div>
       <div class="stat"><div class="t">1位までの残り</div>
-        <div class="v">${d&&d.head>0?fmtRec(n,d.head):d&&d.head!==null?"到達済み":"—"}</div>
-        <div class="s">${d?d.label:""}</div></div>
+        <div class="v">${headroom(n,rec[n]||0)>0?fmtRec(n,headroom(n,rec[n]||0)):(rec[n]>0?"到達済み":"—")}</div>
+        <div class="s">難易度 ${d?d.label+"（"+d.score+"）":""}</div></div>
       <div class="stat"><div class="t">次の一歩の目安</div>
         <div class="v">${rec[n]>0&&d&&d.head>0?fmtRec(n,nx):"—"}</div>
         <div class="s">残りの約10%を詰める</div></div>
@@ -1847,9 +1876,9 @@ function renderAnaDeca(){
      <div class="stat"><div class="t">1位ボーダー</div><div class="v">${jp(tb[1])}</div>
       <div class="s">あと ${jp(Math.max(tb[1]-cur,0))}</div></div>
      <div class="stat"><div class="t">伸ばしやすい種目</div>
-      <div class="v" style="font-size:1.1rem">${esc(rows.filter(x=>x.d.score!==null)
-        .sort((a,b)=>b.d.score-a.d.score)[0]?.n||"—")}</div>
-      <div class="s">1位までの残りが大きい</div></div></div>`+
+      <div class="v" style="font-size:1.1rem">${esc(rows.slice()
+        .sort((a,b)=>a.d.score-b.d.score)[0]?.n||"—")}</div>
+      <div class="s">難易度がいちばん低い</div></div></div>`+
     `<h3>合計に占める割合</h3>`+
     `<div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>合計に占める割合</th>`+
     `<th>1位までの残り</th><th>難易度</th></tr></thead><tbody>`+
@@ -1857,7 +1886,7 @@ function renderAnaDeca(){
       `<td><div style="display:flex;align-items:center;gap:8px">`+
       `<span class="bar" style="flex:1;height:6px;display:block"><i style="width:${x.p.toFixed(1)}%"></i></span>`+
       `<span class="tiny">${x.p.toFixed(1)}%</span></div></td>`+
-      `<td>${x.d.head>0?jp(Math.round(x.d.head)):x.d.head!==null?"到達済み":"—"}</td>`+
+      `<td>${headroom(x.n,x.v)>0?jp(Math.round(headroom(x.n,x.v))):(x.v>0?"到達済み":"—")}</td>`+
       `<td class="tiny">${x.d.label}</td></tr>`).join("")+
     `</tbody></table></div>`+
     `<p class="tiny">「1位までの残り」が大きく、難易度が「やさしい」種目ほど、伸ばす余地があります。</p>`;
@@ -2002,7 +2031,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
-  if(b.dataset.tab==="plan"){ renderPicks(); renderDecaPicks();
+  if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="cup") loadCups();
@@ -2012,6 +2041,47 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
    7. 目標プラン
    ========================================================= */
 const PLAN_POOL=["合計スコア"].concat(EVENTS);
+let planMode="used";   /* used = いま採用中の種目 / pick = 自分で選ぶ */
+/** いまレート計算に採用されている種目（②上位4種・③上位3種）＋総合 */
+function usedPool(){
+  const c=compute(rec);
+  const top=(list,k)=>list.slice().sort((a,b)=>c.rates[b]-c.rates[a]).slice(0,k);
+  return {deca:"合計スコア",cat2:top(CAT2,4),cat3:top(CAT3,3)};
+}
+/** 選択が「②4種・③3種」を満たしているか確かめる */
+function checkPool(pool){
+  const c2=pool.filter(n=>CAT2.includes(n)), c3=pool.filter(n=>CAT3.includes(n));
+  return {c2,c3,ok:c2.length===4&&c3.length===3,
+    msg:(c2.length===4?"":`② から ${4-c2.length>0?`あと${4-c2.length}種`:`${c2.length-4}種多い`}`)+
+        ((c2.length!==4&&c3.length!==3)?"／":"")+
+        (c3.length===3?"":`③ から ${3-c3.length>0?`あと${3-c3.length}種`:`${c3.length-3}種多い`}`)};
+}
+function currentPool(){
+  if(planMode==="used"){ const u=usedPool(); return [u.deca].concat(u.cat2,u.cat3); }
+  const arr=[...picked].filter(n=>n!=="合計スコア");
+  return ["合計スコア"].concat(arr);
+}
+function renderPlanPick(){
+  const note=$("#planPickNote"); if(!note) return;
+  $("#planPicker").hidden=(planMode!=="pick");
+  $("#mdUsed").classList.toggle("on",planMode==="used");
+  $("#mdPick").classList.toggle("on",planMode==="pick");
+  if(planMode==="used"){
+    const u=usedPool();
+    note.innerHTML=`① <b>十種競技総合スコア</b>　`+
+      `② <b>${esc(u.cat2.join("、"))}</b>　`+
+      `③ <b>${esc(u.cat3.join("、"))}</b>`+
+      `<br>いまRATINGに加算されている 1＋4＋3 種目です。ここを伸ばすのが最も効率的です。`;
+    return;
+  }
+  const pool=currentPool().filter(n=>n!=="合計スコア");
+  const v=checkPool(pool);
+  note.innerHTML=v.ok
+    ? `<span class="win">② 4種・③ 3種が選ばれています ✓</span>　`+
+      `<span class="tiny">① 十種競技総合スコアは常に含まれます。</span>`
+    : `<span class="lose">${esc(v.msg)}</span>　`+
+      `<span class="tiny">② から4種、③ から3種をちょうど選んでください。</span>`;
+}
 let picked=new Set(), caps={};
 function renderPicks(){
   const c=compute(rec);
@@ -2029,6 +2099,7 @@ function renderPicks(){
     el.oninput=()=>{const v=num(el.value); if(v>0) caps[el.dataset.cap]=v; else delete caps[el.dataset.cap];};
   });
   const hint=$("#pickHint");
+  renderPlanPick();
   if(picked.size>=2){
     const arr=[...picked].map(n=>({n,r:c.rates[n]})).sort((a,b)=>a.r-b.r);
     hint.hidden=false;
@@ -2038,6 +2109,9 @@ function renderPicks(){
       `<br><span class="tiny">おすすめ順：${arr.map(x=>`${esc(x.n)} ${pctf(x.r)}`).join(" → ")}</span>`;
   }else hint.hidden=true;
 }
+$("#mdUsed").onclick=()=>{planMode="used";renderPlanPick();};
+$("#mdPick").onclick=()=>{planMode="pick";if(!picked.size){const u=usedPool();
+  picked=new Set(u.cat2.concat(u.cat3));}renderPicks();renderPlanPick();};
 $("#pkAll").onclick=()=>{picked=new Set(PLAN_POOL);renderPicks();};
 $("#pkNone").onclick=()=>{picked=new Set();caps={};renderPicks();};
 $("#pkWeak").onclick=()=>{const c=compute(rec);
@@ -2085,14 +2159,27 @@ function showEvenPlan(){
   const tgt=num($("#tgtRate").value)||(nextRank(c.total)?nextRank(c.total).min:MAXPT);
   $("#tgtRate").value=f3(tgt);
   if(tgt<=c.total) return $("#planOut").innerHTML=`<p class="muted">現在のRATING ${f3(c.total)} はすでに目標を超えています。</p>`;
-  const pool=picked.size?[...picked]:null;
+  const pool0=currentPool();
+  if(planMode==="pick"){
+    const v=checkPool(pool0.filter(n=>n!=="合計スコア"));
+    if(!v.ok) return $("#planOut").innerHTML=
+      `<div class="hintbox"><b style="color:var(--bad)">種目の選び方を直してください。</b><br>`+
+      `${esc(v.msg)}<br><span class="tiny">RATINGは ② の上位4種と ③ の上位3種しか加算されないため、`+
+      `その数どおりに選ぶ必要があります。</span></div>`;
+  }
+  const pool=pool0.filter(n=>n!=="合計スコア");
   const p=evenRatingPlan(tgt,pool,rec);
   const rows=p.rows.slice().sort((a,b)=>b.add-a.add);
   const D=difficultyAll();
   $("#planOut").innerHTML=
     `<p class="muted">現在 <b>${f3(p.start)}</b> → 到達 <b>${f3(p.end)}</b>　`+
-    (p.reached?'<span class="win">目標に到達 ✓</span>':'<span class="lose">全種目を1位まで伸ばしても届きません</span>')+
+    (p.reached?'<span class="win">目標に到達 ✓</span>'
+      :'<span class="lose">選んだ種目だけでは届きません</span>')+
     `　<b>${rows.length}種目</b>を均等に強化</p>`+
+    (p.reached?"":`<div class="hintbox"><b style="color:var(--bad)">目標に届きません。</b>`+
+      `<br><span class="tiny">選んだ7種目をすべて1位にしても ${f3(p.end)} までです。`+
+      `① 十種競技総合スコアは9種目の合計なので、②に選んでいない種目を伸ばすと、`+
+      `さらにRATINGが上がります。「自分で選ぶ」で対象を変えるか、目標を下げてください。</span></div>`)+
     `<div class="hintbox">1位ボーダーまでの残りを、どの種目も同じ割合
       （約 <b>${(100*(1-Math.exp(-p.E))).toFixed(1)}%</b>）ずつ詰める配分です。
       <br><span class="tiny">同じ割合でも、1位に近い種目は必要な点数が小さく、
@@ -2104,7 +2191,16 @@ function showEvenPlan(){
       `<td class="pct">＋${fmtRec(x.n,x.add)}<br><span class="tiny">残りの${(x.use*100).toFixed(1)}%</span></td>`+
       `<td class="tiny">${fmtRec(x.n,x.head)}</td>`+
       `<td class="tiny">${D[x.n]?D[x.n].label:""}</td></tr>`).join("")+
-    `</tbody></table></div>`;
+    `</tbody></table></div>`+
+    (p.decaTo>p.decaFrom?`<h3>① 十種競技総合スコアへの効果</h3>`+
+      `<p class="muted">上の伸びによって、9種目の合計は `+
+      `<b>${jp(p.decaFrom)}</b> → <b>${jp(Math.round(p.decaTo))}</b>（＋${jp(Math.round(p.decaTo-p.decaFrom))}）になります。`+
+      `<br><span class="tiny">十種競技総合スコアは9種目の合計なので、②の種目を伸ばすと自動的に上がります。`+
+      `この効果もRATINGに含めて計算しています。</span></p>`:"")+
+    `<h3>選ばれている種目</h3>`+
+    `<p class="tiny">① 十種競技総合スコア　`+
+    `② ${esc(pool.filter(n=>CAT2.includes(n)).join("、")||"—")}　`+
+    `③ ${esc(pool.filter(n=>CAT3.includes(n)).join("、")||"—")}</p>`;
 }
 $("#doPlan").onclick=showEvenPlan;
 $("#doPlanStep").onclick=()=>{
@@ -3843,20 +3939,27 @@ function renderLs(prev){
   $("#lsSv").textContent=sv===null?"—":f3(sv);
   $("#lsLv").textContent=lv===null?"—":f3(lv);
 
-  const info=(kind,base,gain,goal,per,elN)=>{
+  const info=(kind,base,gain,goal,per,elN,vGoal,vLabel)=>{
     const cur=base+gain;
-    const tgt=goal>0?{rank:null,val:goal}:nextLsBorder(kind,cur);
+    /* 目標L値・S値から逆算した累積値を優先する */
+    const auto=vGoal>0?(kind==="rand"?randForL(vGoal):scoreForS(vGoal)):0;
+    const tgt = auto>cur ? {rank:null,val:Math.ceil(auto),vlab:vGoal}
+              : goal>0   ? {rank:null,val:goal}
+              : nextLsBorder(kind,cur);
     if(!tgt){ elN.innerHTML=`<b>1位ボーダーに到達しています</b>`; return; }
     const left=Math.max(tgt.val-cur,0);
     const need=per>0?Math.ceil(left/per):null;
+    const head=tgt.vlab!==undefined
+      ? `<b>${vLabel} ${f3(tgt.vlab)}</b>（${kind==="rand"?"乱数累積":"スコア累積"} ${jp(tgt.val)}）達成まであと`
+      : `${tgt.rank?tgt.rank+"位ボーダー":"目標"} ${jp(tgt.val)} まで あと`;
     elN.innerHTML=
       (base>0?`累積の見込み <b>${jp(cur)}</b><br>`:`<span class="tiny">累積を入力タブに登録すると順位も出ます</span><br>`)+
-      `${tgt.rank?tgt.rank+"位ボーダー":"目標"} ${jp(tgt.val)} まで あと <b>${jp(left)}</b>`+
+      `${head} <b>${jp(left)}</b>`+
       (need!==null?`<br><b style="color:var(--warn)">あと約 ${jp(need)} 回</b>`
                   :`<br><span class="tiny">1回あたりの増加量を登録すると回数が出ます</span>`);
   };
-  info("score",baseS,gainS,lsCfg.goalS,perS,$("#lsScoreNext"));
-  info("rand", baseR,gainR,lsCfg.goalR,perR,$("#lsRandNext"));
+  info("score",baseS,gainS,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
+  info("rand", baseR,gainR,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
   /* 次のL値・S値の目標。届いたら自動で繰り上げる */
   const bump=(key,cur,stepKey)=>{
     if(cur===null) return null;
@@ -3952,13 +4055,6 @@ $("#lsOpenCfg").onclick=()=>{
       <div class="tools"><button class="btn sm" id="mCalc">10回分から計算して入れる</button></div>
       <div id="mCalcOut" class="tiny"></div>
     </div>
-    <h3>累積の目標（任意・空なら次のボーダーを目標にします）</h3>
-    <div class="frow">
-      <div><label class="fl">目標スコア累積</label>
-        <input type="text" inputmode="numeric" id="mGoalS" style="max-width:none" value="${lsCfg.goalS?commaFmt(String(lsCfg.goalS)):""}"></div>
-      <div><label class="fl">目標乱数累積</label>
-        <input type="text" inputmode="numeric" id="mGoalR" style="max-width:none" value="${lsCfg.goalR?commaFmt(String(lsCfg.goalR)):""}"></div>
-    </div>
     <h3>次のS値・L値の目標</h3>
     <p class="tiny" style="margin-top:-6px">達成すると、下の刻み幅ぶんだけ自動で次の目標に進みます。</p>
     <div class="frow">
@@ -3974,9 +4070,31 @@ $("#lsOpenCfg").onclick=()=>{
         <input type="text" inputmode="decimal" id="mSLv" style="max-width:none" value="${lsCfg.stepLv?f3(lsCfg.stepLv):"0.010"}" placeholder="0.010"></div>
     </div>
     <p class="tiny">刻み幅は 0.001 の倍数で指定してください（0.001 / 0.005 / 0.010 など）。</p>
+    <div class="hintbox" id="mAuto"></div>
+    <details style="margin-top:10px"><summary class="muted">累積値で直接指定する（上の目標より優先されません）</summary>
+      <div class="frow" style="margin-top:8px">
+        <div><label class="fl">目標スコア累積</label>
+          <input type="text" inputmode="numeric" id="mGoalS" style="max-width:none" value="${lsCfg.goalS?commaFmt(String(lsCfg.goalS)):""}"></div>
+        <div><label class="fl">目標乱数累積</label>
+          <input type="text" inputmode="numeric" id="mGoalR" style="max-width:none" value="${lsCfg.goalR?commaFmt(String(lsCfg.goalR)):""}"></div>
+      </div>
+      <p class="tiny">S値・L値の目標が入っていれば、そちらから自動で逆算した値が使われます。</p>
+    </details>
     <div class="tools"><button class="btn pri" id="mSave">保存する</button>
       <button class="btn" id="mX">やめる</button></div>`);
   M.qa("input").forEach(el=>{ if(!/^m(GSv|SSv|GLv|SLv)$/.test(el.id)) el.oninput=()=>applyComma(el); });
+  const autoView=()=>{
+    const sv=num(M.q("#mGSv").value), lv=num(M.q("#mGLv").value);
+    const parts=[];
+    if(sv>0) parts.push(`S値 <b>${f3(sv)}</b> → スコア累積 <b>${jp(Math.ceil(scoreForS(sv)))}</b>`);
+    if(lv>0) parts.push(`L値 <b>${f3(lv)}</b> → 乱数累積 <b>${jp(Math.ceil(randForL(lv)))}</b>`);
+    M.q("#mAuto").innerHTML=parts.length
+      ? `<b>目標から逆算した累積値</b><br>${parts.join("<br>")}`+
+        `<br><span class="tiny">この値が自動で目標に使われます。手入力は不要です。</span>`
+      : `<span class="tiny">S値・L値の目標を入れると、必要な累積値を自動で計算します。</span>`;
+  };
+  ["#mGSv","#mGLv"].forEach(id=>{const el=M.q(id); if(el) el.addEventListener("input",autoView);});
+  autoView();
   M.q("#mCalc").onclick=()=>{
     const a=num(M.q("#mA").value), b=num(M.q("#mB").value);
     if(!(b>a)) return toast("10回プレイ後の値のほうが大きくなるように入れてください");
