@@ -794,6 +794,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(c) c.onclick=()=>document.getElementById("errBanner").hidden=true;
 });
 
+/** 保存済みの値を読み出す小道具。どこよりも先に定義しておく */
+const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
+
 /* =========================================================
    0. 設定
    ========================================================= */
@@ -803,7 +806,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v25";
+const APP_VERSION = "v26";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1290,7 +1293,6 @@ const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
 let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:"",proofs:[]}, friends=[];
 const K_TIMES="sa-times-v1", K_BASE="sa-baseline-v1";
 let recTimes={}, baseline={done:false,at:0};
-const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d));}catch(e){return d;}};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
 recTimes=ls(K_TIMES,{}); baseline=ls(K_BASE,{done:false,at:0});
 const saveTimes=()=>{try{localStorage.setItem(K_TIMES,JSON.stringify(recTimes));
@@ -4559,6 +4561,17 @@ function openHistory(latestOnly){
 $("#histBtn2").onclick=openHistory;
 $("#borderBtn").onclick=()=>openHistory(true);
 
+/** 週データを読み込み直したあとに、画面全体を作り直す */
+function applyData(){
+  _diffCache=null;                        /* 難易度の計算結果を捨てる */
+  if($("#histBtn2")) $("#histBtn2").textContent =
+    WEEKS.length>1 ? `過去のランキングを見る（全${WEEKS.length}週）` : "過去のランキングを見る";
+  if($("#upd")) $("#upd").textContent=`ボーダー更新日：${DATA().date}　／　アプリ ${APP_VERSION}`;
+  if($("#verBadge")) $("#verBadge").textContent=APP_VERSION;
+  try{ render(); }catch(e){ console.error(e); }
+  try{ if($("#card")&&!$("#card").hidden) drawCard(); }catch(e){}
+  try{ if($("#analysis")&&!$("#analysis").hidden){ renderAnalysis(); renderAnaDeca(); } }catch(e){}
+}
 function normalize(j){
   if(j&&Array.isArray(j.weeks)&&j.weeks.length) return j.weeks;
   if(j&&j.borders&&j.totalBorders) return [{date:j.updated||"—",borders:j.borders,totalBorders:j.totalBorders}];
