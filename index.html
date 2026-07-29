@@ -333,6 +333,35 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .banner.info{background:#14283a;border-color:#2b567c}
 #cardCanvas{width:100%;max-width:680px;height:auto;border-radius:14px;border:1px solid var(--line);
   display:block;box-shadow:0 24px 50px -30px #000}
+/* ---- 役職 ---- */
+.nm-judgeman{color:#ff9de2;font-weight:800;text-shadow:0 0 13px #ff9de2aa}
+.nm-supervisor{color:#9db7ff;font-weight:800;text-shadow:0 0 12px #9db7ff99}
+.nm-judge{color:#7fe9ff;font-weight:700;text-shadow:0 0 10px #7fe9ff88}
+/* ---- レベル表示（Impact） ---- */
+.lvb{display:inline-flex;align-items:baseline;gap:1px;font-family:Impact,"Arial Black",sans-serif;
+  letter-spacing:.02em;line-height:1;color:var(--acc)}
+.lvb .p{font-size:.78em;opacity:.85}
+.lvb .n{font-size:1.35em}
+/* ---- 記録の状態 ---- */
+.sbrow{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
+.sbtop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.sbev{font-size:.82rem;color:var(--dim)}
+.sbval{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
+.sbval.st-pending{color:#8794a8}
+.sbval.st-judged{color:#ffd45e;text-shadow:0 0 10px #ffd45e55}
+.sbval.st-certified{color:#fff;text-shadow:0 0 12px #ffffffcc,0 0 26px #cfe6ff88}
+.sbval.st-rejected{color:#ff8a8a;text-decoration:line-through}
+.sbtag{font-size:.68rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--dim2)}
+.sbtag.pending{border-color:#4a5568;color:#8794a8}
+.sbtag.judged{border-color:#8a7330;color:#ffd45e}
+.sbtag.certified{border-color:#a8c4e0;color:#eaf3ff}
+.sbtag.rejected{border-color:#7a3030;color:#ff8a8a}
+.sbwait{font-size:.7rem;color:#ffd45e;margin-top:3px}
+.segs{display:grid;gap:6px;margin-bottom:12px}
+.segs button{background:#16202f;border:1px solid transparent;color:var(--dim);font:inherit;
+  font-size:.8rem;padding:9px 4px;border-radius:9px;cursor:pointer}
+.segs button.on{background:#2b3d5a;color:var(--tx);border-color:#3f5b82;font-weight:700}
+.segs button .c{font-variant-numeric:tabular-nums;opacity:.8}
 </style>
 </head>
 <body>
@@ -361,7 +390,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <button data-tab="friends">フレンド</button></div>
   <div class="grp" data-g="game"><div class="ghead">競技</div>
     <button data-tab="rank">ランキング</button>
-    <button data-tab="cup">大会</button></div>
+    <button data-tab="cup">大会</button>
+    <button data-tab="subs">記録提出・審査</button></div>
   <div class="grp" data-g="set"><div class="ghead">設定</div>
     <button data-tab="settings">設定</button></div>
 </nav>
@@ -563,6 +593,55 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>やりこみ記録</h2>
     <div id="lsLog"></div>
+  </div>
+</section>
+
+<section id="subs" hidden>
+  <div class="card">
+    <h2>記録を提出する</h2>
+    <p class="muted" style="margin-top:-8px">提出した記録は審査を受けてから公式記録になります。
+      証明は X か YouTube のリンクだけです（動画・画像はこのサイトには保存しません）。</p>
+    <div class="frow">
+      <div><label class="fl">種目</label><select id="sbEvent" style="max-width:none"></select></div>
+      <div><label class="fl">記録</label>
+        <input type="text" inputmode="decimal" id="sbValue" style="max-width:none"></div>
+    </div>
+    <label class="fl">証明のリンク（X または YouTube）</label>
+    <input type="text" class="txt" id="sbProof" placeholder="https://www.youtube.com/watch?v=…">
+    <label class="fl">ひとこと（任意）</label>
+    <input type="text" class="txt" id="sbNote" placeholder="例：やっと出ました">
+    <label class="pk" style="margin-top:9px;display:inline-flex">
+      <input type="checkbox" id="sbNomiss"> ノーミスで達成した</label>
+    <div class="tools"><button class="btn pri" id="sbGo">提出する</button></div>
+    <p class="tiny" id="sbMsg"></p>
+  </div>
+
+  <div class="card" id="mystatCard" hidden>
+    <h2>自分の成績</h2>
+    <div class="lsgrid">
+      <div class="lsbox"><div class="t">レベル</div>
+        <div class="v" id="stLv" style="font-size:1.6rem">—</div>
+        <div class="s" id="stXp">—</div></div>
+      <div class="lsbox"><div class="t">高評価率</div>
+        <div class="v" id="stRate" style="font-size:1.6rem">—</div>
+        <div class="s" id="stGp">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>自分の提出</h2>
+    <div id="sbMine"><p class="muted">まだ提出がありません。</p></div>
+  </div>
+
+  <div class="card" id="rvCard" hidden>
+    <h2>審査</h2>
+    <div class="segs" id="rvTabs">
+      <button data-rq="j" class="on">審査 <span class="c">0</span></button>
+      <button data-rq="s">審査員審査 <span class="c">0</span></button>
+      <button data-rq="m">スーパーバイザー審査 <span class="c">0</span></button>
+    </div>
+    <p class="tiny" id="rvHint">—</p>
+    <div id="rvBox"></div>
   </div>
 </section>
 
@@ -771,6 +850,11 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div id="acctBox"></div>
   </div>
   <div class="card">
+    <h2>役職と申請</h2>
+    <p class="muted" style="margin-top:-8px">提出された記録は、審査員 → スーパーバイザー → ジャッジマン の順で確認されます。</p>
+    <div id="roleBox"></div>
+  </div>
+  <div class="card">
     <h2>表示と動作</h2>
     <div class="sw">
       <div><div class="t">データの公開</div>
@@ -835,7 +919,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v29";
+const APP_VERSION = "v31";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1383,7 +1467,9 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
    ========================================================= */
 const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
       K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
-let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:"",proofs:[]}, friends=[];
+let rec={}, pro={name:"",handle:"",img:"",pub:false,x_url:"",bio:"",proofs:[],at:0}, friends=[];
+/** プロフィールを手元で書き換えた時刻。クラウドとどちらが新しいかの判定に使う */
+const proTouch=()=>{ pro.at=Date.now(); };
 const K_TIMES="sa-times-v1", K_BASE="sa-baseline-v1";
 let recTimes={}, baseline={done:false,at:0};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
@@ -1980,9 +2066,9 @@ document.addEventListener("input",e=>{const t=e.target;
     }
     render();
   }
-  else if(t.id==="pn"){pro.name=t.value;render();}
-  else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();render();}
-  else if(t.id==="pbio"){pro.bio=t.value;render();}});
+  else if(t.id==="pn"){pro.name=t.value;proTouch();render();}
+  else if(t.id==="ph"){pro.handle=t.value.replace(/^@/,"").trim();proTouch();render();}
+  else if(t.id==="pbio"){pro.bio=t.value;proTouch();render();}});
 $("#clear").onclick=async()=>{
   const n=ORDER.filter(x=>rec[x]>0).length;
   if(n&&!await askYN("入力をすべて消しますか？",
@@ -1993,16 +2079,17 @@ $("#clear").onclick=async()=>{
 $("#useX").onclick=()=>{const h=$("#ph").value.replace(/^@/,"").trim();
   if(!h) return toast("先に @ID を入力してください");
   pro.handle=h;pro.img="";if(!pro.name){pro.name=h;$("#pn").value=h;}
-  render();toast("Xのアイコンを取り込みました");};
+  proTouch();render();toast("Xのアイコンを取り込みました");};
 $("#pickImg").onclick=()=>$("#fileImg").click();
 $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
   const img=new Image(),fr=new FileReader();
   fr.onload=()=>{img.onload=()=>{const s=256,cv=document.createElement("canvas");cv.width=cv.height=s;
     const g=cv.getContext("2d"),m=Math.min(img.width,img.height);
     g.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,s,s);
-    pro.img=cv.toDataURL("image/jpeg",.85);render();toast("画像を設定しました");};img.src=fr.result;};
+    pro.img=cv.toDataURL("image/jpeg",.85);proTouch();render();syncNow();
+    toast("画像を設定しました");};img.src=fr.result;};
   fr.readAsDataURL(f);};
-$("#rmImg").onclick=()=>{pro.img="";render();toast("画像を消しました");};
+$("#rmImg").onclick=()=>{pro.img="";proTouch();render();syncNow();toast("画像を消しました");};
 $("#pubOn").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
 $("#pubOn2").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
 $("#pubOff2").onclick=()=>{pro.pub=false;render();renderSettings();syncNow();};
@@ -2046,13 +2133,14 @@ function toggleMenu(open){
 $("#menuBtn").onclick=()=>toggleMenu();
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","friends","rank","cup","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","friends","rank","cup","subs","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
   if(b.dataset.tab==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
   if(b.dataset.tab==="profile") renderHome();
-  if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); }
+  if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); renderRole();
+    (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
   if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
@@ -2060,6 +2148,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="cup") loadCups();
+  if(b.dataset.tab==="subs") subsEnter();
   scrollTo({top:0,behavior:"smooth"});});
 
 /* =========================================================
@@ -3209,6 +3298,18 @@ async function loadMe(){
       if(me.x_url) pro.x_url=me.x_url;
       if(Array.isArray(me.proofs)&&me.proofs.length) pro.proofs=me.proofs;
       pro.pub=!!me.is_public;
+      /* 自己紹介とアイコンは、クラウドと手元で新しい方を採用する。
+         手元の方が新しければ、そのまま上書き保存しに行く（消したことも伝わる） */
+      const cloudAt=Date.parse(me.updated_at||0)||0, localAt=pro.at||0;
+      let needPush=false;
+      if("bio" in me || "avatar" in me){
+        if(cloudAt>=localAt){
+          if("bio" in me)    pro.bio=me.bio||"";
+          if("avatar" in me) pro.img=me.avatar||"";
+          pro.at=cloudAt;
+        }else needPush=true;
+      }
+      if(needPush) pushMe(true).catch(()=>{});
       const cloud=me.records||{};
       const mine=ORDER.some(n=>rec[n]>0);
       if(!mine && Object.keys(cloud).length) rec=cloud;         /* 手元が空ならクラウドを採用 */
@@ -3236,23 +3337,34 @@ async function pushMe(force){
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
     p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub,
     p_x:(Array.isArray(pro.proofs)&&pro.proofs.find(x=>x.url))?pro.proofs.find(x=>x.url).url:(pro.x_url||null),
-    p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]) });
+    p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]),
+    p_bio:pro.bio||"", p_avatar:pro.img||"" });
   if(!force && body===lastPush) return;          /* 内容が同じなら通信しない */
-  await rpcTry("save_profile",JSON.parse(body),[["p_proofs"],["p_x"]]);
+  await rpcTry("save_profile",JSON.parse(body),[["p_bio","p_avatar"],["p_proofs"],["p_x"]]);
   lastPush=body;
 }
 const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
-const isSupporter=()=>!!(me&&(me.role==="supporter"||me.role==="admin"));
-const roleColor=r=>r==="admin"?"var(--warn)":r==="supporter"?"var(--acc2)":"var(--tx)";
-const roleCls=r=>r==="admin"?"nm nm-admin":r==="supporter"?"nm nm-supporter":"nm";
+/* 役職の強さ。SQL 側の role_level と同じ順番にしてあります */
+const ROLE_LV={admin:5,judgeman:4,supervisor:3,judge:2,supporter:1,user:0};
+const lvOf=r=>ROLE_LV[r]||0;
+const myLv=()=>lvOf(me&&me.role);
+const isSupporter=()=>!!(me&&(me.role==="supporter"||myLv()>=2));
+const ROLE_C={admin:"var(--warn)",judgeman:"#ff9de2",supervisor:"#9db7ff",
+              judge:"#7fe9ff",supporter:"var(--acc2)"};
+const roleColor=r=>ROLE_C[r]||"var(--tx)";
+const roleCls=r=>"nm"+(ROLE_C[r]?" nm-"+r:"");
 /** 役職に応じて光る名前を返す */
 function nameHTML(name,role,rating){
   const rb=(typeof rating==="number"&&rating>=19);
   return `<span class="${roleCls(role)}${rb?" rb-text nm-RAINBOW":""}">${esc(name||"")}</span>`+
     (roleLabel(role)?` <span class="tiny" style="color:${roleColor(role)}">${roleLabel(role)}</span>`:"");
 }
-const roleLabel=r=>r==="admin"?"管理者":r==="supporter"?"サポーター":"";
+const ROLE_N={admin:"管理者",judgeman:"ジャッジマン",supervisor:"スーパーバイザー",
+              judge:"審査員",supporter:"サポーター"};
+const roleLabel=r=>ROLE_N[r]||"";
+/** Lv.12 のような表示。数字だけ大きく、書体は Impact */
+const lvHTML=n=>`<span class="lvb"><span class="p">Lv.</span><span class="n">${n==null?"—":n}</span></span>`;
 
 /* 画面 */
 function renderSettings(){
@@ -4310,6 +4422,325 @@ $("#lsReset").onclick=async()=>{
 $("#lsHit").onclick=lsHit;
 
 /* =========================================================
+   10e. 記録提出と審査（審査員 → スーパーバイザー → ジャッジマン）
+   ========================================================= */
+let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], rvTab="j";
+const SB_ST={pending:"未審査",judged:"審査員承認",certified:"認定済み",rejected:"却下"};
+const myId=()=>(sess&&sess.user&&sess.user.id)||"";
+const isProofUrl=u=>/^https?:\/\/([a-z0-9-]+\.)?(x\.com|twitter\.com|youtube\.com|youtu\.be)\//i.test(String(u||""));
+
+/* ---- 読み込み ---- */
+async function loadSubs(){
+  if(!(sess&&sbOn())){ SUBS=[]; return; }
+  try{ SUBS=await sbAuth("submissions_feed?mine=is.true&order=created_at.desc&limit=100"); }
+  catch(e){ SUBS=[]; }
+}
+async function loadRvq(){
+  if(!(sess&&sbOn())||myLv()<2){ RVQ=[]; return; }
+  try{ RVQ=await sbAuth("review_queue?order=created_at.asc&limit=300"); }catch(e){ RVQ=[]; }
+}
+async function loadMyStat(){
+  if(!(sess&&sbOn())){ MYSTAT=null; return; }
+  try{ const r=await rpcTry("my_review_stats",{});
+       MYSTAT=Array.isArray(r)?(r[0]||null):r; }catch(e){ MYSTAT=null; }
+}
+async function loadRoleReq(){
+  if(!(sess&&sbOn())){ RREQ=[]; return; }
+  try{ RREQ=await sbAuth("role_requests?order=created_at.desc&limit=100"); }catch(e){ RREQ=[]; }
+}
+
+/* ---- 提出 ---- */
+function fillSbEvent(){
+  const s=$("#sbEvent"); if(!s||s.options.length) return;
+  ORDER.forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent=n; s.appendChild(o); });
+}
+$("#sbGo").onclick=async()=>{
+  const msg=$("#sbMsg");
+  if(!(sess&&sbOn())) return toast("先にログインしてください");
+  const ev=$("#sbEvent").value, v=num($("#sbValue").value), pf=$("#sbProof").value.trim();
+  if(!ev) return toast("種目を選んでください");
+  if(!(v>0)) return toast("記録を入れてください");
+  if(!isProofUrl(pf)) return toast("証明は X か YouTube のリンクだけです");
+  $("#sbGo").disabled=true; msg.textContent="送信中…";
+  try{
+    await rpcTry("submit_record",{p_event:ev,p_value:v,p_proof:pf,
+      p_note:$("#sbNote").value.trim()||null,p_nomiss:!!$("#sbNomiss").checked},
+      [["p_nomiss"],["p_note","p_nomiss"]]);
+    $("#sbValue").value=""; $("#sbProof").value=""; $("#sbNote").value=""; $("#sbNomiss").checked=false;
+    msg.innerHTML='<span style="color:var(--acc2)">提出しました。審査を待ってください（＋25XP）</span>';
+    await loadSubs(); await loadMyStat(); renderSubs();
+  }catch(e){ msg.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  $("#sbGo").disabled=false;
+};
+
+/* ---- 自分の提出 ---- */
+function renderSubs(){
+  const box=$("#sbMine"); if(!box) return;
+  if(!(sess&&sbOn())){ box.innerHTML='<p class="muted">ログインすると提出できます。</p>'; return; }
+  if(!SUBS.length){ box.innerHTML='<p class="muted">まだ提出がありません。</p>'; return; }
+  box.innerHTML=SUBS.map(s=>{
+    const wait = s.status==="judged" ? '<div class="sbwait">最高記録審査中</div>' : "";
+    const rej  = s.status==="rejected"
+      ? `<p class="tiny" style="color:var(--bad);margin:6px 0 0">却下の理由：${esc(s.judge_reason||"（未記入）")}</p>`
+       +(s.appeal_at?'<p class="tiny">不服申し立て済み</p>'
+                    :`<div class="tools"><button class="btn sm" data-ap="${s.id}">不服を申し立てる</button></div>`)
+      : "";
+    return `<div class="sbrow">
+      <div class="sbtop">
+        <span class="sbev">${esc(s.event)}</span>
+        <span class="sbval st-${s.status}">${fmtRec(s.event,s.value)}</span>
+        <span class="sbtag ${s.status}">${SB_ST[s.status]||s.status}</span>
+        ${s.nomiss?'<span class="sbtag">ノーミス</span>':""}
+      </div>${wait}
+      <div class="tiny" style="margin-top:4px">${jstFull(s.created_at)}
+        <a href="${esc(s.proof_url)}" target="_blank" rel="noopener">証明を見る</a></div>
+      ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}${rej}
+      ${s.status==="rejected"?"":`<div class="tools"><button class="btn sm" data-ed="${s.id}">修正</button></div>`}
+    </div>`;}).join("");
+  box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>sbEdit(b.dataset.ed));
+  box.querySelectorAll("[data-ap]").forEach(b=>b.onclick=()=>sbAppeal(b.dataset.ap));
+}
+function sbEdit(id){
+  const s=SUBS.find(x=>x.id===id); if(!s) return;
+  const M=modal(`<h2>記録を修正する</h2>
+    <div class="hintbox" style="margin-top:0">
+      <b>修正ボタンは、提出してもらった記録でタイプミスなどがあった場合に数値を編集できる機能です。</b><br>
+      <span class="tiny">新しくチャレンジした場合は編集ボタンではなく提出ボタンを押してください。</span>
+    </div>
+    <p class="tiny">${esc(s.event)}　いまの値：${fmtRec(s.event,s.value)}</p>
+    <label class="fl">正しい記録</label>
+    <input type="text" inputmode="decimal" id="edV" style="max-width:none" value="${s.value}">
+    <label class="fl">証明のリンク（変えない場合は空のまま）</label>
+    <input type="text" class="txt" id="edP" placeholder="${esc(s.proof_url)}">
+    <p class="tiny">直すと審査は最初からやり直しになります。</p>
+    <div class="tools"><button class="btn pri" id="edGo">この内容で直す</button></div>
+    <p class="tiny" id="edMsg"></p>`);
+  M.q("#edGo").onclick=async()=>{
+    const v=num(M.q("#edV").value), p=M.q("#edP").value.trim();
+    if(!(v>0)) return toast("記録を入れてください");
+    if(p&&!isProofUrl(p)) return toast("証明は X か YouTube のリンクだけです");
+    try{
+      await rpcTry("edit_my_record",{p_id:id,p_value:v,p_proof:p||null},[["p_proof"]]);
+      M.close(); toast("直しました"); await loadSubs(); renderSubs();
+    }catch(e){ M.q("#edMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+function sbAppeal(id){
+  const M=modal(`<h2>不服を申し立てる</h2>
+    <p class="muted" style="margin-top:-8px">ジャッジマンが内容を確認します。却下がおかしいと思う理由を書いてください。</p>
+    <textarea id="apT" rows="4" placeholder="例：動画の3分12秒に表示されている数値と一致しています"></textarea>
+    <div class="tools"><button class="btn pri" id="apGo">申し立てる</button></div>
+    <p class="tiny" id="apMsg"></p>`);
+  M.q("#apGo").onclick=async()=>{
+    try{ await rpcTry("appeal_record",{p_id:id,p_text:M.q("#apT").value.trim()});
+      M.close(); toast("申し立てました"); await loadSubs(); renderSubs();
+    }catch(e){ M.q("#apMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+
+/* ---- 審査の待ち行列 ---- */
+function rvLists(){
+  const my=myId();
+  return {
+    j:RVQ.filter(s=>!s.judge_id&&s.status==="pending"&&s.user_id!==my),
+    s:RVQ.filter(s=>s.judge_id&&!s.sv_id&&s.judge_id!==my&&s.user_id!==my),
+    m:RVQ.filter(s=>s.sv_id&&!s.jm_id&&s.sv_id!==my&&s.judge_id!==my&&s.user_id!==my)
+  };
+}
+function renderRvq(){
+  const card=$("#rvCard"); if(!card) return;
+  card.hidden=myLv()<2;
+  if(card.hidden) return;
+  const L=rvLists(), tabs=$$("#rvTabs button");
+  tabs[0].querySelector(".c").textContent=L.j.length;
+  tabs[1].querySelector(".c").textContent=L.s.length;
+  tabs[2].querySelector(".c").textContent=L.m.length;
+  tabs[1].hidden=myLv()<3; tabs[2].hidden=myLv()<3;
+  $("#rvTabs").style.gridTemplateColumns=myLv()>=3?"1fr 1fr 1fr":"1fr";
+  if(myLv()<3&&rvTab!=="j") rvTab="j";
+  tabs.forEach(b=>b.classList.toggle("on",b.dataset.rq===rvTab));
+  $("#rvHint").textContent={
+    j:"提出された記録を、リンク先の映像と見比べてください。合っていれば承認、打ち間違いなら修正、明らかに不正なら理由を書いて却下します。",
+    s:"審査員の審査が正しかったかを見ます。直す必要がなければ「認定」で、その審査員にグッドポイントが1つ入ります。却下された記録を認定すると完全に削除されます。",
+    m:"スーパーバイザーの審査員審査をチェックします。原則ジャッジマンの仕事ですが、ジャッジマンが行った審査員審査はスーパーバイザーもチェックできます。"
+  }[rvTab];
+  const list=L[rvTab], box=$("#rvBox");
+  if(!list.length){ box.innerHTML='<p class="muted">いまは待っている記録がありません。</p>'; return; }
+  box.innerHTML=list.slice(0,50).map(s=>{
+    const hist=[];
+    if(s.judge_act) hist.push("審査："+({approve:"承認",fix:"修正",reject:"却下"}[s.judge_act]||s.judge_act)
+      +(s.judge_from!=null?`（${fmtRec(s.event,s.judge_from)} → ${fmtRec(s.event,s.value)}）`:"")
+      +(s.judge_reason?"　理由："+esc(s.judge_reason):""));
+    if(s.sv_act) hist.push("審査員審査："+({accept:"認定",fix:"修正"}[s.sv_act]||s.sv_act)
+      +(s.sv_from!=null?`（${fmtRec(s.event,s.sv_from)} → ${fmtRec(s.event,s.value)}）`:""));
+    return `<div class="sbrow">
+      <div class="sbtop">
+        <span class="sbev">${esc(s.name||s.handle||"")}</span>
+        <span class="sbev">${esc(s.event)}</span>
+        <span class="sbval st-${s.status}">${fmtRec(s.event,s.value)}</span>
+        <span class="sbtag ${s.status}">${SB_ST[s.status]||s.status}</span>
+        ${s.nomiss?'<span class="sbtag">ノーミス</span>':""}
+      </div>
+      <div class="tiny" style="margin-top:4px">${jstFull(s.created_at)}
+        <a href="${esc(s.proof_url)}" target="_blank" rel="noopener">証明を見る</a></div>
+      ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}
+      ${hist.length?`<div class="tiny" style="margin-top:5px;color:var(--dim)">${hist.join("<br>")}</div>`:""}
+      ${s.appeal?`<div class="tiny" style="margin-top:5px;color:var(--warn)">不服申し立て：${esc(s.appeal)}</div>`:""}
+      <div class="tools" data-id="${s.id}">${rvBtns(s)}</div>
+    </div>`;}).join("");
+  box.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>
+    rvAct(b.closest(".tools").dataset.id,b.dataset.act));
+}
+function rvBtns(s){
+  if(rvTab==="j") return `<button class="btn sm pri" data-act="approve">承認</button>`
+    +`<button class="btn sm" data-act="fix">修正</button>`
+    +`<button class="btn sm" data-act="reject">却下</button>`;
+  if(rvTab==="s") return `<button class="btn sm pri" data-act="sv-accept">認定</button>`
+    +`<button class="btn sm" data-act="sv-fix">${s.status==="rejected"?"却下を取り消す":"修正"}</button>`;
+  return `<button class="btn sm pri" data-act="jm-accept">認定</button>`
+    +`<button class="btn sm" data-act="jm-fix">修正</button>`;
+}
+async function rvAct(id,act){
+  const s=RVQ.find(x=>x.id===id); if(!s) return;
+  const run=async(fn,body,drops)=>{
+    try{ await rpcTry(fn,body,drops); toast("記録しました");
+      await loadRvq(); await loadMyStat(); renderRvq(); renderMyStat(); }
+    catch(e){ toast(String(e.message||e).slice(0,120)); }
+  };
+  if(act==="approve") return run("judge_record",{p_id:id,p_act:"approve"},[["p_value","p_reason"]]);
+  if(act==="sv-accept") return run("sv_record",{p_id:id,p_act:"accept"},[["p_value","p_note"]]);
+  if(act==="jm-accept") return run("jm_record",{p_id:id,p_act:"accept"},[["p_value","p_note"]]);
+
+  if(act==="reject"){
+    const M=modal(`<h2>この記録を却下する</h2>
+      <p class="muted" style="margin-top:-8px">却下するときは理由が必要です。提出した人はこの理由を読めます。</p>
+      <p class="tiny">${esc(s.event)}　${fmtRec(s.event,s.value)}</p>
+      <textarea id="rjT" rows="3" placeholder="例：動画に映っている数値と一致しません"></textarea>
+      <div class="tools"><button class="btn pri" id="rjGo">却下する</button></div>`);
+    M.q("#rjGo").onclick=async()=>{
+      const r=M.q("#rjT").value.trim(); if(!r) return toast("理由を書いてください");
+      M.close(); await run("judge_record",{p_id:id,p_act:"reject",p_reason:r},[["p_value"]]);
+    };
+    return;
+  }
+  /* 数値を直す系 */
+  const isRej=(act==="sv-fix"&&s.status==="rejected");
+  const M=modal(`<h2>${isRej?"却下を取り消す":"記録を修正する"}</h2>
+    <p class="tiny">${esc(s.name||s.handle||"")}　${esc(s.event)}　いまの値：${fmtRec(s.event,s.value)}</p>
+    ${isRej?'<p class="muted">却下は妥当でないと判断した場合、記録を復活させます。</p>':""}
+    <label class="fl">正しい記録</label>
+    <input type="text" inputmode="decimal" id="fxV" style="max-width:none" value="${s.value}">
+    <label class="fl">メモ（任意）</label>
+    <input type="text" class="txt" id="fxN">
+    <div class="tools"><button class="btn pri" id="fxGo">この値にする</button></div>`);
+  M.q("#fxGo").onclick=async()=>{
+    const v=num(M.q("#fxV").value), n=M.q("#fxN").value.trim()||null;
+    if(!isRej&&!(v>0)) return toast("記録を入れてください");
+    M.close();
+    if(act==="fix")     await run("judge_record",{p_id:id,p_act:"fix",p_value:v},[["p_reason"]]);
+    if(act==="sv-fix")  await run("sv_record",{p_id:id,p_act:"fix",p_value:v,p_note:n},[["p_note"]]);
+    if(act==="jm-fix")  await run("jm_record",{p_id:id,p_act:"fix",p_value:v,p_note:n},[["p_note"]]);
+  };
+}
+$$("#rvTabs button").forEach(b=>b.onclick=()=>{ rvTab=b.dataset.rq; renderRvq(); });
+
+/* ---- 自分の成績 ---- */
+function renderMyStat(){
+  const c=$("#mystatCard"); if(!c) return;
+  c.hidden=!(sess&&sbOn());
+  if(c.hidden||!MYSTAT) return;
+  const xp=+MYSTAT.xp||0, lv=+MYSTAT.lv||0;
+  $("#stLv").innerHTML=lvHTML(lv);
+  $("#stXp").textContent=jp(xp)+" XP（次のレベルまで "+jp(250-(xp%250))+"）";
+  const rate=MYSTAT.rate;
+  $("#stRate").textContent=(rate==null)?"—":(+rate).toFixed(1)+"%";
+  $("#stGp").textContent=(+MYSTAT.checked_n||0)===0
+    ? "審査を始めると出ます"
+    : "グッドポイント "+jp(+MYSTAT.good_points||0)+" / 審査件数 "+jp(+MYSTAT.checked_n||0);
+}
+
+async function subsEnter(){
+  fillSbEvent(); renderSubs(); renderMyStat(); renderRvq();
+  if(!(sess&&sbOn())) return;
+  await Promise.all([loadSubs(),loadRvq(),loadMyStat()]);
+  renderSubs(); renderMyStat(); renderRvq();
+}
+
+/* ---- 役職の申請と任命（設定タブ） ---- */
+const JUDGE_TERMS=[
+  "提出された記録を、リンク先の映像と照らし合わせて確認します",
+  "打ち間違いは「修正」で直し、明らかに不正な記録は理由を書いて「却下」します",
+  "自分が提出した記録は審査できません",
+  "審査した記録は、あとでスーパーバイザーがもう一度確認します"];
+const SV_TERMS=[
+  "審査員の審査が正しかったかを確認します（審査員審査）",
+  "自分が審査した記録を、自分で審査員審査することはできません",
+  "却下された記録を「認定」すると、その記録は完全に削除されます",
+  "審査員審査は、あとでジャッジマンがもう一度確認します"];
+function renderRole(){
+  const box=$("#roleBox"); if(!box) return;
+  if(!(sess&&sbOn())){ box.innerHTML='<p class="muted">ログインすると申請できます。</p>'; return; }
+  const r=(me&&me.role)||"user", lv=lvOf(r);
+  const h=[`<p class="tiny">いまの役職：<b style="color:${roleColor(r)}">${roleLabel(r)||"一般ユーザー"}</b>`
+    +(MYSTAT?`　${lvHTML(+MYSTAT.lv||0)}`:"")+"</p>"];
+  if(lv<2) h.push(`<div class="tools" style="margin-top:0"><button class="btn" id="apJudge">審査員に申請する</button></div>`);
+  if(lv===2) h.push(`<div class="tools" style="margin-top:0"><button class="btn" id="apSv">スーパーバイザーに申請する</button></div>`
+    +`<p class="tiny">条件：審査員になって30日以上／高評価率90%以上／審査件数50件超</p>`);
+  const mine=RREQ.filter(x=>x.user_id===myId());
+  if(mine.length) h.push('<p class="tiny">'+mine.slice(0,3).map(x=>
+    `${roleLabel(x.want)}の申請：${x.status==="pending"?"確認待ち":x.status==="ok"?"承認されました":"見送られました"}`).join("<br>")+"</p>");
+  if(lv>=4){
+    const pend=RREQ.filter(x=>x.status==="pending");
+    h.push(`<h3 style="margin-top:14px">申請の確認</h3>`
+      +(pend.length?pend.map(x=>`<div class="sbrow"><div class="sbtop">
+          <b>${esc(x.name||x.handle||"")}</b><span class="sbtag">${roleLabel(x.want)}</span></div>
+          ${x.reason?`<div class="tiny">${esc(x.reason)}</div>`:""}
+          <div class="tools" data-rq="${x.id}">
+            <button class="btn sm pri" data-ok="1">承認</button>
+            <button class="btn sm" data-ok="0">見送る</button></div></div>`).join("")
+        :'<p class="muted">いま届いている申請はありません。</p>')
+      +`<h3 style="margin-top:14px">直接任命する</h3>
+        <div class="tools" style="margin-top:0">
+          <input type="text" class="txt" id="apH" placeholder="@ID" style="flex:1;max-width:180px">
+          <select id="apR"><option value="judge">審査員</option><option value="supervisor">スーパーバイザー</option>
+            ${isAdmin()?'<option value="judgeman">ジャッジマン</option>':""}
+            <option value="user">一般に戻す</option></select>
+          <button class="btn" id="apGo2">任命する</button></div>`);
+  }
+  box.innerHTML=h.join("");
+  const ask=(want,terms)=>{
+    const M=modal(`<h2>${roleLabel(want)}になる</h2>
+      <div class="hintbox" style="margin-top:0"><b>役割と注意事項</b>
+        <ul style="margin:8px 0 0;padding-left:18px" class="tiny">${terms.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+      <label class="pk" style="margin-top:10px;display:inline-flex">
+        <input type="checkbox" id="rqChk"> 上の内容を読んで理解しました</label>
+      <label class="fl">ひとこと（任意）</label>
+      <input type="text" class="txt" id="rqR" placeholder="例：毎日確認できます">
+      <div class="tools"><button class="btn pri" id="rqGo" disabled>申請する</button></div>
+      <p class="tiny" id="rqMsg"></p>`);
+    M.q("#rqChk").onchange=e=>{ M.q("#rqGo").disabled=!e.target.checked; };
+    M.q("#rqGo").onclick=async()=>{
+      try{ await rpcTry("request_role",{p_want:want,p_reason:M.q("#rqR").value.trim()||null},[["p_reason"]]);
+        M.close(); toast("申請しました"); await loadRoleReq(); renderRole();
+      }catch(e){ M.q("#rqMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+    };
+  };
+  if($("#apJudge")) $("#apJudge").onclick=()=>ask("judge",JUDGE_TERMS);
+  if($("#apSv"))    $("#apSv").onclick=()=>ask("supervisor",SV_TERMS);
+  box.querySelectorAll("[data-ok]").forEach(b=>b.onclick=async()=>{
+    try{ await rpcTry("decide_role_request",{p_id:b.closest("[data-rq]").dataset.rq,p_ok:b.dataset.ok==="1"});
+      toast("処理しました"); await loadRoleReq(); renderRole();
+    }catch(e){ toast(String(e.message||e).slice(0,120)); }
+  });
+  if($("#apGo2")) $("#apGo2").onclick=async()=>{
+    const h2=$("#apH").value.replace(/^@/,"").trim(); if(!h2) return toast("@IDを入れてください");
+    try{ await rpcTry("appoint_role",{p_handle:h2,p_role:$("#apR").value});
+      toast("任命しました"); await loadRoleReq(); renderRole();
+    }catch(e){ toast(String(e.message||e).slice(0,120)); }
+  };
+}
+
+/* =========================================================
    11. 開発者モード（PBKDF2＋パスキー＋ロックアウト）
    ========================================================= */
 function lockState(){return ls(K_LOCK,{f:0,until:0});}
@@ -4972,7 +5403,8 @@ function normalize(j){
   fillInputs(); lsFxLabels();
   try{ applyData(); }catch(e){ console.error(e); }
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
-    try{ await loadFriendReq(); renderFriendReq(); }catch(e){} }
+    try{ await loadFriendReq(); renderFriendReq(); }catch(e){}
+    try{ await loadMyStat(); renderRole(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
   if(wantDev&&isAdmin()) openDev();
   /* どの経路を通っても最後に必ず描き直す */
