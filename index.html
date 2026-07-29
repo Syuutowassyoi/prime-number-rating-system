@@ -89,7 +89,12 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wra
   transform:translateY(-6px);
   transition:max-height .26s cubic-bezier(.3,.9,.3,1), opacity .2s ease,
              transform .26s cubic-bezier(.3,.9,.3,1), padding .26s, margin .26s}
-.tabs.open{max-height:620px;opacity:1;padding-top:8px;padding-bottom:8px;margin-bottom:16px;transform:none}
+.tabs.open{max-height:min(620px,72vh);opacity:1;padding-top:8px;padding-bottom:8px;
+  margin-bottom:16px;transform:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:640px){
+  .tabs.open{max-height:64vh}
+  .snsnav.open{max-height:min(480px,62vh)}
+}
 .tabs .grp{opacity:0;transform:translateY(-5px);transition:opacity .22s ease,transform .22s ease}
 .tabs.open .grp{opacity:1;transform:none}
 .tabs.open .grp:nth-child(1){transition-delay:.03s}
@@ -426,6 +431,22 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   border-radius:12px;padding:8px 10px}
 .cplink input{width:100%;background:#0d1524;border:1px solid #33455f;border-radius:8px;
   color:var(--tx);font:inherit;font-size:.86rem;padding:8px 10px}
+/* タグ */
+.ptags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 6px}
+.ptag{font-size:.75rem;padding:4px 9px;border-radius:99px;border:1px solid #33455f;
+  background:#0d1524;color:#8fbdf0;cursor:pointer;font-family:inherit}
+.ptag.on{background:#1d3a5c;border-color:var(--acc);color:#eaf3ff;font-weight:700}
+.ptag .n{opacity:.7;margin-left:5px;font-variant-numeric:tabular-nums}
+.taginline{color:#8fbdf0;cursor:pointer;font-weight:600}
+/* 複数リンクの入力欄 */
+.lkrow{display:grid;gap:5px;background:#0d1524;border:1px solid #33455f;border-radius:9px;
+  padding:8px;margin-bottom:6px}
+.lkrow input{width:100%;background:#101a2a;border:1px solid #2a3a52;border-radius:7px;
+  color:var(--tx);font:inherit;font-size:.82rem;padding:7px 9px}
+.lktools{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.lktools button{font-size:.72rem;padding:5px 8px;border-radius:7px;border:1px solid #33455f;
+  background:#16202f;color:var(--dim);cursor:pointer;font-family:inherit}
+.lktools button:hover{color:var(--tx);background:#1c2739}
 .segs{display:grid;gap:6px;margin-bottom:12px}
 .segs button{background:#16202f;border:1px solid transparent;color:var(--dim);font:inherit;
   font-size:.8rem;padding:9px 4px;border-radius:9px;cursor:pointer}
@@ -700,7 +721,18 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
     <!-- ===== タイムライン ===== -->
     <div id="svFeed">
-      <div class="card" style="padding-bottom:8px"><h2>タイムライン</h2><div id="feedBox"></div></div>
+      <div class="banner" id="tagNote" hidden style="background:#12351f;border-color:#2c7a4b;margin:0 0 12px"></div>
+      <div class="card" style="padding-bottom:8px">
+        <h2>タイムライン</h2>
+        <div class="tools" style="margin-top:0">
+          <input type="text" class="txt" id="tagQ" placeholder="タグで探す（例：素数）" style="flex:1;min-width:150px">
+          <button class="btn sm" id="tagGo">探す</button>
+          <button class="btn sm" id="tagAll" hidden>すべて表示</button>
+        </div>
+        <div class="ptags" id="tagCloud"></div>
+        <p class="tiny" id="feedStat">—</p>
+        <div id="feedBox"></div>
+      </div>
       <div style="height:78px"></div>
       <div class="composer" id="composer">
         <button class="cbtn" id="poPlus" title="リンクを添付">＋</button>
@@ -708,8 +740,11 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <button class="cbtn go" id="poGo">投稿</button>
       </div>
       <div class="cplink" id="poLinkRow" hidden>
-        <input type="text" id="poLink" placeholder="X または YouTube のリンクを貼る">
-        <span class="tiny" id="poMsg"></span>
+        <div id="poLinks"></div>
+        <div class="tools" style="margin-top:6px">
+          <button class="btn sm" id="poAddLink">＋ リンクを増やす</button>
+          <span class="tiny" id="poMsg" style="margin-left:auto"></span>
+        </div>
       </div>
     </div>
 
@@ -723,25 +758,25 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <div class="card"><h2>チャレンジ</h2>
           <p class="muted" style="margin-top:-8px">誰でも開けます。順位は合計スコアで決まり、同点は同率（T）です。</p>
           <div id="cupBox"></div></div>
-        <div id="officialCup"><div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
-  <div class="card" id="myCupsCard" hidden><h2>自分が開催した大会</h2><div id="myCups"></div></div>
+        <div id="officialCup"><div class="card"><h2>競技会の一覧</h2><div id="cupList"></div></div>
+  <div class="card" id="myCupsCard" hidden><h2>自分が開催した競技会</h2><div id="myCups"></div></div>
   <div id="cupDetail"></div></div>
       </div>
       <div id="cvMake" hidden>
         <div class="segs" id="mkTabs" style="grid-template-columns:1fr 1fr">
           <button data-mk="ch" class="on">チャレンジを開く</button>
-          <button data-mk="of" id="mkOfBtn" hidden>大会を開く</button>
+          <button data-mk="of" id="mkOfBtn" hidden>競技会を開く</button>
         </div>
         <div id="mkOf" hidden><div class="card" id="cupNewBar" hidden>
     <div class="tools" style="margin-top:0">
-      <button class="btn pri" id="cupNewBtn">＋ 大会を作成する</button>
-      <span class="tiny" id="cupNewNote">サポーターと管理者だけが開催できます。</span>
+      <button class="btn pri" id="cupNewBtn">＋ 競技会を作成する</button>
+      <span class="tiny" id="cupNewNote">競技会はサポーター以上だけが開けます。チャレンジは誰でも開けます。</span>
     </div>
   </div>
   <div class="card" id="cupNew" hidden>
-    <h2>大会を開催する</h2>
-    <label class="fl">大会名</label>
-    <input type="text" class="txt" id="cTitle" placeholder="例：第1回 素因数分解カップ" style="max-width:none">
+    <h2>競技会を開催する</h2>
+    <label class="fl">競技会の名前</label>
+    <input type="text" class="txt" id="cTitle" placeholder="例：第1回 素因数分解競技会" style="max-width:none">
     <label class="fl">勝負の方式</label>
     <div class="toggle" style="display:inline-flex;gap:4px;background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:3px">
       <button id="mdSum" class="on">合計モード</button><button id="mdScore">スコアモード（比重付き）</button>
@@ -875,25 +910,6 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div class="card">
         <h2>素数ゲームの個人データ</h2>
         <div id="meData"></div>
-      </div>
-      <div class="card">
-        <h2>記録を提出する</h2>
-        <p class="muted" style="margin-top:-8px">提出した記録は審査を受けてから公式記録になります。</p>
-        <div class="frow">
-          <div><label class="fl">種目</label><select id="sbEvent" style="max-width:none"></select></div>
-          <div><label class="fl">記録</label>
-            <input type="text" inputmode="decimal" id="sbValue" style="max-width:none"></div>
-        </div>
-        <label class="fl" id="sbProofL">証明のリンク（X または YouTube）</label>
-        <input type="text" class="txt" id="sbProof" placeholder="https://www.youtube.com/watch?v=…">
-        <label class="fl">ひとこと（任意）</label>
-        <input type="text" class="txt" id="sbNote" placeholder="例：やっと出ました">
-        <label class="pk" style="margin-top:9px;display:inline-flex">
-          <input type="checkbox" id="sbNomiss"> ノーミスで達成した</label>
-        <label class="pk" style="margin-top:6px;display:inline-flex">
-          <input type="checkbox" id="sbPost" checked> Prime SNS にも投稿する</label>
-        <div class="tools"><button class="btn pri" id="sbGo">提出する</button></div>
-        <p class="tiny" id="sbMsg"></p>
       </div>
       <div class="card">
         <h2>自分の提出</h2>
@@ -1097,7 +1113,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v38";
+const APP_VERSION = "v40";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2328,8 +2344,11 @@ function toggleMenu(open){
   }
 }
 $("#menuBtn").onclick=()=>toggleMenu();
-$$(".tabs button").forEach(b=>b.onclick=()=>{
-  $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+const K_TAB="sa-tab-v1";
+const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
+  {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
+$$("#tabs button").forEach(b=>b.onclick=()=>{
+  $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["profile","plan","analysis","ls","card","input","sns","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
@@ -2345,6 +2364,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="sns") snsEnter();
+  saveWhere();
   scrollTo({top:0,behavior:"smooth"});});
 
 /* =========================================================
@@ -3367,18 +3387,13 @@ async function loadRanking(force){
       <th>RATING</th><th>ランク</th><th>L値</th><th>S値</th></tr></thead><tbody>`+
       rows.map((r,i)=>{const v=val(r);
         return `<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
-        `<td><div class="nmcell">${avatarRing({name:r.name,handle:r.handle,img:r.avatar_sm||""},"av sm",r.updated_at)}`+
+        `<td><div class="nmcell"><span data-rp="${i}" style="cursor:pointer">`+
+        `${avatarRing({name:r.name,handle:r.handle,img:r.avatar_sm||""},"av sm",r.updated_at)}</span>`+
         `<div class="txt"><a href="#" data-rp="${i}" style="text-decoration:none">`+
         `${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating)}</a>`+
         `<br><span class="tiny">@${esc(r.handle)}</span>`+
         `<br><span class="tiny" style="color:var(--dim2)">${r.updated_at?agoText(r.updated_at):"更新日時不明"}</span>`+
-        `${r.handle===mine?"":`<div class="tools" style="margin-top:5px;gap:5px">`+
-          `<button class="btn sm" data-rc="${i}">比較</button>`+
-          (sess?(()=>{const st=frState(r.handle);
-            return `<button class="${st==="incoming"?"btn sm pri":"btn sm"}" data-rq="${i}"`+
-              `${(st==="friend"||st==="sent")?" disabled":""}>${FR_LABEL[st]}</button>`;})()
-               :`<button class="btn sm" data-rf="${i}">＋友達</button>`)+
-          `</div>`}</div></div></td>`+
+        `</div></div></td>`+
         (rkSortKey==="rating"?"":`<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`)+
         `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
@@ -3390,12 +3405,6 @@ async function loadRanking(force){
     const fetchRec=async h=>{
       try{ return (await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}))||{}; }
       catch(e){ toast("記録を取得できませんでした"); return null; }};
-    $$("[data-rc]").forEach(b=>b.onclick=async()=>{
-      const r=RANK_ROWS[+b.dataset.rc];
-      b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
-      if(!rc) return;
-      renderCompare({pro:{name:r.name,handle:r.handle,img:""},rec:rc},"#rkCmp");});
-    $$("[data-rq]").forEach(b=>b.onclick=()=>sendFriendReq(RANK_ROWS[+b.dataset.rq].handle,b));
     $$("[data-rp]").forEach(a=>a.onclick=async e=>{
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
@@ -3509,6 +3518,8 @@ async function loadMe(){
       if("bio" in me){    if(me.bio)    pro.bio=me.bio; else if(pro.bio) needPush=true; }
       if("avatar" in me){ if(me.avatar) pro.img=me.avatar; else if(pro.img) needPush=true; }
       if("avatar_sm" in me && me.avatar_sm) pro.imgSm=me.avatar_sm;
+      /* 前の版で入れた画像には小さい版が無いので、ここで作って上げ直します */
+      if(pro.img && !pro.imgSm){ makeSmall(pro.img).then(u=>{ if(u){ pro.imgSm=u; pushMe(true).catch(()=>{}); } }); }
       if(needPush) pushMe(true).catch(()=>{});
       avatarWarn();
       const cloud=me.records||{};
@@ -3553,6 +3564,7 @@ async function pushMe(force){
     await rpcTry("save_profile",full,[["p_proofs"],["p_x"]]);
   }
   lastPush=body;
+  rkCache={key:"",at:0,rows:null};      /* 名前や画像を変えたら一覧を取り直す */
 }
 /** null=未確認 / true=アイコンと自己紹介も保存できる / false=SQLがまだ古い */
 let avatarSync=null;
@@ -3839,7 +3851,7 @@ function editCup(id){
   const mask=document.createElement("div");mask.className="mask";
   mask.innerHTML=`<div class="modal"><h2>大会の内容を変更</h2>
     <p class="muted" style="margin-top:-8px">種目と勝負の方式は、記録の公平性のため変更できません。</p>
-    <label class="fl">大会名</label>
+    <label class="fl">競技会の名前</label>
     <input type="text" class="txt" id="edTitle" style="max-width:none" value="${esc(c.title)}">
     <label class="fl">説明</label>
     <input type="text" class="txt" id="edNote" style="max-width:none" value="${esc(c.note||"")}">
@@ -4213,7 +4225,7 @@ function showPlayer(p,rc){
     `</tbody></table></div>
     <div id="mpRole"></div>
     <div class="tools"><button class="btn pri" id="mpFr"></button>
-      <button class="btn" id="mpCup">大会記録を見る</button>
+      <button class="btn" id="mpCup">競技会の記録</button>
       <button class="btn" id="mpCmp">自分と比較</button>
       <button class="btn" id="mpX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
@@ -4680,6 +4692,21 @@ const SB_ST={pending:"未審査",judged:"審査員承認",certified:"認定済�
 const TEST_ME={judge:"me-judge",supervisor:"me-sv",judgeman:"me-jm",user:"me-user"};
 const myId=()=>TEST?(TEST_ME[(me&&me.role)||"user"]||"me-user")
                    :((sess&&sess.user&&sess.user.id)||"");
+/** 大きい画像から48pxの小さい版を作る（一覧はこちらだけ読みます） */
+function makeSmall(dataUrl){
+  return new Promise(res=>{
+    try{
+      const im=new Image();
+      im.onerror=()=>res(null);
+      im.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=48;
+        cv.getContext("2d").drawImage(im,0,0,48,48);
+        let q=.72,u=cv.toDataURL("image/jpeg",q);
+        while(u.length>2600&&q>0.3){ q-=0.08; u=cv.toDataURL("image/jpeg",q); }
+        res(u); };
+      im.src=dataUrl;
+    }catch(e){ res(null); }
+  });
+}
 const isProofUrl=u=>/^https?:\/\/([a-z0-9-]+\.)?(x\.com|twitter\.com|youtube\.com|youtu\.be)\//i.test(String(u||""));
 
 /* ---- 読み込み ---- */
@@ -4711,33 +4738,7 @@ async function loadRoleReq(){
   try{ RREQ=await sbAuth("role_requests?order=created_at.desc&limit=100"); }catch(e){ RREQ=[]; }
 }
 
-/* ---- 提出 ---- */
-function fillSbEvent(){
-  const s=$("#sbEvent"); if(!s||s.options.length) return;
-  ORDER.forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent=n; s.appendChild(o); });
-}
-$("#sbGo").onclick=async()=>{
-  const msg=$("#sbMsg");
-  if(!(sess&&sbOn())) return toast("先にログインしてください");
-  const ev=$("#sbEvent").value, v=num($("#sbValue").value), pf=$("#sbProof").value.trim();
-  if(!ev) return toast("種目を選んでください");
-  if(!(v>0)) return toast("記録を入れてください");
-  /* テスト中だけ証明なしでも通します。ふだんは必須です */
-  if(TEST){ if(pf&&!isProofUrl(pf)) return toast("リンクは X か YouTube だけです"); }
-  else if(!isProofUrl(pf)) return toast("証明は X か YouTube のリンクだけです");
-  $("#sbGo").disabled=true; msg.textContent="送信中…";
-  try{
-    await callRpc("submit_record",{p_event:ev,p_value:v,
-      p_proof:pf||(TEST?"https://www.youtube.com/watch?v=test":""),
-      p_note:$("#sbNote").value.trim()||null,p_nomiss:!!$("#sbNomiss").checked,
-      p_post:!!$("#sbPost").checked},
-      [["p_post"],["p_nomiss","p_post"],["p_note","p_nomiss","p_post"]]);
-    $("#sbValue").value=""; $("#sbProof").value=""; $("#sbNote").value=""; $("#sbNomiss").checked=false;
-    msg.innerHTML='<span style="color:var(--acc2)">提出しました。審査を待ってください（＋25XP）</span>';
-    await loadSubs(); await loadMyStat(); renderSubs();
-  }catch(e){ msg.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
-  $("#sbGo").disabled=false;
-};
+/* 記録の提出は大会・チャレンジからのみ行います（専用フォームは廃止） */
 
 /* ---- 自分の提出 ---- */
 function renderSubs(){
@@ -5023,7 +5024,7 @@ function renderMyStat(){
 }
 
 async function subsEnter(){
-  fillSbEvent(); renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
+  renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
   if(!(TEST||(sess&&sbOn()))) return;
   await Promise.all([loadSubs(),loadRvq(),loadReports(),loadMyStat()]);
   renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
@@ -5403,8 +5404,6 @@ function tstToggle(on){
     if(REAL_ROLE===null) REAL_ROLE=me.role;
     if(!sess) sess={access_token:"test",expires_at:9e9,user:{id:"me"}};
     me.role=$("#testRole").value||"judgeman";
-    me.handle=TEST_ME[me.role]; me.name=TEST_NAME[me.role];
-    pro.handle=me.handle; pro.name=me.name;
   }else{
     TDB=null;
     if(me&&REAL_ROLE!==null) me.role=REAL_ROLE;
@@ -5417,9 +5416,8 @@ function tstToggle(on){
 $("#testRole").onchange=e=>{
   if(!TEST) return;
   me.role=e.target.value;
-  me.handle=TEST_ME[me.role]; me.name=TEST_NAME[me.role];
-  pro.handle=me.handle; pro.name=me.name;
-  toast(TEST_NAME[me.role]+"（"+(roleLabel(me.role)||"一般ユーザー")+"）として見ています");
+  /* 中身は別の人として扱いますが、画面に出る名前や@IDはそのままにします */
+  toast("いまは「"+(roleLabel(me.role)||"一般ユーザー")+"」の立場で見ています");
   subsEnter(); snsEnter(); renderRole(); updateMenuBadge();
 };
 const TEST_NAME={judge:"審査員テスト",supervisor:"スーパーバイザーテスト",
@@ -5430,12 +5428,22 @@ $("#testOff").onclick=()=>tstToggle(false);
    10g. Prime SNS（タイムライン・チャット・ユーザー大会）
    ========================================================= */
 let PFEED=[], PCUPS=[], PCUPENT={};
-const jstShort=t=>{const d=new Date(t); if(isNaN(d)) return "";
-  const m=Math.floor((Date.now()-d)/60000);
-  if(m<1) return "たった今"; if(m<60) return m+"分前";
+/** 「2026年7月29日 14時05分（3時間前）」の形。
+ *  60分までは分、1日までは時間、それ以降は日で表します。 */
+const agoWord=t=>{
+  const m=Math.floor((Date.now()-new Date(t))/60000);
+  if(m<1) return "たった今";
+  if(m<60) return m+"分前";
   if(m<1440) return Math.floor(m/60)+"時間前";
-  if(m<10080) return Math.floor(m/1440)+"日前";
-  return jstFull(t);};
+  return Math.floor(m/1440)+"日前";
+};
+const jstShort=t=>{
+  const d=new Date(t); if(isNaN(d)) return "";
+  const p=new Intl.DateTimeFormat("ja-JP",{year:"numeric",month:"long",day:"numeric",
+    hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Tokyo"}).formatToParts(d);
+  const g=k=>(p.find(x=>x.type===k)||{}).value||"";
+  return `${g("year")}年${g("month").replace("月","")}月${g("day")}日 ${g("hour")}時${g("minute")}分（${agoWord(t)}）`;
+};
 const ytId=u=>{const m=String(u||"").match(/(?:youtu\.be\/|[?&]v=)([\w-]{6,})/); return m?m[1]:null;};
 function poLinkHTML(u){
   if(!u) return "";
@@ -5478,14 +5486,18 @@ async function loadPcupEnt(id){
 function renderPfeed(){
   const box=$("#feedBox"); if(!box) return;
   if(!PFEED.length){ box.innerHTML='<p class="muted">まだ投稿がありません。</p>'; return; }
-  const top=PFEED.filter(p=>!p.reply_to);
+  let src=PFEED;
+  if(TAGQ) src=PFEED.filter(p=>tagsOf(p.body).includes(TAGQ)||PFEED.some(q=>q.id===p.reply_to&&tagsOf(q.body).includes(TAGQ)));
+  const top=src.filter(p=>!p.reply_to);
+  if(!top.length&&TAGQ){ box.innerHTML=`<p class="muted">#${esc(TAGQ)} の投稿はまだありません。</p>`; return; }
   box.innerHTML=top.map(p=>{
-    const reps=PFEED.filter(r=>r.reply_to===p.id)
+    const reps=src.filter(r=>r.reply_to===p.id)
       .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
     return poHTML(p)+reps.map(r=>`<div style="margin-left:18px">${poHTML(r,true)}</div>`).join("");
   }).join("");
   box.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>poMore(b.dataset.more));
-  box.querySelectorAll("[data-pf]").forEach(b=>b.onclick=()=>openProfile(b.dataset.pf));
+  box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openProfile(b.dataset.open));
+  box.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>tagFilter(b.dataset.tag));
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>poReply(b.dataset.rep));
 }
 function poHTML(p,isRep){
@@ -5500,37 +5512,45 @@ function poHTML(p,isRep){
   return `<div class="sbrow"${isRep?' style="background:#101827"':""}>
     <div class="sbtop">
       ${lviHTML(p.lv)}
-      <b class="${roleCls(p.role)}" ${p.handle?`data-pf="${esc(p.handle)}" style="cursor:pointer"`:""}>${esc(p.name||p.handle||"名無し")}</b>
+      <b class="${roleCls(p.role)}" ${p.handle?`data-open="${esc(p.handle)}" style="cursor:pointer;text-decoration:underline dotted"`:""}>${esc(p.name||p.handle||"名無し")}</b>
       ${p.handle?`<span class="tiny">@${esc(p.handle)}</span>`:""}
       ${roleLabel(p.role)?`<span class="tiny" style="color:${roleColor(p.role)}">${roleLabel(p.role)}</span>`:""}
       ${cup}<span class="tiny" style="margin-left:auto">${jstShort(p.created_at)}</span>
     </div>
     ${rec}
-    ${p.body?`<div style="margin-top:6px;white-space:pre-wrap;font-size:.9rem">${esc(p.body)}</div>`:""}
+    ${p.body?`<div style="margin-top:6px;white-space:pre-wrap;font-size:.9rem">${bodyHTML(p.body)}</div>`:""}
     ${poLinkHTML(p.link)}
+    ${(p.links||[]).map(L=>`<div class="tiny" style="margin-top:4px">`
+      +`${L.note?esc(L.note)+"　":""}<a href="${esc(L.url)}" target="_blank" rel="noopener noreferrer">別タブで開く</a></div>`).join("")}
     <div class="tools" style="margin-top:7px">
       ${isRep?"":`<button class="btn sm" data-rep="${p.id}">返信</button>`}
       <button class="btn sm dots" data-more="${p.id}">・・・</button>
     </div></div>`;
 }
-async function poSend(body,link,reply,msgEl){
+async function poSend(body,link,reply,msgEl,links){
   if(!(TEST||(sess&&sbOn()))) return toast("先にログインしてください");
   if(!body&&!link) return toast("本文かリンクを入れてください");
   if(link&&!isProofUrl(link)) return toast("リンクは X か YouTube だけです");
   try{
-    await callRpc("post_chat",{p_body:body||null,p_link:link||null,p_reply:reply||null},[["p_reply"]]);
-    await loadFeed(true); renderPfeed();
+    await callRpc("post_chat",{p_body:body||null,p_link:link||null,p_reply:reply||null,
+      p_links:links&&links.length?links:null},[["p_links"],["p_links","p_reply"]]);
+    await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice();
     if(msgEl) msgEl.innerHTML='<span style="color:var(--acc2)">投稿しました</span>';
     return true;
   }catch(e){ if(msgEl) msgEl.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>';
     else toast(String(e.message||e).slice(0,120)); return false; }
 }
+let poLinks=[];
 $("#poGo").onclick=async()=>{
-  const ok=await poSend($("#poBody").value.trim(),$("#poLink").value.trim(),null,$("#poMsg"));
-  if(ok){ $("#poBody").value=""; $("#poLink").value=""; $("#poLinkRow").hidden=true; }
+  const L=cleanLinks(poLinks);
+  const ok=await poSend($("#poBody").value.trim(),L.length?L[0].url:"",null,$("#poMsg"),L);
+  if(ok){ $("#poBody").value=""; poLinks=[]; $("#poLinkRow").hidden=true; }
 };
 $("#poPlus").onclick=()=>{ const r=$("#poLinkRow"); r.hidden=!r.hidden;
-  if(!r.hidden) setTimeout(()=>{try{$("#poLink").focus();}catch(e){}},30); };
+  if(!r.hidden){ if(!poLinks.length) poLinks=[{url:"",note:""}];
+    linkEditor("poLinks",poLinks); } };
+$("#poAddLink").onclick=()=>{ if(poLinks.length>=5) return toast("リンクは5つまでです");
+  poLinks.push({url:"",note:""}); linkEditor("poLinks",poLinks); };
 $("#poBody").onkeydown=e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("#poGo").click(); } };
 /** 名前を押したときにその人のプロフィールを開く。ランキングと同じ画面です */
 async function openProfile(handle){
@@ -5711,7 +5731,7 @@ function renderPcups(){
     return `<div class="sbrow" data-cup="${c.id}">
       <div class="sbtop">
         <b>${esc(c.title)}</b>
-        <span class="sbtag ${c.kind==="official"?"judged":""}">${c.kind==="official"?"大会":"チャレンジ"}</span>
+        <span class="sbtag ${c.kind==="official"?"judged":""}">${c.kind==="official"?"競技会":"チャレンジ"}</span>
         ${c.closed?'<span class="sbtag">終了</span>':'<span class="sbtag certified">受付中</span>'}
         <span class="tiny" style="margin-left:auto">${esc(c.owner_name||c.owner_handle||"")}</span>
       </div>
@@ -5750,8 +5770,9 @@ function pcupTable(rows){
     <th>順位</th><th>名前</th><th>合計スコア</th><th>証明</th></tr></thead><tbody>`
     +rows.map(e=>`<tr>
       <td><b>${e.rk}${e.tie_n>1?"T":""}</b></td>
-      <td>${esc(e.name||e.handle||"")}${e.nomiss?' <span class="sbtag">ノーミス</span>':""}</td>
-      <td><b>${jp(+e.total)}</b></td>
+      <td>${esc(e.name||e.handle||"")}${e.nomiss?' <span class="sbtag">ノーミス</span>':""}
+        ${e.status?`<span class="sbtag ${e.status}">${SB_ST[e.status]||"未審査"}</span>`:""}</td>
+      <td><b class="sbval st-${e.status||"pending"}" style="font-size:1rem">${jp(+e.total)}</b></td>
       <td><a href="${esc(e.proof_url)}" target="_blank" rel="noopener noreferrer">別タブで見る</a></td>
     </tr>`).join("")+"</tbody></table></div>";
 }
@@ -5779,9 +5800,11 @@ function pcupJoin(id){
       <div class="lsbox"><div class="t">合計スコア</div><div class="v" id="jSum" style="font-size:1.5rem">0</div>
         <div class="s">この値で順位がつきます</div></div>
     </div>
-    <label class="fl">提出する動画のリンク（X または YouTube）</label>
-    <input type="text" class="txt" id="jP" placeholder="https://www.youtube.com/watch?v=…">
-    <p class="tiny">この大会の提出は動画のみです。全プレイが映っている必要があります。</p>
+    <label class="fl">提出する動画のリンク（X または YouTube・複数可）</label>
+    <div id="jLinks"></div>
+    <div class="tools" style="margin-top:6px"><button class="btn sm" id="jAddLink">＋ リンクを増やす</button>
+      <span class="tiny">「ツール」を押すと種目名をそのまま説明に入れられます</span></div>
+    <p class="tiny">提出は動画のみです。全プレイが映っている必要があります。</p>
     ${r.nomiss?`<label class="pk" style="margin-top:8px;display:inline-flex">
       <input type="checkbox" id="jN"> 全ての記録で上の条件を満たしました</label>`:""}
     <p class="tiny">出し直すと、良い方の記録だけが残ります。</p>
@@ -5826,10 +5849,15 @@ function pcupJoin(id){
   }
   drawPages(); drawGrid(); refresh();
 
+  const jLinks=[{url:"",note:""}];
+  linkEditor("jLinks",jLinks);
+  M.q("#jAddLink").onclick=()=>{ if(jLinks.length>=8) return toast("リンクは8つまでです");
+    jLinks.push({url:"",note:""}); linkEditor("jLinks",jLinks); };
   M.q("#jGo").onclick=async()=>{
     if(doneN()<total) return toast("まだ入力できていない回があります");
-    const pf=M.q("#jP").value.trim();
-    if(!isProofUrl(pf)) return toast("提出は X か YouTube のリンクだけです");
+    const LK=cleanLinks(jLinks);
+    if(!LK.length) return toast("動画のリンクを1つ以上入れてください");
+    const pf=LK[0].url;
     if(r.nomiss&&!M.q("#jN").checked) return toast("この大会はノーミスが条件です");
     const t=sumN();
     if(!await askYN("この内容で提出しますか？",
@@ -5837,11 +5865,141 @@ function pcupJoin(id){
     try{
       await callRpc("join_pcup",{p_cup:id,p_total:t,p_proof:pf,
         p_detail:{steps:steps.map(x=>x.event),loops:loops,grid:grid},
-        p_nomiss:r.nomiss?!!M.q("#jN").checked:false},[["p_detail","p_nomiss"]]);
+        p_nomiss:r.nomiss?!!M.q("#jN").checked:false,p_links:LK},
+        [["p_links"],["p_detail","p_nomiss","p_links"]]);
       M.close(); toast("提出しました");
       await loadPcupEnt(id); renderPcups();
     }catch(e){ M.q("#jM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
+}
+
+/* ---- 8) 複数リンクの入力欄（説明つき・種目名ボタンつき） ---- */
+let lkTool={};      /* どの行でツールを開いているか */
+function linkEditor(boxId,list,onChange){
+  const box=$("#"+boxId); if(!box) return;
+  if(!list.length) list.push({url:"",note:""});
+  box.innerHTML=list.map((L,i)=>`<div class="lkrow" data-i="${i}">
+    <input type="text" data-u placeholder="X または YouTube のリンク" value="${esc(L.url||"")}">
+    <input type="text" data-t placeholder="このリンクの説明（例：素因数分解（上級）の1回目）" value="${esc(L.note||"")}">
+    <div class="tools" style="margin-top:0">
+      <button class="btn sm" data-tool>ツール</button>
+      ${list.length>1?`<button class="btn sm" data-x>消す</button>`:""}
+    </div>
+    ${lkTool[boxId]===i?`<div class="lktools">${EVENTS.map(n=>
+      `<button data-ev="${esc(n)}">${esc(n)}</button>`).join("")}</div>`:""}
+  </div>`).join("");
+  box.querySelectorAll(".lkrow").forEach(row=>{
+    const i=+row.dataset.i;
+    row.querySelector("[data-u]").oninput=e=>{ list[i].url=e.target.value.trim(); if(onChange) onChange(); };
+    row.querySelector("[data-t]").oninput=e=>{ list[i].note=e.target.value; if(onChange) onChange(); };
+    row.querySelector("[data-tool]").onclick=()=>{
+      lkTool[boxId]=(lkTool[boxId]===i)?null:i; linkEditor(boxId,list,onChange); };
+    const x=row.querySelector("[data-x]");
+    if(x) x.onclick=()=>{ list.splice(i,1); lkTool[boxId]=null; linkEditor(boxId,list,onChange); };
+    row.querySelectorAll("[data-ev]").forEach(b=>b.onclick=()=>{
+      const t=row.querySelector("[data-t]");
+      t.value=(t.value?t.value+" ":"")+b.dataset.ev;
+      list[i].note=t.value; if(onChange) onChange();
+    });
+  });
+}
+const cleanLinks=list=>(list||[]).filter(L=>L.url&&isProofUrl(L.url))
+  .map(L=>({url:L.url,note:(L.note||"").slice(0,80)}));
+
+/* ---- 13/16) タグ ---- */
+const TAG_RE=/#([^\s#、。，．!！?？"'`()（）\[\]{}]{1,30})/g;
+function tagsOf(text){
+  const out=[]; let m; TAG_RE.lastIndex=0;
+  while((m=TAG_RE.exec(String(text||"")))) if(!out.includes(m[1].toLowerCase())) out.push(m[1].toLowerCase());
+  return out;
+}
+/** 本文の中の #タグ を押せるようにする */
+function bodyHTML(t){
+  return esc(String(t||"")).replace(/#([^\s#、。，．!！?？"'`()（）\[\]{}]{1,30})/g,
+    (m,g1)=>`<span class="taginline" data-tag="${esc(g1.toLowerCase())}">#${esc(g1)}</span>`);
+}
+let TAGQ="", TAGS=[], FSTAT=null;
+const K_TAGSEEN="sa-tagseen-v1";
+function myTags(){
+  const mine=PFEED.filter(p=>p.mine);
+  const set=new Set(); mine.forEach(p=>tagsOf(p.body).forEach(t=>set.add(t)));
+  return [...set];
+}
+function countTags(){
+  const c={};
+  PFEED.forEach(p=>tagsOf(p.body).forEach(t=>c[t]=(c[t]||0)+1));
+  return Object.entries(c).map(([tag,n])=>({tag,n})).sort((a,b)=>b.n-a.n);
+}
+async function loadTags(){
+  if(TEST){ TAGS=countTags();
+    FSTAT={posts_n:PFEED.length,chat_n:PFEED.filter(p=>p.kind==="chat").length,
+           record_n:PFEED.filter(p=>p.kind==="record").length,tag_n:TAGS.length}; return; }
+  if(!sbOn()){ TAGS=countTags(); FSTAT=null; return; }
+  try{ TAGS=await sb("tag_counts?select=tag,n&order=n.desc&limit=40"); }catch(e){ TAGS=countTags(); }
+  try{ const f=await sb("feed_stats?select=*&limit=1"); FSTAT=(f&&f[0])||null; }catch(e){ FSTAT=null; }
+}
+function renderTags(){
+  const cloud=$("#tagCloud"); if(!cloud) return;
+  cloud.innerHTML=(TAGS||[]).slice(0,24).map(t=>
+    `<button class="ptag${TAGQ===t.tag?" on":""}" data-tag="${esc(t.tag)}">#${esc(t.tag)}<span class="n">${t.n}</span></button>`).join("")
+    || '<span class="tiny">まだタグがありません。投稿に <b>#素数</b> のように書くとタグになります。</span>';
+  cloud.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>tagFilter(b.dataset.tag));
+  const st=$("#feedStat");
+  if(st) st.textContent=FSTAT
+    ? `これまでの投稿 ${jp(FSTAT.posts_n||0)} 件（つぶやき ${jp(FSTAT.chat_n||0)}／記録 ${jp(FSTAT.record_n||0)}）　タグ ${jp(FSTAT.tag_n||(TAGS||[]).length)} 種類`
+    : `これまでの投稿 ${jp(PFEED.length)} 件`;
+  $("#tagAll").hidden=!TAGQ;
+}
+function tagFilter(t){
+  TAGQ=(TAGQ===t)?"":t;
+  $("#tagQ").value=TAGQ?"#"+TAGQ:"";
+  renderTags(); renderPfeed();
+}
+/* ---- 15) タグの通知 ---- */
+function tagNotice(){
+  const el=$("#tagNote"); if(!el) return;
+  const seen=ls(K_TAGSEEN,{}), mine=myTags(), hits=[];
+  mine.forEach(t=>{
+    const p=PFEED.find(x=>!x.mine&&tagsOf(x.body).includes(t));
+    if(p && new Date(p.created_at).getTime()>(seen[t]||0)) hits.push({t,p});
+  });
+  el.hidden=!hits.length;
+  if(!hits.length) return;
+  el.innerHTML=`<span>#${esc(hits[0].t)} のタグをつけて投稿した人が出てきました！`
+    +(hits.length>1?`（ほか ${hits.length-1} 件）`:"")+`</span>`
+    +`<button class="btn sm pri" id="tnGo">見る</button><button class="btn sm" id="tnX">閉じる</button>`;
+  $("#tnGo").onclick=()=>{ tagFilter(hits[0].t); tagSeen(hits.map(h=>h.t)); };
+  $("#tnX").onclick=()=>{ tagSeen(hits.map(h=>h.t)); el.hidden=true; };
+}
+function tagSeen(list){
+  const seen=ls(K_TAGSEEN,{}); const now=Date.now();
+  (list||[]).forEach(t=>seen[t]=now);
+  try{ localStorage.setItem(K_TAGSEEN,JSON.stringify(seen)); }catch(e){}
+  tagNotice();
+}
+$("#tagGo").onclick=()=>tagFilter($("#tagQ").value.replace(/^#/,"").trim().toLowerCase());
+$("#tagAll").onclick=()=>tagFilter(TAGQ);
+$("#tagQ").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#tagGo").click(); } };
+
+/* ---- 6) 自動で最新にする ---- */
+let liveT=null;
+function liveStart(){
+  clearInterval(liveT);
+  liveT=setInterval(async()=>{
+    if(TEST||document.hidden) return;
+    if($("#sns").hidden) return;
+    try{
+      if(snsShown("feed")){ await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice(); }
+      if(snsShown("cup")) { await loadPcups(); renderPcups(); }
+      if(snsShown("rank")) loadRanking(true);
+      if(snsShown("rv"))  { await Promise.all([loadRvq(),loadReports()]); renderRvq(); }
+      /* 役職が変わっていたら画面の作りも変える */
+      if(sess&&sbOn()){ const before=me&&me.role; await loadMe();
+        if(me&&me.role!==before){ renderRvq(); renderRole(); renderPcups();
+          toast("役職が「"+(roleLabel(me.role)||"一般ユーザー")+"」に変わりました"); } }
+      await loadFriendReq(); updateMenuBadge();
+    }catch(e){}
+  },20000);
 }
 
 /* ---- Prime SNS のシェル（起動アニメーション・メニュー・4つの画面） ---- */
@@ -5866,13 +6024,13 @@ function snsGo(v){
   $("#composer").hidden=v!=="feed";
   if(v!=="feed"){ $("#poLinkRow").hidden=true; }
   $("#snsNow").textContent=SNS_NAME[v]||"";
-  snsMenu(false);
+  snsMenu(false); saveWhere();
   if(v==="cup"){ loadPcups().then(renderPcups); try{ loadCups(); }catch(e){} }
   if(v==="rv")  { Promise.all([loadRvq(),loadReports()]).then(renderRvq); }
   if(v==="me")  { subsEnter(); }
   if(v==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
   if(v==="fr")  { renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
-  if(v==="feed"){ loadFeed().then(renderPfeed); }
+  if(v==="feed"){ loadFeed().then(()=>loadTags()).then(()=>{renderPfeed();renderTags();tagNotice();}); }
   scrollTo({top:0,behavior:"smooth"});
 }
 $("#snsMenuBtn").onclick=()=>snsMenu();
@@ -5893,8 +6051,8 @@ async function snsEnter(){
   await snsBoot();
   if($("#cuSteps")&&!$("#cuSteps").children.length) cuRender();
   renderRvq(); snsGo(snsView);
-  await Promise.all([loadFeed(),loadPcups()]);
-  renderPfeed(); renderPcups();
+  await Promise.all([loadFeed(),loadPcups(),loadTags()]);
+  renderPfeed(); renderPcups(); renderTags(); tagNotice(); liveStart();
 }
 /* 大会画面の中の切り替え */
 $$("#cupTabs button").forEach(b=>b.onclick=()=>{
@@ -6577,6 +6735,15 @@ function normalize(j){
     try{ await loadFriendReq(); renderFriendReq(); }catch(e){}
     try{ await loadMyStat(); renderRole(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
+  /* ブラウザを更新しても、さっき見ていた場所に戻します */
+  try{
+    const w=ls(K_TAB,null);
+    if(w&&w.tab&&w.tab!=="profile"){
+      const b=document.querySelector(`#tabs button[data-tab="${w.tab}"]`);
+      if(b){ b.click();
+        if(w.tab==="sns"&&w.sv) setTimeout(()=>{ try{ snsGo(w.sv); }catch(e){} },1500); }
+    }
+  }catch(e){}
   if(wantDev&&isAdmin()) openDev();
   /* どの経路を通っても最後に必ず描き直す */
   fillInputs();
