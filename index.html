@@ -300,6 +300,9 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 
 .vs .mid{font-size:.85rem;color:var(--dim);font-weight:700;letter-spacing:.1em}
 .nm{font-weight:600}
+/* 一覧では名前だけを左にそろえます */
+.nmcell .txt{text-align:left}
+.nmcell .txt>a{display:block}
 .nm-admin{color:var(--warn);font-weight:800;text-shadow:0 0 14px #ffc861aa,0 0 4px #ffc86166}
 .nm-supporter{color:var(--acc2);font-weight:700;text-shadow:0 0 12px #57e0a088}
 @keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
@@ -438,6 +441,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .ptag.on{background:#1d3a5c;border-color:var(--acc);color:#eaf3ff;font-weight:700}
 .ptag .n{opacity:.7;margin-left:5px;font-variant-numeric:tabular-nums}
 .taginline{color:#8fbdf0;cursor:pointer;font-weight:600}
+/* 公式タグ（記録更新・大会参加・チャレンジ参加）は黄色く光らせます */
+.taginline.off,.ptag.off{color:#ffd45e;text-shadow:0 0 10px #ffd45e88;font-weight:800}
+.ptag.off{border-color:#8a7330;background:#241d0d}
+.ptag.off.on{background:#3a2f12;color:#ffe9a8}
 /* 複数リンクの入力欄 */
 .lkrow{display:grid;gap:5px;background:#0d1524;border:1px solid #33455f;border-radius:9px;
   padding:8px;margin-bottom:6px}
@@ -663,6 +670,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <div class="tools">
       <button class="btn pri" id="lsStartBtn">スタート</button>
+      <button class="btn" id="lsPause" hidden>ストップ（休憩）</button>
       <button class="btn" id="lsStopBtn" hidden>終了して記録する</button>
       <button class="btn" id="lsReset">リセット</button>
       <span class="tiny" id="lsKeyNow" style="margin-left:auto"></span>
@@ -672,11 +680,21 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
     <div class="lsgrid2">
       <div class="lsbox big"><div class="t">今回のスコア増加</div>
-        <div class="v big" id="lsScore">0</div>
-        <div class="s" id="lsScoreNext">—</div></div>
+        <div class="v big" id="lsScore">0</div></div>
       <div class="lsbox big"><div class="t">今回の乱数増加</div>
-        <div class="v big" id="lsRand">0</div>
+        <div class="v big" id="lsRand">0</div></div>
+    </div>
+    <div class="lsgrid2">
+      <div class="lsbox big"><div class="t">現在までのスコア増加</div>
+        <div class="v big" id="lsScoreAll" style="color:var(--warn)">0</div>
+        <div class="s" id="lsScoreNext">—</div></div>
+      <div class="lsbox big"><div class="t">現在までの乱数増加</div>
+        <div class="v big" id="lsRandAll" style="color:var(--warn)">0</div>
         <div class="s" id="lsRandNext">—</div></div>
+    </div>
+    <div class="tools" style="margin-top:0">
+      <button class="btn sm" id="lsResetAll">「現在まで」をリセット</button>
+      <span class="tiny">リセットするまで、クリアするたびに足し続けます。累積の見込みはこの値を使います。</span>
     </div>
     <div class="lsgrid2">
       <div class="lsbox"><div class="t">S値の予測</div><div class="v" id="lsSv">—</div>
@@ -1059,6 +1077,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <section id="settings" hidden>
 <div class="card">
     <h2>プロフィール設定</h2>
+    <div id="acctTop" style="margin-bottom:14px"></div>
     <div class="frow">
       <div><label class="fl" for="pn">プレイヤーネーム</label>
         <input type="text" class="txt" id="pn" placeholder="例：aaa111"></div>
@@ -1182,7 +1201,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v42";
+const APP_VERSION = "v43";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2373,17 +2392,7 @@ $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
     img.src=fr.result;};
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";pro.imgSm="";proTouch();render();syncNow();toast("画像を消しました");};
-$("#pushNow").onclick=async()=>{
-  if(!(sess&&sbOn())) return toast("先にログインしてください");
-  pushState("反映しています…");
-  try{
-    if(pro.img&&!pro.imgSm){ const u=await makeSmall(pro.img); if(u) pro.imgSm=u; }
-    await pushMe(true);
-    rkCache={key:"",at:0,rows:null}; feedCache={at:0,rows:null};
-    await loadMe(); render(); renderSettings();
-    toast("全体に反映しました");
-  }catch(e){ pushState("失敗しました："+String(e.message||e).slice(0,40),"var(--bad)"); }
-};
+$("#pushNow").onclick=()=>syncAll();
 $("#pubOn").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
 $("#pubOn2").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
 $("#pubOff2").onclick=()=>{pro.pub=false;render();renderSettings();syncNow();};
@@ -3647,7 +3656,7 @@ async function autoPostRecords(){
   });
   lastRecSnap=snap;
   if(!ups.length) return;
-  try{ await callRpc("post_update",{p_body:"記録を更新しました！\n"+ups.slice(0,5).join("\n")});
+  try{ await callRpc("post_update",{p_body:"#記録更新 記録を更新しました！\n"+ups.slice(0,5).join("\n")});
     await loadFeed(true); renderPfeed(); }catch(e){}
 }
 let lastPush="";
@@ -3723,8 +3732,50 @@ const lviHTML=n=>{
   return `<span class="lvi${t}" title="Lv.${v}">${v}</span>`;
 };
 
+/** プロフィール設定の一番上に出す、アカウントと同期のまとまり */
+function renderAcctTop(){
+  const el=$("#acctTop"); if(!el) return;
+  if(!sbOn()){ el.innerHTML='<p class="tiny">Supabase が未設定のため、同期は使えません。</p>'; return; }
+  if(!sess){
+    el.innerHTML=`<div class="hintbox" style="margin-top:0">
+      <b>Googleでログインすると、名前や画像がほかの端末にも反映されます。</b>
+      <div class="tools"><button class="btn pri" id="atIn">Googleでログイン</button></div></div>`;
+    $("#atIn").onclick=signIn; return;
+  }
+  const u=(sess.user||{}), md=u.user_metadata||{};
+  el.innerHTML=`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+    ${md.avatar_url?`<img class="av" style="width:44px;height:44px" src="${esc(md.avatar_url)}" referrerpolicy="no-referrer" alt="">`:""}
+    <div><div class="tiny">${esc(md.full_name||u.email||"")}</div>
+      <div class="tiny" style="color:var(--dim2)">${esc(u.email||"")}</div></div>
+    <div class="tools" style="margin:0 0 0 auto">
+      <button class="btn pri" id="atSync">今すぐ同期</button>
+      <button class="btn" id="atOut">ログアウト</button></div>
+  </div>
+  <p class="tiny" id="atState" style="margin-top:6px">—</p>`;
+  $("#atOut").onclick=signOut;
+  $("#atSync").onclick=syncAll;
+}
+/** プロフィールの見た目もふくめて、まるごと同期しなおします */
+async function syncAll(btn){
+  if(!(sess&&sbOn())) return toast("先にログインしてください");
+  const say=t=>{ const a2=$("#atState"); if(a2) a2.textContent=t; pushState(t); };
+  say("同期しています…");
+  try{
+    if(pro.img&&!pro.imgSm){ const u=await makeSmall(pro.img); if(u) pro.imgSm=u; }
+    await pushMe(true);
+    rkCache={key:"",at:0,rows:null}; feedCache={at:0,rows:null};
+    await loadMe();
+    fillInputs(); render(); renderSettings(); renderMeCards();
+    try{ if(snsShown("rank")) loadRanking(true); }catch(e){}
+    try{ drawCard(); }catch(e){}
+    say("同期しました（"+jstShort(new Date().toISOString())+"）");
+    toast("プロフィールも記録も同期しました");
+  }catch(e){ say("失敗しました："+String(e.message||e).slice(0,50)); }
+}
+
 /* 画面 */
 function renderSettings(){
+  renderAcctTop();
   const a=$("#acctBox");
   if(!sbOn()){ a.innerHTML=`<p class="muted">Supabase が未設定のため、ログインは使えません。</p>
     <p class="tiny">現在の記録はこの端末のブラウザにのみ保存されています。下の「バックアップを保存」で控えを取れます。</p>`; }
@@ -3758,9 +3809,7 @@ function renderSettings(){
         renderCupNew(); if(snsShown("cup")) loadCups();
         toast(me&&me.role!=="user"?`${roleLabel(me.role)}として認識されました`:"一般ユーザーとして登録されています"); }
       catch(e){ toast("失敗しました："+String(e.message||e).slice(0,80)); }};
-    $("#btnSync").onclick=async()=>{try{await pushMe();await loadMe();renderSettings();render();
-      if(snsShown("cup")) loadCups(); toast("同期しました");}
-      catch(e){toast("同期に失敗しました："+String(e.message||e).slice(0,60));}};
+    $("#btnSync").onclick=()=>syncAll();
   }
   $("#pubOn2").classList.toggle("on",!!pro.pub);
   $("#pubOff2").classList.toggle("on",!pro.pub);
@@ -4401,6 +4450,10 @@ function showPlayer(p,rc){
 const K_LS="sa-ls-v1", K_LSLOG="sa-lslog-v1";
 let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0,goalSv:0,goalLv:0,stepSv:0.01,stepLv:0.01,
                    mute:false,nolight:false});
+/* リセットするまで足し続けるクリア回数。累積の見込みはこちらを使います */
+const K_LSALL="sa-lsall-v1";
+let lsAll=ls(K_LSALL,0);
+const saveLsAll=()=>{try{localStorage.setItem(K_LSALL,JSON.stringify(lsAll));}catch(e){}};
 let lsLog=ls(K_LSLOG,[]);
 let lsRun=null;      /* {start, count} */
 let lsTimer=null, lsCool=0;
@@ -4435,7 +4488,8 @@ function animNum(el,from,to,fmt){
   }
   requestAnimationFrame(step);
 }
-function lsElapsed(){ return lsRun?Date.now()-lsRun.start:0; }
+/* 休憩中は時計を止めます */
+function lsElapsed(){ return lsRun?((lsRun.paused||Date.now())-lsRun.start):0; }
 function lsFmtTime(ms){
   if(ms<0) ms=0;
   const p=(n,w)=>String(n).padStart(w||2,"0");
@@ -4448,14 +4502,19 @@ function renderLs(prev){
   const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
   /* 表示の主役は「今回の増加」。0から積み上がる */
   const gainS=n*perS, gainR=n*perR;
+  const allS=lsAll*perS, allR=lsAll*perR;
   const pGainS=prev!==undefined?prev*perS:gainS, pGainR=prev!==undefined?prev*perR:gainR;
   $("#lsCount").textContent=jp(n);
   animNum($("#lsScore"),pGainS,gainS,v=>(v>0?"+":"")+jp(v));
   animNum($("#lsRand"), pGainR,gainR,v=>(v>0?"+":"")+jp(v));
 
   /* 累積の見込み（プロフィールの値＋今回の増加）で、次のボーダーまでを出す */
+  /* 「現在まで」の増加だけを見込みに足します */
+  const aS=$("#lsScoreAll"), aR=$("#lsRandAll");
+  if(aS) aS.textContent=(allS>0?"+":"")+jp(allS);
+  if(aR) aR.textContent=(allR>0?"+":"")+jp(allR);
   const baseS=rec["スコア累積"]||0, baseR=rec["乱数累積"]||0;
-  const totS=baseS+gainS, totR=baseR+gainR;
+  const totS=baseS+allS, totR=baseR+allR;
   const sv=svalOf(totS), lv=lvalOf(totR);
   $("#lsSv").textContent=sv===null?"—":f3(sv);
   $("#lsLv").textContent=lv===null?"—":f3(lv);
@@ -4490,8 +4549,8 @@ function renderLs(prev){
                   : `<b style="color:var(--acc2)">1位ボーダーに到達しています</b>`);
     elN.innerHTML=out.join("<br>");
   };
-  info("score",baseS,gainS,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
-  info("rand", baseR,gainR,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
+  info("score",baseS,allS,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
+  info("rand", baseR,allR,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
   /* 次のL値・S値の目標。届いたら自動で繰り上げる */
   const bump=(key,cur,stepKey)=>{
     if(cur===null) return null;
@@ -4591,7 +4650,8 @@ function lsHit(){
   lsCool=now;
   const prev=lsRun.count;
   lsRun.count++;
-  const big=lsCrossed(prev,lsRun.count);
+  lsAll++; saveLsAll();
+  const big=lsCrossed(lsAll-1,lsAll);
   lsFlash(big); lsBeep(big);
   $("#lsHit").disabled=true;
   setTimeout(()=>{ if(lsRun) $("#lsHit").disabled=false; },1000);
@@ -4737,7 +4797,7 @@ $("#lsOpenKey").onclick=()=>{
 $("#lsStartBtn").onclick=()=>{
   lsRun={start:Date.now(),count:0}; lsCool=0;
   $("#lsHit").disabled=false;
-  $("#lsStartBtn").hidden=true; $("#lsStopBtn").hidden=false;
+  $("#lsStartBtn").hidden=true; $("#lsStopBtn").hidden=false; $("#lsPause").hidden=false;
   $("#lsHint").textContent="カウント中。ボタンか設定したキーで数えてください（1秒間隔）。";
   cancelAnimationFrame(lsTimer);
   const tick=()=>{ if(!lsRun) return; $("#lsTime").textContent=lsFmtTime(lsElapsed());
@@ -4753,7 +4813,7 @@ $("#lsStopBtn").onclick=()=>{
   const finish=()=>{
     lsLog.push(L); saveLs();
     lsRun=null; $("#lsHit").disabled=true;
-    $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
+    $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true; $("#lsPause").hidden=true;
     $("#lsHint").textContent="記録しました。もう一度スタートを押すと新しい計測を始めます。";
     renderLs(); toast("記録しました");
   };
@@ -4800,10 +4860,29 @@ $("#lsStopBtn").onclick=()=>{
 $("#lsReset").onclick=async()=>{
   if(lsRun&&lsRun.count&&!await askYN("いまの計測を破棄しますか？","記録は保存されません。","破棄する")) return;
   cancelAnimationFrame(lsTimer); lsTimer=null; lsRun=null;
-  $("#lsHit").disabled=true; $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true;
+  $("#lsHit").disabled=true; $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true; $("#lsPause").hidden=true;
   renderLs();
 };
 $("#lsHit").onclick=lsHit;
+$("#lsResetAll").onclick=async()=>{
+  if(!await askYN("「現在まで」をリセットしますか？",
+    "足し続けてきたクリア回数を0に戻します。<br>いま "+jp(lsAll)+" 回ぶんです。","リセットする")) return;
+  lsAll=0; saveLsAll(); renderLs(); toast("リセットしました");
+};
+/* 休憩用のストップ。時計を止めるだけで、数えた回数は残ります */
+$("#lsPause").onclick=()=>{
+  if(!lsRun) return;
+  if(lsRun.paused){
+    lsRun.start+=Date.now()-lsRun.paused; lsRun.paused=null;
+    $("#lsPause").textContent="ストップ（休憩）";
+    $("#lsHit").disabled=false; toast("再開しました");
+  }else{
+    lsRun.paused=Date.now();
+    $("#lsPause").textContent="再開する";
+    $("#lsHit").disabled=true; toast("休憩中です");
+  }
+  renderLs();
+};
 
 /* =========================================================
    10e. 記録提出と審査（審査員 → スーパーバイザー → ジャッジマン）
@@ -5375,8 +5454,15 @@ function tstBuild(){
   ]};
 }
 /** 同点は同じ順位。1,1,3 のように飛ばす */
-function tstRanks(cupId){
-  const rows=TDB.ent.filter(e=>e.cup_id===cupId)
+function tstRanks(cupId,pd){
+  const now=Date.now();
+  const inP=e=>{
+    if(!pd||pd==="all") return true;
+    const t=new Date(e.created_at).getTime();
+    const span={day:86400000,week:7*86400000,month:31*86400000}[pd]||Infinity;
+    return now-t<span;
+  };
+  const rows=TDB.ent.filter(e=>e.cup_id===cupId&&inP(e))
     .sort((a,b)=>b.total-a.total||new Date(a.created_at)-new Date(b.created_at));
   let rk=0,prev=null;
   return rows.map((e,i)=>{
@@ -5602,12 +5688,42 @@ async function loadPcups(){
     PCUPS = sess ? await sbAuth(q) : await sb(q);
   }catch(e){ PCUPS=[]; }
 }
-async function loadPcupEnt(id){
-  if(TEST){ PCUPENT[id]=tstRanks(id); return; }
+/* 期間ごとの順位。JST の 0時／月曜／1日で区切ります */
+let cupPeriod={};
+const PERIOD_N={all:"通算",day:"Daily",week:"Weekly",month:"Monthly"};
+const jstNow=()=>new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+/** 「第n回」と日付の見出しを作ります */
+function periodTitle(cup,pd){
+  const n=jstNow(), st=new Date(new Date(cup.created_at).toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+  const d0=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  const s0=new Date(st.getFullYear(),st.getMonth(),st.getDate());
+  const mon=x=>{ const w=(x.getDay()+6)%7; const r=new Date(x); r.setDate(x.getDate()-w); return r; };
+  if(pd==="day"){
+    const k=Math.floor((d0-s0)/86400000)+1;
+    return `第${k}回　${n.getFullYear()}年${n.getMonth()+1}月${n.getDate()}日　Daily`;
+  }
+  if(pd==="week"){
+    const k=Math.floor((mon(d0)-mon(s0))/(7*86400000))+1;
+    const wk=Math.floor((d0.getDate()+((new Date(n.getFullYear(),n.getMonth(),1).getDay()+6)%7)-1)/7)+1;
+    return `第${k}回　${n.getFullYear()}年${n.getMonth()+1}月第${wk}週　Weekly`;
+  }
+  if(pd==="month"){
+    const k=(n.getFullYear()-st.getFullYear())*12+(n.getMonth()-st.getMonth())+1;
+    return `第${k}回　${n.getFullYear()}年${n.getMonth()+1}月　Monthly`;
+  }
+  return "通算（はじめてからの全部）";
+}
+async function loadPcupEnt(id,pd){
+  pd=pd||cupPeriod[id]||"all"; cupPeriod[id]=pd;
+  if(TEST){ PCUPENT[id]=tstRanks(id,pd); return; }
   try{
-    const q=`pcup_ranks?select=*&cup_id=eq.${id}&order=rk.asc&limit=200`;
-    PCUPENT[id] = sess ? await sbAuth(q) : await sb(q);
-  }catch(e){ PCUPENT[id]=[]; }
+    const body={p_cup:id,p_period:pd};
+    PCUPENT[id] = sess ? await sbAuth("rpc/pcup_ranking",{method:"POST",body:JSON.stringify(body)})
+                       : await sb("rpc/pcup_ranking",{method:"POST",body:JSON.stringify(body)});
+  }catch(e){
+    try{ const q=`pcup_ranks?select=*&cup_id=eq.${id}&order=rk.asc&limit=200`;
+      PCUPENT[id] = sess ? await sbAuth(q) : await sb(q); }catch(e2){ PCUPENT[id]=[]; }
+  }
 }
 
 /* ---- タイムライン ---- */
@@ -5875,13 +5991,17 @@ function renderPcups(){
         ${mine?`<button class="btn sm" data-close="${c.id}">${c.closed?"再開する":"終了する"}</button>
                 <button class="btn sm" data-delc="${c.id}">消す</button>`:""}
       </div>
-      ${rows?pcupTable(rows):""}
+      ${rows?pcupTable(rows,c):""}
     </div>`;}).join("");
   box.querySelectorAll("[data-see]").forEach(b=>b.onclick=async()=>{
     const id=b.dataset.see;
     if(PCUPENT[id]) delete PCUPENT[id]; else await loadPcupEnt(id);
     renderPcups();
   });
+  box.querySelectorAll("[data-pd]").forEach(b=>b.onclick=async()=>{
+    await loadPcupEnt(b.dataset.cid,b.dataset.pd); renderPcups(); });
+  box.querySelectorAll("[data-det]").forEach(b=>b.onclick=()=>{
+    const [cid,i]=b.dataset.det.split("|"); cupDetail(cid,+i); });
   box.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>pcupJoin(b.dataset.join));
   box.querySelectorAll("[data-close]").forEach(b=>b.onclick=async()=>{
     const c=PCUPS.find(x=>x.id===b.dataset.close);
@@ -5895,17 +6015,55 @@ function renderPcups(){
   });
 }
 /** 同点は同じ順位。並んでいる人が2人以上なら「T」を付ける */
-function pcupTable(rows){
-  if(!rows.length) return '<p class="tiny" style="margin-top:8px">まだ参加者がいません。</p>';
-  return `<div class="scroll" style="margin-top:9px"><table><thead><tr>
-    <th>順位</th><th>名前</th><th>合計スコア</th><th>証明</th></tr></thead><tbody>`
-    +rows.map(e=>`<tr>
+function pcupTable(rows,cup){
+  const pd=cupPeriod[cup.id]||"all";
+  const head=`<div class="segs" style="grid-template-columns:repeat(4,1fr);margin:10px 0 6px">`
+    +["all","day","week","month"].map(k=>
+      `<button data-pd="${k}" data-cid="${cup.id}" class="${k===pd?"on":""}">${PERIOD_N[k]}</button>`).join("")
+    +`</div><p class="tiny" style="color:var(--acc);font-weight:700">${esc(periodTitle(cup,pd))}</p>`;
+  if(!rows.length) return head+'<p class="tiny">この期間の参加者はまだいません。</p>';
+  return head+`<div class="scroll"><table><thead><tr>
+    <th>順位</th><th>名前</th><th>合計スコア</th><th>証明</th><th></th></tr></thead><tbody>`
+    +rows.map((e,i)=>`<tr>
       <td><b>${e.rk}${e.tie_n>1?"T":""}</b></td>
       <td>${esc(e.name||e.handle||"")}${e.nomiss?' <span class="sbtag">ノーミス</span>':""}
         ${e.status?`<span class="sbtag ${e.status}">${SB_ST[e.status]||"未審査"}</span>`:""}</td>
       <td><b class="sbval st-${e.status||"pending"}" style="font-size:1rem">${jp(+e.total)}</b></td>
-      <td><a href="${esc(e.proof_url)}" target="_blank" rel="noopener noreferrer">別タブで見る</a></td>
+      <td>${e.discord
+        ?`<span class="tiny" title="${esc(e.discord_note||"")}">Discord</span>`
+        :`<a href="${esc(e.proof_url)}" target="_blank" rel="noopener noreferrer">別タブで見る</a>`}</td>
+      <td><button class="btn sm" data-det="${cup.id}|${i}">詳細</button></td>
     </tr>`).join("")+"</tbody></table></div>";
+}
+/** 入力された1回ぶんずつの記録をすべて見せます（誰でも見られます） */
+function cupDetail(cid,idx){
+  const cup=PCUPS.find(c=>c.id===cid), e=(PCUPENT[cid]||[])[idx];
+  if(!cup||!e) return;
+  const d=e.detail||{}, grid=d.grid||[], steps=d.steps||[];
+  let body;
+  if(!grid.length){
+    body='<p class="muted">この記録には1回ごとの内訳が残っていません。</p>';
+  }else{
+    body=grid.map((page,li)=>{
+      const maxN=Math.max(...page.map(a=>a.length));
+      return `<h3 style="margin-top:${li?16:8}px">${li+1}周目</h3>
+        <div class="scroll"><table><thead><tr><th>種目</th>`
+        +Array.from({length:maxN},(_,k)=>`<th>${k+1}回目</th>`).join("")+`<th>小計</th></tr></thead><tbody>`
+        +page.map((arr,si)=>`<tr><td class="tiny">${esc(steps[si]||"")}</td>`
+          +Array.from({length:maxN},(_,k)=>k<arr.length
+            ?`<td>${jp(+arr[k]||0)}</td>`:`<td class="tiny" style="color:var(--dim2)">—</td>`).join("")
+          +`<td><b>${jp(arr.reduce((x,v)=>x+(+v||0),0))}</b></td></tr>`).join("")
+        +`</tbody></table></div>`;
+    }).join("");
+  }
+  modal(`<h2>${esc(e.name||e.handle||"")} さんの記録</h2>
+    <p class="muted" style="margin-top:-8px">${esc(cup.title)}　合計スコア <b>${jp(+e.total)}</b>
+      　${jstShort(e.created_at)}</p>
+    ${e.discord?`<div class="hintbox" style="margin-top:0"><b>Discord に提出</b><br>
+      <span class="tiny">${esc(e.discord_note||"")}</span></div>`:""}
+    ${(e.links||[]).length?`<p class="tiny">${(e.links||[]).map(L=>
+      `${esc(L.note||"")} <a href="${esc(L.url)}" target="_blank" rel="noopener noreferrer">別タブで開く</a>`).join("<br>")}</p>`:""}
+    ${body}`,{w:900});
 }
 /** チャレンジの記録入力。ループごとに1ページ、行が種目・列が「○回目」の表です。
  *  1ページ全部うまるまで次のページに進めません。 */
@@ -5931,11 +6089,29 @@ function pcupJoin(id){
       <div class="lsbox"><div class="t">合計スコア</div><div class="v" id="jSum" style="font-size:1.5rem">0</div>
         <div class="s">この値で順位がつきます</div></div>
     </div>
-    <label class="fl">提出する動画のリンク（X または YouTube・複数可）</label>
-    <div id="jLinks"></div>
-    <div class="tools" style="margin-top:6px"><button class="btn sm" id="jAddLink">＋ リンクを増やす</button>
-      <span class="tiny">「ツール」を押すと種目名をそのまま説明に入れられます</span></div>
-    <p class="tiny">提出は動画のみです。全プレイが映っている必要があります。</p>
+    <h3 style="margin-top:14px">提出のしかた</h3>
+    <label class="pk" style="display:inline-flex"><input type="checkbox" id="jDis"> Discord に出す</label>
+    <div id="jLinkWrap">
+      <label class="fl">提出する動画のリンク（X または YouTube・複数可）</label>
+      <div id="jLinks"></div>
+      <div class="tools" style="margin-top:6px"><button class="btn sm" id="jAddLink">＋ リンクを増やす</button>
+        <span class="tiny">「ツール」を押すと種目名をそのまま説明に入れられます</span></div>
+      <p class="tiny">提出は動画のみです。全プレイが映っている必要があります。</p>
+    </div>
+    <div id="jDisWrap" hidden>
+      <div class="hintbox" style="margin-top:10px;border-color:#a0632b;background:#2a1c10">
+        <b>Discord に出す場合の注意</b>
+        <ul style="margin:6px 0 0;padding-left:18px" class="tiny">
+          <li>素因数分解部のサーバーに入っている人だけが使えます</li>
+          <li>どのチャンネルにいつ書いたかを<b>必ず</b>入れてください</li>
+          <li>入っていないのに「入っている」と答えて出した場合、
+              サーバーにいる審査員・スーパーバイザーが確認しだい<b>その記録は却下されます</b></li>
+        </ul>
+      </div>
+      <label class="fl">どこに書いたか（必須）</label>
+      <input type="text" class="txt" id="jDNote" placeholder="例：#記録提出 チャンネルに 7/29 22:10 投稿">
+      <p class="tiny">Discord に出す場合、X や YouTube のリンクは要りません。</p>
+    </div>
     ${r.nomiss?`<label class="pk" style="margin-top:8px;display:inline-flex">
       <input type="checkbox" id="jN"> 全ての記録で上の条件を満たしました</label>`:""}
     <p class="tiny">出し直すと、良い方の記録だけが残ります。</p>
@@ -5984,11 +6160,27 @@ function pcupJoin(id){
   linkEditor("jLinks",jLinks);
   M.q("#jAddLink").onclick=()=>{ if(jLinks.length>=8) return toast("リンクは8つまでです");
     jLinks.push({url:"",note:""}); linkEditor("jLinks",jLinks); };
+  /* Discord を選んだら、サーバーに入っているかを必ず確かめます */
+  M.q("#jDis").onchange=async e=>{
+    if(!e.target.checked){ M.q("#jLinkWrap").hidden=false; M.q("#jDisWrap").hidden=true; return; }
+    const ok=await askYN("あなたは素因数分解部のサーバーに加入していますか？",
+      "Discord での確認は、サーバーに入っている審査員が行います。<br>"
+      +'<span style="color:var(--warn)">入っていないのに「はい」と答えて出した記録は、確認しだい却下されます。</span>',
+      "はい、入っています","いいえ");
+    if(!ok){ e.target.checked=false; toast("入っていない場合は X か YouTube のリンクで出してください"); return; }
+    M.q("#jLinkWrap").hidden=true; M.q("#jDisWrap").hidden=false;
+  };
   M.q("#jGo").onclick=async()=>{
     if(doneN()<total) return toast("まだ入力できていない回があります");
-    const LK=cleanLinks(jLinks);
-    if(!LK.length) return toast("動画のリンクを1つ以上入れてください");
-    const pf=LK[0].url;
+    const dis=!!M.q("#jDis").checked, dnote=M.q("#jDNote").value.trim();
+    let LK=[], pf="";
+    if(dis){
+      if(!dnote) return toast("どのチャンネルに書いたかを必ず入れてください");
+    }else{
+      LK=cleanLinks(jLinks);
+      if(!LK.length) return toast("動画のリンクを1つ以上入れてください");
+      pf=LK[0].url;
+    }
     if(r.nomiss&&!M.q("#jN").checked) return toast("この大会はノーミスが条件です");
     const t=sumN();
     if(!await askYN("この内容で提出しますか？",
@@ -5996,8 +6188,10 @@ function pcupJoin(id){
     try{
       await callRpc("join_pcup",{p_cup:id,p_total:t,p_proof:pf,
         p_detail:{steps:steps.map(x=>x.event),loops:loops,grid:grid},
-        p_nomiss:r.nomiss?!!M.q("#jN").checked:false,p_links:LK},
-        [["p_links"],["p_detail","p_nomiss","p_links"]]);
+        p_nomiss:r.nomiss?!!M.q("#jN").checked:false,p_links:LK,
+        p_discord:dis,p_dnote:dnote||null},
+        [["p_discord","p_dnote"],["p_links","p_discord","p_dnote"],
+         ["p_detail","p_nomiss","p_links","p_discord","p_dnote"]]);
       M.close(); toast("提出しました");
       if(autoPost.cup){
         try{ await callRpc("post_update",{p_body:
@@ -6050,9 +6244,12 @@ function tagsOf(text){
   return out;
 }
 /** 本文の中の #タグ を押せるようにする */
+/** 公式タグ。アプリが自動で付けるもので、黄色く光ります */
+const OFF_TAGS=new Set(["記録更新","大会参加","チャレンジ参加"]);
 function bodyHTML(t){
   return esc(String(t||"")).replace(/#([^\s#、。，．!！?？"'`()（）\[\]{}]{1,30})/g,
-    (m,g1)=>`<span class="taginline" data-tag="${esc(g1.toLowerCase())}">#${esc(g1)}</span>`);
+    (m,g1)=>`<span class="taginline${OFF_TAGS.has(g1)?" off":""}" `
+      +`data-tag="${esc(g1.toLowerCase())}">#${esc(g1)}</span>`);
 }
 let TAGQ="", TAGS=[], FSTAT=null, LASTUP=null;
 let FQ={word:"",from:"",to:"",who:"",kind:""};
@@ -6116,13 +6313,18 @@ async function loadTags(){
 }
 function renderTags(){
   const cloud=$("#tagCloud"); if(!cloud) return;
-  cloud.innerHTML=(TAGS||[]).slice(0,24).map(t=>
-    `<button class="ptag${TAGQ===t.tag?" on":""}" data-tag="${esc(t.tag)}">#${esc(t.tag)}<span class="n">${t.n}</span></button>`).join("")
+  const ord=(TAGS||[]).slice().sort((a,b)=>
+    (OFF_TAGS.has(b.tag)?1:0)-(OFF_TAGS.has(a.tag)?1:0)||b.n-a.n);
+  cloud.innerHTML=ord.slice(0,24).map(t=>
+    `<button class="ptag${OFF_TAGS.has(t.tag)?" off":""}${TAGQ===t.tag?" on":""}" `
+    +`data-tag="${esc(t.tag)}">#${esc(t.tag)}<span class="n">${t.n}</span></button>`).join("")
     || '<span class="tiny">まだタグがありません。投稿に <b>#素数</b> のように書くとタグになります。</span>';
   cloud.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>tagFilter(b.dataset.tag));
   const st=$("#feedStat");
   if(st) st.textContent=FSTAT
-    ? `これまでの投稿 ${jp(FSTAT.posts_n||0)} 件（つぶやき ${jp(FSTAT.chat_n||0)}／記録 ${jp(FSTAT.record_n||0)}）　タグ ${jp(FSTAT.tag_n||(TAGS||[]).length)} 種類`
+    ? `これまでの投稿 ${jp(FSTAT.posts_n||0)} 件`
+      +`（つぶやき ${jp(FSTAT.chat_n||0)}／大会・チャレンジ ${jp(FSTAT.record_n||0)}`
+      +`／記録の更新 ${jp(FSTAT.update_n||0)}）　タグ ${jp(FSTAT.tag_n||(TAGS||[]).length)} 種類`
     : `これまでの投稿 ${jp(PFEED.length)} 件`;
   $("#tagAll").hidden=!feedActive();
   const sr=$("#srNote");
