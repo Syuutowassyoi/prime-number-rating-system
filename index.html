@@ -397,7 +397,14 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 /* ---- Prime SNS のバーとメニュー ---- */
 .snsbar{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);
   border-radius:12px;padding:8px 11px;margin-bottom:12px}
-.snsnav{margin-bottom:12px}
+/* SNS のメニューは全幅に広げず、左上から開く小さなパネルにします */
+.snsnav{position:absolute;z-index:60;width:min(230px,72vw);grid-template-columns:1fr;
+  margin:0 0 12px;background:#111c2eF5;box-shadow:0 20px 44px -22px #000;
+  transform-origin:top left;transform:translateY(-6px) scale(.94)}
+.snsnav.open{transform:none;max-height:520px}
+.snsnav .grp{display:grid;gap:4px}
+.snsnav button{text-align:left;padding:9px 11px}
+.snswrap{position:relative}
 .ndot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5470;
   margin-left:7px;box-shadow:0 0 8px #ff5470cc;animation:ndot 1.6s ease-in-out infinite}
 @keyframes ndot{0%,100%{opacity:1}50%{opacity:.35}}
@@ -458,10 +465,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="grp" data-g="tool"><div class="ghead">ツール</div>
     <button data-tab="plan">プラン</button>
     <button data-tab="analysis">分析</button>
-    <button data-tab="ls">LSやりこみ</button>
-    <button data-tab="friends">フレンド</button></div>
-  <div class="grp" data-g="game"><div class="ghead">競技</div>
-    <button data-tab="rank">ランキング</button></div>
+    <button data-tab="ls">LSやりこみ</button></div>
   <div class="grp" data-g="sns"><div class="ghead">Prime SNS</div>
     <button data-tab="sns">Prime SNS</button></div>
   <div class="grp" data-g="set"><div class="ghead">設定</div>
@@ -684,13 +688,15 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <span class="mnow" id="snsNow">タイムライン</span>
       <span class="mbadge" id="snsBadge" hidden>0</span>
     </div>
-    <nav class="tabs snsnav" id="snsNav" hidden>
+    <div class="snswrap"><nav class="tabs snsnav" id="snsNav" hidden>
       <div class="grp"><div class="ghead">Prime SNS</div>
         <button data-sv="feed" class="on">タイムライン</button>
         <button data-sv="cup">大会</button>
+        <button data-sv="rank">ランキング</button>
+        <button data-sv="fr">フレンド<span class="ndot" id="frDot" hidden></span></button>
         <button data-sv="rv" id="navRv" hidden>審査室<span class="ndot" id="rvDot" hidden></span></button>
         <button data-sv="me">プロフィール</button></div>
-    </nav>
+    </nav></div>
 
     <!-- ===== タイムライン ===== -->
     <div id="svFeed">
@@ -718,7 +724,15 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
           <p class="muted" style="margin-top:-8px">誰でも開けます。順位は合計スコアで決まり、同点は同率（T）です。</p>
           <div id="cupBox"></div></div>
         <div id="officialCup"><div class="card"><h2>大会一覧</h2><div id="cupList"></div></div>
-  <div class="card" id="cupNewBar" hidden>
+  <div class="card" id="myCupsCard" hidden><h2>自分が開催した大会</h2><div id="myCups"></div></div>
+  <div id="cupDetail"></div></div>
+      </div>
+      <div id="cvMake" hidden>
+        <div class="segs" id="mkTabs" style="grid-template-columns:1fr 1fr">
+          <button data-mk="ch" class="on">チャレンジを開く</button>
+          <button data-mk="of" id="mkOfBtn" hidden>大会を開く</button>
+        </div>
+        <div id="mkOf" hidden><div class="card" id="cupNewBar" hidden>
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="cupNewBtn">＋ 大会を作成する</button>
       <span class="tiny" id="cupNewNote">サポーターと管理者だけが開催できます。</span>
@@ -746,10 +760,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn" id="cCancel">やめる</button></div>
     <div id="cMsg" class="tiny"></div>
   </div>
-  <div class="card" id="myCupsCard" hidden><h2>自分が開催した大会</h2><div id="myCups"></div></div>
-  <div id="cupDetail"></div></div>
-      </div>
-      <div id="cvMake" hidden>
+  </div>
+        <div id="mkCh">
         <div class="card">
           <h2>チャレンジを開く</h2>
           <p class="muted" style="margin-top:-8px">「順番モード」「連続モード」「ノーミスモード」を組み合わせたものをチャレンジと呼びます。</p>
@@ -759,11 +771,6 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
             <div><label class="fl">ループ回数</label>
               <input type="number" id="cuLoop" min="1" max="50" value="1" style="max-width:none"></div>
           </div>
-          <label class="fl" id="cuKindL" hidden>種類</label>
-          <select id="cuKind" style="max-width:none" hidden>
-            <option value="challenge">チャレンジ（誰でも開けます）</option>
-            <option value="official">大会（サポーター以上だけ）</option>
-          </select>
           <label class="fl">説明</label>
           <textarea id="cuI" rows="5" maxlength="600" placeholder="ルールの補足や、参加する人へのお願いなどを書けます（600文字まで）"></textarea>
           <label class="pk" style="margin-top:9px;display:inline-flex">
@@ -778,6 +785,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
           <div class="hintbox" id="cuPrev" style="margin-top:12px"></div>
           <div class="tools"><button class="btn pri" id="cuGo">この内容で開く</button>
             <span class="tiny" id="cuMsg"></span></div>
+        </div>
         </div>
       </div>
     </div>
@@ -800,6 +808,52 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
 
     <!-- ===== プロフィール ===== -->
+    <div id="svRank" hidden><div class="card">
+    <h2>全体ランキング</h2>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <label class="fl" style="margin:0">並べ替え</label>
+      <select id="rkSort" style="max-width:260px"></select>
+      <button class="btn sm" id="rkGo">表示</button>
+    </div>
+    <div id="rankBody"></div>
+  </div></div>
+    <div id="svFr" hidden><div class="card">
+    <h2>自分のプロフィールを共有</h2>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="mkLink">共有リンクをコピー</button>
+      <button class="btn" id="tweet">Xに投稿</button>
+    </div>
+  </div>
+  <div class="card" id="frReqCard">
+    <h2>フレンド申請</h2>
+    <div id="frReqBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>@ID で申請する</h2>
+    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認したときに双方のフレンドになります。
+      <br><span class="tiny">相手も一度ログインして、公開設定をONにしている必要があります。</span></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input type="text" class="txt" id="frTo" placeholder="aaa111" style="max-width:220px">
+      <button class="btn pri" id="frSend">申請を送る</button>
+    </div>
+    <div id="frSendMsg" class="tiny"></div>
+  </div>
+
+  <div class="card">
+    <h2>共有リンクから追加（ログイン不要）</h2>
+    <p class="muted" style="margin-top:-8px">相手からもらった共有リンクを貼り付けてください。承認は要りません。</p>
+    <textarea id="oppo" placeholder="https://.../#p=..."></textarea>
+    <div class="tools">
+      <button class="btn pri" id="addFr">フレンドに登録</button>
+      <button class="btn" id="cmpOnly">比較だけする</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>フレンドランキング</h2>
+    <div id="frList"></div>
+  </div>
+  <div id="cmpOut"></div></div>
     <div id="svMe" hidden>
       <div class="card">
         <h2>プロフィール</h2>
@@ -934,58 +988,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 </section>
 
 <!-- ============ フレンド ============ -->
-<section id="friends" hidden>
-  <div class="card">
-    <h2>自分のプロフィールを共有</h2>
-    <div class="tools" style="margin-top:0">
-      <button class="btn pri" id="mkLink">共有リンクをコピー</button>
-      <button class="btn" id="tweet">Xに投稿</button>
-    </div>
-  </div>
-  <div class="card" id="frReqCard">
-    <h2>フレンド申請</h2>
-    <div id="frReqBody"></div>
-  </div>
-
-  <div class="card">
-    <h2>@ID で申請する</h2>
-    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認したときに双方のフレンドになります。
-      <br><span class="tiny">相手も一度ログインして、公開設定をONにしている必要があります。</span></p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <input type="text" class="txt" id="frTo" placeholder="aaa111" style="max-width:220px">
-      <button class="btn pri" id="frSend">申請を送る</button>
-    </div>
-    <div id="frSendMsg" class="tiny"></div>
-  </div>
-
-  <div class="card">
-    <h2>共有リンクから追加（ログイン不要）</h2>
-    <p class="muted" style="margin-top:-8px">相手からもらった共有リンクを貼り付けてください。承認は要りません。</p>
-    <textarea id="oppo" placeholder="https://.../#p=..."></textarea>
-    <div class="tools">
-      <button class="btn pri" id="addFr">フレンドに登録</button>
-      <button class="btn" id="cmpOnly">比較だけする</button>
-    </div>
-  </div>
-  <div class="card">
-    <h2>フレンドランキング</h2>
-    <div id="frList"></div>
-  </div>
-  <div id="cmpOut"></div>
-</section>
 
 <!-- ============ ランキング ============ -->
-<section id="rank" hidden>
-  <div class="card">
-    <h2>全体ランキング</h2>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <label class="fl" style="margin:0">並べ替え</label>
-      <select id="rkSort" style="max-width:260px"></select>
-      <button class="btn sm" id="rkGo">表示</button>
-    </div>
-    <div id="rankBody"></div>
-  </div>
-</section>
 
 
 
@@ -1093,7 +1097,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v36";
+const APP_VERSION = "v38";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2305,7 +2309,13 @@ $("#wipe").onclick=async()=>{
   fillInputs();render();renderSettings();allowEmptySave=false;toast("消去しました");};
 $("#pubOff").onclick=()=>{pro.pub=false;render();publishNow();};
 
-function goTab(name){const b=document.querySelector(`.tabs button[data-tab="${name}"]`); if(b) b.click();}
+function goTab(name){
+  /* ランキング・フレンド・大会は Prime SNS の中に移りました */
+  const inSns={rank:"rank",friends:"fr",cup:"cup"}[name];
+  if(inSns){ const t=document.querySelector('.tabs button[data-tab="sns"]');
+    if(t){ t.click(); setTimeout(()=>snsGo(inSns),snsBooted?60:1400); return; } }
+  const b=document.querySelector(`.tabs button[data-tab="${name}"]`); if(b) b.click();
+}
 function toggleMenu(open){
   const t=$("#tabs"), b=$("#menuBtn");
   const show=(open===undefined)?!t.classList.contains("open"):open;
@@ -2320,15 +2330,15 @@ function toggleMenu(open){
 $("#menuBtn").onclick=()=>toggleMenu();
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","friends","rank","sns","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","sns","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
-  if(b.dataset.tab==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
+
   if(b.dataset.tab==="profile") renderHome();
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); renderRole();
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
-  if(b.dataset.tab==="friends"){ renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
+
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
@@ -3390,7 +3400,11 @@ async function loadRanking(force){
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
       const rc=await fetchRec(r.handle); if(!rc) return;
-      showPlayer({name:r.name,handle:r.handle,role:r.role,x_url:r.x_url,proofs:r.proofs,rating:r.rating,updated_at:r.updated_at},rc);});
+      const pp={name:r.name,handle:r.handle,role:r.role,x_url:r.x_url,proofs:r.proofs,
+                rating:r.rating,updated_at:r.updated_at};
+      try{ const lv=await sb(`user_levels?select=lv,xp&handle=eq.${encodeURIComponent(r.handle)}&limit=1`);
+        if(lv&&lv[0]){ pp.lv=lv[0].lv; pp.xp=lv[0].xp; } }catch(e){}
+      showPlayer(pp,rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
       b.disabled=true; const rc=await fetchRec(r.handle); b.disabled=false;
@@ -3610,11 +3624,11 @@ function renderSettings(){
       try{ await sbAuth("rpc/ensure_profile",{method:"POST",
              body:JSON.stringify({p_handle:(pro.handle||"").toLowerCase()||null,p_name:pro.name||""})}); }catch(e){}
       try{ await pushMe(); await loadMe(); renderSettings(); render();
-        renderCupNew(); if(!$("#cup").hidden) loadCups();
+        renderCupNew(); if(snsShown("cup")) loadCups();
         toast(me&&me.role!=="user"?`${roleLabel(me.role)}として認識されました`:"一般ユーザーとして登録されています"); }
       catch(e){ toast("失敗しました："+String(e.message||e).slice(0,80)); }};
     $("#btnSync").onclick=async()=>{try{await pushMe();await loadMe();renderSettings();render();
-      if(!$("#cup").hidden) loadCups(); toast("同期しました");}
+      if(snsShown("cup")) loadCups(); toast("同期しました");}
       catch(e){toast("同期に失敗しました："+String(e.message||e).slice(0,60));}};
   }
   $("#pubOn2").classList.toggle("on",!!pro.pub);
@@ -4169,12 +4183,15 @@ function showPlayer(p,rc){
   mask.innerHTML=`<div class="modal">
     <div class="prof">
       <div>${avatarHTML({name:p.name,handle:p.handle,img:""})}</div>
-      <div><div class="pname">${nameHTML(p.name||p.handle,p.role,p.rating==null?null:+p.rating)}</div>
+      <div><div class="pname">${p.lv!=null?lviHTML(p.lv)+" ":""}${nameHTML(p.name||p.handle,p.role,p.rating==null?null:+p.rating)}</div>
         <div class="phandle">${p.handle?"@"+esc(p.handle):""}</div>
         <div class="tiny">${p.updated_at?"最終更新 "+jstFull(p.updated_at)+" (JST)":"更新日時 不明"}</div>
         <div class="ratebox"><div><div class="rtlabel">RATING</div>${ratingHTML(c.complete?c.total:null,.75)}</div>
         ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div></div>
     </div>
+    ${p.lv!=null?`<div style="margin-top:10px">
+      <div class="lvmeter"><div style="width:${((p.xp||0)%250/250*100).toFixed(1)}%"></div></div>
+      <div class="lvnext">${lvHTML(p.lv)}　${jp((p.xp||0)%250)} / 250　（通算 ${jp(p.xp||0)} XP）</div></div>`:""}
     <p class="tiny" style="margin-top:10px">記録の証明：${proofsHTML(p.proofs,p.x_url)}</p>
     <div class="stats">
       <div class="stat"><div class="t">十種競技総合スコア</div><div class="v">${rc["合計スコア"]>0?jp(rc["合計スコア"]):"—"}</div></div>
@@ -4658,7 +4675,11 @@ $("#lsHit").onclick=lsHit;
    ========================================================= */
 let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], REPQ=[], rvTab="j";
 const SB_ST={pending:"未審査",judged:"審査員承認",certified:"認定済み",rejected:"却下"};
-const myId=()=>(sess&&sess.user&&sess.user.id)||"";
+/** テスト中は役職ごとに別人として扱います。
+ *  審査員として承認 → スーパーバイザーに切り替え、で「別の人の審査」として見えます。 */
+const TEST_ME={judge:"me-judge",supervisor:"me-sv",judgeman:"me-jm",user:"me-user"};
+const myId=()=>TEST?(TEST_ME[(me&&me.role)||"user"]||"me-user")
+                   :((sess&&sess.user&&sess.user.id)||"");
 const isProofUrl=u=>/^https?:\/\/([a-z0-9-]+\.)?(x\.com|twitter\.com|youtube\.com|youtu\.be)\//i.test(String(u||""));
 
 /* ---- 読み込み ---- */
@@ -4829,7 +4850,8 @@ function renderRvq(){
   const navRv=$("#navRv"); if(navRv) navRv.hidden=!can;
   const dot=$("#rvDot"), n=rvPending();
   if(dot) dot.hidden=!n;
-  const sb=$("#snsBadge"); if(sb){ sb.hidden=!n; sb.textContent=n; }
+  const fd=$("#frDot"); if(fd) fd.hidden=!FR.in.length;
+  const sb=$("#snsBadge"); if(sb){ const t=n+FR.in.length; sb.hidden=!t; sb.textContent=t; }
   updateMenuBadge();
   if(!can) return;
   const L=rvLists(), defs=rvTabDefs(L);
@@ -5381,6 +5403,8 @@ function tstToggle(on){
     if(REAL_ROLE===null) REAL_ROLE=me.role;
     if(!sess) sess={access_token:"test",expires_at:9e9,user:{id:"me"}};
     me.role=$("#testRole").value||"judgeman";
+    me.handle=TEST_ME[me.role]; me.name=TEST_NAME[me.role];
+    pro.handle=me.handle; pro.name=me.name;
   }else{
     TDB=null;
     if(me&&REAL_ROLE!==null) me.role=REAL_ROLE;
@@ -5390,8 +5414,16 @@ function tstToggle(on){
   $("#testBanner").hidden=!TEST;
   subsEnter(); snsEnter(); renderRole(); updateMenuBadge();
 }
-$("#testRole").onchange=e=>{ if(!TEST) return; me.role=e.target.value;
-  subsEnter(); renderRole(); updateMenuBadge(); };
+$("#testRole").onchange=e=>{
+  if(!TEST) return;
+  me.role=e.target.value;
+  me.handle=TEST_ME[me.role]; me.name=TEST_NAME[me.role];
+  pro.handle=me.handle; pro.name=me.name;
+  toast(TEST_NAME[me.role]+"（"+(roleLabel(me.role)||"一般ユーザー")+"）として見ています");
+  subsEnter(); snsEnter(); renderRole(); updateMenuBadge();
+};
+const TEST_NAME={judge:"審査員テスト",supervisor:"スーパーバイザーテスト",
+                 judgeman:"ジャッジマンテスト",user:"一般ユーザーテスト"};
 $("#testOff").onclick=()=>tstToggle(false);
 
 /* =========================================================
@@ -5504,13 +5536,17 @@ $("#poBody").onkeydown=e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault()
 async function openProfile(handle){
   if(TEST){
     const u=TST_USERS.find(x=>x.handle===handle)||{name:handle,handle,role:"user"};
+    const pp=(PFEED.find(x=>x.handle===handle)||{});
     const rc={}; ORDER.forEach((n,i)=>{ if(i<12) rc[n]=LOW.has(n)?(6+i*0.4):(70000+i*1500); });
-    return showPlayer({name:u.name,handle:u.handle,role:u.role},rc);
+    return showPlayer({name:u.name,handle:u.handle,role:u.role,
+      lv:pp.lv!=null?pp.lv:0, xp:(pp.lv||0)*250+120},rc);
   }
   if(!sbOn()) return toast("Supabase が未設定です");
   try{
     const rows=await sb(`profiles_public?select=handle,name,role,rating,x_url,proofs,updated_at&handle=eq.${encodeURIComponent(handle)}&limit=1`);
     const pr=(rows&&rows[0])||{handle,name:handle};
+    try{ const lv=await sb(`user_levels?select=lv,xp&handle=eq.${encodeURIComponent(handle)}&limit=1`);
+      if(lv&&lv[0]){ pr.lv=lv[0].lv; pr.xp=lv[0].xp; } }catch(e){}
     const rc=(await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}))||{};
     showPlayer(pr,rc);
   }catch(e){ toast("プロフィールを開けませんでした"); }
@@ -5634,8 +5670,8 @@ function ruleKey(r){
 const canOfficial=()=>!!(me&&["supporter","judge","supervisor","judgeman","admin"].includes(me.role));
 $("#cuGo").onclick=async()=>{
   const t=$("#cuT").value.trim(), msg=$("#cuMsg");
-  const kind=($("#cuKind")&&!$("#cuKind").hidden&&$("#cuKind").value==="official")?"official":"challenge";
-  if(!t) return toast((kind==="official"?"大会":"チャレンジ")+"の名前を入れてください");
+  const kind="challenge";              /* この画面で作れるのはチャレンジだけ */
+  if(!t) return toast("チャレンジの名前を入れてください");
   const r=cuRule();
   if(rulePlays(r)>100) return toast("合計プレイ回数は100回までです（いまは "+rulePlays(r)+" 回）");
   /* まったく同じ内容のものがすでにあれば、そちらへ案内します */
@@ -5666,8 +5702,8 @@ $("#cuGo").onclick=async()=>{
 };
 function renderPcups(){
   const box=$("#cupBox"); if(!box) return;
-  const k=$("#cuKind"), kl=$("#cuKindL");
-  if(k){ k.hidden=!canOfficial(); if(kl) kl.hidden=!canOfficial(); }
+  /* 大会（従来のUI）を開けるのはサポーター以上 */
+  const ob=$("#mkOfBtn"); if(ob) ob.hidden=!canOfficial();
   if(!PCUPS.length){ box.innerHTML='<p class="muted">まだチャレンジがありません。</p>'; return; }
   box.innerHTML=PCUPS.map(c=>{
     const r=c.rule||{}, mine=(c.owner_handle||"")===(pro.handle||"").toLowerCase()||c.mine;
@@ -5810,7 +5846,11 @@ function pcupJoin(id){
 
 /* ---- Prime SNS のシェル（起動アニメーション・メニュー・4つの画面） ---- */
 let snsView="feed", snsBooted=false;
-const SNS_NAME={feed:"タイムライン",cup:"大会",rv:"審査室",me:"プロフィール"};
+const SNS_NAME={feed:"タイムライン",cup:"大会",rank:"ランキング",fr:"フレンド",
+                rv:"審査室",me:"プロフィール"};
+const SNS_VIEWS=["feed","cup","rank","fr","rv","me"];
+/** その画面がいま表示されているか（もう無いセクションを見に行かないための入口） */
+function snsShown(v){ const el=$("#sv"+v[0].toUpperCase()+v.slice(1)); return !!(el&&!el.hidden); }
 function snsMenu(open){
   const t=$("#snsNav"), b=$("#snsMenuBtn");
   const show=(open===undefined)?!t.classList.contains("open"):open;
@@ -5822,8 +5862,7 @@ function snsMenu(open){
 function snsGo(v){
   snsView=v;
   $$("#snsNav button").forEach(x=>x.classList.toggle("on",x.dataset.sv===v));
-  $("#svFeed").hidden=v!=="feed"; $("#svCup").hidden=v!=="cup";
-  $("#svRv").hidden=v!=="rv";     $("#svMe").hidden=v!=="me";
+  SNS_VIEWS.forEach(k=>{ const el=$("#sv"+k[0].toUpperCase()+k.slice(1)); if(el) el.hidden=(k!==v); });
   $("#composer").hidden=v!=="feed";
   if(v!=="feed"){ $("#poLinkRow").hidden=true; }
   $("#snsNow").textContent=SNS_NAME[v]||"";
@@ -5831,6 +5870,8 @@ function snsGo(v){
   if(v==="cup"){ loadPcups().then(renderPcups); try{ loadCups(); }catch(e){} }
   if(v==="rv")  { Promise.all([loadRvq(),loadReports()]).then(renderRvq); }
   if(v==="me")  { subsEnter(); }
+  if(v==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
+  if(v==="fr")  { renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
   if(v==="feed"){ loadFeed().then(renderPfeed); }
   scrollTo({top:0,behavior:"smooth"});
 }
@@ -5860,6 +5901,14 @@ $$("#cupTabs button").forEach(b=>b.onclick=()=>{
   $$("#cupTabs button").forEach(x=>x.classList.toggle("on",x===b));
   $("#cvJoin").hidden=b.dataset.cv!=="join";
   $("#cvMake").hidden=b.dataset.cv!=="make";
+  if(b.dataset.cv==="make"){ const ob=$("#mkOfBtn"); if(ob) ob.hidden=!canOfficial(); }
+});
+/* チャレンジ（新しい作り方）と 大会（従来の作り方）の切り替え */
+$$("#mkTabs button").forEach(b=>b.onclick=()=>{
+  $$("#mkTabs button").forEach(x=>x.classList.toggle("on",x===b));
+  $("#mkCh").hidden=b.dataset.mk!=="ch";
+  $("#mkOf").hidden=b.dataset.mk!=="of";
+  if(b.dataset.mk==="of"){ try{ loadCups(); }catch(e){} }
 });
 
 /* =========================================================
@@ -6422,7 +6471,7 @@ $("#updLater").onclick=()=>{ $("#updBanner").hidden=true; };
 setInterval(checkUpdate,5*60*1000);
 /* 届いた申請に気づけるよう、2分おきに確認する */
 setInterval(()=>{ if(sess&&sbOn()&&document.visibilityState==="visible")
-  loadFriendReq().then(()=>{ updateMenuBadge(); if(!$("#friends").hidden) renderFriendReq(); }); },120000);
+  loadFriendReq().then(()=>{ updateMenuBadge(); if(snsShown("fr")) renderFriendReq(); }); },120000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 
 /* =========================================================
