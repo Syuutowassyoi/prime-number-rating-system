@@ -755,6 +755,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         </div>
         <div class="ptags" id="tagCloud"></div>
         <p class="tiny" id="feedStat">—</p>
+        <p class="tiny" id="srNote" hidden style="color:var(--acc2)"></p>
         <p class="tiny" id="feedAt">—</p>
         <div class="tools" style="margin-top:6px">
           <button class="btn sm" id="tagPick">通知するタグを選ぶ</button>
@@ -1181,7 +1182,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v41";
+const APP_VERSION = "v42";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -5613,7 +5614,8 @@ async function loadPcupEnt(id){
 function renderPfeed(){
   const box=$("#feedBox"); if(!box) return;
   if(!PFEED.length){ box.innerHTML='<p class="muted">まだ投稿がありません。</p>'; return; }
-  let src=PFEED.filter(feedMatch);
+  /* 検索中はサーバーが返した分を出します（過去ぶんもここに入ります） */
+  let src = SEARCH ? SEARCH : PFEED.filter(feedMatch);
   const top=src.filter(p=>!p.reply_to);
   if(!top.length&&(TAGQ||feedActive())){
     box.innerHTML=`<p class="muted">その条件に合う投稿はまだありません。</p>`; return; }
@@ -6123,6 +6125,14 @@ function renderTags(){
     ? `これまでの投稿 ${jp(FSTAT.posts_n||0)} 件（つぶやき ${jp(FSTAT.chat_n||0)}／記録 ${jp(FSTAT.record_n||0)}）　タグ ${jp(FSTAT.tag_n||(TAGS||[]).length)} 種類`
     : `これまでの投稿 ${jp(PFEED.length)} 件`;
   $("#tagAll").hidden=!feedActive();
+  const sr=$("#srNote");
+  if(sr){
+    sr.hidden=!feedActive();
+    sr.textContent=feedActive()
+      ? (SEARCH ? `過去ぶんもさかのぼって探しました（${SEARCH.length}件${SEARCH.length>=60?"／多いので新しい60件まで":""}）`
+                : "いま表示中の分から探しました")
+      : "";
+  }
   const at=$("#feedAt");
   if(at) at.textContent="最終更新 "+fmtAt(LASTUP&&LASTUP.feed_at?LASTUP.feed_at:(PFEED[0]||{}).created_at)
     +"　／　この画面を読み込んだのは "+jstShort(new Date().toISOString());
@@ -6139,7 +6149,7 @@ async function loadLastUp(){
 function tagFilter(t){
   TAGQ=(TAGQ===t)?"":t;
   $("#tagQ").value=TAGQ?"#"+TAGQ:"";
-  renderTags(); renderPfeed();
+  runSearch();
 }
 /* ---- 15) タグの通知 ---- */
 function tagNotice(){
@@ -6184,12 +6194,30 @@ function feedMatch(p){
   if(FQ.to   && t>new Date(FQ.to  +"T23:59:59+09:00").getTime()) return false;
   return true;
 }
+/** 検索。条件があるときはサーバーに聞きにいくので、何年前の投稿でも見つかります。
+ *  返ってくるのは条件に合う分だけ（最大60件・約8KB）なので通信量は増えません。 */
+let SEARCH=null;                       /* 検索結果。null なら通常のタイムライン */
+async function runSearch(){
+  if(!feedActive()){ SEARCH=null; renderTags(); renderPfeed(); return; }
+  if(TEST||!sbOn()){ SEARCH=null; renderTags(); renderPfeed(); return; }   /* 手元だけで絞る */
+  const body={p_word:FQ.word||null,p_tag:TAGQ||null,p_who:FQ.who||null,
+    p_kind:FQ.kind||null,
+    p_from:FQ.from?FQ.from+"T00:00:00+09:00":null,
+    p_to:FQ.to?FQ.to+"T23:59:59+09:00":null,p_limit:60};
+  try{
+    SEARCH = sess ? await sbAuth("rpc/search_feed",{method:"POST",body:JSON.stringify(body)})
+                  : await sb("rpc/search_feed",{method:"POST",body:JSON.stringify(body)});
+  }catch(e){ SEARCH=null; }      /* SQL が古いときは手元の分だけで探します */
+  renderTags(); renderPfeed();
+}
 $("#tagGo").onclick=()=>{
   const v=$("#tagQ").value.trim();
-  if(v.startsWith("#")){ FQ.word=""; tagFilter(v.slice(1).trim().toLowerCase()); }
-  else { TAGQ=""; FQ.word=v; renderTags(); renderPfeed(); }
+  if(v.startsWith("#")){ FQ.word=""; TAGQ=v.slice(1).trim().toLowerCase(); }
+  else { TAGQ=""; FQ.word=v; }
+  $("#tagQ").value=TAGQ?"#"+TAGQ:FQ.word;
+  runSearch();
 };
-$("#tagAll").onclick=()=>{ TAGQ=""; FQ={word:"",from:"",to:"",who:"",kind:""};
+$("#tagAll").onclick=()=>{ TAGQ=""; FQ={word:"",from:"",to:"",who:"",kind:""}; SEARCH=null;
   $("#tagQ").value=""; ["fdFrom","fdTo","fdWho"].forEach(i=>{const e=$("#"+i); if(e) e.value="";});
   $("#fdKind").value=""; renderTags(); renderPfeed(); };
 $("#tagQ").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#tagGo").click(); } };
@@ -6198,7 +6226,8 @@ $("#fdGo").onclick=()=>{
   FQ.word=$("#tagQ").value.replace(/^#/,"").trim();
   FQ.from=$("#fdFrom").value; FQ.to=$("#fdTo").value;
   FQ.who=$("#fdWho").value.replace(/^@/,"").trim(); FQ.kind=$("#fdKind").value;
-  renderTags(); renderPfeed();
+  if(FQ.word.startsWith("#")){ TAGQ=FQ.word.slice(1).toLowerCase(); FQ.word=""; }
+  runSearch();
 };
 $("#fdClear").onclick=()=>$("#tagAll").click();
 $("#tagPick").onclick=tagPicker;
