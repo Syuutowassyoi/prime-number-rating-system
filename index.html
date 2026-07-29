@@ -490,7 +490,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="grp" data-g="sns"><div class="ghead">Prime SNS</div>
     <button data-tab="sns">Prime SNS</button></div>
   <div class="grp" data-g="set"><div class="ghead">設定</div>
-    <button data-tab="settings">設定</button></div>
+    <button data-tab="settings">設定</button>
+    <button data-tab="help">ヘルプ</button></div>
 </nav>
 
 <div id="updBanner" class="banner" hidden style="background:#12351f;border-color:#2c7a4b">
@@ -725,12 +726,40 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div class="card" style="padding-bottom:8px">
         <h2>タイムライン</h2>
         <div class="tools" style="margin-top:0">
-          <input type="text" class="txt" id="tagQ" placeholder="タグで探す（例：素数）" style="flex:1;min-width:150px">
-          <button class="btn sm" id="tagGo">探す</button>
+          <input type="text" class="txt" id="tagQ" placeholder="ことばやタグで探す（例：素数 / #素数）" style="flex:1;min-width:170px">
+          <button class="btn sm pri" id="tagGo">探す</button>
+          <button class="btn sm" id="fdMore">くわしく</button>
           <button class="btn sm" id="tagAll" hidden>すべて表示</button>
+        </div>
+        <div id="fdAdv" hidden style="margin-top:8px">
+          <div class="frow">
+            <div><label class="fl">この日から</label>
+              <input type="date" id="fdFrom" style="max-width:none"></div>
+            <div><label class="fl">この日まで</label>
+              <input type="date" id="fdTo" style="max-width:none"></div>
+          </div>
+          <div class="frow">
+            <div><label class="fl">投稿した人（@ID）</label>
+              <input type="text" class="txt" id="fdWho" placeholder="例：syuuto" style="max-width:none"></div>
+            <div><label class="fl">種類</label>
+              <select id="fdKind" style="max-width:none">
+                <option value="">すべて</option>
+                <option value="chat">つぶやき</option>
+                <option value="record">記録の提出</option>
+                <option value="update">記録の更新</option>
+                <option value="cup">大会・チャレンジ</option>
+              </select></div>
+          </div>
+          <div class="tools"><button class="btn sm pri" id="fdGo">この条件で探す</button>
+            <button class="btn sm" id="fdClear">条件をすべて消す</button></div>
         </div>
         <div class="ptags" id="tagCloud"></div>
         <p class="tiny" id="feedStat">—</p>
+        <p class="tiny" id="feedAt">—</p>
+        <div class="tools" style="margin-top:6px">
+          <button class="btn sm" id="tagPick">通知するタグを選ぶ</button>
+          <span class="tiny" id="tagPickNow"></span>
+        </div>
         <div id="feedBox"></div>
       </div>
       <div style="height:78px"></div>
@@ -754,6 +783,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <button data-cv="join" class="on">大会に参加する</button>
         <button data-cv="make">大会を開く</button>
       </div>
+      <p class="tiny" id="cupAt" style="margin:0 0 8px">—</p>
       <div id="cvJoin">
         <div class="card"><h2>チャレンジ</h2>
           <p class="muted" style="margin-top:-8px">誰でも開けます。順位は合計スコアで決まり、同点は同率（T）です。</p>
@@ -905,6 +935,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
           <div class="lsbox"><div class="t">高評価率</div>
             <div class="v" id="stRate" style="font-size:1.6rem">—</div>
             <div class="s" id="stGp">—</div></div>
+          <div class="lsbox"><div class="t">タイムラインへの投稿</div>
+            <div class="v" id="stPosts" style="font-size:1.6rem">—</div>
+            <div class="s">件（つぶやき1件で＋1XP）</div></div>
         </div>
       </div>
       <div class="card">
@@ -916,6 +949,19 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <div id="sbMine"><p class="muted">まだ提出がありません。</p></div>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="help" hidden>
+  <div class="card">
+    <h2>ヘルプ</h2>
+    <p class="muted" style="margin-top:-8px">このアプリの仕組みをまとめています。分からないところはここを見てください。</p>
+    <div class="segs" id="helpTabs" style="grid-template-columns:1fr 1fr 1fr">
+      <button data-hp="role" class="on">審査のしくみ</button>
+      <button data-hp="cup">大会とチャレンジ</button>
+      <button data-hp="etc">そのほか</button>
+    </div>
+    <div id="helpBox"></div>
   </div>
 </section>
 
@@ -1042,6 +1088,28 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div id="acctBox"></div>
     <div id="avWarn" class="banner" hidden
       style="background:#3a2412;border-color:#a0632b;margin:12px 0 0"></div>
+    <div class="tools" style="margin-top:10px">
+      <button class="btn pri" id="pushNow">いますぐ全体に反映する</button>
+      <span class="tiny" id="pushState">—</span>
+    </div>
+    <p class="tiny" id="pubWarn" style="color:var(--warn)"></p>
+  </div>
+  <div class="card">
+    <h2>タイムラインへの自動投稿</h2>
+    <p class="muted" style="margin-top:-8px">オンにすると、記録が伸びたときと大会に出したときにタイムラインへ流します。
+      自動の投稿では経験値は増えません。</p>
+    <div class="sw">
+      <div><div class="t">記録を更新したとき</div>
+        <div class="tiny">前より良い記録を入れると「記録を更新しました！」と流します。</div></div>
+      <div class="tools" style="margin-top:0">
+        <button class="btn sm" id="apRecOn">する</button><button class="btn sm" id="apRecOff">しない</button></div>
+    </div>
+    <div class="sw">
+      <div><div class="t">大会・チャレンジに出したとき</div>
+        <div class="tiny">提出した合計スコアと動画リンクを流します。</div></div>
+      <div class="tools" style="margin-top:0">
+        <button class="btn sm" id="apCupOn">する</button><button class="btn sm" id="apCupOff">しない</button></div>
+    </div>
   </div>
   <div class="card">
     <h2>役職と申請</h2>
@@ -1113,7 +1181,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v40";
+const APP_VERSION = "v41";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1663,7 +1731,11 @@ const K_REC="sa-rec-v3",K_PRO="sa-pro-v3",K_DATA="sa-data-v3",K_FR="sa-fr-v3",
       K_PK="sa-pk-v3",K_LOCK="sa-lock-v3",K_EDIT="sa-editkey-v3";
 let rec={}, pro={name:"",handle:"",img:"",imgSm:"",pub:false,x_url:"",bio:"",proofs:[],at:0}, friends=[];
 /** プロフィールを手元で書き換えた時刻。クラウドとどちらが新しいかの判定に使う */
-const proTouch=()=>{ pro.at=Date.now(); };
+const proTouch=()=>{
+  pro.at=Date.now();
+  if(typeof pushState==="function") pushState("まだ反映していません","var(--warn)");
+  if(typeof schedulePublish==="function") schedulePublish(1800);
+};
 const K_TIMES="sa-times-v1", K_BASE="sa-baseline-v1";
 let recTimes={}, baseline={done:false,at:0};
 rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
@@ -1833,7 +1905,10 @@ function render(){
   if(autoSync&&sbOn()&&sess&&pro.handle) schedulePublish();
 }
 let pubT=null;
-function schedulePublish(){ clearTimeout(pubT); pubT=setTimeout(syncNow,6000); }
+/* プロフィールを直したときは早めに送ります（記録の入力は今までどおり） */
+function schedulePublish(ms){ clearTimeout(pubT); pubT=setTimeout(syncNow,ms||6000); }
+function pushState(t,c){ const el=$("#pushState");
+  if(el){ el.textContent=t; el.style.color=c||"var(--dim2)"; } }
 async function syncNow(){
   if(!sbOn()||!sess) return;              /* 未ログインならクラウド保存はしない */
   try{ await pushMe(); }
@@ -2297,6 +2372,17 @@ $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
     img.src=fr.result;};
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";pro.imgSm="";proTouch();render();syncNow();toast("画像を消しました");};
+$("#pushNow").onclick=async()=>{
+  if(!(sess&&sbOn())) return toast("先にログインしてください");
+  pushState("反映しています…");
+  try{
+    if(pro.img&&!pro.imgSm){ const u=await makeSmall(pro.img); if(u) pro.imgSm=u; }
+    await pushMe(true);
+    rkCache={key:"",at:0,rows:null}; feedCache={at:0,rows:null};
+    await loadMe(); render(); renderSettings();
+    toast("全体に反映しました");
+  }catch(e){ pushState("失敗しました："+String(e.message||e).slice(0,40),"var(--bad)"); }
+};
 $("#pubOn").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
 $("#pubOn2").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
 $("#pubOff2").onclick=()=>{pro.pub=false;render();renderSettings();syncNow();};
@@ -2349,7 +2435,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","sns","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","sns","settings","help"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
@@ -2364,6 +2450,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="sns") snsEnter();
+  if(b.dataset.tab==="help") renderHelp();
   saveWhere();
   scrollTo({top:0,behavior:"smooth"});});
 
@@ -3379,7 +3466,8 @@ async function loadRanking(force){
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
       <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
-      <p class="tiny">名前を押すとその人のプロフィールが開きます。
+      <p class="tiny" id="rkAt">最終更新 —</p>
+      <p class="tiny">名前やアイコンを押すとその人のプロフィールが開きます。
         アイコンの<span style="color:#ff2d55">赤いリング</span>は3日以内、
         <span style="color:#ffc861">黄色いリング</span>は7日以内に記録を更新した人です。</p>
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th>
@@ -3390,7 +3478,7 @@ async function loadRanking(force){
         `<td><div class="nmcell"><span data-rp="${i}" style="cursor:pointer">`+
         `${avatarRing({name:r.name,handle:r.handle,img:r.avatar_sm||""},"av sm",r.updated_at)}</span>`+
         `<div class="txt"><a href="#" data-rp="${i}" style="text-decoration:none">`+
-        `${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating)}</a>`+
+        `${nameHTML(r.name||r.handle,r.role,r.rating==null?null:+r.rating,true)}</a>`+
         `<br><span class="tiny">@${esc(r.handle)}</span>`+
         `<br><span class="tiny" style="color:var(--dim2)">${r.updated_at?agoText(r.updated_at):"更新日時不明"}</span>`+
         `</div></div></td>`+
@@ -3401,6 +3489,10 @@ async function loadRanking(force){
         `</tr>`;}).join("")+
       `</tbody></table></div><div id="rkCmp"></div>`;
     RANK_ROWS=rows;
+    const rat=$("#rkAt");
+    if(rat) rat.textContent="最終更新 "+fmtAt(rows.reduce((a,r)=>
+      (r.updated_at&&(!a||r.updated_at>a))?r.updated_at:a,null))
+      +"　／　20秒ごとに自動で見に行きます";
     /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
     const fetchRec=async h=>{
       try{ return (await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}))||{}; }
@@ -3411,8 +3503,8 @@ async function loadRanking(force){
       const rc=await fetchRec(r.handle); if(!rc) return;
       const pp={name:r.name,handle:r.handle,role:r.role,x_url:r.x_url,proofs:r.proofs,
                 rating:r.rating,updated_at:r.updated_at};
-      try{ const lv=await sb(`user_levels?select=lv,xp&handle=eq.${encodeURIComponent(r.handle)}&limit=1`);
-        if(lv&&lv[0]){ pp.lv=lv[0].lv; pp.xp=lv[0].xp; } }catch(e){}
+      try{ const lv=await sb(`user_levels?select=*&handle=eq.${encodeURIComponent(r.handle)}&limit=1`);
+        if(lv&&lv[0]) Object.assign(pp,lv[0]); }catch(e){}
       showPlayer(pp,rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
@@ -3539,6 +3631,24 @@ function mergeCloud(cloud){
     rec[n]=LOW.has(n)?Math.min(a,b):Math.max(a,b);
   }
 }
+/** 記録が伸びたらタイムラインに流します（経験値は付きません） */
+let lastRecSnap=null;
+async function autoPostRecords(){
+  if(!autoPost.rec || TEST || !(sess&&sbOn()) || !pro.pub) return;
+  const snap={}; ORDER.forEach(n=>{ if(rec[n]>0) snap[n]=rec[n]; });
+  if(!lastRecSnap){ lastRecSnap=snap; return; }
+  const ups=[];
+  ORDER.forEach(n=>{
+    const a=lastRecSnap[n]||0, b=snap[n]||0;
+    if(!b||!a) return;
+    const better=LOW.has(n)?(b<a):(b>a);
+    if(better) ups.push(`${n} ${fmtRec(n,a)} → ${fmtRec(n,b)}`);
+  });
+  lastRecSnap=snap;
+  if(!ups.length) return;
+  try{ await callRpc("post_update",{p_body:"記録を更新しました！\n"+ups.slice(0,5).join("\n")});
+    await loadFeed(true); renderPfeed(); }catch(e){}
+}
 let lastPush="";
 async function pushMe(force){
   if(!sess||!sbOn()) return;
@@ -3565,10 +3675,16 @@ async function pushMe(force){
   }
   lastPush=body;
   rkCache={key:"",at:0,rows:null};      /* 名前や画像を変えたら一覧を取り直す */
+  pushState("反映しました（"+jstShort(new Date().toISOString())+"）","var(--acc2)");
+  autoPostRecords();
 }
 /** null=未確認 / true=アイコンと自己紹介も保存できる / false=SQLがまだ古い */
 let avatarSync=null;
 function avatarWarn(){
+  const w=$("#pubWarn");
+  if(w) w.textContent = (sess&&sbOn()&&!pro.pub)
+    ? "いまは「非公開」です。この状態だと名前も画像もランキングには出ません。下の『データの公開』をオンにしてください。"
+    : "";
   const el=$("#avWarn"); if(!el) return;
   el.hidden=(avatarSync!==false);
   if(avatarSync===false) el.innerHTML=
@@ -3587,10 +3703,12 @@ const ROLE_C={admin:"var(--warn)",judgeman:"#ff9de2",supervisor:"#9db7ff",
 const roleColor=r=>ROLE_C[r]||"var(--tx)";
 const roleCls=r=>"nm"+(ROLE_C[r]?" nm-"+r:"");
 /** 役職に応じて光る名前を返す */
-function nameHTML(name,role,rating){
+/** 名前。plain=true のときは色だけにして、役職名は付けません（一覧がずれないように） */
+function nameHTML(name,role,rating,plain){
   const rb=(typeof rating==="number"&&rating>=19);
-  return `<span class="${roleCls(role)}${rb?" rb-text nm-RAINBOW":""}">${esc(name||"")}</span>`+
-    (roleLabel(role)?` <span class="tiny" style="color:${roleColor(role)}">${roleLabel(role)}</span>`:"");
+  return `<span class="${roleCls(role)}${rb?" rb-text nm-RAINBOW":""}"`
+    +(roleLabel(role)?` title="${esc(roleLabel(role))}"`:"")+`>${esc(name||"")}</span>`+
+    ((!plain&&roleLabel(role))?` <span class="tiny" style="color:${roleColor(role)}">${roleLabel(role)}</span>`:"");
 }
 const ROLE_N={admin:"管理者",judgeman:"ジャッジマン",supervisor:"スーパーバイザー",
               judge:"審査員",supporter:"サポーター"};
@@ -4201,6 +4319,10 @@ function showPlayer(p,rc){
         <div class="ratebox"><div><div class="rtlabel">RATING</div>${ratingHTML(c.complete?c.total:null,.75)}</div>
         ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div></div>
     </div>
+    ${(p.rate!=null||p.checked_n>0)?`<p class="tiny" style="margin-top:8px">
+      高評価率 <b style="color:var(--acc2);font-size:1.05rem">${p.rate!=null?(+p.rate).toFixed(1)+"%":"—"}</b>
+      　グッドポイント ${jp(+p.good_points||0)} / 審査件数 ${jp(+p.checked_n||0)}</p>`:""}
+    ${p.posts_n!=null?`<p class="tiny">タイムラインへの投稿 <b>${jp(+p.posts_n)}</b> 件</p>`:""}
     ${p.lv!=null?`<div style="margin-top:10px">
       <div class="lvmeter"><div style="width:${((p.xp||0)%250/250*100).toFixed(1)}%"></div></div>
       <div class="lvnext">${lvHTML(p.lv)}　${jp((p.xp||0)%250)} / 250　（通算 ${jp(p.xp||0)} XP）</div></div>`:""}
@@ -5016,11 +5138,16 @@ function renderMyStat(){
   $("#lvFill").style.width=(into/250*100).toFixed(1)+"%";
   $("#lvNext").textContent=jp(into)+" / 250　　Lv."+(lv+1)+" まであと "+jp(left)+" XP";
   $("#stXp").textContent="通算 "+jp(xp)+" XP";
-  const rate=MYSTAT.rate;
-  $("#stRate").textContent=(rate==null)?"—":(+rate).toFixed(1)+"%";
-  $("#stGp").textContent=(+MYSTAT.checked_n||0)===0
-    ? "審査を始めると出ます"
-    : "グッドポイント "+jp(+MYSTAT.good_points||0)+" / 審査件数 "+jp(+MYSTAT.checked_n||0);
+  const pn=$("#stPosts"); if(pn) pn.textContent=jp(PFEED.filter(p=>p.mine).length);
+  const cn=+MYSTAT.checked_n||0, gp=+MYSTAT.good_points||0;
+  const rate=(MYSTAT.rate!=null)?+MYSTAT.rate:(cn?Math.floor(gp*1000/cn)/10:null);
+  $("#stRate").textContent=(rate==null)?"—":rate.toFixed(1)+"%";
+  $("#stGp").innerHTML = myLv()<2
+    ? "審査員になると出ます"
+    : cn===0
+      ? '<span style="color:var(--warn)">まだ上の人のチェックが終わっていません</span><br>'
+        +"チェックが済むと計算されます"
+      : "グッドポイント "+jp(gp)+" / 審査件数 "+jp(cn);
 }
 
 async function subsEnter(){
@@ -5486,10 +5613,10 @@ async function loadPcupEnt(id){
 function renderPfeed(){
   const box=$("#feedBox"); if(!box) return;
   if(!PFEED.length){ box.innerHTML='<p class="muted">まだ投稿がありません。</p>'; return; }
-  let src=PFEED;
-  if(TAGQ) src=PFEED.filter(p=>tagsOf(p.body).includes(TAGQ)||PFEED.some(q=>q.id===p.reply_to&&tagsOf(q.body).includes(TAGQ)));
+  let src=PFEED.filter(feedMatch);
   const top=src.filter(p=>!p.reply_to);
-  if(!top.length&&TAGQ){ box.innerHTML=`<p class="muted">#${esc(TAGQ)} の投稿はまだありません。</p>`; return; }
+  if(!top.length&&(TAGQ||feedActive())){
+    box.innerHTML=`<p class="muted">その条件に合う投稿はまだありません。</p>`; return; }
   box.innerHTML=top.map(p=>{
     const reps=src.filter(r=>r.reply_to===p.id)
       .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
@@ -5565,8 +5692,8 @@ async function openProfile(handle){
   try{
     const rows=await sb(`profiles_public?select=handle,name,role,rating,x_url,proofs,updated_at&handle=eq.${encodeURIComponent(handle)}&limit=1`);
     const pr=(rows&&rows[0])||{handle,name:handle};
-    try{ const lv=await sb(`user_levels?select=lv,xp&handle=eq.${encodeURIComponent(handle)}&limit=1`);
-      if(lv&&lv[0]){ pr.lv=lv[0].lv; pr.xp=lv[0].xp; } }catch(e){}
+    try{ const lv=await sb(`user_levels?select=*&handle=eq.${encodeURIComponent(handle)}&limit=1`);
+      if(lv&&lv[0]) Object.assign(pr,lv[0]); }catch(e){}
     const rc=(await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}))||{};
     showPlayer(pr,rc);
   }catch(e){ toast("プロフィールを開けませんでした"); }
@@ -5722,6 +5849,8 @@ $("#cuGo").onclick=async()=>{
 };
 function renderPcups(){
   const box=$("#cupBox"); if(!box) return;
+  const at=$("#cupAt");
+  if(at) at.textContent="最終更新 "+fmtAt(LASTUP&&LASTUP.cup_at?LASTUP.cup_at:(PCUPS[0]||{}).created_at);
   /* 大会（従来のUI）を開けるのはサポーター以上 */
   const ob=$("#mkOfBtn"); if(ob) ob.hidden=!canOfficial();
   if(!PCUPS.length){ box.innerHTML='<p class="muted">まだチャレンジがありません。</p>'; return; }
@@ -5868,7 +5997,12 @@ function pcupJoin(id){
         p_nomiss:r.nomiss?!!M.q("#jN").checked:false,p_links:LK},
         [["p_links"],["p_detail","p_nomiss","p_links"]]);
       M.close(); toast("提出しました");
+      if(autoPost.cup){
+        try{ await callRpc("post_update",{p_body:
+          `${c.title} に記録を出しました！　合計スコア ${jp(t)}`,p_link:pf}); }catch(e){}
+      }
       await loadPcupEnt(id); renderPcups();
+      await loadFeed(true); renderPfeed();
     }catch(e){ M.q("#jM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
 }
@@ -5918,12 +6052,52 @@ function bodyHTML(t){
   return esc(String(t||"")).replace(/#([^\s#、。，．!！?？"'`()（）\[\]{}]{1,30})/g,
     (m,g1)=>`<span class="taginline" data-tag="${esc(g1.toLowerCase())}">#${esc(g1)}</span>`);
 }
-let TAGQ="", TAGS=[], FSTAT=null;
-const K_TAGSEEN="sa-tagseen-v1";
+let TAGQ="", TAGS=[], FSTAT=null, LASTUP=null;
+let FQ={word:"",from:"",to:"",who:"",kind:""};
+const K_TAGSEEN="sa-tagseen-v1", K_TAGWATCH="sa-tagwatch-v1", K_AUTOPOST="sa-autopost-v1";
+/** 通知を受け取るタグ。空なら「自分が使ったタグすべて」 */
+let tagWatch=ls(K_TAGWATCH,null);
+const saveWatch=()=>{try{localStorage.setItem(K_TAGWATCH,JSON.stringify(tagWatch));}catch(e){}};
+/** 自動投稿の設定 */
+let autoPost=ls(K_AUTOPOST,{rec:true,cup:true});
+const saveAutoPost=()=>{try{localStorage.setItem(K_AUTOPOST,JSON.stringify(autoPost));}catch(e){}};
+const fmtAt=t=>t?jstShort(t):"—";
 function myTags(){
-  const mine=PFEED.filter(p=>p.mine);
-  const set=new Set(); mine.forEach(p=>tagsOf(p.body).forEach(t=>set.add(t)));
+  if(Array.isArray(tagWatch)) return tagWatch;      /* 自分で選んだタグ */
+  const set=new Set();                              /* 選んでいなければ自分が使ったタグ */
+  PFEED.filter(p=>p.mine).forEach(p=>tagsOf(p.body).forEach(t=>set.add(t)));
   return [...set];
+}
+/** 通知するタグを選ぶ画面 */
+function tagPicker(){
+  const all=[...new Set([...(TAGS||[]).map(t=>t.tag),
+    ...PFEED.flatMap(p=>tagsOf(p.body))])].sort();
+  const cur=new Set(Array.isArray(tagWatch)?tagWatch:myTags());
+  const M=modal(`<h2>通知するタグを選ぶ</h2>
+    <p class="muted" style="margin-top:-8px">選んだタグで誰かが投稿したときに、タイムラインの上でお知らせします。</p>
+    <div class="ptags" id="tpBox">${all.length?all.map(t=>
+      `<button class="ptag${cur.has(t)?" on":""}" data-t="${esc(t)}">#${esc(t)}</button>`).join("")
+      :'<span class="tiny">まだタグがありません。</span>'}</div>
+    <label class="fl">自分で足す</label>
+    <div class="tools" style="margin-top:0">
+      <input type="text" class="txt" id="tpNew" placeholder="例：素数大富豪" style="flex:1">
+      <button class="btn sm" id="tpAdd">足す</button></div>
+    <div class="tools"><button class="btn pri" id="tpOk">この内容にする</button>
+      <button class="btn" id="tpAuto">自分が使ったタグにおまかせ</button></div>`,{w:560});
+  const sel=new Set(cur);
+  const paint=()=>M.qa("#tpBox .ptag").forEach(b2=>b2.classList.toggle("on",sel.has(b2.dataset.t)));
+  M.qa("#tpBox .ptag").forEach(b2=>b2.onclick=()=>{
+    const t=b2.dataset.t; sel.has(t)?sel.delete(t):sel.add(t); paint(); });
+  M.q("#tpAdd").onclick=()=>{
+    const t=M.q("#tpNew").value.replace(/^#/,"").trim().toLowerCase();
+    if(!t) return;
+    sel.add(t); M.q("#tpNew").value="";
+    const b3=document.createElement("button"); b3.className="ptag on"; b3.dataset.t=t;
+    b3.textContent="#"+t; b3.onclick=()=>{ sel.has(t)?sel.delete(t):sel.add(t); paint(); };
+    M.q("#tpBox").appendChild(b3);
+  };
+  M.q("#tpOk").onclick=()=>{ tagWatch=[...sel]; saveWatch(); M.close(); renderTags(); tagNotice(); };
+  M.q("#tpAuto").onclick=()=>{ tagWatch=null; saveWatch(); M.close(); renderTags(); tagNotice(); };
 }
 function countTags(){
   const c={};
@@ -5948,7 +6122,19 @@ function renderTags(){
   if(st) st.textContent=FSTAT
     ? `これまでの投稿 ${jp(FSTAT.posts_n||0)} 件（つぶやき ${jp(FSTAT.chat_n||0)}／記録 ${jp(FSTAT.record_n||0)}）　タグ ${jp(FSTAT.tag_n||(TAGS||[]).length)} 種類`
     : `これまでの投稿 ${jp(PFEED.length)} 件`;
-  $("#tagAll").hidden=!TAGQ;
+  $("#tagAll").hidden=!feedActive();
+  const at=$("#feedAt");
+  if(at) at.textContent="最終更新 "+fmtAt(LASTUP&&LASTUP.feed_at?LASTUP.feed_at:(PFEED[0]||{}).created_at)
+    +"　／　この画面を読み込んだのは "+jstShort(new Date().toISOString());
+  const tp=$("#tagPickNow");
+  if(tp) tp.textContent=Array.isArray(tagWatch)
+    ? (tagWatch.length?"通知：#"+tagWatch.slice(0,4).join(" #")+(tagWatch.length>4?" ほか":""):"通知：なし")
+    : "通知：自分が使ったタグにおまかせ";
+}
+/** 各画面の最終更新をまとめて取る */
+async function loadLastUp(){
+  if(TEST||!sbOn()){ LASTUP=null; return; }
+  try{ const r=await sb("last_updates?select=*&limit=1"); LASTUP=(r&&r[0])||null; }catch(e){ LASTUP=null; }
 }
 function tagFilter(t){
   TAGQ=(TAGQ===t)?"":t;
@@ -5977,9 +6163,45 @@ function tagSeen(list){
   try{ localStorage.setItem(K_TAGSEEN,JSON.stringify(seen)); }catch(e){}
   tagNotice();
 }
-$("#tagGo").onclick=()=>tagFilter($("#tagQ").value.replace(/^#/,"").trim().toLowerCase());
-$("#tagAll").onclick=()=>tagFilter(TAGQ);
+/** いま何かで絞り込んでいるか */
+const feedActive=()=>!!(TAGQ||FQ.word||FQ.from||FQ.to||FQ.who||FQ.kind);
+/** 1件が条件に合うか。検索はすべて手元で行うので、通信は増えません */
+function feedMatch(p){
+  if(TAGQ){
+    const ok=tagsOf(p.body).includes(TAGQ)
+      ||PFEED.some(q=>q.id===p.reply_to&&tagsOf(q.body).includes(TAGQ));
+    if(!ok) return false;
+  }
+  if(FQ.word){
+    const w=FQ.word.toLowerCase();
+    const hay=((p.body||"")+" "+(p.name||"")+" "+(p.handle||"")+" "+(p.event||"")).toLowerCase();
+    if(hay.indexOf(w)<0) return false;
+  }
+  if(FQ.who && (p.handle||"").toLowerCase().indexOf(FQ.who.toLowerCase())<0) return false;
+  if(FQ.kind && p.kind!==FQ.kind) return false;
+  const t=new Date(p.created_at).getTime();
+  if(FQ.from && t<new Date(FQ.from+"T00:00:00+09:00").getTime()) return false;
+  if(FQ.to   && t>new Date(FQ.to  +"T23:59:59+09:00").getTime()) return false;
+  return true;
+}
+$("#tagGo").onclick=()=>{
+  const v=$("#tagQ").value.trim();
+  if(v.startsWith("#")){ FQ.word=""; tagFilter(v.slice(1).trim().toLowerCase()); }
+  else { TAGQ=""; FQ.word=v; renderTags(); renderPfeed(); }
+};
+$("#tagAll").onclick=()=>{ TAGQ=""; FQ={word:"",from:"",to:"",who:"",kind:""};
+  $("#tagQ").value=""; ["fdFrom","fdTo","fdWho"].forEach(i=>{const e=$("#"+i); if(e) e.value="";});
+  $("#fdKind").value=""; renderTags(); renderPfeed(); };
 $("#tagQ").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#tagGo").click(); } };
+$("#fdMore").onclick=()=>{ const b5=$("#fdAdv"); b5.hidden=!b5.hidden; };
+$("#fdGo").onclick=()=>{
+  FQ.word=$("#tagQ").value.replace(/^#/,"").trim();
+  FQ.from=$("#fdFrom").value; FQ.to=$("#fdTo").value;
+  FQ.who=$("#fdWho").value.replace(/^@/,"").trim(); FQ.kind=$("#fdKind").value;
+  renderTags(); renderPfeed();
+};
+$("#fdClear").onclick=()=>$("#tagAll").click();
+$("#tagPick").onclick=tagPicker;
 
 /* ---- 6) 自動で最新にする ---- */
 let liveT=null;
@@ -5989,6 +6211,7 @@ function liveStart(){
     if(TEST||document.hidden) return;
     if($("#sns").hidden) return;
     try{
+      await loadLastUp();
       if(snsShown("feed")){ await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice(); }
       if(snsShown("cup")) { await loadPcups(); renderPcups(); }
       if(snsShown("rank")) loadRanking(true);
@@ -6001,6 +6224,150 @@ function liveStart(){
     }catch(e){}
   },20000);
 }
+
+/* ---- 11) ヘルプ ---- */
+const HELP={
+role:`<h3>審査のしくみ</h3>
+<p class="tiny">出された記録は、3段階の確認を通ってはじめて公式の記録になります。</p>
+<div class="scroll"><table><thead><tr><th>段階</th><th>だれが</th><th>すること</th><th>記録の色</th></tr></thead><tbody>
+<tr><td>提出</td><td>だれでも</td><td>大会・チャレンジに記録と動画を出す</td><td><span class="sbval st-pending" style="font-size:1rem">灰色</span></td></tr>
+<tr><td>① 審査</td><td>審査員</td><td>動画と数値を見比べて 承認／修正／却下</td><td><span class="sbval st-judged" style="font-size:1rem">黄色</span></td></tr>
+<tr><td>② 審査員審査</td><td>スーパーバイザー</td><td>①が正しかったかを確認して 認定／修正</td><td><span class="sbval st-certified" style="font-size:1rem">白く光る</span></td></tr>
+<tr><td>③ スーパーバイザー審査</td><td>ジャッジマン</td><td>②が正しかったかを確認</td><td>—</td></tr>
+</tbody></table></div>
+<h3 style="margin-top:16px">ひとりで二役はできません</h3>
+<p class="tiny">同じ記録について、審査した人がその審査員審査をすることはできません。
+つねに別の人が見るようにして、公平さを保っています。</p>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  提出者 ──▶ 審査員A ──▶ スーパーバイザーB ──▶ ジャッジマン
+              （A≠B）        （B≠ジャッジマン）
+</pre>
+<h3 style="margin-top:16px">グッドポイントと高評価率</h3>
+<p class="tiny">上の人が「修正なし」で通してくれると、グッドポイントが1つ増えます。</p>
+<div class="hintbox" style="margin-top:8px">
+<b>高評価率＝グッドポイント ÷ 上の人のチェックが済んだ件数</b><br>
+<span class="tiny">小数第1位まで、切り捨てで出します。まだチェックされていないぶんは分母に入りません。</span>
+</div>
+<div class="scroll" style="margin-top:10px"><table><thead><tr><th>例</th><th>分母</th><th>グッドポイント</th><th>高評価率</th></tr></thead><tbody>
+<tr><td>10件審査、2件修正された</td><td>10</td><td>8</td><td>80.0%</td></tr>
+<tr><td>11件審査、1件はチェック待ち、1件修正</td><td>10</td><td>9</td><td>90.0%</td></tr>
+<tr><td>20件、うち10件がチェック待ち、修正なし</td><td>10</td><td>10</td><td>100.0%</td></tr>
+</tbody></table></div>
+<h3 style="margin-top:16px">経験値とレベル</h3>
+<div class="scroll"><table><thead><tr><th>したこと</th><th>もらえる経験値</th><th>通ったら追加</th></tr></thead><tbody>
+<tr><td>記録の提出</td><td>25 XP</td><td>＋25 XP</td></tr>
+<tr><td>審査</td><td>25 XP</td><td>＋25 XP</td></tr>
+<tr><td>審査員審査</td><td>50 XP</td><td>＋50 XP</td></tr>
+<tr><td>スーパーバイザー審査</td><td>100 XP</td><td>—</td></tr>
+<tr><td>タイムラインへのつぶやき</td><td>1 XP</td><td>—</td></tr>
+<tr><td>自動で流れた投稿</td><td>0 XP</td><td>—</td></tr>
+</tbody></table></div>
+<p class="tiny" style="margin-top:8px">250 XP ごとに1レベル上がります。Lv.0 から始まります。</p>
+<h3 style="margin-top:16px">審査員になるには</h3>
+<p class="tiny">設定タブの「役職と申請」から申請します。説明を読んでチェックを入れると申請できます。
+ジャッジマンが直接任命することもあります。</p>
+<h3 style="margin-top:12px">スーパーバイザーになるには</h3>
+<div class="hintbox" style="margin-top:6px"><span class="tiny">
+<b>3つとも満たすと申請できます。</b><br>
+・審査員になってから30日以上たっている<br>
+・高評価率が90%以上<br>
+・審査件数が50件を超えている</span></div>
+<h3 style="margin-top:16px">却下されたら</h3>
+<p class="tiny">却下には必ず理由が付きます。理由は提出した人だけが読めます。
+納得できないときは、その記録から不服を申し立てられます。ジャッジマンが確認します。</p>`,
+
+cup:`<h3>大会とチャレンジのちがい</h3>
+<div class="scroll"><table><thead><tr><th></th><th>チャレンジ</th><th>競技会</th></tr></thead><tbody>
+<tr><td>だれが開ける</td><td>だれでも</td><td>サポーター以上</td></tr>
+<tr><td>ルールの作り方</td><td>順番・連続・ノーミスを組み合わせる</td><td>種目と期間を決める</td></tr>
+<tr><td>期間</td><td>いつでも参加できる</td><td>開始と終了を決める</td></tr>
+<tr><td>順位</td><td colspan="2">どちらも合計スコアの多い順。同点は同率で <b>1T</b> のように出ます</td></tr>
+</tbody></table></div>
+<h3 style="margin-top:16px">チャレンジの3つのモード</h3>
+<div class="scroll"><table><thead><tr><th>モード</th><th>意味</th><th>例</th></tr></thead><tbody>
+<tr><td>順番モード</td><td>やる順番を決める</td><td>lv.1 → lv.2 → lv.3</td></tr>
+<tr><td>連続モード</td><td>同じ種目を続けてやる</td><td>lv.1 を5回</td></tr>
+<tr><td>ノーミスモード</td><td>すべての記録でノーミス</td><td>下の表を参照</td></tr>
+</tbody></table></div>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto;margin-top:10px">
+  暗素因数分解lv.1 を5回 → lv.2 を3回 → lv.3 を1回
+  これを3回くりかえす  ＝ 合計 27 回
+</pre>
+<p class="tiny">合計プレイ回数は100回までです。記録は1回ぶんずつ全部入力します。
+1周ぶん埋まると次の周のページに進めます。</p>
+<h3 style="margin-top:16px">ノーミスの意味は種目で違います</h3>
+<div class="scroll"><table><thead><tr><th>種目</th><th>ノーミスとは</th></tr></thead><tbody>
+<tr><td>素因数分解（初級・上級）／素数判定／素数特定／素数判定・改／素数増強／二数限定</td>
+    <td><b>ノーミス回答率が100%</b></td></tr>
+<tr><td>暗素因数分解 lv.1・lv.2・lv.3</td><td><b>ノースキップ回答率が100%</b></td></tr>
+</tbody></table></div>
+<h3 style="margin-top:16px">提出のしかた</h3>
+<p class="tiny">提出できるのは <b>X か YouTube の動画リンク</b>だけです。画像はこのサイトに保存しません。
+リンクは何本でも足せて、それぞれに説明を書けます。「ツール」を押すと種目名をそのまま入れられます。</p>
+<p class="tiny">出し直すと、良いほうの記録だけが残ります。出し直した記録はもう一度審査を受けます。</p>`,
+
+etc:`<h3>RATING のしくみ</h3>
+<p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
+<div class="scroll"><table><thead><tr><th>まとまり</th><th>内容</th><th>配点</th></tr></thead><tbody>
+<tr><td>①</td><td>十種競技総合スコア（素数判定を除く9種の合計）</td><td>6点</td></tr>
+<tr><td>②</td><td>素数ゲームV1・V2／暗素因数分解lv.1〜3 の上位4種</td><td>8点</td></tr>
+<tr><td>③</td><td>EX系・タイムアタック系 の上位3種</td><td>6点</td></tr>
+</tbody></table></div>
+<p class="tiny" style="margin-top:8px">それぞれの種目は、毎週のボーダー（1位・10位・50位・100位・200位）の間を
+まっすぐつないで割合を出しています。</p>
+<h3 style="margin-top:16px">L値・S値</h3>
+<div class="hintbox" style="margin-top:6px"><span class="tiny">
+L値 ＝ log<sub>25</sub>(乱数累積) − 5.5<br>
+S値 ＝ log<sub>25</sub>(スコア累積) − 4.75<br>
+どちらも小数第3位で<b>切り捨て</b>です。RATING には加えません。</span></div>
+<h3 style="margin-top:16px">タイムライン</h3>
+<p class="tiny">本文に <b>#素数</b> のように書くとタグになります。押すとそのタグの投稿だけ表示されます。
+タグは誰でも作れて、いくつでも付けられます。</p>
+<p class="tiny">「通知するタグを選ぶ」で選んでおくと、そのタグで誰かが投稿したときにお知らせが出ます。</p>
+<p class="tiny">投稿の「・・・」から通報できます。審査員以上は削除もできますが、
+迷うときは通報すると、ほかの審査員に判断してもらえます。
+<b>審査員3人が「削除する」に入れるか、スーパーバイザー以上が1人入れると消えます。</b></p>
+<h3 style="margin-top:16px">役職の色</h3>
+<div class="tools" style="margin-top:6px">
+${["judge","supervisor","judgeman","supporter","admin"].map(r=>
+  `<span class="${roleCls(r)}">${roleLabel(r)}</span>`).join("　")}
+</div>
+<h3 style="margin-top:16px">記録が消えるとき</h3>
+<p class="tiny">審査員が却下し、スーパーバイザーがそれを妥当だと認めた記録は完全に消えます。
+Prime SNS からも見えなくなります。ただし、正しく却下した審査員のグッドポイントは残ります。</p>
+<h3 style="margin-top:16px">困ったとき</h3>
+<div class="scroll"><table><thead><tr><th>困りごと</th><th>やること</th></tr></thead><tbody>
+<tr><td>名前や画像が一覧に出ない</td><td>設定で「公開」にして、「今すぐ同期」を押す</td></tr>
+<tr><td>審査室が出てこない</td><td>審査員以上だけが入れます。設定から申請できます</td></tr>
+<tr><td>記録が灰色のまま</td><td>まだ審査待ちです。審査が済むと黄色→白に変わります</td></tr>
+<tr><td>ログインできない</td><td>設定タブの「Googleでログイン」から</td></tr>
+</tbody></table></div>`
+};
+let helpTab="role";
+function renderHelp(){
+  const b=$("#helpBox"); if(!b) return;
+  $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
+  b.innerHTML=HELP[helpTab]||"";
+}
+$$("#helpTabs button").forEach(b=>b.onclick=()=>{ helpTab=b.dataset.hp; renderHelp(); });
+
+/* ---- 自動投稿の切り替え ---- */
+function renderAutoPost(){
+  const set=(on,off,v)=>{ const a=$(on),b=$(off); if(!a) return;
+    a.classList.toggle("pri",v); b.classList.toggle("pri",!v); };
+  set("#apRecOn","#apRecOff",!!autoPost.rec);
+  set("#apCupOn","#apCupOff",!!autoPost.cup);
+}
+["#apRecOn","#apRecOff","#apCupOn","#apCupOff"].forEach(id=>{
+  const el=$(id); if(!el) return;
+  el.onclick=()=>{
+    if(id.indexOf("Rec")>0) autoPost.rec=id.endsWith("On");
+    else autoPost.cup=id.endsWith("On");
+    saveAutoPost(); renderAutoPost();
+    toast("設定を変えました");
+  };
+});
+renderAutoPost();
 
 /* ---- Prime SNS のシェル（起動アニメーション・メニュー・4つの画面） ---- */
 let snsView="feed", snsBooted=false;
@@ -6051,7 +6418,7 @@ async function snsEnter(){
   await snsBoot();
   if($("#cuSteps")&&!$("#cuSteps").children.length) cuRender();
   renderRvq(); snsGo(snsView);
-  await Promise.all([loadFeed(),loadPcups(),loadTags()]);
+  await Promise.all([loadFeed(),loadPcups(),loadTags(),loadLastUp()]);
   renderPfeed(); renderPcups(); renderTags(); tagNotice(); liveStart();
 }
 /* 大会画面の中の切り替え */
