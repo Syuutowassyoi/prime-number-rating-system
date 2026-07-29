@@ -342,6 +342,22 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   letter-spacing:.02em;line-height:1;color:var(--acc)}
 .lvb .p{font-size:.78em;opacity:.85}
 .lvb .n{font-size:1.35em}
+/* レベルのメーター */
+.lvmeter{height:8px;background:#0b1220;border:1px solid var(--line);border-radius:99px;
+  overflow:hidden;margin:8px 0 5px}
+.lvmeter>div{height:100%;width:0;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.3,1);
+  background:linear-gradient(90deg,#3f7fd0,#4dd6a8)}
+.lvnext{font-size:.7rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+/* Prime SNS でユーザー名の横に出すレベルのアイコン */
+.lvi{display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:20px;
+  padding:0 5px;border-radius:6px;font-family:Impact,"Arial Black",sans-serif;font-size:.85rem;
+  line-height:1;color:#0a1018;letter-spacing:.02em;
+  background:linear-gradient(180deg,#a7d8ff,#4da3ff);box-shadow:0 0 9px #4da3ff55}
+.lvi.t1{background:linear-gradient(180deg,#a9f0cf,#3fce96);box-shadow:0 0 9px #3fce9655}
+.lvi.t2{background:linear-gradient(180deg,#ffe3a0,#f0b93a);box-shadow:0 0 10px #f0b93a66}
+.lvi.t3{background:linear-gradient(180deg,#ffc2f0,#ff7bd5);box-shadow:0 0 11px #ff7bd566}
+.lvi.t4{background:linear-gradient(90deg,#ff8a8a,#ffd45e,#57e0a0,#7fc4ff,#c79bff);
+  box-shadow:0 0 13px #ffffff55}
 /* ---- 記録の状態 ---- */
 .sbrow{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
 .sbtop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
@@ -377,6 +393,17 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <span class="mbadge" id="menuBadge" hidden>0</span>
 </div>
 <div id="lsFlash"></div>
+<div id="testBanner" class="banner" hidden style="background:#3a1f3a;border-color:#a05ba0">
+  <span>テストモードです。表示されているのは見本のデータで、サーバーには何も保存されません。</span>
+  <select id="testRole" style="margin-left:auto">
+    <option value="user">一般ユーザーとして見る</option>
+    <option value="judge">審査員として見る</option>
+    <option value="supervisor">スーパーバイザーとして見る</option>
+    <option value="judgeman">ジャッジマンとして見る</option>
+    <option value="admin" selected>管理者として見る</option>
+  </select>
+  <button class="btn sm" id="testOff">終了する</button>
+</div>
 <nav class="tabs" id="tabs" hidden>
   <div class="grp" data-g="home"><div class="ghead">ホーム</div>
     <button data-tab="profile" class="on">ホーム</button></div>
@@ -392,6 +419,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <button data-tab="rank">ランキング</button>
     <button data-tab="cup">大会</button>
     <button data-tab="subs">記録提出・審査</button></div>
+  <div class="grp" data-g="sns"><div class="ghead">Prime SNS</div>
+    <button data-tab="sns">Prime SNS</button></div>
   <div class="grp" data-g="set"><div class="ghead">設定</div>
     <button data-tab="settings">設定</button></div>
 </nav>
@@ -621,6 +650,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div class="lsgrid">
       <div class="lsbox"><div class="t">レベル</div>
         <div class="v" id="stLv" style="font-size:1.6rem">—</div>
+        <div class="lvmeter"><div id="lvFill"></div></div>
+        <div class="lvnext" id="lvNext">—</div>
         <div class="s" id="stXp">—</div></div>
       <div class="lsbox"><div class="t">高評価率</div>
         <div class="v" id="stRate" style="font-size:1.6rem">—</div>
@@ -635,6 +666,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
   <div class="card" id="rvCard" hidden>
     <h2>審査</h2>
+    <div class="banner" id="rvAlert" hidden
+      style="background:#3a2f12;border-color:#8a7330;margin:0 0 12px"></div>
     <div class="segs" id="rvTabs">
       <button data-rq="j" class="on">審査 <span class="c">0</span></button>
       <button data-rq="s">審査員審査 <span class="c">0</span></button>
@@ -642,6 +675,55 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <p class="tiny" id="rvHint">—</p>
     <div id="rvBox"></div>
+  </div>
+</section>
+
+<section id="sns" hidden>
+  <div class="segs" id="snsTabs" style="grid-template-columns:1fr 1fr">
+    <button data-sv="feed" class="on">タイムライン</button>
+    <button data-sv="cup">大会</button>
+  </div>
+
+  <div id="snsFeed">
+    <div class="card">
+      <h2>投稿する</h2>
+      <textarea id="poBody" rows="3" maxlength="500"
+        placeholder="報告でも雑談でもどうぞ（500文字まで）"></textarea>
+      <label class="fl">リンク（X または YouTube・任意）</label>
+      <input type="text" class="txt" id="poLink" placeholder="https://…">
+      <p class="tiny">画像はこのサイトに保存しません。X か YouTube に上げたものをリンクしてください。</p>
+      <div class="tools"><button class="btn pri" id="poGo">投稿する</button>
+        <span class="tiny" id="poMsg"></span></div>
+    </div>
+    <div class="card"><h2>タイムライン</h2><div id="feedBox"></div></div>
+  </div>
+
+  <div id="snsCup" hidden>
+    <div class="card">
+      <h2>大会を作る</h2>
+      <p class="muted" style="margin-top:-8px">いつでも参加できます。順位は合計スコアで決まり、同点は同率（T）です。</p>
+      <div class="frow">
+        <div><label class="fl">大会名</label>
+          <input type="text" class="txt" id="cuT" style="max-width:none" placeholder="例：暗素因数分解ぐるぐる杯"></div>
+        <div><label class="fl">ループ回数</label>
+          <input type="number" id="cuLoop" min="1" max="50" value="1" style="max-width:none"></div>
+      </div>
+      <label class="fl">説明（任意）</label>
+      <input type="text" class="txt" id="cuI" placeholder="例：初心者歓迎です">
+      <label class="pk" style="margin-top:9px;display:inline-flex">
+        <input type="checkbox" id="cuNM"> ノーミスモード（全ての記録でノーミスが必要）</label>
+      <h3 style="margin-top:14px">ルール</h3>
+      <p class="tiny" style="margin-top:-6px">種目を1つだけ入れると連続モード、2つ以上並べると順番モードになります。</p>
+      <div id="cuSteps"></div>
+      <div class="tools" style="margin-top:8px">
+        <button class="btn sm" id="cuAdd">種目を追加</button>
+        <span class="tiny" id="cuSum" style="margin-left:auto"></span>
+      </div>
+      <div class="hintbox" id="cuPrev" style="margin-top:12px"></div>
+      <div class="tools"><button class="btn pri" id="cuGo">この内容で作る</button>
+        <span class="tiny" id="cuMsg"></span></div>
+    </div>
+    <div class="card"><h2>大会一覧</h2><div id="cupBox"></div></div>
   </div>
 </section>
 
@@ -848,6 +930,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>アカウント</h2>
     <div id="acctBox"></div>
+    <div id="avWarn" class="banner" hidden
+      style="background:#3a2412;border-color:#a0632b;margin:12px 0 0"></div>
   </div>
   <div class="card">
     <h2>役職と申請</h2>
@@ -919,7 +1003,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v31";
+const APP_VERSION = "v33";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2083,11 +2167,19 @@ $("#useX").onclick=()=>{const h=$("#ph").value.replace(/^@/,"").trim();
 $("#pickImg").onclick=()=>$("#fileImg").click();
 $("#fileImg").onchange=e=>{const f=e.target.files[0];if(!f)return;
   const img=new Image(),fr=new FileReader();
-  fr.onload=()=>{img.onload=()=>{const s=256,cv=document.createElement("canvas");cv.width=cv.height=s;
-    const g=cv.getContext("2d"),m=Math.min(img.width,img.height);
-    g.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,s,s);
-    pro.img=cv.toDataURL("image/jpeg",.85);proTouch();render();syncNow();
-    toast("画像を設定しました");};img.src=fr.result;};
+  fr.onerror=()=>toast("画像を読み込めませんでした");
+  fr.onload=()=>{
+    img.onerror=()=>toast("この形式の画像は使えません（JPEG・PNG・WebPをお試しください）");
+    img.onload=()=>{
+      const s=256,cv=document.createElement("canvas");cv.width=cv.height=s;
+      const g=cv.getContext("2d"),m=Math.min(img.width,img.height);
+      g.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,s,s);
+      /* 画質を落としながら 60KB 以下になるまで縮める。大きすぎると保存に失敗するため */
+      let q=.85, url=cv.toDataURL("image/jpeg",q);
+      while(url.length>60000 && q>0.35){ q-=0.1; url=cv.toDataURL("image/jpeg",q); }
+      pro.img=url;proTouch();render();syncNow();
+      toast("画像を設定しました（"+Math.round(url.length/1024)+"KB）");};
+    img.src=fr.result;};
   fr.readAsDataURL(f);};
 $("#rmImg").onclick=()=>{pro.img="";proTouch();render();syncNow();toast("画像を消しました");};
 $("#pubOn").onclick=()=>{pro.pub=true;render();renderSettings();syncNow();};
@@ -2133,7 +2225,7 @@ function toggleMenu(open){
 $("#menuBtn").onclick=()=>toggleMenu();
 $$(".tabs button").forEach(b=>b.onclick=()=>{
   $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","friends","rank","cup","subs","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","friends","rank","cup","subs","sns","settings"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
@@ -2149,6 +2241,7 @@ $$(".tabs button").forEach(b=>b.onclick=()=>{
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="cup") loadCups();
   if(b.dataset.tab==="subs") subsEnter();
+  if(b.dataset.tab==="sns") snsEnter();
   scrollTo({top:0,behavior:"smooth"});});
 
 /* =========================================================
@@ -2586,7 +2679,8 @@ async function loadFriendReq(){
       saveFriend({name:f.name,handle:f.handle,img:"",role:f.role,rating:f.rating,user_id:f.user_id},f.records||{});
   }catch(e){ /* 未設定・未実行なら黙って諦める */ }
 }
-function badgeCount(){ return FR.in.length; }
+/* メニューの数字＝フレンド申請＋自分が処理できる審査の数 */
+function badgeCount(){ return FR.in.length + (typeof rvPending==="function"?rvPending():0); }
 /** その@IDとの関係を返す */
 function frState(handle){
   const h=(handle||"").toLowerCase();
@@ -3298,18 +3392,16 @@ async function loadMe(){
       if(me.x_url) pro.x_url=me.x_url;
       if(Array.isArray(me.proofs)&&me.proofs.length) pro.proofs=me.proofs;
       pro.pub=!!me.is_public;
-      /* 自己紹介とアイコンは、クラウドと手元で新しい方を採用する。
-         手元の方が新しければ、そのまま上書き保存しに行く（消したことも伝わる） */
-      const cloudAt=Date.parse(me.updated_at||0)||0, localAt=pro.at||0;
+      /* 自己紹介とアイコン。
+         updated_at は記録を保存しただけでも新しくなるので、時刻だけで判断すると
+         手元の画像が消えてしまいます。そこで「クラウドに中身があれば取り込む、
+         空なら手元を優先して上げ直す」という決め方にしています。 */
+      avatarSync=("avatar" in me);
       let needPush=false;
-      if("bio" in me || "avatar" in me){
-        if(cloudAt>=localAt){
-          if("bio" in me)    pro.bio=me.bio||"";
-          if("avatar" in me) pro.img=me.avatar||"";
-          pro.at=cloudAt;
-        }else needPush=true;
-      }
+      if("bio" in me){    if(me.bio)    pro.bio=me.bio; else if(pro.bio) needPush=true; }
+      if("avatar" in me){ if(me.avatar) pro.img=me.avatar; else if(pro.img) needPush=true; }
       if(needPush) pushMe(true).catch(()=>{});
+      avatarWarn();
       const cloud=me.records||{};
       const mine=ORDER.some(n=>rec[n]>0);
       if(!mine && Object.keys(cloud).length) rec=cloud;         /* 手元が空ならクラウドを採用 */
@@ -3340,8 +3432,27 @@ async function pushMe(force){
     p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]),
     p_bio:pro.bio||"", p_avatar:pro.img||"" });
   if(!force && body===lastPush) return;          /* 内容が同じなら通信しない */
-  await rpcTry("save_profile",JSON.parse(body),[["p_bio","p_avatar"],["p_proofs"],["p_x"]]);
+  const full=JSON.parse(body);
+  try{
+    await sbAuth("rpc/save_profile",{method:"POST",body:body});
+    avatarSync=true;
+  }catch(e){
+    if(!/PGRST202|Could not find the function/i.test(String(e.message||""))) throw e;
+    /* SQL がまだ古くて bio / avatar を受け取れない。黙って捨てずに印を残す */
+    avatarSync=false;
+    delete full.p_bio; delete full.p_avatar;
+    await rpcTry("save_profile",full,[["p_proofs"],["p_x"]]);
+  }
   lastPush=body;
+}
+/** null=未確認 / true=アイコンと自己紹介も保存できる / false=SQLがまだ古い */
+let avatarSync=null;
+function avatarWarn(){
+  const el=$("#avWarn"); if(!el) return;
+  el.hidden=(avatarSync!==false);
+  if(avatarSync===false) el.innerHTML=
+    "<span>アイコンと自己紹介がクラウドに保存できていません。"
+   +"SETUP.md のSQLをSupabaseで実行すると直ります（記録は保存されています）。</span>";
 }
 const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
@@ -3365,6 +3476,12 @@ const ROLE_N={admin:"管理者",judgeman:"ジャッジマン",supervisor:"スー
 const roleLabel=r=>ROLE_N[r]||"";
 /** Lv.12 のような表示。数字だけ大きく、書体は Impact */
 const lvHTML=n=>`<span class="lvb"><span class="p">Lv.</span><span class="n">${n==null?"—":n}</span></span>`;
+/** Prime SNS の名前の横に出す、数字だけのアイコン。5・10・20・30で色が変わります */
+const lviHTML=n=>{
+  const v=Math.max(0,+n||0);
+  const t=v>=30?" t4":v>=20?" t3":v>=10?" t2":v>=5?" t1":"";
+  return `<span class="lvi${t}" title="Lv.${v}">${v}</span>`;
+};
 
 /* 画面 */
 function renderSettings(){
@@ -4431,20 +4548,24 @@ const isProofUrl=u=>/^https?:\/\/([a-z0-9-]+\.)?(x\.com|twitter\.com|youtube\.co
 
 /* ---- 読み込み ---- */
 async function loadSubs(){
+  if(TEST){ SUBS=TDB.subs.filter(x=>x.mine); return; }
   if(!(sess&&sbOn())){ SUBS=[]; return; }
   try{ SUBS=await sbAuth("submissions_feed?mine=is.true&order=created_at.desc&limit=100"); }
   catch(e){ SUBS=[]; }
 }
 async function loadRvq(){
+  if(TEST){ RVQ=myLv()>=2?TDB.subs.slice():[]; return; }
   if(!(sess&&sbOn())||myLv()<2){ RVQ=[]; return; }
   try{ RVQ=await sbAuth("review_queue?order=created_at.asc&limit=300"); }catch(e){ RVQ=[]; }
 }
 async function loadMyStat(){
+  if(TEST){ MYSTAT=tstStat(); return; }
   if(!(sess&&sbOn())){ MYSTAT=null; return; }
-  try{ const r=await rpcTry("my_review_stats",{});
+  try{ const r=await callRpc("my_review_stats",{});
        MYSTAT=Array.isArray(r)?(r[0]||null):r; }catch(e){ MYSTAT=null; }
 }
 async function loadRoleReq(){
+  if(TEST){ RREQ=TDB.req.slice(); return; }
   if(!(sess&&sbOn())){ RREQ=[]; return; }
   try{ RREQ=await sbAuth("role_requests?order=created_at.desc&limit=100"); }catch(e){ RREQ=[]; }
 }
@@ -4463,7 +4584,7 @@ $("#sbGo").onclick=async()=>{
   if(!isProofUrl(pf)) return toast("証明は X か YouTube のリンクだけです");
   $("#sbGo").disabled=true; msg.textContent="送信中…";
   try{
-    await rpcTry("submit_record",{p_event:ev,p_value:v,p_proof:pf,
+    await callRpc("submit_record",{p_event:ev,p_value:v,p_proof:pf,
       p_note:$("#sbNote").value.trim()||null,p_nomiss:!!$("#sbNomiss").checked},
       [["p_nomiss"],["p_note","p_nomiss"]]);
     $("#sbValue").value=""; $("#sbProof").value=""; $("#sbNote").value=""; $("#sbNomiss").checked=false;
@@ -4520,7 +4641,7 @@ function sbEdit(id){
     if(!(v>0)) return toast("記録を入れてください");
     if(p&&!isProofUrl(p)) return toast("証明は X か YouTube のリンクだけです");
     try{
-      await rpcTry("edit_my_record",{p_id:id,p_value:v,p_proof:p||null},[["p_proof"]]);
+      await callRpc("edit_my_record",{p_id:id,p_value:v,p_proof:p||null},[["p_proof"]]);
       M.close(); toast("直しました"); await loadSubs(); renderSubs();
     }catch(e){ M.q("#edMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
@@ -4532,7 +4653,7 @@ function sbAppeal(id){
     <div class="tools"><button class="btn pri" id="apGo">申し立てる</button></div>
     <p class="tiny" id="apMsg"></p>`);
   M.q("#apGo").onclick=async()=>{
-    try{ await rpcTry("appeal_record",{p_id:id,p_text:M.q("#apT").value.trim()});
+    try{ await callRpc("appeal_record",{p_id:id,p_text:M.q("#apT").value.trim()});
       M.close(); toast("申し立てました"); await loadSubs(); renderSubs();
     }catch(e){ M.q("#apMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
@@ -4547,11 +4668,29 @@ function rvLists(){
     m:RVQ.filter(s=>s.sv_id&&!s.jm_id&&s.sv_id!==my&&s.judge_id!==my&&s.user_id!==my)
   };
 }
+/** いま自分が手をつけられる審査の数。0でなければ画面とメニューに出す */
+function rvPending(){
+  if(myLv()<2) return 0;
+  const L=rvLists();
+  return L.j.length + (myLv()>=3?L.s.length:0) + (myLv()>=3?L.m.length:0);
+}
 function renderRvq(){
   const card=$("#rvCard"); if(!card) return;
   card.hidden=myLv()<2;
-  if(card.hidden) return;
+  const nav=document.querySelector('.tabs button[data-tab="subs"]');
+  if(nav){ const n=rvPending();
+    nav.textContent="記録提出・審査"+(n?"（"+n+"）":""); }
+  if(card.hidden){ updateMenuBadge(); return; }
   const L=rvLists(), tabs=$$("#rvTabs button");
+  /* 手つかずの審査があれば、いちばん上で知らせる */
+  const al=$("#rvAlert"), waits=[];
+  if(L.j.length) waits.push("審査 "+L.j.length+"件");
+  if(myLv()>=3&&L.s.length) waits.push("審査員審査 "+L.s.length+"件");
+  if(myLv()>=3&&L.m.length) waits.push("スーパーバイザー審査 "+L.m.length+"件");
+  al.hidden=!waits.length;
+  if(waits.length) al.innerHTML="<span>まだ手がついていない記録があります　—　<b>"
+    +waits.join("</b>　<b>")+"</b></span>";
+  updateMenuBadge();
   tabs[0].querySelector(".c").textContent=L.j.length;
   tabs[1].querySelector(".c").textContent=L.s.length;
   tabs[2].querySelector(".c").textContent=L.m.length;
@@ -4603,7 +4742,7 @@ function rvBtns(s){
 async function rvAct(id,act){
   const s=RVQ.find(x=>x.id===id); if(!s) return;
   const run=async(fn,body,drops)=>{
-    try{ await rpcTry(fn,body,drops); toast("記録しました");
+    try{ await callRpc(fn,body,drops); toast("記録しました");
       await loadRvq(); await loadMyStat(); renderRvq(); renderMyStat(); }
     catch(e){ toast(String(e.message||e).slice(0,120)); }
   };
@@ -4649,9 +4788,11 @@ function renderMyStat(){
   const c=$("#mystatCard"); if(!c) return;
   c.hidden=!(sess&&sbOn());
   if(c.hidden||!MYSTAT) return;
-  const xp=+MYSTAT.xp||0, lv=+MYSTAT.lv||0;
+  const xp=+MYSTAT.xp||0, lv=+MYSTAT.lv||0, into=xp%250, left=250-into;
   $("#stLv").innerHTML=lvHTML(lv);
-  $("#stXp").textContent=jp(xp)+" XP（次のレベルまで "+jp(250-(xp%250))+"）";
+  $("#lvFill").style.width=(into/250*100).toFixed(1)+"%";
+  $("#lvNext").textContent=jp(into)+" / 250　　Lv."+(lv+1)+" まであと "+jp(left)+" XP";
+  $("#stXp").textContent="通算 "+jp(xp)+" XP";
   const rate=MYSTAT.rate;
   $("#stRate").textContent=(rate==null)?"—":(+rate).toFixed(1)+"%";
   $("#stGp").textContent=(+MYSTAT.checked_n||0)===0
@@ -4686,6 +4827,9 @@ function renderRole(){
   if(lv<2) h.push(`<div class="tools" style="margin-top:0"><button class="btn" id="apJudge">審査員に申請する</button></div>`);
   if(lv===2) h.push(`<div class="tools" style="margin-top:0"><button class="btn" id="apSv">スーパーバイザーに申請する</button></div>`
     +`<p class="tiny">条件：審査員になって30日以上／高評価率90%以上／審査件数50件超</p>`);
+  if(isAdmin()||TEST) h.push(`<div class="tools" style="margin-top:8px">
+    <button class="btn" id="tstBtn">${TEST?"テストモードを終了する":"テストモードを始める"}</button>
+    <span class="tiny">見本のユーザーと記録が出ます。サーバーには何も保存されません。</span></div>`);
   const mine=RREQ.filter(x=>x.user_id===myId());
   if(mine.length) h.push('<p class="tiny">'+mine.slice(0,3).map(x=>
     `${roleLabel(x.want)}の申請：${x.status==="pending"?"確認待ち":x.status==="ok"?"承認されました":"見送られました"}`).join("<br>")+"</p>");
@@ -4720,24 +4864,539 @@ function renderRole(){
       <p class="tiny" id="rqMsg"></p>`);
     M.q("#rqChk").onchange=e=>{ M.q("#rqGo").disabled=!e.target.checked; };
     M.q("#rqGo").onclick=async()=>{
-      try{ await rpcTry("request_role",{p_want:want,p_reason:M.q("#rqR").value.trim()||null},[["p_reason"]]);
+      try{ await callRpc("request_role",{p_want:want,p_reason:M.q("#rqR").value.trim()||null},[["p_reason"]]);
         M.close(); toast("申請しました"); await loadRoleReq(); renderRole();
       }catch(e){ M.q("#rqMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
     };
   };
+  if($("#tstBtn")) $("#tstBtn").onclick=()=>tstToggle(!TEST);
   if($("#apJudge")) $("#apJudge").onclick=()=>ask("judge",JUDGE_TERMS);
   if($("#apSv"))    $("#apSv").onclick=()=>ask("supervisor",SV_TERMS);
   box.querySelectorAll("[data-ok]").forEach(b=>b.onclick=async()=>{
-    try{ await rpcTry("decide_role_request",{p_id:b.closest("[data-rq]").dataset.rq,p_ok:b.dataset.ok==="1"});
+    try{ await callRpc("decide_role_request",{p_id:b.closest("[data-rq]").dataset.rq,p_ok:b.dataset.ok==="1"});
       toast("処理しました"); await loadRoleReq(); renderRole();
     }catch(e){ toast(String(e.message||e).slice(0,120)); }
   });
   if($("#apGo2")) $("#apGo2").onclick=async()=>{
     const h2=$("#apH").value.replace(/^@/,"").trim(); if(!h2) return toast("@IDを入れてください");
-    try{ await rpcTry("appoint_role",{p_handle:h2,p_role:$("#apR").value});
+    try{ await callRpc("appoint_role",{p_handle:h2,p_role:$("#apR").value});
       toast("任命しました"); await loadRoleReq(); renderRole();
     }catch(e){ toast(String(e.message||e).slice(0,120)); }
   };
+}
+
+/* =========================================================
+   10f. テストモード（管理者だけ・サーバーには一切書き込みません）
+   ========================================================= */
+let TEST=false, TDB=null;
+/** 通常はサーバーに送り、テストモード中は手元の見本データを書き換えるだけ */
+async function callRpc(name,body,drops){
+  if(TEST) return tstRpc(name,body||{});
+  return rpcTry(name,body,drops);
+}
+const TST_USERS=[
+  {id:"t1",handle:"hakase",   name:"素数博士",   role:"judgeman"},
+  {id:"t2",handle:"mikan",    name:"みかん",     role:"supervisor"},
+  {id:"t3",handle:"kuroneko", name:"くろねこ",   role:"supervisor"},
+  {id:"t4",handle:"ringo",    name:"りんご",     role:"judge"},
+  {id:"t5",handle:"aozora",   name:"あおぞら",   role:"judge"},
+  {id:"t6",handle:"tsukiyo",  name:"つきよ",     role:"user"},
+  {id:"t7",handle:"hinata",   name:"ひなた",     role:"user"},
+  {id:"t8",handle:"sumire",   name:"すみれ",     role:"supporter"}
+];
+const tstUser=id=>TST_USERS.find(u=>u.id===id)||{name:"？",handle:"?"};
+function tstBuild(){
+  const now=Date.now(), ago=m=>new Date(now-m*60000).toISOString();
+  const yt=n=>"https://www.youtube.com/watch?v=sample"+n;
+  const mk=(o,i)=>Object.assign({id:"x"+i,nomiss:false,note:null,proof_url:yt(i),
+    created_at:ago(i*37),status:"pending",mine:false},o,
+    {handle:tstUser(o.user_id).handle,name:tstUser(o.user_id).name});
+  const subs=[
+    /* 未審査：審査員の出番 */
+    mk({user_id:"t6",event:"素数判定",     value:94500},1),
+    mk({user_id:"t7",event:"暗素因数分解lv.1",value:84200},2),
+    mk({user_id:"t8",event:"1から順に",    value:9.482},3),
+    /* 審査ずみ：審査員審査の出番 */
+    mk({user_id:"t6",event:"素数特定",value:90100,status:"judged",
+        judge_id:"t4",judge_act:"approve",judged_at:ago(30)},4),
+    mk({user_id:"t7",event:"二数限定",value:86400,status:"judged",nomiss:true,
+        judge_id:"t5",judge_act:"fix",judge_from:86440,judged_at:ago(50)},5),
+    /* 却下：スーパーバイザーが最終判断する */
+    mk({user_id:"t8",event:"素数増強",value:99999,status:"rejected",
+        judge_id:"t4",judge_act:"reject",judge_reason:"動画に映っている数値と一致しません",
+        judged_at:ago(70)},6),
+    /* 審査員審査ずみ：スーパーバイザー審査の出番 */
+    mk({user_id:"t6",event:"素因数分解（上級）",value:95800,status:"certified",
+        judge_id:"t4",judge_act:"approve",judged_at:ago(100),
+        sv_id:"t2",sv_act:"accept",sv_at:ago(90)},7),
+    mk({user_id:"t7",event:"暗素因数分解lv.3",value:76300,status:"certified",
+        judge_id:"t5",judge_act:"approve",judged_at:ago(140),
+        sv_id:"t3",sv_act:"fix",sv_from:76900,sv_at:ago(130)},8),
+    /* 全部おわり */
+    mk({user_id:"t8",event:"素数判定・改",value:92400,status:"certified",
+        judge_id:"t4",judge_act:"approve",judged_at:ago(300),
+        sv_id:"t2",sv_act:"accept",sv_at:ago(280),
+        jm_id:"t1",jm_act:"accept",jm_at:ago(260)},9),
+    /* 自分の提出（4つの状態を1つずつ） */
+    mk({user_id:"me",event:"素数判定",value:93000,mine:true},10),
+    mk({user_id:"me",event:"素数特定",value:88800,mine:true,status:"judged",
+        judge_id:"t4",judge_act:"approve",judged_at:ago(20)},11),
+    mk({user_id:"me",event:"二数限定",value:82100,mine:true,status:"certified",
+        judge_id:"t5",judge_act:"approve",judged_at:ago(200),
+        sv_id:"t2",sv_act:"accept",sv_at:ago(190)},12),
+    mk({user_id:"me",event:"素数増強",value:88000,mine:true,status:"rejected",
+        judge_id:"t4",judge_act:"reject",judge_reason:"別の種目の映像に見えます",judged_at:ago(400)},13)
+  ];
+  /* 自分が過去に審査した10件（うち8件が修正なしで通過＝高評価率80.0%）。
+     高評価率とレベルの見え方を確かめるための見本です */
+  for(let i=0;i<10;i++){
+    subs.push(mk({user_id:i%2?"t7":"t6",event:EVENTS[i%EVENTS.length],value:70000+i*1234,
+      status:"certified",judge_id:"me",judge_act:"approve",judged_at:ago(1000+i*20),
+      sv_id:i%2?"t2":"t3",sv_act:i<8?"accept":"fix",sv_at:ago(990+i*20)},30+i));
+  }
+  /* 見本のレベル。ユーザー名の横のアイコンの色分けを確かめられるように散らしています */
+  const TLV={t1:34,t2:21,t3:12,t4:7,t5:5,t6:2,t7:1,t8:0,me:2};
+  const lvo=u=>({lv:TLV[u]!=null?TLV[u]:0, role:u==="me"?((me&&me.role)||"admin"):tstUser(u).role});
+  const posts=subs.filter(s=>s.status!=="rejected").map((s,i)=>Object.assign({
+    id:"p"+i,handle:s.handle,name:s.name,kind:"record",sub_id:s.id,
+    event:s.event,value:s.value,sub_status:s.status,nomiss:s.nomiss,
+    body:null,link:s.proof_url,created_at:s.created_at,mine:!!s.mine},lvo(s.user_id)));
+  posts.push(Object.assign({id:"pc1",handle:"hakase",name:"素数博士",kind:"chat",
+    body:"暗素因数分解、lv.3だけ急に難しくなりませんか",
+    link:null,created_at:ago(15),mine:false},lvo("t1")));
+  posts.push(Object.assign({id:"pc2",handle:"mikan",name:"みかん",kind:"chat",
+    body:"わかる。でも慣れると気持ちいいですよ",
+    link:null,created_at:ago(12),reply_to:"pc1",mine:false},lvo("t2")));
+  const cups=[
+    {id:"c1",owner_handle:"hakase",owner_name:"素数博士",title:"暗素因数分解ぐるぐる杯",
+     intro:"lv.1〜3を順番に回します",closed:false,created_at:ago(600),
+     rule:{nomiss:false,loops:3,steps:[{event:"暗素因数分解lv.1",n:5},
+       {event:"暗素因数分解lv.2",n:3},{event:"暗素因数分解lv.3",n:1}]}},
+    {id:"c2",owner_handle:"ringo",owner_name:"りんご",title:"素数判定10連ノーミス",
+     intro:"1回でもミスしたらやり直しです",closed:false,created_at:ago(900),
+     rule:{nomiss:true,loops:1,steps:[{event:"素数判定",n:10}]}}
+  ];
+  const ent=[
+    {id:"e1",cup_id:"c1",handle:"mikan",   name:"みかん",   total:1980000,proof_url:yt(21),nomiss:false,created_at:ago(500)},
+    {id:"e2",cup_id:"c1",handle:"kuroneko",name:"くろねこ", total:1980000,proof_url:yt(22),nomiss:false,created_at:ago(480)},
+    {id:"e3",cup_id:"c1",handle:"ringo",   name:"りんご",   total:1755000,proof_url:yt(23),nomiss:false,created_at:ago(460)},
+    {id:"e4",cup_id:"c2",handle:"aozora",  name:"あおぞら", total:938000, proof_url:yt(24),nomiss:true, created_at:ago(800)}
+  ];
+  return {subs,posts,cups,ent,req:[
+    {id:"r1",user_id:"t6",handle:"tsukiyo",name:"つきよ",want:"judge",status:"pending",reason:"毎日確認できます"},
+    {id:"r2",user_id:"t4",handle:"ringo",  name:"りんご",want:"supervisor",status:"pending",reason:"条件を満たしました"}
+  ]};
+}
+/** 同点は同じ順位。1,1,3 のように飛ばす */
+function tstRanks(cupId){
+  const rows=TDB.ent.filter(e=>e.cup_id===cupId)
+    .sort((a,b)=>b.total-a.total||new Date(a.created_at)-new Date(b.created_at));
+  let rk=0,prev=null;
+  return rows.map((e,i)=>{
+    if(e.total!==prev){ rk=i+1; prev=e.total; }
+    return Object.assign({},e,{rk,tie_n:rows.filter(x=>x.total===e.total).length});
+  });
+}
+function tstStat(){
+  const my=myId();
+  let gp=0,cn=0,xp=0;
+  TDB.subs.forEach(s=>{
+    if(s.user_id===my) xp+=25+((s.judge_act==="approve"&&(s.sv_act||"accept")==="accept"
+      &&(s.jm_act||"accept")==="accept")?25:0);
+    if(s.judge_id===my){ xp+=25; if(s.sv_at) cn++; if(s.sv_act==="accept"){gp++;xp+=25;} }
+    if(s.sv_id===my)   { xp+=50; if(s.jm_at) cn++; if(s.jm_act==="accept"){gp++;xp+=50;} }
+    if(s.jm_id===my)     xp+=100;
+  });
+  return {good_points:gp,checked_n:cn,xp:xp,lv:Math.floor(xp/250),
+          rate:cn?Math.floor(gp*1000/cn)/10:null};
+}
+/** テストモード中のRPC。実際のSQLと同じ判定をここで真似ています */
+function tstRpc(name,b){
+  const my=myId(), S=id=>TDB.subs.find(x=>x.id===id);
+  const bad=m=>{ const e=new Error(m); throw e; };
+  if(name==="submit_record"){
+    const s={id:"n"+Date.now(),user_id:my,handle:pro.handle,name:pro.name,event:b.p_event,
+      value:b.p_value,nomiss:!!b.p_nomiss,note:b.p_note,proof_url:b.p_proof,
+      status:"pending",created_at:new Date().toISOString(),mine:true};
+    TDB.subs.unshift(s);
+    if(b.p_post!==false) TDB.posts.unshift({id:"np"+Date.now(),handle:s.handle,name:s.name,
+      kind:"record",sub_id:s.id,event:s.event,value:s.value,sub_status:"pending",
+      lv:(tstStat().lv||0),role:(me&&me.role)||"user",
+      nomiss:s.nomiss,body:s.note,link:s.proof_url,created_at:s.created_at,mine:true});
+    return null;
+  }
+  if(name==="edit_my_record"){
+    const s=S(b.p_id)||bad("記録が見つかりません");
+    Object.assign(s,{value:b.p_value,status:"pending",judge_id:null,judge_act:null,
+      judge_reason:null,judge_from:null,judged_at:null,sv_id:null,sv_act:null,sv_from:null,
+      sv_at:null,jm_id:null,jm_act:null,jm_at:null});
+    if(b.p_proof) s.proof_url=b.p_proof;
+    return null;
+  }
+  if(name==="judge_record"){
+    const s=S(b.p_id)||bad("記録が見つかりません");
+    if(s.judge_id) bad("その記録はすでに審査されています");
+    if(s.user_id===my) bad("自分の記録は審査できません");
+    s.judge_id=my; s.judge_act=b.p_act; s.judge_reason=b.p_reason||null;
+    s.judged_at=new Date().toISOString();
+    if(b.p_act==="fix"){ s.judge_from=s.value; s.value=b.p_value; }
+    s.status=b.p_act==="reject"?"rejected":"judged";
+    if(s.status==="rejected") TDB.posts=TDB.posts.filter(p=>p.sub_id!==s.id);
+    else TDB.posts.forEach(p=>{ if(p.sub_id===s.id){p.sub_status=s.status;p.value=s.value;} });
+    return null;
+  }
+  if(name==="sv_record"){
+    const s=S(b.p_id)||bad("記録が見つかりません");
+    if(!s.judge_id) bad("まだ審査されていません");
+    if(s.sv_id) bad("その記録はすでに審査員審査が済んでいます");
+    if(s.judge_id===my) bad("自分が審査した記録は審査員審査できません");
+    const wasRej=s.status==="rejected";
+    s.sv_id=my; s.sv_act=b.p_act; s.sv_note=b.p_note||null; s.sv_at=new Date().toISOString();
+    if(b.p_act==="fix"&&b.p_value!=null){ s.sv_from=s.value; s.value=b.p_value; }
+    s.status = wasRej ? (b.p_act==="accept"?"removed":"judged") : "certified";
+    if(s.status==="removed") TDB.posts=TDB.posts.filter(p=>p.sub_id!==s.id);
+    else TDB.posts.forEach(p=>{ if(p.sub_id===s.id){p.sub_status=s.status;p.value=s.value;} });
+    return null;
+  }
+  if(name==="jm_record"){
+    const s=S(b.p_id)||bad("記録が見つかりません");
+    if(!s.sv_id) bad("まだ審査員審査がされていません");
+    if(s.jm_id) bad("その記録はすでにスーパーバイザー審査が済んでいます");
+    if(s.sv_id===my) bad("自分がした審査員審査はチェックできません");
+    if(s.judge_id===my) bad("自分が審査した記録はチェックできません");
+    const svLv=lvOf(tstUser(s.sv_id).role);
+    if(myLv()<4 && !(myLv()>=3&&svLv>=4)) bad("ジャッジマン以上だけができます");
+    s.jm_id=my; s.jm_act=b.p_act; s.jm_note=b.p_note||null; s.jm_at=new Date().toISOString();
+    if(b.p_act==="fix"){ s.jm_from=s.value; s.value=b.p_value; }
+    return null;
+  }
+  if(name==="appeal_record"){ const s=S(b.p_id)||bad("記録が見つかりません");
+    s.appeal=b.p_text; s.appeal_at=new Date().toISOString(); return null; }
+  if(name==="post_chat"){
+    TDB.posts.unshift({id:"nc"+Date.now(),handle:pro.handle,name:pro.name,kind:"chat",
+      body:b.p_body||null,link:b.p_link||null,reply_to:b.p_reply||null,
+      lv:(tstStat().lv||0),role:(me&&me.role)||"user",
+      created_at:new Date().toISOString(),mine:true});
+    return null;
+  }
+  if(name==="delete_post"){ TDB.posts=TDB.posts.filter(p=>p.id!==b.p_id); return null; }
+  if(name==="create_pcup"){
+    const id="nc"+Date.now();
+    TDB.cups.unshift({id,owner_handle:pro.handle,owner_name:pro.name,title:b.p_title,
+      intro:b.p_intro||null,rule:b.p_rule,closed:false,created_at:new Date().toISOString(),mine:true});
+    return null;
+  }
+  if(name==="join_pcup"){
+    const e=TDB.ent.find(x=>x.cup_id===b.p_cup&&x.handle===pro.handle);
+    if(e){ if(b.p_total>=e.total){ e.total=b.p_total; e.proof_url=b.p_proof; e.detail=b.p_detail; }
+           e.nomiss=!!b.p_nomiss; }
+    else TDB.ent.push({id:"ne"+Date.now(),cup_id:b.p_cup,handle:pro.handle,name:pro.name||"わたし",
+      total:b.p_total,detail:b.p_detail,proof_url:b.p_proof,nomiss:!!b.p_nomiss,
+      created_at:new Date().toISOString()});
+    return null;
+  }
+  if(name==="close_pcup"){ const c=TDB.cups.find(x=>x.id===b.p_id); if(c) c.closed=b.p_closed!==false; return null; }
+  if(name==="delete_pcup"){ TDB.cups=TDB.cups.filter(x=>x.id!==b.p_id);
+    TDB.ent=TDB.ent.filter(x=>x.cup_id!==b.p_id); return null; }
+  if(name==="decide_role_request"){
+    const r=TDB.req.find(x=>x.id===b.p_id); if(r) r.status=b.p_ok?"ok":"ng"; return null; }
+  if(name==="request_role"){
+    TDB.req.unshift({id:"nr"+Date.now(),user_id:my,handle:pro.handle,name:pro.name,
+      want:b.p_want,status:"pending",reason:b.p_reason}); return null; }
+  if(name==="appoint_role") return null;
+  if(name==="my_review_stats") return [tstStat()];
+  return null;
+}
+let REAL_ROLE=null;
+function tstToggle(on){
+  TEST=!!on;
+  if(TEST){
+    TDB=tstBuild();
+    if(!me) me={user_id:"me",handle:pro.handle||"me",name:pro.name||"わたし",role:"admin"};
+    if(REAL_ROLE===null) REAL_ROLE=me.role;
+    if(!sess) sess={access_token:"test",expires_at:9e9,user:{id:"me"}};
+    me.role=$("#testRole").value||"admin";
+  }else{
+    TDB=null;
+    if(me&&REAL_ROLE!==null) me.role=REAL_ROLE;
+    REAL_ROLE=null;
+    SUBS=[];RVQ=[];PFEED=[];PCUPS=[];PCUPENT={};MYSTAT=null;RREQ=[];
+  }
+  $("#testBanner").hidden=!TEST;
+  subsEnter(); snsEnter(); renderRole(); updateMenuBadge();
+}
+$("#testRole").onchange=e=>{ if(!TEST) return; me.role=e.target.value;
+  subsEnter(); renderRole(); updateMenuBadge(); };
+$("#testOff").onclick=()=>tstToggle(false);
+
+/* =========================================================
+   10g. Prime SNS（タイムライン・チャット・ユーザー大会）
+   ========================================================= */
+let PFEED=[], PCUPS=[], PCUPENT={};
+const jstShort=t=>{const d=new Date(t); if(isNaN(d)) return "";
+  const m=Math.floor((Date.now()-d)/60000);
+  if(m<1) return "たった今"; if(m<60) return m+"分前";
+  if(m<1440) return Math.floor(m/60)+"時間前";
+  if(m<10080) return Math.floor(m/1440)+"日前";
+  return jstFull(t);};
+const ytId=u=>{const m=String(u||"").match(/(?:youtu\.be\/|[?&]v=)([\w-]{6,})/); return m?m[1]:null;};
+function poLinkHTML(u){
+  if(!u) return "";
+  const y=ytId(u);
+  return `<div class="tiny" style="margin-top:5px">`
+    +(y?`▶ YouTube　`:`𝕏 `)
+    +`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.length>52?u.slice(0,52)+"…":u)}</a></div>`;
+}
+
+/* タブを行き来するたびに取りに行かないよう、30秒だけ手元に置いておきます。
+   1回の読み込みは50件で約20KB。無料枠の転送量を無駄づかいしないための工夫です。 */
+let feedCache={at:0,rows:null};
+async function loadFeed(force){
+  if(TEST){ PFEED=TDB.posts.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)); return; }
+  if(!sbOn()){ PFEED=[]; return; }
+  if(!force && feedCache.rows && Date.now()-feedCache.at<30000){ PFEED=feedCache.rows; return; }
+  try{
+    const q="posts_feed?select=*&order=created_at.desc&limit=50";
+    PFEED = sess ? await sbAuth(q) : await sb(q);
+    feedCache={at:Date.now(),rows:PFEED};
+  }catch(e){ PFEED=[]; }
+}
+async function loadPcups(){          
+  if(TEST){ PCUPS=TDB.cups.slice(); return; }
+  if(!sbOn()){ PCUPS=[]; return; }
+  try{
+    const q="pcups?select=*&order=created_at.desc&limit=60";
+    PCUPS = sess ? await sbAuth(q) : await sb(q);
+  }catch(e){ PCUPS=[]; }
+}
+async function loadPcupEnt(id){
+  if(TEST){ PCUPENT[id]=tstRanks(id); return; }
+  try{
+    const q=`pcup_ranks?select=*&cup_id=eq.${id}&order=rk.asc&limit=200`;
+    PCUPENT[id] = sess ? await sbAuth(q) : await sb(q);
+  }catch(e){ PCUPENT[id]=[]; }
+}
+
+/* ---- タイムライン ---- */
+function renderPfeed(){
+  const box=$("#feedBox"); if(!box) return;
+  if(!PFEED.length){ box.innerHTML='<p class="muted">まだ投稿がありません。</p>'; return; }
+  const top=PFEED.filter(p=>!p.reply_to);
+  box.innerHTML=top.map(p=>{
+    const reps=PFEED.filter(r=>r.reply_to===p.id)
+      .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    return poHTML(p)+reps.map(r=>`<div style="margin-left:18px">${poHTML(r,true)}</div>`).join("");
+  }).join("");
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+    if(!await askYN("この投稿を消しますか？","","消す")) return;
+    try{ await callRpc("delete_post",{p_id:b.dataset.del}); await loadFeed(true); renderPfeed(); }
+    catch(e){ toast(String(e.message||e).slice(0,120)); }
+  });
+  box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>poReply(b.dataset.rep));
+}
+function poHTML(p,isRep){
+  const rec = p.kind==="record"
+    ? `<div class="sbtop" style="margin-top:6px">
+         <span class="sbev">${esc(p.event||"")}</span>
+         <span class="sbval st-${p.sub_status||"pending"}">${fmtRec(p.event,p.value)}</span>
+         <span class="sbtag ${p.sub_status||"pending"}">${SB_ST[p.sub_status]||"未審査"}</span>
+         ${p.nomiss?'<span class="sbtag">ノーミス</span>':""}</div>`
+    : "";
+  const cup = p.kind==="cup" ? '<span class="sbtag">大会</span>' : "";
+  return `<div class="sbrow"${isRep?' style="background:#101827"':""}>
+    <div class="sbtop">
+      ${lviHTML(p.lv)}
+      <b class="${roleCls(p.role)}">${esc(p.name||p.handle||"名無し")}</b>
+      ${p.handle?`<span class="tiny">@${esc(p.handle)}</span>`:""}
+      ${roleLabel(p.role)?`<span class="tiny" style="color:${roleColor(p.role)}">${roleLabel(p.role)}</span>`:""}
+      ${cup}<span class="tiny" style="margin-left:auto">${jstShort(p.created_at)}</span>
+    </div>
+    ${rec}
+    ${p.body?`<div style="margin-top:6px;white-space:pre-wrap;font-size:.9rem">${esc(p.body)}</div>`:""}
+    ${poLinkHTML(p.link)}
+    <div class="tools" style="margin-top:7px">
+      ${isRep?"":`<button class="btn sm" data-rep="${p.id}">返信</button>`}
+      ${(p.mine||myLv()>=3)?`<button class="btn sm" data-del="${p.id}">消す</button>`:""}
+    </div></div>`;
+}
+async function poSend(body,link,reply,msgEl){
+  if(!(TEST||(sess&&sbOn()))) return toast("先にログインしてください");
+  if(!body&&!link) return toast("本文かリンクを入れてください");
+  if(link&&!isProofUrl(link)) return toast("リンクは X か YouTube だけです");
+  try{
+    await callRpc("post_chat",{p_body:body||null,p_link:link||null,p_reply:reply||null},[["p_reply"]]);
+    await loadFeed(true); renderPfeed();
+    if(msgEl) msgEl.innerHTML='<span style="color:var(--acc2)">投稿しました</span>';
+    return true;
+  }catch(e){ if(msgEl) msgEl.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>';
+    else toast(String(e.message||e).slice(0,120)); return false; }
+}
+$("#poGo").onclick=async()=>{
+  const ok=await poSend($("#poBody").value.trim(),$("#poLink").value.trim(),null,$("#poMsg"));
+  if(ok){ $("#poBody").value=""; $("#poLink").value=""; }
+};
+function poReply(id){
+  const M=modal(`<h2>返信する</h2>
+    <textarea id="rpB" rows="3" maxlength="500" placeholder="返信を書く"></textarea>
+    <label class="fl">リンク（任意）</label>
+    <input type="text" class="txt" id="rpL" placeholder="https://…">
+    <div class="tools"><button class="btn pri" id="rpGo">返信する</button></div>
+    <p class="tiny" id="rpM"></p>`);
+  M.q("#rpGo").onclick=async()=>{
+    const ok=await poSend(M.q("#rpB").value.trim(),M.q("#rpL").value.trim(),id,M.q("#rpM"));
+    if(ok) M.close();
+  };
+}
+
+/* ---- 大会 ---- */
+let cuSteps=[{event:"暗素因数分解lv.1",n:1}];
+function cuRender(){
+  const box=$("#cuSteps"); if(!box) return;
+  box.innerHTML=cuSteps.map((s,i)=>`<div class="tools" style="margin-top:6px" data-i="${i}">
+    <span class="tiny" style="min-width:2.6em">${i+1}番目</span>
+    <select data-ev style="flex:1;min-width:150px">${EVENTS.map(e=>
+      `<option value="${esc(e)}"${e===s.event?" selected":""}>${esc(e)}</option>`).join("")}</select>
+    <input type="number" data-n min="1" max="100" value="${s.n}" style="max-width:80px">
+    <span class="tiny">回連続</span>
+    ${cuSteps.length>1?`<button class="btn sm" data-rm>消す</button>`:""}
+  </div>`).join("");
+  box.querySelectorAll("[data-i]").forEach(row=>{
+    const i=+row.dataset.i;
+    row.querySelector("[data-ev]").onchange=e=>{ cuSteps[i].event=e.target.value; cuRender(); };
+    row.querySelector("[data-n]").oninput=e=>{ cuSteps[i].n=Math.max(1,Math.min(100,+e.target.value||1)); cuSum(); };
+    const rm=row.querySelector("[data-rm]");
+    if(rm) rm.onclick=()=>{ cuSteps.splice(i,1); cuRender(); };
+  });
+  cuSum();
+}
+function cuRule(){
+  return {nomiss:!!$("#cuNM").checked,
+          loops:Math.max(1,Math.min(50,+$("#cuLoop").value||1)),
+          steps:cuSteps.map(s=>({event:s.event,n:s.n}))};
+}
+function rulePlays(r){ return (r.loops||1)*(r.steps||[]).reduce((a,s)=>a+(s.n||1),0); }
+function ruleText(r){
+  const seq=(r.steps||[]).map(s=>`${s.event}を${s.n}回`).join(" → ");
+  const lp=(r.loops||1)>1?`　これを${r.loops}回ループ`:"";
+  return seq+lp+(r.nomiss?"　／　ノーミス必須":"");
+}
+function cuSum(){
+  const r=cuRule(), n=rulePlays(r);
+  $("#cuSum").textContent=`合計プレイ回数 ${jp(n)} 回`;
+  $("#cuPrev").innerHTML=`<b>できあがるルール</b><br><span class="tiny">${esc(ruleText(r))}`
+    +`<br>合計 ${jp(n)} 回プレイし、その合計スコアで順位を決めます。同点は同率（T）です。</span>`;
+}
+$("#cuAdd").onclick=()=>{ if(cuSteps.length>=20) return toast("種目は20までです");
+  cuSteps.push({event:EVENTS[0],n:1}); cuRender(); };
+$("#cuLoop").oninput=cuSum;
+$("#cuNM").onchange=cuSum;
+$("#cuGo").onclick=async()=>{
+  const t=$("#cuT").value.trim(), msg=$("#cuMsg");
+  if(!t) return toast("大会名を入れてください");
+  const r=cuRule();
+  if(rulePlays(r)>500) return toast("合計プレイ回数が多すぎます（500まで）");
+  try{
+    await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:$("#cuI").value.trim()||null},[["p_intro"]]);
+    $("#cuT").value=""; $("#cuI").value="";
+    msg.innerHTML='<span style="color:var(--acc2)">作りました</span>';
+    await loadPcups(); renderPcups();
+  }catch(e){ msg.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+};
+function renderPcups(){
+  const box=$("#cupBox"); if(!box) return;
+  if(!PCUPS.length){ box.innerHTML='<p class="muted">まだ大会がありません。</p>'; return; }
+  box.innerHTML=PCUPS.map(c=>{
+    const r=c.rule||{}, mine=(c.owner_handle||"")===(pro.handle||"").toLowerCase()||c.mine;
+    const rows=PCUPENT[c.id];
+    return `<div class="sbrow" data-cup="${c.id}">
+      <div class="sbtop">
+        <b>${esc(c.title)}</b>
+        ${c.closed?'<span class="sbtag">終了</span>':'<span class="sbtag certified">受付中</span>'}
+        <span class="tiny" style="margin-left:auto">${esc(c.owner_name||c.owner_handle||"")}</span>
+      </div>
+      ${c.intro?`<div class="tiny" style="margin-top:4px">${esc(c.intro)}</div>`:""}
+      <div class="tiny" style="margin-top:5px;color:var(--acc)">${esc(ruleText(r))}</div>
+      <div class="tiny">合計 ${jp(rulePlays(r))} 回プレイ</div>
+      <div class="tools" style="margin-top:8px">
+        <button class="btn sm" data-see="${c.id}">${rows?"順位を隠す":"順位を見る"}</button>
+        ${c.closed?"":`<button class="btn sm pri" data-join="${c.id}">参加する</button>`}
+        ${mine?`<button class="btn sm" data-close="${c.id}">${c.closed?"再開する":"終了する"}</button>
+                <button class="btn sm" data-delc="${c.id}">消す</button>`:""}
+      </div>
+      ${rows?pcupTable(rows):""}
+    </div>`;}).join("");
+  box.querySelectorAll("[data-see]").forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.see;
+    if(PCUPENT[id]) delete PCUPENT[id]; else await loadPcupEnt(id);
+    renderPcups();
+  });
+  box.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>pcupJoin(b.dataset.join));
+  box.querySelectorAll("[data-close]").forEach(b=>b.onclick=async()=>{
+    const c=PCUPS.find(x=>x.id===b.dataset.close);
+    try{ await callRpc("close_pcup",{p_id:b.dataset.close,p_closed:!c.closed},[["p_closed"]]);
+      await loadPcups(); renderPcups(); }catch(e){ toast(String(e.message||e).slice(0,120)); }
+  });
+  box.querySelectorAll("[data-delc]").forEach(b=>b.onclick=async()=>{
+    if(!await askYN("この大会を消しますか？","参加記録もすべて消えます。","消す")) return;
+    try{ await callRpc("delete_pcup",{p_id:b.dataset.delc});
+      await loadPcups(); renderPcups(); }catch(e){ toast(String(e.message||e).slice(0,120)); }
+  });
+}
+/** 同点は同じ順位。並んでいる人が2人以上なら「T」を付ける */
+function pcupTable(rows){
+  if(!rows.length) return '<p class="tiny" style="margin-top:8px">まだ参加者がいません。</p>';
+  return `<div class="scroll" style="margin-top:9px"><table><thead><tr>
+    <th>順位</th><th>名前</th><th>合計スコア</th><th>証明</th></tr></thead><tbody>`
+    +rows.map(e=>`<tr>
+      <td><b>${e.rk}${e.tie_n>1?"T":""}</b></td>
+      <td>${esc(e.name||e.handle||"")}${e.nomiss?' <span class="sbtag">ノーミス</span>':""}</td>
+      <td><b>${jp(+e.total)}</b></td>
+      <td><a href="${esc(e.proof_url)}" target="_blank" rel="noopener">見る</a></td>
+    </tr>`).join("")+"</tbody></table></div>";
+}
+function pcupJoin(id){
+  const c=PCUPS.find(x=>x.id===id); if(!c) return;
+  const r=c.rule||{}, n=rulePlays(r);
+  const M=modal(`<h2>${esc(c.title)} に参加する</h2>
+    <div class="hintbox" style="margin-top:0"><b>ルール</b><br>
+      <span class="tiny">${esc(ruleText(r))}<br>合計 ${jp(n)} 回プレイした合計スコアを出してください。</span></div>
+    <label class="fl">合計スコア</label>
+    <input type="text" inputmode="numeric" id="jT" style="max-width:none" placeholder="例：1,980,000">
+    <label class="fl">提出する動画のリンク（X または YouTube）</label>
+    <input type="text" class="txt" id="jP" placeholder="https://www.youtube.com/watch?v=…">
+    <p class="tiny">この大会の提出は動画のみです。全プレイが映っている必要があります。</p>
+    ${r.nomiss?`<label class="pk" style="margin-top:8px;display:inline-flex">
+       <input type="checkbox" id="jN"> 全ての記録でノーミスでした</label>`:""}
+    <p class="tiny">同じ大会に出し直すと、良い方の記録だけが残ります。</p>
+    <div class="tools"><button class="btn pri" id="jGo">提出する</button></div>
+    <p class="tiny" id="jM"></p>`);
+  M.qa("input[inputmode=numeric]").forEach(el=>el.oninput=()=>applyComma(el));
+  M.q("#jGo").onclick=async()=>{
+    const t=num(M.q("#jT").value), p=M.q("#jP").value.trim();
+    if(!(t>0)) return toast("合計スコアを入れてください");
+    if(!isProofUrl(p)) return toast("提出は X か YouTube のリンクだけです");
+    if(r.nomiss&&!M.q("#jN").checked) return toast("この大会はノーミスが条件です");
+    try{
+      await callRpc("join_pcup",{p_cup:id,p_total:t,p_proof:p,p_detail:null,
+        p_nomiss:r.nomiss?!!M.q("#jN").checked:false},[["p_detail","p_nomiss"]]);
+      M.close(); toast("提出しました");
+      await loadPcupEnt(id); renderPcups();
+    }catch(e){ M.q("#jM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+
+let snsView="feed";
+$$("#snsTabs button").forEach(b=>b.onclick=()=>{
+  snsView=b.dataset.sv;
+  $$("#snsTabs button").forEach(x=>x.classList.toggle("on",x===b));
+  $("#snsFeed").hidden=snsView!=="feed";
+  $("#snsCup").hidden=snsView!=="cup";
+});
+async function snsEnter(){
+  if($("#cuSteps")&&!$("#cuSteps").children.length) cuRender();
+  renderPfeed(); renderPcups();
+  await Promise.all([loadFeed(),loadPcups()]);
+  renderPfeed(); renderPcups();
 }
 
 /* =========================================================
