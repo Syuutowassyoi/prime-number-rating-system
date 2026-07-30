@@ -485,6 +485,31 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .xl td.pick{background:#12351f}
 .xl td.main{background:#3a2f12}
 .xl .val{font-size:.7rem;color:#8fbdf0;padding:0 5px;text-align:right}
+/* 開発者を応援する */
+.chpop{width:138px;height:138px;border-radius:50%;border:2px solid #ffc861;cursor:pointer;
+  background:radial-gradient(circle at 36% 30%,#3a2f12,#241a08);font-size:3.6rem;line-height:1;
+  box-shadow:0 0 28px -6px #ffc861aa;transition:transform .1s}
+.chpop:active{transform:scale(.94)}
+.chpop.pop{animation:chp .45s ease-out}
+@keyframes chp{0%{transform:scale(1)}40%{transform:scale(1.16)}100%{transform:scale(1)}}
+.chtotal{font-family:Impact,"Arial Black",sans-serif;font-size:3.4rem;line-height:1.1;margin-top:12px;
+  background:linear-gradient(180deg,#fff3bf,#efc040);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.chsub{font-size:.8rem;color:var(--dim);margin-top:2px}
+.chfly{position:fixed;pointer-events:none;z-index:80;font-weight:800;color:#ffd45e;
+  font-size:1.1rem;animation:chfly .9s ease-out forwards}
+@keyframes chfly{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-58px)}}
+/* カレンダー */
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calhead{text-align:center;font-size:.7rem;color:var(--dim);padding:2px 0}
+.calday{border:1px solid var(--line);border-radius:8px;padding:5px 3px;text-align:center;
+  cursor:pointer;min-height:46px;overflow:hidden}
+.calday .cn{font-size:.78rem;font-weight:700;line-height:1.2}
+.calday .cs{font-size:.62rem;line-height:1.25;word-break:break-all}
+.calday.cold{background:#151d2a;color:#66748a;border-color:#222d3d}
+.calday.hot{background:#3a2a10;border-color:#c98a2e;color:#ffd8a0;
+  box-shadow:0 0 10px -2px #f0a94088}
+.calday:hover{border-color:var(--acc)}
 .radars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 @media (max-width:760px){.radars{grid-template-columns:1fr}}
 .ptags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 6px}
@@ -530,6 +555,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 <header>
   <h1>素数あつめ <span class="g">RATING</span></h1>
   <span class="ver" id="verBadge">—</span>
+  <button class="btn sm" id="cheerBtn" style="margin-left:8px">開発者を応援する</button>
 </header>
 <div class="menubar">
   <button class="mbtn" id="menuBtn" aria-label="メニュー"><span></span><span></span><span></span></button>
@@ -946,6 +972,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <h2>審査室</h2>
         <div class="banner" id="rvAlert" hidden
           style="background:#3a2f12;border-color:#8a7330;margin:0 0 12px"></div>
+        <div class="segs" id="rvMode" style="grid-template-columns:1fr 1fr">
+          <button data-rm="do" class="on">審査をする</button>
+          <button data-rm="see">審査したものを確認する</button>
+        </div>
         <div class="segs" id="rvTabs"></div>
         <p class="tiny" id="rvHint">—</p>
         <div id="rvBox"></div>
@@ -1046,6 +1076,38 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
         <div id="sbMine"><p class="muted">まだ提出がありません。</p></div>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="cheer" hidden>
+  <div class="card" style="text-align:center">
+    <h2 style="text-align:left">開発者を応援する</h2>
+    <p class="muted" style="margin-top:-8px;text-align:left">
+      クラッカーを押すと応援ポイントがたまります。記録を出すたびにも3ポイント入ります。</p>
+    <button id="chPop" class="chpop">🎉</button>
+    <div class="chtotal" id="chTotal">0</div>
+    <div class="chsub" id="chSub">—</div>
+    <p class="tiny" id="chLeft">—</p>
+  </div>
+  <div class="card">
+    <h2>応援ポイントのランキング</h2>
+    <div class="segs" id="chTabs" style="grid-template-columns:repeat(5,1fr)">
+      <button data-cb="total" class="on">累計</button>
+      <button data-cb="today">今日</button>
+      <button data-cb="this_week">今週</button>
+      <button data-cb="this_month">今月</button>
+      <button data-cb="this_year">今年</button>
+    </div>
+    <div id="chBoard"></div>
+  </div>
+  <div class="card">
+    <h2>応援の記録</h2>
+    <div class="tools" style="margin-top:0">
+      <button class="btn sm" id="chPrev">◀ 前</button>
+      <b id="chNow" style="align-self:center"></b>
+      <button class="btn sm" id="chNext">次 ▶</button>
+    </div>
+    <div id="chCal" style="margin-top:10px"></div>
   </div>
 </section>
 
@@ -1292,7 +1354,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v45";
+const APP_VERSION = "v46";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2538,7 +2600,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","sns","settings","help"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle); drawCard(); })(); }
@@ -2554,6 +2616,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="sns") snsEnter();
   if(b.dataset.tab==="help") renderHelp();
+  if(b.dataset.tab==="cheer") cheerEnter();
   saveWhere();
   scrollTo({top:0,behavior:"smooth"});});
 
@@ -4981,7 +5044,7 @@ $("#lsPause").onclick=()=>{
 /* =========================================================
    10e. 記録提出と審査（審査員 → スーパーバイザー → ジャッジマン）
    ========================================================= */
-let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], REPQ=[], AQ=[], rvTab="j";
+let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], REPQ=[], AQ=[], ADONE=[], rvTab="j", rvMode="do";
 const SB_ST={pending:"未審査",judged:"審査員承認",certified:"認定済み",rejected:"却下"};
 /** テスト中は役職ごとに別人として扱います。
  *  審査員として承認 → スーパーバイザーに切り替え、で「別の人の審査」として見えます。 */
@@ -5030,6 +5093,15 @@ async function loadAchQ(){
     AQ=await sbAuth("ach_subs?select=*,achievements!inner(id,title,kind,fields,sheet,body)"
       +"&status=eq.pending&achievements.kind=eq.official&order=created_at.asc&limit=100");
   }catch(e){ AQ=[]; }
+}
+/** 自分が審査したアチーブメントの提出 */
+async function loadAchDone(){
+  if(TEST){ ADONE=TDB.asubs.filter(x=>x.judge_handle===pro.handle); return; }
+  if(!(sess&&sbOn())||myLv()<2){ ADONE=[]; return; }
+  try{
+    ADONE=await sbAuth("ach_subs?select=*,achievements!inner(id,title,kind,fields,sheet,body)"
+      +"&judge_id=eq."+encodeURIComponent(sess.user.id)+"&order=judged_at.desc&limit=100");
+  }catch(e){ ADONE=[]; }
 }
 async function loadReports(){
   if(TEST){ REPQ=myLv()>=2?TDB.reps.slice():[]; return; }
@@ -5128,17 +5200,24 @@ function rvLists(){
         &&(lv>=4||svLv(x)>=4)),
     ach:AQ.filter(x=>x.user_id!==my),
     msg:REPQ.filter(x=>!x.voted),
-    ok:RVQ.filter(x=>(x.judge_id===my&&x.judge_act!=="reject")||x.sv_id===my||x.jm_id===my),
-    ng:RVQ.filter(x=>x.judge_id===my&&x.judge_act==="reject")
+    /* 自分が下した判定を、種類ごとに分けて見返せます */
+    dj:RVQ.filter(x=>x.judge_id===my),
+    ds:RVQ.filter(x=>x.sv_id===my),
+    dm:RVQ.filter(x=>x.jm_id===my),
+    da:ADONE.slice()
   };
 }
 /** 表示するタブ。審査員には審査員審査もスーパーバイザー審査も見せません */
+/** 「審査をする」ときと「確認する」ときで、出すタブを変えます */
 function rvTabDefs(L){
-  const lv=myLv(), t=[{k:"j",n:"審査"}];
+  const lv=myLv();
+  if(rvMode==="see")
+    return [{k:"dj",n:"審査"},{k:"ds",n:"審査員審査"},
+            {k:"dm",n:"スーパーバイザー審査"},{k:"da",n:"アチーブメント審査"}];
+  const t=[{k:"j",n:"審査"}];
   if(lv>=3) t.push({k:"s",n:"審査員審査"});
   if(lv>=4||L.m.length) t.push({k:"m",n:"スーパーバイザー審査"});
-  t.push({k:"ach",n:"アチーブメント審査"},{k:"msg",n:"メッセージ審査"},
-         {k:"ok",n:"承諾した審査"},{k:"ng",n:"却下した審査"});
+  t.push({k:"ach",n:"アチーブメント審査"},{k:"msg",n:"メッセージ審査"});
   return t;
 }
 /** いま自分が手をつけられる件数。0でなければ赤い点を出す */
@@ -5153,8 +5232,10 @@ const RV_HINT={
   m:"スーパーバイザーの審査員審査をチェックします。ジャッジマンが行った審査員審査は、公平のためスーパーバイザーもチェックできます。",
   msg:"通報された投稿です。審査員が3人「削除する」に入れるか、スーパーバイザー以上が1人入れると消えます。",
   ach:"公式アチーブメントの提出です。内容が正しいかを見て、達成しているかどうかをチェックで示してから承認します。",
-  ok:"自分が承認・認定した記録です。上位者のチェック結果もここで確認できます。",
-  ng:"自分が却下した記録です。スーパーバイザーが「認定」すると完全に削除されますが、この一覧からは消えません。"
+  dj:"自分が審査した記録です。承認・修正・却下のすべてが残ります。上位者のチェック結果も見られます。",
+  ds:"自分が審査員審査した記録です。",
+  dm:"自分がスーパーバイザー審査した記録です。",
+  da:"自分が審査したアチーブメントの提出です。"
 };
 function renderRvq(){
   const card=$("#rvCard"), no=$("#rvNo"); if(!card) return;
@@ -5174,6 +5255,9 @@ function renderRvq(){
   tb.innerHTML=defs.map(d=>`<button data-rq="${d.k}" class="${d.k===rvTab?"on":""}">`
     +`${d.n} <span class="c">${L[d.k].length}</span></button>`).join("");
   tb.querySelectorAll("button").forEach(b=>b.onclick=()=>{ rvTab=b.dataset.rq; renderRvq(); });
+  $$("#rvMode button").forEach(b=>b.onclick=()=>{
+    rvMode=b.dataset.rm; rvTab=null; renderRvq(); });
+  $$("#rvMode button").forEach(b=>b.classList.toggle("on",b.dataset.rm===rvMode));
   /* 手つかずの審査があれば、いちばん上で知らせる */
   const al=$("#rvAlert"), waits=[];
   if(L.j.length) waits.push("審査 "+L.j.length+"件");
@@ -5188,6 +5272,28 @@ function renderRvq(){
   const list=L[rvTab], box=$("#rvBox");
   if(!list.length){ box.innerHTML='<p class="muted">'
     +(rvTab==="ok"||rvTab==="ng"?"まだありません。":"いまは待っている記録がありません。")+'</p>'; return; }
+  if(rvTab==="da"){
+    box.innerHTML=list.length?list.slice(0,40).map(x=>{
+      const a2=x.achievements||{};
+      return `<div class="sbrow">
+        <div class="sbtop"><b>${esc(x.name||x.handle||"")}</b>
+          <span class="sbev">${esc(a2.title||"")}</span>
+          <span class="sbval st-${x.done?"certified":x.status==="rejected"?"rejected":"judged"}">
+            ${x.main==null?"—":jp(Math.round(+x.main*1000)/1000)}</span>
+          <span class="sbtag ${x.done?"certified":x.status==="rejected"?"rejected":"judged"}">
+            ${x.done?"達成":x.status==="rejected"?"却下":"承認（未達成）"}</span>
+          <span class="tiny" style="margin-left:auto">${jstShort(x.judged_at||x.created_at)}</span></div>
+        ${x.judge_note?`<div class="tiny" style="margin-top:4px">${esc(x.judge_note)}</div>`:""}
+        <div class="tools"><button class="btn sm" data-aview="${x.id}">中身を見る</button>
+          ${(x.links||[]).length?`<button class="btn sm" data-aproof="${x.id}">証明</button>`:""}</div>
+      </div>`;}).join(""):'<p class="muted">まだありません。</p>';
+    box.querySelectorAll("[data-aview]").forEach(b=>b.onclick=()=>{
+      const x=ADONE.find(y=>y.id===b.dataset.aview);
+      achSubDetail(Object.assign({},x.achievements||{}),x); });
+    box.querySelectorAll("[data-aproof]").forEach(b=>b.onclick=()=>{
+      const x=ADONE.find(y=>y.id===b.dataset.aproof); showProof(x&&x.links);});
+    return;
+  }
   if(rvTab==="ach"){
     box.innerHTML=list.slice(0,40).map(x=>{
       const a=x.achievements||{};
@@ -5199,8 +5305,11 @@ function renderRvq(){
         <div class="tiny" style="margin-top:5px;white-space:pre-wrap">${esc((a.body||"").slice(0,160))}</div>
         <div class="tools" data-id="${x.id}">
           <button class="btn sm" data-aview="${x.id}">中身を見る</button>
+          ${(x.links||[]).length?`<button class="btn sm" data-aproof="${x.id}">証明</button>`:""}
           <button class="btn sm pri" data-aok="${x.id}">承認する</button>
           <button class="btn sm" data-ang="${x.id}">却下する</button></div></div>`;}).join("");
+    box.querySelectorAll("[data-aproof]").forEach(b=>b.onclick=()=>{
+      const x=AQ.find(y=>y.id===b.dataset.aproof); showProof(x&&x.links);});
     box.querySelectorAll("[data-aview]").forEach(b=>b.onclick=()=>{
       const x=AQ.find(y=>y.id===b.dataset.aview);
       achSubDetail(Object.assign({},x.achievements||{}),x); });
@@ -5229,6 +5338,8 @@ function renderRvq(){
   box.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>
     rvAct(b.closest(".tools").dataset.id,b.dataset.act));
   box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openProfile(b.dataset.open));
+  box.querySelectorAll("[data-proof]").forEach(b=>b.onclick=()=>
+    showProof([{url:b.dataset.proof,note:""}]));
 }
 async function rvVote(id,del){
   const p=REPQ.find(x=>x.post_id===id);
@@ -5315,14 +5426,16 @@ function rvRow(s){
       <span class="sbtag ${s.status==="removed"?"rejected":s.status}">${st}</span>
       ${s.nomiss?'<span class="sbtag">ノーミス</span>':""}
     </div>
-    <div class="tiny" style="margin-top:4px">${jstFull(s.created_at)}
-      <a href="${esc(s.proof_url)}" target="_blank" rel="noopener noreferrer">証明を別タブで見る</a></div>
+    <div class="tools" style="margin-top:5px">
+      <button class="btn sm" data-proof="${esc(s.proof_url)}">証明を見る</button>
+      <span class="tiny" style="align-self:center">${jstFull(s.created_at)}</span></div>
     ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}
     ${hist.length?`<div class="tiny" style="margin-top:5px;color:var(--dim)">${hist.join("<br>")}</div>`:""}
     ${s.appeal?`<div class="tiny" style="margin-top:5px;color:var(--warn)">不服申し立て：${esc(s.appeal)}</div>`:""}
     <div class="tools" data-id="${s.id}">${rvBtns(s)}</div></div>`;
 }
 function rvBtns(s){
+  if(rvMode==="see") return "";      /* 確認するだけの画面ではボタンを出しません */
   if(rvTab==="j") return `<button class="btn sm pri" data-act="approve">承認</button>`
     +`<button class="btn sm" data-act="fix">修正</button>`
     +`<button class="btn sm" data-act="reject">却下</button>`;
@@ -5420,7 +5533,7 @@ function renderMyStat(){
 async function subsEnter(){
   renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
   if(!(TEST||(sess&&sbOn()))) return;
-  await Promise.all([loadSubs(),loadRvq(),loadReports(),loadAchQ(),loadMyStat()]);
+  await Promise.all([loadSubs(),loadRvq(),loadReports(),loadAchQ(),loadAchDone(),loadMyStat()]);
   renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
 }
 /* ---- プロフィール画面 ---- */
@@ -6004,14 +6117,43 @@ function poLinkHTML(u,note){
     +(note?`<span class="tiny" style="align-self:center;word-break:break-word">${esc(note)}</span>`:"")
     +`</div>`;
 }
-async function openLink(i){
+/** リンクを開きます。
+ *  window.open は「押した直後」でないとブラウザに止められるので、
+ *  確認画面のボタンそのものを <a> にして、ブラウザに直接開かせています。 */
+/** 証明リンクの一覧を出します（複数でも1本でも） */
+function showProof(links){
+  const L=(links||[]).filter(x=>x&&x.url);
+  if(!L.length) return toast("証明のリンクがありません");
+  LINK_BOX.length=0;
+  const M=modal(`<h2>証明のリンク</h2>
+    <p class="muted" style="margin-top:-8px">押すと確認してから別タブで開きます。</p>
+    <div id="spBox">${L.map(x=>poLinkHTML(x.url,x.note)).join("")}</div>`,{w:640});
+  M.qa("[data-link]").forEach(b=>b.onclick=()=>openLink(+b.dataset.link));
+}
+function openLink(i){
   const L=LINK_BOX[i]; if(!L) return;
   const host=(L.url.match(/^https?:\/\/([^/]+)/)||[])[1]||"";
-  if(!await askYN("このリンクに飛びますか？",
-    (L.note?esc(L.note)+"<br><br>":"")
-    +`<b>${esc(host)}</b><br><span class="tiny" style="word-break:break-all">${esc(L.url)}</span>`,
-    "別タブで開く")) return;
-  window.open(L.url,"_blank","noopener,noreferrer");
+  const M=modal(`<h2>このリンクに飛びますか？</h2>
+    ${L.note?`<p class="muted" style="margin-top:-8px;white-space:pre-wrap">${esc(L.note)}</p>`:""}
+    <p class="tiny"><b>${esc(host)}</b><br>
+      <span style="word-break:break-all">${esc(L.url)}</span></p>
+    <div class="tools">
+      <a class="btn pri" id="lkGo" href="${esc(L.url)}" target="_blank" rel="noopener noreferrer"
+        style="text-decoration:none;display:inline-flex;align-items:center">別タブで開く</a>
+      <button class="btn" id="lkCopy">リンクをコピー</button>
+      <button class="btn" id="lkX">やめる</button></div>
+    <p class="tiny">開かない場合は、コピーしてブラウザに貼ってください。</p>`,{w:600});
+  M.q("#lkGo").onclick=()=>setTimeout(()=>M.close(),120);
+  M.q("#lkX").onclick=()=>M.close();
+  M.q("#lkCopy").onclick=async()=>{
+    try{ await navigator.clipboard.writeText(L.url); toast("コピーしました"); }
+    catch(e){
+      const ta=document.createElement("textarea"); ta.value=L.url;
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); toast("コピーしました"); }catch(e2){ toast("コピーできませんでした"); }
+      ta.remove();
+    }
+  };
 }
 
 /* タブを行き来するたびに取りに行かないよう、30秒だけ手元に置いておきます。
@@ -6099,6 +6241,21 @@ function renderPfeed(){
   box.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>tagFilter(b.dataset.tag));
   box.querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>openLink(+b.dataset.link));
   box.querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>poLike(b.dataset.like,b));
+  box.querySelectorAll("[data-rvgo]").forEach(b=>b.onclick=async()=>{
+    await loadRvq();
+    const t=RVQ.find(x=>x.id===b.dataset.rvgo);
+    if(!t) return toast("いま審査できる記録が見つかりません");
+    const my=myId();
+    rvMode="do";
+    rvTab = !t.judge_id ? "j" : (!t.sv_id&&t.judge_id!==my&&myLv()>=3) ? "s"
+          : (!t.jm_id&&t.sv_id&&myLv()>=4) ? "m" : "j";
+    snsGo("rv");
+    setTimeout(()=>{ renderRvq();
+      const el=document.querySelector(`#rvBox .tools[data-id="${t.id}"]`);
+      if(el) el.closest(".sbrow").scrollIntoView({behavior:"smooth",block:"center"});
+      else toast("この記録はいま自分が審査できる段階ではありません");
+    },260);
+  });
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>poReply(b.dataset.rep));
 }
 function poHTML(p,isRep,toWho){
@@ -6110,6 +6267,8 @@ function poHTML(p,isRep,toWho){
          ${p.nomiss?'<span class="sbtag">ノーミス</span>':""}</div>`
     : "";
   const cup = p.kind==="cup" ? '<span class="sbtag">大会</span>' : "";
+  /* 未審査の記録は、審査員以上ならその場で審査できます */
+  const canRv = myLv()>=2 && p.sub_id && p.sub_status==="pending";
   return `<div class="sbrow"${isRep?' style="background:#101827"':""}>
     <div class="sbtop">
       ${lviHTML(p.lv)}
@@ -6126,6 +6285,7 @@ function poHTML(p,isRep,toWho){
     <div class="tools" style="margin-top:7px">
       <button class="heart${p.liked?" on":""}" data-like="${p.id}" title="いいね">
         <span class="hi">${p.liked?"♥":"♡"}</span><span class="hn">${jp(+p.likes||0)}</span></button>
+      ${canRv?`<button class="btn sm pri" data-rvgo="${esc(p.sub_id)}">審査する</button>`:""}
       <button class="btn sm" data-rep="${p.id}">返信</button>
       <button class="btn sm dots" data-more="${p.id}">・・・</button>
     </div></div>`;
@@ -6420,6 +6580,14 @@ function renderPcups(){
     await loadPcupEnt(b.dataset.cid,b.dataset.pd); renderPcups(); });
   box.querySelectorAll("[data-det]").forEach(b=>b.onclick=()=>{
     const [cid,i]=b.dataset.det.split("|"); cupDetail(cid,+i); });
+  box.querySelectorAll("[data-past]").forEach(b=>b.onclick=()=>pastRanking(b.dataset.past));
+  box.querySelectorAll("[data-rvach]").forEach(b=>b.onclick=()=>{
+    const [cid,i]=b.dataset.rvach.split("|"); cupReview(cid,+i); });
+  clearInterval(window._cdT);
+  window._cdT=setInterval(()=>{
+    document.querySelectorAll("[data-cd]").forEach(el=>{
+      const bb=el.querySelector("b"); if(bb) bb.textContent=periodLeft(el.dataset.cd); });
+  },1000);
   box.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>pcupJoin(b.dataset.join));
   box.querySelectorAll("[data-close]").forEach(b=>b.onclick=async()=>{
     const c=PCUPS.find(x=>x.id===b.dataset.close);
@@ -6433,12 +6601,31 @@ function renderPcups(){
   });
 }
 /** 同点は同じ順位。並んでいる人が2人以上なら「T」を付ける */
+/** 次の切り替わりまでの残り時間（日本時間） */
+function periodLeft(pd){
+  if(pd==="all") return "";
+  const n=jstNow();
+  let end;
+  if(pd==="day") end=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);
+  else if(pd==="week"){ const w=(n.getDay()+6)%7;
+    end=new Date(n.getFullYear(),n.getMonth(),n.getDate()+(7-w)); }
+  else end=new Date(n.getFullYear(),n.getMonth()+1,1);
+  let ms=end-n; if(ms<0) ms=0;
+  const d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),
+        m=Math.floor(ms%3600000/60000), sec=Math.floor(ms%60000/1000);
+  const p2=x=>String(x).padStart(2,"0");
+  return (d?d+"日":"")+p2(h)+":"+p2(m)+":"+p2(sec);
+}
 function pcupTable(rows,cup){
   const pd=cupPeriod[cup.id]||"all";
   const head=`<div class="segs" style="grid-template-columns:repeat(4,1fr);margin:10px 0 6px">`
     +["all","day","week","month"].map(k=>
       `<button data-pd="${k}" data-cid="${cup.id}" class="${k===pd?"on":""}">${PERIOD_N[k]}</button>`).join("")
-    +`</div><p class="tiny" style="color:var(--acc);font-weight:700">${esc(periodTitle(cup,pd))}</p>`;
+    +`</div><p class="tiny" style="color:var(--acc);font-weight:700">${esc(periodTitle(cup,pd))}</p>`
+    +(pd!=="all"?`<p class="tiny" data-cd="${pd}">順位が決まるまで 残り <b>${periodLeft(pd)}</b>
+        　（1位5個・2位3個・3位1個…のスターがもらえます）</p>`:"")
+    +`<div class="tools" style="margin-top:6px">
+        <button class="btn sm" data-past="${cup.id}">過去のランキングを閲覧する</button></div>`;
   if(!rows.length) return head+'<p class="tiny">この期間の参加者はまだいません。</p>';
   return head+`<div class="scroll"><table><thead><tr>
     <th>順位</th><th>名前</th><th>合計スコア</th><th>証明</th><th></th></tr></thead><tbody>`
@@ -6450,7 +6637,9 @@ function pcupTable(rows,cup){
       <td>${e.discord
         ?`<span class="tiny" title="${esc(e.discord_note||"")}">Discord</span>`
         :`<a href="${esc(e.proof_url)}" target="_blank" rel="noopener noreferrer">別タブで見る</a>`}</td>
-      <td><button class="btn sm" data-det="${cup.id}|${i}">詳細</button></td>
+      <td><button class="btn sm" data-det="${cup.id}|${i}">詳細</button>
+        ${(myLv()>=2&&e.status!=="certified"&&e.handle!==(pro.handle||""))
+          ?`<button class="btn sm pri" data-rvach="${cup.id}|${i}">審査</button>`:""}</td>
     </tr>`).join("")+"</tbody></table></div>";
 }
 /** 入力された1回ぶんずつの記録をすべて見せます（誰でも見られます） */
@@ -6610,7 +6799,7 @@ function pcupJoin(id){
         p_discord:dis,p_dnote:dnote||null},
         [["p_discord","p_dnote"],["p_links","p_discord","p_dnote"],
          ["p_detail","p_nomiss","p_links","p_discord","p_dnote"]]);
-      M.close(); toast("提出しました");
+      M.close(); toast("提出しました"); cheerSubmit();
       if(autoPost.cup){
         try{ await callRpc("post_update",{p_body:
           `${c.title} に記録を出しました！　合計スコア ${jp(t)}`,p_link:pf}); }catch(e){}
@@ -6864,7 +7053,7 @@ function liveStart(){
       if(snsShown("feed")){ await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice(); }
       if(snsShown("cup")) { await loadPcups(); renderPcups(); }
       if(snsShown("rank")) loadRanking(true);
-      if(snsShown("rv"))  { await Promise.all([loadRvq(),loadReports(),loadAchQ()]); renderRvq(); }
+      if(snsShown("rv"))  { await Promise.all([loadRvq(),loadReports(),loadAchQ(),loadAchDone()]); renderRvq(); }
       /* 役職が変わっていたら画面の作りも変える */
       if(sess&&sbOn()){ const before=me&&me.role; await loadMe();
         if(me&&me.role!==before){ renderRvq(); renderRole(); renderPcups();
@@ -6974,7 +7163,7 @@ function medalHTML(a){
   const tro=a.trophy&&TROPHY[a.trophy]?a.trophy:"none";
   const got=!!a.my_done_at;
   const cls="mdisc "+tro+(got?" shine":(a.kind==="official"?" lock":""));
-  const mark=a.kind==="official"?(TROPHY[a.trophy]||"—").slice(0,2):"★";
+  const mark=a.kind==="official"?"":"★";      /* ランクは色で分かるので文字は入れません */
   const st=[];
   if(a.kind==="official"&&!a.published) st.push('<div class="mstate un">（未公開）</div>');
   else if(a.kind==="official"&&a.dirty) st.push('<div class="mstate ed">（編集中）</div>');
@@ -7196,7 +7385,7 @@ async function achDetail(id){
     </tr>`;}).join("");
   const M=modal(`<div class="prof" style="align-items:center">
       <div class="mdisc ${tro}${got?" shine":""}" style="width:74px;height:74px;font-size:1.5rem">
-        ${esc(a.kind==="official"?(TROPHY[a.trophy]||"—").slice(0,2):"★")}</div>
+        ${a.kind==="official"?"":"★"}</div>
       <div><div class="pname">${esc(a.title)}</div>
         <div class="tiny">${a.kind==="official"?"公式アチーブメント":"みんなのアチーブメント"}
           ${a.trophy?"／"+TROPHY[a.trophy]:""}
@@ -7320,11 +7509,129 @@ function achSubmit(a){
       await callRpc("ach_submit",{p_ach:a.id,p_vals:v,p_main:main,p_links:LK,
         p_computed:(a.sheet?c:null),p_note:M.q("#asNote").value.trim()||null},
         [["p_note"],["p_computed","p_note"]]);
-      M.close(); toast("提出しました");
+      M.close(); toast("提出しました"); cheerSubmit();
       await loadAch(); await loadAchRank(a.id); renderAch();
       if(!TEST){ await loadFeed(true); renderPfeed(); }
     }catch(e){ M.q("#asM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
+}
+
+/* ---- 3) 過去のランキングをカレンダーから見る ---- */
+const pkOf=(pd,d)=>{
+  const y=d.getFullYear(), m=d.getMonth()+1, dd=d.getDate();
+  const p2=x=>String(x).padStart(2,"0");
+  if(pd==="day") return `${y}-${p2(m)}-${p2(dd)}`;
+  if(pd==="month") return `${y}-${p2(m)}`;
+  const t=new Date(y,d.getMonth(),dd); const w=(t.getDay()+6)%7;
+  t.setDate(dd-w);
+  const th=new Date(t); th.setDate(t.getDate()+3);
+  const j1=new Date(th.getFullYear(),0,1);
+  const wk=Math.ceil((((th-j1)/86400000)+1)/7);
+  return `${th.getFullYear()}-W${p2(wk)}`;
+};
+async function pastRanking(cid){
+  const cup=PCUPS.find(c=>c.id===cid); if(!cup) return;
+  let pd="day", cur=jstNow(), cal={};
+  const M=modal(`<h2>過去のランキング</h2>
+    <p class="muted" style="margin-top:-8px">${esc(cup.title)}　どの記録を見ますか？</p>
+    <div class="segs" id="prPd" style="grid-template-columns:1fr 1fr 1fr">
+      <button data-p="day" class="on">Daily</button>
+      <button data-p="week">Weekly</button>
+      <button data-p="month">Monthly</button>
+    </div>
+    <div class="tools" style="margin-top:0">
+      <button class="btn sm" id="prPrev">◀ 前</button>
+      <b id="prNow" style="align-self:center"></b>
+      <button class="btn sm" id="prNext">次 ▶</button>
+    </div>
+    <div id="prCal" style="margin-top:10px"></div>
+    <div id="prBox" style="margin-top:12px"></div>`,{w:860});
+
+  const loadCal=async()=>{
+    const y=cur.getFullYear(), m=cur.getMonth();
+    const from=new Date(y,m,1), to=new Date(y,m+1,0);
+    const f=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    cal={};
+    if(TEST){
+      TDB.ent.filter(e=>e.cup_id===cid).forEach(e=>{
+        const k=f(new Date(e.created_at)); cal[k]=(cal[k]||0)+1; });
+      return;
+    }
+    try{
+      const body={p_cup:cid,p_from:f(from),p_to:f(to)};
+      const r= sess? await sbAuth("rpc/pcup_calendar",{method:"POST",body:JSON.stringify(body)})
+                   : await sb("rpc/pcup_calendar",{method:"POST",body:JSON.stringify(body)});
+      (r||[]).forEach(x=>cal[x.d]=+x.people||0);
+    }catch(e){}
+  };
+  const drawCal=()=>{
+    const y=cur.getFullYear(), m=cur.getMonth();
+    M.q("#prNow").textContent=`${y}年${m+1}月`;
+    const first=new Date(y,m,1), pad=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+    let h=`<div class="calgrid">`+["月","火","水","木","金","土","日"]
+      .map(d=>`<div class="calhead">${d}</div>`).join("");
+    for(let i=0;i<pad;i++) h+=`<div></div>`;
+    for(let d=1;d<=days;d++){
+      const k=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const n=cal[k]||0;
+      h+=`<div class="calday${n?" hot":" cold"}" data-d="${k}">
+        <div class="cn">${d}</div><div class="cs">${n?n+"人":"—"}</div></div>`;
+    }
+    h+=`</div>`;
+    M.q("#prCal").innerHTML=h;
+    M.qa(".calday").forEach(el=>el.onclick=()=>show(el.dataset.d));
+  };
+  const show=async(dayKey)=>{
+    const d=dayKey?new Date(dayKey+"T12:00:00+09:00"):cur;
+    const key=pkOf(pd,d);
+    M.q("#prBox").innerHTML='<p class="muted">読み込んでいます…</p>';
+    let rows=[];
+    if(TEST){
+      rows=TDB.ent.filter(e=>e.cup_id===cid&&pkOf(pd,new Date(e.created_at))===key)
+        .sort((a2,b2)=>b2.total-a2.total)
+        .map((e,i)=>Object.assign({},e,{rk:i+1,tie_n:1}));
+    }else{
+      try{
+        const body={p_cup:cid,p_period:pd,p_key:key};
+        rows= sess? await sbAuth("rpc/pcup_ranking",{method:"POST",body:JSON.stringify(body)})
+                  : await sb("rpc/pcup_ranking",{method:"POST",body:JSON.stringify(body)});
+      }catch(e){ rows=[]; }
+    }
+    const nm={day:"Daily",week:"Weekly",month:"Monthly"}[pd];
+    M.q("#prBox").innerHTML=`<h3>${esc(key)}　${nm}</h3>`
+      +(rows.length?`<div class="scroll"><table><thead><tr>
+        <th>順位</th><th>名前</th><th>合計スコア</th><th>状態</th></tr></thead><tbody>`
+        +rows.map(e=>`<tr><td><b>${e.rk}${e.tie_n>1?"T":""}</b></td>
+          <td>${esc(e.name||e.handle||"")}</td><td><b>${jp(+e.total)}</b></td>
+          <td><span class="sbtag ${e.status||"pending"}">${SB_ST[e.status]||"未審査"}</span></td></tr>`).join("")
+        +`</tbody></table></div>`
+        :'<p class="muted">この期間に参加した人はいません。</p>');
+  };
+  M.qa("#prPd button").forEach(b=>b.onclick=()=>{
+    pd=b.dataset.p; M.qa("#prPd button").forEach(x=>x.classList.toggle("on",x===b)); show(); });
+  M.q("#prPrev").onclick=async()=>{ cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);
+    await loadCal(); drawCal(); };
+  M.q("#prNext").onclick=async()=>{ cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+    await loadCal(); drawCal(); };
+  await loadCal(); drawCal(); show();
+}
+/** 順位表からその場で審査する */
+async function cupReview(cid,i){
+  const e=(PCUPENT[cid]||[])[i]; if(!e) return;
+  await loadRvq();
+  const t=RVQ.find(x=>x.entry_id===e.id)||RVQ.find(x=>x.cup_id===cid&&x.handle===e.handle);
+  if(!t) return toast("この記録はまだ審査の一覧に来ていません");
+  const my=myId();
+  if(t.user_id===my) return toast("自分の記録は審査できません");
+  rvMode="do";
+  rvTab = !t.judge_id ? "j" : (!t.sv_id&&t.judge_id!==my&&myLv()>=3) ? "s"
+        : (!t.jm_id&&t.sv_id&&t.sv_id!==my&&myLv()>=4) ? "m" : "j";
+  snsGo("rv");
+  setTimeout(()=>{ renderRvq();
+    const el=document.querySelector(`#rvBox .tools[data-id="${t.id}"]`);
+    if(el) el.closest(".sbrow").scrollIntoView({behavior:"smooth",block:"center"});
+    else toast("この記録はいま自分が審査できる段階ではありません");
+  },260);
 }
 
 /* ---- 表計算の画面 ---- */
@@ -7557,6 +7864,114 @@ function xlCalc(cells,vars){
   const out={};
   Object.keys(cells||{}).forEach(k=>{ const up=k.toUpperCase(); out[up]=get(up,0); });
   return out;
+}
+
+/* ---- 13) 開発者を応援する ---- */
+let CH={total:0,today:0,this_week:0,this_month:0,this_year:0}, CHB=[], chTab="total", chLeft=null;
+let chMonth=null, chCal={};
+/* 上のメニューには出さず、ヘッダーのボタンからだけ開きます */
+$("#cheerBtn").onclick=()=>{
+  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer"]
+    .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!=="cheer"); });
+  $$("#tabs button").forEach(x=>x.classList.remove("on"));
+  $("#menuNow").textContent="開発者を応援する";
+  toggleMenu(false); cheerEnter(); scrollTo({top:0,behavior:"smooth"});
+};
+async function loadCheer(){
+  if(TEST){ CH={total:1234,today:37,this_week:180,this_month:640,this_year:1234};
+    CHB=[{handle:"hakase",name:"素数博士",total:420,today:12,this_week:60,this_month:200,this_year:420},
+         {handle:"mikan",name:"みかん",total:310,today:9,this_week:44,this_month:150,this_year:310},
+         {handle:pro.handle||"me",name:pro.name||"わたし",total:180,today:16,this_week:76,this_month:290,this_year:504}];
+    return; }
+  if(!sbOn()){ return; }
+  try{ const r=await sb("cheer_totals?select=*&limit=1"); if(r&&r[0]) CH=r[0]; }catch(e){}
+  try{ CHB=await sb("cheer_board?select=*&order=total.desc&limit=100"); }catch(e){ CHB=[]; }
+}
+async function loadCheerCal(){
+  const d=chMonth||jstNow(), y=d.getFullYear(), m=d.getMonth();
+  const f=x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
+  chCal={};
+  if(TEST){
+    for(let i=1;i<=28;i+=3) chCal[`${y}-${String(m+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`]=
+      {people:1+(i%4),points:5+i*3};
+    return;
+  }
+  if(!sbOn()) return;
+  try{
+    const body={p_from:f(new Date(y,m,1)),p_to:f(new Date(y,m+1,0))};
+    const r=await sb("rpc/cheer_calendar",{method:"POST",body:JSON.stringify(body)});
+    (r||[]).forEach(x=>chCal[x.d]={people:+x.people||0,points:+x.points||0});
+  }catch(e){}
+}
+function renderCheer(){
+  if(!$("#chTotal")) return;
+  $("#chTotal").textContent=jp(+CH.total||0);
+  $("#chSub").textContent=`今日 ${jp(+CH.today||0)}　今週 ${jp(+CH.this_week||0)}`
+    +`　今月 ${jp(+CH.this_month||0)}　今年 ${jp(+CH.this_year||0)}`;
+  $("#chLeft").textContent = !(TEST||sess)
+    ? "押すにはログインが必要です。"
+    : (chLeft==null?"午前・午後それぞれ50回まで押せます（1日で最大100回）。"
+       :`いまの時間帯はあと ${chLeft} 回押せます。`);
+  $$("#chTabs button").forEach(b=>b.classList.toggle("on",b.dataset.cb===chTab));
+  const rows=(CHB||[]).slice().sort((a,b)=>(+b[chTab]||0)-(+a[chTab]||0)).filter(r=>+r[chTab]>0);
+  $("#chBoard").innerHTML=rows.length?`<div class="scroll"><table><thead><tr>
+    <th>#</th><th>名前</th><th>ポイント</th></tr></thead><tbody>`
+    +rows.slice(0,50).map((r,i)=>`<tr><td>${i+1}</td>
+      <td><span data-open="${esc(r.handle||"")}" style="cursor:pointer">${esc(r.name||r.handle||"")}</span></td>
+      <td><b>${jp(+r[chTab]||0)}</b></td></tr>`).join("")+"</tbody></table></div>"
+    :'<p class="muted">まだ応援がありません。</p>';
+  $("#chBoard").querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.open) openProfile(b.dataset.open); });
+  const d=chMonth||jstNow(), y=d.getFullYear(), m=d.getMonth();
+  $("#chNow").textContent=`${y}年${m+1}月`;
+  const pad=(new Date(y,m,1).getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+  let h=`<div class="calgrid">`+["月","火","水","木","金","土","日"]
+    .map(x=>`<div class="calhead">${x}</div>`).join("");
+  for(let i=0;i<pad;i++) h+="<div></div>";
+  for(let dd=1;dd<=days;dd++){
+    const k=`${y}-${String(m+1).padStart(2,"0")}-${String(dd).padStart(2,"0")}`;
+    const c=chCal[k];
+    h+=`<div class="calday${c?" hot":" cold"}">
+      <div class="cn">${dd}</div>
+      <div class="cs">${c?c.people+"人":"—"}</div>
+      <div class="cs">${c?jp(c.points)+"点":""}</div></div>`;
+  }
+  $("#chCal").innerHTML=h+"</div>";
+}
+$$("#chTabs button").forEach(b=>b.onclick=()=>{ chTab=b.dataset.cb; renderCheer(); });
+$("#chPrev").onclick=async()=>{ const d=chMonth||jstNow();
+  chMonth=new Date(d.getFullYear(),d.getMonth()-1,1); await loadCheerCal(); renderCheer(); };
+$("#chNext").onclick=async()=>{ const d=chMonth||jstNow();
+  chMonth=new Date(d.getFullYear(),d.getMonth()+1,1); await loadCheerCal(); renderCheer(); };
+$("#chPop").onclick=async e=>{
+  if(!(TEST||(sess&&sbOn()))) return toast("先にログインしてください");
+  const b=$("#chPop"); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  const fly=document.createElement("div"); fly.className="chfly"; fly.textContent="＋1";
+  fly.style.left=(e.clientX-10)+"px"; fly.style.top=(e.clientY-20)+"px";
+  document.body.appendChild(fly); setTimeout(()=>fly.remove(),950);
+  CH.total=(+CH.total||0)+1; CH.today=(+CH.today||0)+1;
+  CH.this_week=(+CH.this_week||0)+1; CH.this_month=(+CH.this_month||0)+1;
+  CH.this_year=(+CH.this_year||0)+1;
+  renderCheer();
+  if(TEST) return;
+  try{
+    const r=await sbAuth("rpc/cheer",{method:"POST",body:JSON.stringify({p_n:1,p_src:"click"})});
+    const x=Array.isArray(r)?r[0]:r;
+    if(x){ CH.total=+x.total; CH.today=+x.today; chLeft=+x.left_n; renderCheer(); }
+  }catch(err){
+    CH.total=Math.max(0,(+CH.total||0)-1); CH.today=Math.max(0,(+CH.today||0)-1);
+    renderCheer(); toast(String(err.message||err).slice(0,90));
+  }
+};
+async function cheerEnter(){
+  renderCheer();
+  await Promise.all([loadCheer(),loadCheerCal()]);
+  renderCheer();
+}
+/** 記録を出したら3ポイント（新しい提出のときだけ） */
+function cheerSubmit(){
+  if(TEST||!(sess&&sbOn())) return;
+  sbAuth("rpc/cheer",{method:"POST",body:JSON.stringify({p_n:3,p_src:"submit"})}).catch(()=>{});
 }
 
 /* ---- 11) ヘルプ ---- */
@@ -7804,7 +8219,7 @@ function snsGo(v){
   $("#snsNow").textContent=SNS_NAME[v]||"";
   snsMenu(false); saveWhere();
   if(v==="cup"){ loadPcups().then(renderPcups); try{ loadCups(); }catch(e){} }
-  if(v==="rv")  { Promise.all([loadRvq(),loadReports(),loadAchQ()]).then(renderRvq); }
+  if(v==="rv")  { Promise.all([loadRvq(),loadReports(),loadAchQ(),loadAchDone()]).then(renderRvq); }
   if(v==="me")  { subsEnter(); }
   if(v==="ach"){ achEnter(); }
   if(v==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
@@ -7852,7 +8267,7 @@ async function snsEnter(){
   bootStep(66,"タグを数えています");
   await loadTags();
   bootStep(80,"審査の待ちを見ています");
-  try{ await Promise.all([loadRvq(),loadReports(),loadAchQ(),loadMyStat(),loadLastUp()]); }catch(e){}
+  try{ await Promise.all([loadRvq(),loadReports(),loadAchQ(),loadAchDone(),loadMyStat(),loadLastUp()]); }catch(e){}
   bootStep(92,"画面を用意しています");
   renderRvq(); snsGo(snsView);
   renderPfeed(); renderPcups(); renderTags(); tagNotice(); renderMyStat(); renderAch();
