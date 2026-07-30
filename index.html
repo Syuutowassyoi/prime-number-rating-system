@@ -396,7 +396,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   opacity:0;animation:boothi .5s ease-out .35s forwards}
 .bootbar{width:190px;height:4px;margin:20px auto 0;background:#0d1524;border-radius:99px;overflow:hidden}
 .bootbar>div{height:100%;width:0;background:linear-gradient(90deg,#3f7fd0,#4dd6a8);
-  transition:width .9s cubic-bezier(.3,.9,.3,1)}
+  transition:width .45s cubic-bezier(.3,.9,.3,1)}
+.bootmsg{margin-top:9px;font-size:.74rem;color:var(--dim2);letter-spacing:.04em;min-height:1.2em}
 @keyframes bootspin{to{transform:rotate(360deg)}}
 @keyframes bootin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 @keyframes boothi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
@@ -418,12 +419,14 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 @keyframes ndot{0%,100%{opacity:1}50%{opacity:.35}}
 /* ---- 投稿バー（Twitter風） ---- */
 .composer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:55;
-  width:min(720px,calc(100% - 28px));display:flex;gap:7px;align-items:center;
-  background:#16202fee;border:1px solid #33455f;border-radius:99px;padding:6px 7px;
+  width:min(720px,calc(100% - 28px));display:flex;gap:8px;align-items:flex-end;
+  background:#16202fee;border:1px solid #33455f;border-radius:18px;padding:8px 9px;
   box-shadow:0 14px 34px -18px #000,0 0 0 1px #0b122055}
-.composer input{flex:1;background:transparent;border:none;color:var(--tx);font:inherit;
-  font-size:.9rem;padding:8px 6px;min-width:0}
-.composer input:focus{outline:none;box-shadow:none}
+.composer textarea{flex:1;background:#0d1524;border:1px solid #2a3a52;border-radius:12px;
+  color:var(--tx);font:inherit;font-size:.92rem;line-height:1.5;padding:9px 11px;min-width:0;
+  resize:none;max-height:34vh;overflow-y:auto}
+.composer textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px #4da3ff22}
+.composer .cbtn{margin-bottom:1px}
 .cbtn{border:none;border-radius:99px;width:38px;height:38px;flex:none;cursor:pointer;
   background:#22304a;color:var(--tx);font:inherit;font-size:1.15rem;line-height:1}
 .cbtn.go{width:auto;padding:0 15px;font-size:.86rem;font-weight:700;
@@ -435,12 +438,70 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .cplink input{width:100%;background:#0d1524;border:1px solid #33455f;border-radius:8px;
   color:var(--tx);font:inherit;font-size:.86rem;padding:8px 10px}
 /* タグ */
+/* ---- アチーブメントの棚 ---- */
+.shelf{background:linear-gradient(180deg,#141d2c,#101825);border:1px solid var(--line);
+  border-radius:14px;padding:14px;margin-bottom:14px}
+.shelf h3{margin:0 0 12px;font-size:.9rem;color:var(--acc);letter-spacing:.05em}
+.shelfgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:700px){.shelfgrid{grid-template-columns:repeat(2,1fr)}}
+.medal{text-align:center;cursor:pointer;padding:10px 6px 12px;border-radius:12px;
+  border:1px solid transparent;transition:background .18s,border-color .18s,transform .18s}
+.medal:hover{background:#18233699;border-color:#2c3d58;transform:translateY(-2px)}
+.medal.drag{opacity:.45}
+.medal.over{border-color:var(--acc);background:#1d3a5c55}
+.mdisc{width:62px;height:62px;margin:0 auto 8px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-family:Impact,"Arial Black",sans-serif;
+  font-size:1.3rem;color:#2a1a06;position:relative}
+.mdisc::after{content:"";position:absolute;inset:5px;border-radius:50%;
+  border:2px solid #ffffff33}
+.mdisc.bronze{background:radial-gradient(circle at 34% 28%,#f0c08a,#a4632c 62%,#6d3d17);
+  box-shadow:0 0 16px -2px #c9803eaa,inset 0 2px 6px #ffdcb5}
+.mdisc.silver{background:radial-gradient(circle at 34% 28%,#ffffff,#b9c6d6 60%,#7b8899);
+  box-shadow:0 0 17px -2px #cfdcecaa,inset 0 2px 6px #ffffff}
+.mdisc.gold{background:radial-gradient(circle at 34% 28%,#fff3bf,#efc040 58%,#a97c13);
+  box-shadow:0 0 20px -2px #ffd45ecc,inset 0 2px 7px #fff6cf}
+.mdisc.platinum{background:radial-gradient(circle at 34% 28%,#ffffff,#d8e6ff 42%,#9fb6da 70%,#7d93bb);
+  box-shadow:0 0 24px -1px #cfe0ffdd,inset 0 2px 8px #ffffff}
+.mdisc.none{background:radial-gradient(circle at 34% 28%,#5a6a80,#39465a 65%,#26303e);
+  color:#a9b8cc;box-shadow:inset 0 2px 6px #7d8ea6}
+.mdisc.lock{filter:grayscale(.75) brightness(.62)}
+.mdisc.shine{animation:mshine 3.2s ease-in-out infinite}
+@keyframes mshine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.28)}}
+.mname{font-size:.76rem;font-weight:700;line-height:1.35;word-break:break-word}
+.mdate{font-size:.68rem;color:var(--dim2);margin-top:3px}
+.mdate.done{color:#ffd45e;font-weight:700}
+.mstate{font-size:.66rem;margin-top:2px}
+.mstate.un{color:#8794a8}.mstate.ed{color:#ffc861}.mstate.pd{color:#7fe9ff}
+/* 表計算 */
+.xlwrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:#0b1220}
+.xl{border-collapse:collapse;font-variant-numeric:tabular-nums}
+.xl th,.xl td{border:1px solid #22304a;padding:0;min-width:78px;height:26px}
+.xl th{background:#131c2b;color:var(--dim);font:600 10px ui-sans-serif;text-align:center;
+  min-width:30px;position:sticky;top:0}
+.xl td.rh{background:#131c2b;color:var(--dim);font:600 10px ui-sans-serif;text-align:center;min-width:30px}
+.xl input{width:100%;height:26px;border:none;background:transparent;color:var(--tx);
+  font:inherit;font-size:.76rem;padding:0 5px;text-align:right}
+.xl input:focus{outline:2px solid var(--acc);outline-offset:-2px;background:#0f1a2c}
+.xl td.pick{background:#12351f}
+.xl td.main{background:#3a2f12}
+.xl .val{font-size:.7rem;color:#8fbdf0;padding:0 5px;text-align:right}
+.radars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+@media (max-width:760px){.radars{grid-template-columns:1fr}}
 .ptags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 6px}
 .ptag{font-size:.75rem;padding:4px 9px;border-radius:99px;border:1px solid #33455f;
   background:#0d1524;color:#8fbdf0;cursor:pointer;font-family:inherit}
 .ptag.on{background:#1d3a5c;border-color:var(--acc);color:#eaf3ff;font-weight:700}
 .ptag .n{opacity:.7;margin-left:5px;font-variant-numeric:tabular-nums}
 .taginline{color:#8fbdf0;cursor:pointer;font-weight:600}
+/* いいね（ハート） */
+.heart{display:inline-flex;align-items:center;gap:5px;border:1px solid #33455f;background:#16202f;
+  color:var(--dim);border-radius:99px;padding:5px 11px;font:inherit;font-size:.8rem;cursor:pointer}
+.heart .hi{font-size:1rem;line-height:1}
+.heart.on{border-color:#ff5470;color:#ff8fa3;background:#2a1220}
+.heart.on .hi{color:#ff5470;text-shadow:0 0 9px #ff5470aa}
+.heart:active{transform:translateY(1px)}
+.heart.pop .hi{animation:hpop .42s ease-out}
+@keyframes hpop{0%{transform:scale(1)}35%{transform:scale(1.55)}100%{transform:scale(1)}}
 /* 公式タグ（記録更新・大会参加・チャレンジ参加）は黄色く光らせます */
 .taginline.off,.ptag.off{color:#ffd45e;text-shadow:0 0 10px #ffd45e88;font-weight:800}
 .ptag.off{border-color:#8a7330;background:#241d0d}
@@ -448,8 +509,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 /* 複数リンクの入力欄 */
 .lkrow{display:grid;gap:5px;background:#0d1524;border:1px solid #33455f;border-radius:9px;
   padding:8px;margin-bottom:6px}
-.lkrow input{width:100%;background:#101a2a;border:1px solid #2a3a52;border-radius:7px;
-  color:var(--tx);font:inherit;font-size:.82rem;padding:7px 9px}
+.lkrow input,.lkrow textarea{width:100%;background:#101a2a;border:1px solid #2a3a52;border-radius:7px;
+  color:var(--tx);font:inherit;font-size:.82rem;padding:7px 9px;line-height:1.55}
+.lkrow textarea{resize:vertical;min-height:64px}
+.lkrow input:focus,.lkrow textarea:focus{outline:none;border-color:var(--acc)}
 .lktools{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
 .lktools button{font-size:.72rem;padding:5px 8px;border-radius:7px;border:1px solid #33455f;
   background:#16202f;color:var(--dim);cursor:pointer;font-family:inherit}
@@ -720,6 +783,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     <div class="bootlogo">Prime&nbsp;SNS</div>
     <div class="boothi" id="bootHi">ようこそ</div>
     <div class="bootbar"><div id="bootFill"></div></div>
+    <div class="bootmsg" id="bootMsg">起動しています</div>
   </div></div>
 
   <div id="snsApp" hidden>
@@ -732,6 +796,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div class="grp"><div class="ghead">Prime SNS</div>
         <button data-sv="feed" class="on">タイムライン</button>
         <button data-sv="cup">大会</button>
+        <button data-sv="ach">アチーブメント</button>
         <button data-sv="rank">ランキング</button>
         <button data-sv="fr">フレンド<span class="ndot" id="frDot" hidden></span></button>
         <button data-sv="rv" id="navRv" hidden>審査室<span class="ndot" id="rvDot" hidden></span></button>
@@ -784,7 +849,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div style="height:78px"></div>
       <div class="composer" id="composer">
         <button class="cbtn" id="poPlus" title="リンクを添付">＋</button>
-        <input type="text" id="poBody" maxlength="500" placeholder="いまどうしてる？">
+        <textarea id="poBody" maxlength="500" rows="1"
+          placeholder="いまどうしてる？（Enterで改行・Ctrl+Enterで投稿）"></textarea>
         <button class="cbtn go" id="poGo">投稿</button>
       </div>
       <div class="cplink" id="poLinkRow" hidden>
@@ -892,6 +958,18 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
 
     <!-- ===== プロフィール ===== -->
+    <div id="svAch" hidden>
+      <div class="segs" id="achTabs" style="grid-template-columns:1fr 1fr">
+        <button data-av="official" class="on">公式アチーブメント</button>
+        <button data-av="community">みんなのアチーブメント</button>
+      </div>
+      <div class="card">
+        <div class="tools" style="margin-top:0" id="achTools"></div>
+        <p class="tiny" id="achNote">—</p>
+      </div>
+      <div id="achShelf"></div>
+    </div>
+
     <div id="svRank" hidden><div class="card">
     <h2>全体ランキング</h2>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
@@ -975,9 +1053,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>ヘルプ</h2>
     <p class="muted" style="margin-top:-8px">このアプリの仕組みをまとめています。分からないところはここを見てください。</p>
-    <div class="segs" id="helpTabs" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="segs" id="helpTabs" style="grid-template-columns:1fr 1fr 1fr 1fr">
       <button data-hp="role" class="on">審査のしくみ</button>
       <button data-hp="cup">大会とチャレンジ</button>
+      <button data-hp="ach">アチーブメント</button>
       <button data-hp="etc">そのほか</button>
     </div>
     <div id="helpBox"></div>
@@ -1035,7 +1114,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       タイムアタック系（1から順に／2から順に／1桁素数／2の累乗数）は<strong>秒数</strong>、それ以外はスコアを入力します。入力はこのブラウザに自動保存されます。
     </p>
     <div class="tools" style="margin-top:0;margin-bottom:12px">
-      <button class="btn pri" id="borderBtn">現在のボーダーラインを見る</button>
+      <button class="btn pri" id="editOn">個人データを入力する</button>
+      <button class="btn" id="editOff" hidden>入力を終わる</button>
+      <span class="tiny" id="editNote">まちがえて書き換えないよう、ふだんは編集できません。</span>
+    </div>
+    <div class="tools" style="margin-top:0;margin-bottom:12px">
+      <button class="btn" id="borderBtn">現在のボーダーラインを見る</button>
       <button class="btn" id="histBtn2">過去のランキングを見る</button>
     </div>
     <div class="scroll"><table>
@@ -1130,6 +1214,13 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div class="tools" style="margin-top:0">
         <button class="btn sm" id="apCupOn">する</button><button class="btn sm" id="apCupOff">しない</button></div>
     </div>
+    <div class="sw">
+      <div><div class="t">アチーブメント</div>
+        <div class="tiny">公式は<b>達成したときだけ</b>流します（未達成では流れません）。
+          みんなのアチーブメントは提出したときに流します。</div></div>
+      <div class="tools" style="margin-top:0">
+        <button class="btn sm" id="apAchOn">する</button><button class="btn sm" id="apAchOff">しない</button></div>
+    </div>
   </div>
   <div class="card">
     <h2>役職と申請</h2>
@@ -1201,7 +1292,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v43";
+const APP_VERSION = "v45";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2334,6 +2425,8 @@ function fillInputs(){
     if(!Array.isArray(pro.proofs)) pro.proofs=normProofs(null,pro.x_url);
     renderProofs("pfProofs",["合計スコア"].concat(EVENTS),pro.proofs);
   }
+  /* 合計スコアは自動計算。ふだんは編集できない状態に戻します */
+  try{ recalcTotal(); setEditMode(editMode); }catch(e){}
 }
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.in){
@@ -4384,6 +4477,7 @@ function showPlayer(p,rc){
       <div class="stat"><div class="t">S値</div><div class="v">${c.S===null?"—":f3(c.S)}</div>
         <div class="s">${rc["スコア累積"]>0?jp(rc["スコア累積"]):""}</div></div>
     </div>
+    ${radarPair(rc)}
     <h3>全種目の記録</h3>
     <div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>レート割合</th><th>採用</th></tr></thead><tbody>`+
     EVENTS.map(n=>{
@@ -4887,7 +4981,7 @@ $("#lsPause").onclick=()=>{
 /* =========================================================
    10e. 記録提出と審査（審査員 → スーパーバイザー → ジャッジマン）
    ========================================================= */
-let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], REPQ=[], rvTab="j";
+let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], REPQ=[], AQ=[], rvTab="j";
 const SB_ST={pending:"未審査",judged:"審査員承認",certified:"認定済み",rejected:"却下"};
 /** テスト中は役職ごとに別人として扱います。
  *  審査員として承認 → スーパーバイザーに切り替え、で「別の人の審査」として見えます。 */
@@ -4929,6 +5023,14 @@ async function loadMyStat(){
   try{ const r=await callRpc("my_review_stats",{});
        MYSTAT=Array.isArray(r)?(r[0]||null):r; }catch(e){ MYSTAT=null; }
 }
+async function loadAchQ(){
+  if(TEST){ AQ=myLv()>=2?TDB.asubs.filter(x=>x.status==="pending"&&x.kind==="official"):[]; return; }
+  if(!(sess&&sbOn())||myLv()<2){ AQ=[]; return; }
+  try{
+    AQ=await sbAuth("ach_subs?select=*,achievements!inner(id,title,kind,fields,sheet,body)"
+      +"&status=eq.pending&achievements.kind=eq.official&order=created_at.asc&limit=100");
+  }catch(e){ AQ=[]; }
+}
 async function loadReports(){
   if(TEST){ REPQ=myLv()>=2?TDB.reps.slice():[]; return; }
   if(!(sess&&sbOn())||myLv()<2){ REPQ=[]; return; }
@@ -4949,6 +5051,9 @@ function renderSubs(){
   if(!SUBS.length){ box.innerHTML='<p class="muted">まだ提出がありません。</p>'; return; }
   box.innerHTML=SUBS.map(s=>{
     const wait = s.status==="judged" ? '<div class="sbwait">最高記録審査中</div>' : "";
+    const who=[];
+    if(s.judge_handle||s.judge_name) who.push("審査："+byWho(s.judge_handle,s.judge_name,s.judge_role));
+    if(s.sv_handle||s.sv_name)       who.push("審査員審査："+byWho(s.sv_handle,s.sv_name,s.sv_role));
     const rej  = s.status==="rejected"
       ? `<p class="tiny" style="color:var(--bad);margin:6px 0 0">却下の理由：${esc(s.judge_reason||"（未記入）")}</p>`
        +(s.appeal_at?'<p class="tiny">不服申し立て済み</p>'
@@ -4963,10 +5068,12 @@ function renderSubs(){
       </div>${wait}
       <div class="tiny" style="margin-top:4px">${jstFull(s.created_at)}
         <a href="${esc(s.proof_url)}" target="_blank" rel="noopener noreferrer">証明を別タブで見る</a></div>
-      ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}${rej}
+      ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}
+      ${who.length?`<div class="tiny" style="margin-top:4px;color:var(--dim)">${who.join("　／　")}</div>`:""}${rej}
       ${s.status==="rejected"?"":`<div class="tools"><button class="btn sm" data-ed="${s.id}">修正</button></div>`}
     </div>`;}).join("");
   box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>sbEdit(b.dataset.ed));
+  box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openProfile(b.dataset.open));
   box.querySelectorAll("[data-ap]").forEach(b=>b.onclick=()=>sbAppeal(b.dataset.ap));
 }
 function sbEdit(id){
@@ -5019,6 +5126,7 @@ function rvLists(){
        ただしジャッジマンが行った審査員審査だけは、公平のためスーパーバイザーも見られます */
     m :lv<3?[]:RVQ.filter(x=>x.sv_id&&!x.jm_id&&x.sv_id!==my&&x.judge_id!==my&&x.user_id!==my
         &&(lv>=4||svLv(x)>=4)),
+    ach:AQ.filter(x=>x.user_id!==my),
     msg:REPQ.filter(x=>!x.voted),
     ok:RVQ.filter(x=>(x.judge_id===my&&x.judge_act!=="reject")||x.sv_id===my||x.jm_id===my),
     ng:RVQ.filter(x=>x.judge_id===my&&x.judge_act==="reject")
@@ -5029,20 +5137,22 @@ function rvTabDefs(L){
   const lv=myLv(), t=[{k:"j",n:"審査"}];
   if(lv>=3) t.push({k:"s",n:"審査員審査"});
   if(lv>=4||L.m.length) t.push({k:"m",n:"スーパーバイザー審査"});
-  t.push({k:"msg",n:"メッセージ審査"},{k:"ok",n:"承諾した審査"},{k:"ng",n:"却下した審査"});
+  t.push({k:"ach",n:"アチーブメント審査"},{k:"msg",n:"メッセージ審査"},
+         {k:"ok",n:"承諾した審査"},{k:"ng",n:"却下した審査"});
   return t;
 }
 /** いま自分が手をつけられる件数。0でなければ赤い点を出す */
 function rvPending(){
   if(myLv()<2) return 0;
   const L=rvLists();
-  return L.j.length+L.s.length+L.m.length+L.msg.length;
+  return L.j.length+L.s.length+L.m.length+L.msg.length+L.ach.length;
 }
 const RV_HINT={
   j:"提出された記録を、リンク先の映像と見比べてください。合っていれば承認、打ち間違いなら修正、明らかに不正なら理由を書いて却下します。",
   s:"審査員の審査が正しかったかを見ます。直す必要がなければ「認定」で、その審査員にグッドポイントが1つ入ります。却下された記録を認定すると完全に削除されます。",
   m:"スーパーバイザーの審査員審査をチェックします。ジャッジマンが行った審査員審査は、公平のためスーパーバイザーもチェックできます。",
   msg:"通報された投稿です。審査員が3人「削除する」に入れるか、スーパーバイザー以上が1人入れると消えます。",
+  ach:"公式アチーブメントの提出です。内容が正しいかを見て、達成しているかどうかをチェックで示してから承認します。",
   ok:"自分が承認・認定した記録です。上位者のチェック結果もここで確認できます。",
   ng:"自分が却下した記録です。スーパーバイザーが「認定」すると完全に削除されますが、この一覧からは消えません。"
 };
@@ -5070,6 +5180,7 @@ function renderRvq(){
   if(L.s.length) waits.push("審査員審査 "+L.s.length+"件");
   if(L.m.length) waits.push("スーパーバイザー審査 "+L.m.length+"件");
   if(L.msg.length) waits.push("メッセージ審査 "+L.msg.length+"件");
+  if(L.ach.length) waits.push("アチーブメント審査 "+L.ach.length+"件");
   al.hidden=!waits.length;
   if(waits.length) al.innerHTML="<span>まだ手がついていない記録があります　—　<b>"
     +waits.join("</b>　<b>")+"</b></span>";
@@ -5077,6 +5188,26 @@ function renderRvq(){
   const list=L[rvTab], box=$("#rvBox");
   if(!list.length){ box.innerHTML='<p class="muted">'
     +(rvTab==="ok"||rvTab==="ng"?"まだありません。":"いまは待っている記録がありません。")+'</p>'; return; }
+  if(rvTab==="ach"){
+    box.innerHTML=list.slice(0,40).map(x=>{
+      const a=x.achievements||{};
+      return `<div class="sbrow">
+        <div class="sbtop"><b>${esc(x.name||x.handle||"")}</b>
+          <span class="sbev">${esc(a.title||"")}</span>
+          <span class="sbval st-pending">${x.main==null?"—":jp(Math.round(+x.main*1000)/1000)}</span>
+          <span class="tiny" style="margin-left:auto">${jstShort(x.created_at)}</span></div>
+        <div class="tiny" style="margin-top:5px;white-space:pre-wrap">${esc((a.body||"").slice(0,160))}</div>
+        <div class="tools" data-id="${x.id}">
+          <button class="btn sm" data-aview="${x.id}">中身を見る</button>
+          <button class="btn sm pri" data-aok="${x.id}">承認する</button>
+          <button class="btn sm" data-ang="${x.id}">却下する</button></div></div>`;}).join("");
+    box.querySelectorAll("[data-aview]").forEach(b=>b.onclick=()=>{
+      const x=AQ.find(y=>y.id===b.dataset.aview);
+      achSubDetail(Object.assign({},x.achievements||{}),x); });
+    box.querySelectorAll("[data-aok]").forEach(b=>b.onclick=()=>achReview(b.dataset.aok,true));
+    box.querySelectorAll("[data-ang]").forEach(b=>b.onclick=()=>achReview(b.dataset.ang,false));
+    return;
+  }
   if(rvTab==="msg"){
     box.innerHTML=list.slice(0,60).map(x=>`<div class="sbrow">
       <div class="sbtop"><b>${esc(x.name||x.handle||"名無し")}</b>
@@ -5097,6 +5228,7 @@ function renderRvq(){
   box.innerHTML=list.slice(0,60).map(x=>rvRow(x)).join("");
   box.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>
     rvAct(b.closest(".tools").dataset.id,b.dataset.act));
+  box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openProfile(b.dataset.open));
 }
 async function rvVote(id,del){
   const p=REPQ.find(x=>x.post_id===id);
@@ -5110,14 +5242,69 @@ async function rvVote(id,del){
     renderRvq();
   }catch(e){ toast(String(e.message||e).slice(0,120)); }
 }
+/** 審査した人の名前。押すとプロフィールが開きます */
+function byWho(handle,name,role){
+  if(!handle&&!name) return "";
+  const t=esc(name||handle||"");
+  return handle
+    ? `<span class="${roleCls(role)}" data-open="${esc(handle)}" `
+      +`style="cursor:pointer;text-decoration:underline dotted">${t}</span>`
+    : t;
+}
+/** アチーブメントの審査。達成しているかをチェックで示します */
+async function achReview(id,ok){
+  const x=AQ.find(y=>y.id===id); if(!x) return;
+  const a=x.achievements||{};
+  if(!ok){
+    const M=modal(`<h2>この提出を却下する</h2>
+      <p class="muted" style="margin-top:-8px">理由は提出した人が読めます。</p>
+      <p class="tiny"><b>${esc(x.name||x.handle||"")}</b>　${esc(a.title||"")}</p>
+      <textarea id="arT" rows="4" placeholder="例：動画に映っている値と一致しません"></textarea>
+      <div class="tools"><button class="btn pri" id="arGo">却下する</button></div>`);
+    M.q("#arGo").onclick=async()=>{
+      const r=M.q("#arT").value.trim(); if(!r) return toast("理由を書いてください");
+      M.close();
+      try{ await callRpc("ach_review",{p_id:id,p_act:"reject",p_done:false,p_note:r});
+        toast("却下しました"); await loadAchQ(); renderRvq(); }
+      catch(e){ toast(String(e.message||e).slice(0,90)); }
+    };
+    return;
+  }
+  const M=modal(`<h2>この提出を承認する</h2>
+    <p class="tiny"><b>${esc(x.name||x.handle||"")}</b>　${esc(a.title||"")}　記録
+      <b>${x.main==null?"—":jp(Math.round(+x.main*1000)/1000)}</b></p>
+    <div class="hintbox" style="margin-top:0"><b>達成の条件</b><br>
+      <span class="tiny" style="white-space:pre-wrap">${esc(a.body||"")}</span></div>
+    <label class="pk" style="margin-top:12px;display:inline-flex">
+      <input type="checkbox" id="arDone"> <b>この人は達成の条件を満たしている</b></label>
+    <p class="tiny">満たしていなくても、出された内容が正しければ承認できます。
+      チェックを入れたときだけ「達成」になり、タイムラインに流れます。</p>
+    <label class="fl">メモ（任意）</label>
+    <input type="text" class="txt" id="arN">
+    <div class="tools"><button class="btn pri" id="arGo">承認する</button></div>`,{w:640});
+  M.q("#arGo").onclick=async()=>{
+    const done=!!M.q("#arDone").checked;
+    if(!await askYN(done?"達成として承認しますか？":"承認しますか？（未達成）",
+      done?"タイムラインに「達成しました！」と流れます。":"内容は正しいが、まだ達成ではないとして記録します。",
+      "承認する")) return;
+    M.close();
+    try{ await callRpc("ach_review",{p_id:id,p_act:"approve",p_done:done,
+      p_note:M.q("#arN").value.trim()||null},[["p_note"]]);
+      toast("承認しました"); await loadAchQ(); await loadAch(); renderRvq(); renderAch(); }
+    catch(e){ toast(String(e.message||e).slice(0,90)); }
+  };
+}
 function rvRow(s){
   const hist=[];
-  if(s.judge_act) hist.push("審査："+({approve:"承認",fix:"修正",reject:"却下"}[s.judge_act]||s.judge_act)
+  if(s.judge_act) hist.push("審査："+byWho(s.judge_handle,s.judge_name,s.judge_role)+"　"
+    +({approve:"承認",fix:"修正",reject:"却下"}[s.judge_act]||s.judge_act)
     +(s.judge_from!=null?`（${fmtRec(s.event,s.judge_from)} → ${fmtRec(s.event,s.value)}）`:"")
     +(s.judge_reason?"　理由："+esc(s.judge_reason):""));
-  if(s.sv_act) hist.push("審査員審査："+({accept:"認定",fix:"修正"}[s.sv_act]||s.sv_act)
+  if(s.sv_act) hist.push("審査員審査："+byWho(s.sv_handle,s.sv_name,s.sv_role)+"　"
+    +({accept:"認定",fix:"修正"}[s.sv_act]||s.sv_act)
     +(s.sv_from!=null?`（${fmtRec(s.event,s.sv_from)} → ${fmtRec(s.event,s.value)}）`:""));
-  if(s.jm_act) hist.push("スーパーバイザー審査："+({accept:"認定",fix:"修正"}[s.jm_act]||s.jm_act)
+  if(s.jm_act) hist.push("スーパーバイザー審査："+byWho(s.jm_handle,s.jm_name,s.jm_role)+"　"
+    +({accept:"認定",fix:"修正"}[s.jm_act]||s.jm_act)
     +(s.jm_from!=null?`（${fmtRec(s.event,s.jm_from)} → ${fmtRec(s.event,s.value)}）`:""));
   const st=s.status==="removed"?"削除済み":(SB_ST[s.status]||s.status);
   return `<div class="sbrow">
@@ -5233,7 +5420,7 @@ function renderMyStat(){
 async function subsEnter(){
   renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
   if(!(TEST||(sess&&sbOn()))) return;
-  await Promise.all([loadSubs(),loadRvq(),loadReports(),loadMyStat()]);
+  await Promise.all([loadSubs(),loadRvq(),loadReports(),loadAchQ(),loadMyStat()]);
   renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
 }
 /* ---- プロフィール画面 ---- */
@@ -5252,7 +5439,8 @@ function renderMeCards(){
       ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div>
     </div></div>`;
   const d=$("#meData");
-  if(d) d.innerHTML=`<div class="stats">
+  if(d){
+    d.innerHTML=radarPair(rec)+`<div class="stats">
       <div class="stat"><div class="t">十種競技総合スコア</div>
         <div class="v">${rec["合計スコア"]>0?jp(rec["合計スコア"]):"—"}</div></div>
       <div class="stat"><div class="t">L値</div><div class="v">${c.L===null?"—":f3(c.L)}</div>
@@ -5260,11 +5448,16 @@ function renderMeCards(){
       <div class="stat"><div class="t">S値</div><div class="v">${c.S===null?"—":f3(c.S)}</div>
         <div class="s">${rec["スコア累積"]>0?jp(rec["スコア累積"]):""}</div></div>
     </div>
-    <div class="scroll" style="margin-top:10px"><table><thead><tr>
+    <div class="tools" style="margin-top:4px">
+      <button class="btn" id="meDetBtn">詳細データ</button></div>
+    <div id="meDet" hidden><div class="scroll" style="margin-top:10px"><table><thead><tr>
       <th>種目</th><th>記録</th><th>レート割合</th></tr></thead><tbody>`+
     EVENTS.map(n=>`<tr><td>${esc(n)}</td><td>${rec[n]>0?fmtRec(n,rec[n]):"—"}</td>`+
       `<td class="pct">${rec[n]>0?(c.rates[n]*100).toFixed(2)+"%":"—"}</td></tr>`).join("")+
-    `</tbody></table></div>`;
+    `</tbody></table></div></div>`;
+    $("#meDetBtn").onclick=()=>{ const e=$("#meDet"); e.hidden=!e.hidden;
+      $("#meDetBtn").textContent=e.hidden?"詳細データ":"詳細データを閉じる"; };
+  }
 }
 
 /* ---- 役職の申請と任命（設定タブ） ---- */
@@ -5442,18 +5635,80 @@ function tstBuild(){
     {id:"e3",cup_id:"c1",handle:"ringo",   name:"りんご",   total:1755000,proof_url:yt(23),nomiss:false,created_at:ago(460)},
     {id:"e4",cup_id:"c2",handle:"aozora",  name:"あおぞら", total:938000, proof_url:yt(24),nomiss:true, created_at:ago(800)}
   ];
-  subs.forEach(x=>{ x.sv_lv = x.sv_id ? lvOf(tstUser(x.sv_id).role) : 0; });
+  subs.forEach(x=>{
+    x.sv_lv = x.sv_id ? lvOf(tstUser(x.sv_id).role) : 0;
+    /* 誰が審査したかを画面に出せるようにします */
+    const w=(id,pre)=>{ if(!id) return;
+      const u=(id==="me")?{handle:pro.handle||"me",name:pro.name||"わたし",role:(me&&me.role)||"user"}
+                        :tstUser(id);
+      x[pre+"_handle"]=u.handle; x[pre+"_name"]=u.name; x[pre+"_role"]=u.role; };
+    w(x.judge_id,"judge"); w(x.sv_id,"sv"); w(x.jm_id,"jm");
+  });
   /* 通報された投稿の見本。メッセージ審査の画面を確かめられます */
   const reps=[{post_id:"pc1",handle:"hakase",name:"素数博士",
     body:"暗素因数分解、lv.3だけ急に難しくなりませんか",link:null,kind:"chat",
     created_at:ago(15),report_n:1,reasons:"内容に問題はなさそうですが念のため",
     del_n:0,keep_n:0,voted:false}];
-  return {subs,posts,cups,ent,reps,req:[
+  const asecs=[{id:"s1",kind:"official",title:"計算スピード部門",pos:0},
+               {id:"s2",kind:"official",title:"暗算部門",pos:1}];
+  const F1=[{key:"a",label:"1回目の点数"},{key:"b",label:"2回目の点数"},{key:"c",label:"3回目の点数"}];
+  const achs=[
+   {id:"a1",kind:"official",section_id:"s1",title:"素因数分解マスター",trophy:"platinum",
+    body:"素因数分解（上級）で95,000点以上を3回そろえる。",how:"Xに動画を投稿してリンクを貼ってください。",
+    need:"video",fields:F1,ranked:true,
+    sheet:{cells:{A1:"=a",A2:"=b",A3:"=c",C1:"=SUM(A1:A3)",C2:"=AVERAGE(A1:A3)",C3:"=MIN(A1:A3)"},
+           picks:["C1","C2","C3"],main:"C1"},
+    pos:0,published:true,dirty:false,can_edit:canOffAch(),
+    done_n:2,sub_n:3,my_done_at:new Date(now-86400000*3).toISOString(),my_pending:false},
+   {id:"a2",kind:"official",section_id:"s1",title:"素数判定の達人",trophy:"gold",
+    body:"素数判定で98,000点以上。",how:"YouTubeに動画を上げてください。",need:"video",
+    fields:[{key:"a",label:"スコア"}],ranked:true,pos:1,published:true,dirty:true,
+    can_edit:canOffAch(),done_n:1,sub_n:2,my_done_at:null,my_pending:true},
+   {id:"a3",kind:"official",section_id:"s2",title:"暗算3連覇",trophy:"silver",
+    body:"暗素因数分解lv.3を3回連続でクリア。",how:"",need:"either",
+    fields:[{key:"a",label:"合計点"}],ranked:false,pos:2,published:false,dirty:false,
+    can_edit:canOffAch(),done_n:0,sub_n:0,my_done_at:null,my_pending:false},
+   {id:"a4",kind:"official",title:"はじめの一歩",trophy:"bronze",
+    body:"どれか1種目で50,000点。",how:"",need:"either",fields:[{key:"a",label:"スコア"}],
+    ranked:false,pos:3,published:true,dirty:false,can_edit:canOffAch(),
+    done_n:5,sub_n:6,my_done_at:new Date(now-86400000*20).toISOString(),my_pending:false},
+   {id:"b1",kind:"community",title:"みんなで100万点",owner_handle:"mikan",owner_name:"みかん",
+    body:"合計スコアで100万点をめざす。",how:"どちらでも構いません。",need:"either",
+    fields:[{key:"a",label:"合計スコア"}],ranked:true,auto_done:true,keep:"all",
+    pos:0,published:true,dirty:false,can_edit:false,done_n:3,sub_n:4,
+    my_done_at:null,my_pending:false}
+  ];
+  const asubs=[
+   {id:"as1",ach_id:"a1",kind:"official",user_id:"t6",handle:"tsukiyo",name:"つきよ",
+    vals:{a:95200,b:95800,c:96100},computed:{C1:287100,C2:95700,C3:95200},main:287100,
+    links:[{url:"https://youtu.be/a1",note:"3回ぶんまとめて"}],status:"pending",done:false,
+    created_at:new Date(now-3600000).toISOString(),
+    achievements:{id:"a1",title:"素因数分解マスター",kind:"official",body:"素因数分解（上級）で95,000点以上を3回そろえる。",fields:F1,
+      sheet:{cells:{A1:"=a",A2:"=b",A3:"=c",C1:"=SUM(A1:A3)"},picks:["C1"],main:"C1"}}},
+   {id:"as2",ach_id:"a1",kind:"official",user_id:"me",handle:"syuuto",name:"わたし",
+    vals:{a:96000,b:96500,c:97000},computed:{C1:289500},main:289500,
+    links:[{url:"https://youtu.be/a2",note:""}],status:"approved",done:true,
+    judge_handle:"ringo",judge_name:"りんご",judge_role:"judge",judge_act:"approve",
+    created_at:new Date(now-86400000*3).toISOString()}
+  ];
+  return {subs,posts,cups,ent,reps,asecs,achs,asubs,req:[
     {id:"r1",user_id:"t6",handle:"tsukiyo",name:"つきよ",want:"judge",status:"pending",reason:"毎日確認できます"},
     {id:"r2",user_id:"t4",handle:"ringo",  name:"りんご",want:"supervisor",status:"pending",reason:"条件を満たしました"}
   ]};
 }
 /** 同点は同じ順位。1,1,3 のように飛ばす */
+/** アチーブメントの一覧（テストモード） */
+function tstAchRank(id){
+  const a=TDB.achs.find(x=>x.id===id)||{};
+  const rows=TDB.asubs.filter(x=>x.ach_id===id&&x.status!=="rejected")
+    .sort((x,y)=>a.ranked?((+y.main||0)-(+x.main||0))
+      :((x.done?0:1)-(y.done?0:1))||((+y.main||0)-(+x.main||0)));
+  let rk=0,prev=null;
+  return rows.map((e,i)=>{
+    if(e.main!==prev){ rk=i+1; prev=e.main; }
+    return Object.assign({},e,{rk,tie_n:rows.filter(x=>x.main===e.main).length});
+  });
+}
 function tstRanks(cupId,pd){
   const now=Date.now();
   const inP=e=>{
@@ -5576,6 +5831,68 @@ function tstRpc(name,b){
     }
     return "voted";
   }
+  if(name==="ach_publish_all"){
+    TDB.achs.forEach(x=>{ if(x.kind==="official"){ x.published=true; x.dirty=false; } });
+    return 3;
+  }
+  if(name==="ach_move"){
+    const x=TDB.achs.find(y=>y.id===b.p_id);
+    if(x){ x.pos=b.p_pos; if(b.p_section!==undefined) x.section_id=b.p_section||null; }
+    return null;
+  }
+  if(name==="ach_section_save"){
+    TDB.asecs.push({id:"ns"+Date.now(),kind:b.p_kind||"official",title:b.p_title,pos:b.p_pos||0});
+    return null;
+  }
+  if(name==="ach_section_del"){
+    TDB.asecs=TDB.asecs.filter(x=>x.id!==b.p_id);
+    TDB.achs.forEach(x=>{ if(x.section_id===b.p_id) x.section_id=null; });
+    return null;
+  }
+  if(name==="ach_save"){
+    if(b.p_kind==="official"&&!canOffAch()) bad("公式アチーブメントはジャッジマンだけが作れます");
+    if(b.p_id){
+      const x=TDB.achs.find(y=>y.id===b.p_id);
+      if(x){ Object.assign(x,{title:b.p_title,body:b.p_body,how:b.p_how,need:b.p_need,
+        fields:b.p_fields,sheet:b.p_sheet,ranked:!!b.p_ranked,trophy:b.p_trophy,
+        auto_done:!!b.p_auto_done,keep:b.p_keep,section_id:b.p_section||x.section_id});
+        if(x.kind==="official"&&x.published) x.dirty=true; }
+      return b.p_id;
+    }
+    const id="na"+Date.now();
+    TDB.achs.push({id,kind:b.p_kind,section_id:b.p_section||null,title:b.p_title,trophy:b.p_trophy,
+      body:b.p_body,how:b.p_how,need:b.p_need,fields:b.p_fields,sheet:b.p_sheet,
+      ranked:!!b.p_ranked,auto_done:!!b.p_auto_done,keep:b.p_keep||"best",
+      owner_handle:pro.handle,owner_name:pro.name,
+      pos:TDB.achs.length,published:b.p_kind!=="official",dirty:false,can_edit:true,
+      done_n:0,sub_n:0,my_done_at:null,my_pending:false});
+    return id;
+  }
+  if(name==="ach_del"){ TDB.achs=TDB.achs.filter(x=>x.id!==b.p_id); return null; }
+  if(name==="ach_submit"){
+    const a=TDB.achs.find(x=>x.id===b.p_ach)||{};
+    const ok=(a.kind==="community"&&a.auto_done);
+    TDB.asubs.unshift({id:"nas"+Date.now(),ach_id:b.p_ach,kind:a.kind,user_id:"me",
+      handle:pro.handle,name:pro.name||"わたし",vals:b.p_vals,computed:b.p_computed,
+      main:b.p_main,links:b.p_links,note:b.p_note,
+      status:a.kind==="official"?"pending":"approved",done:ok,
+      created_at:new Date().toISOString(),
+      achievements:{id:a.id,title:a.title,kind:a.kind,body:a.body,fields:a.fields,sheet:a.sheet}});
+    a.sub_n=(a.sub_n||0)+1;
+    if(a.kind==="official") a.my_pending=true;
+    else if(ok) a.my_done_at=new Date().toISOString();
+    return null;
+  }
+  if(name==="ach_review"){
+    const x=TDB.asubs.find(y=>y.id===b.p_id); if(!x) return null;
+    x.status=b.p_act==="approve"?"approved":"rejected";
+    x.done=b.p_act==="approve"&&!!b.p_done;
+    x.judge_handle=pro.handle; x.judge_name=pro.name||"わたし";
+    x.judge_role=(me&&me.role)||"judge"; x.judge_act=b.p_act; x.judge_note=b.p_note;
+    const a=TDB.achs.find(y=>y.id===x.ach_id);
+    if(a){ a.my_pending=false; if(x.done) a.done_n=(a.done_n||0)+1; }
+    return null;
+  }
   if(name==="same_pcup"){
     const c=TDB.cups.find(x=>!x.closed&&ruleKey(x.rule)===ruleKey(b.p_rule));
     return c?c.id:null;
@@ -5609,11 +5926,27 @@ function tstRpc(name,b){
   if(name==="my_review_stats") return [tstStat()];
   return null;
 }
-let REAL_ROLE=null;
+let REAL_ROLE=null, TEST_REC_BAK=null;
 function tstToggle(on){
   TEST=!!on;
   if(TEST){
     TDB=tstBuild();
+    /* チャートやRATINGの見え方を確かめられるよう、記録の見本も入れます */
+    TEST_REC_BAK=Object.assign({},rec);
+    if(!ORDER.some(n=>rec[n]>0)){
+      const B=(DATA()||{}).borders||{};
+      ORDER.forEach((n,i)=>{
+        const b=B[n]; if(!b) return;
+        const t=[0.30,0.55,0.80,0.95][i%4];              /* 200位〜1位の間をばらけさせる */
+        rec[n]=Math.round((b[200]+(b[1]-b[200])*t)*(LOW.has(n)?1000:1))/(LOW.has(n)?1000:1);
+      });
+      rec["乱数累積"]=3e10; rec["スコア累積"]=5e8;
+      fillInputs(); render();
+    }
+  }else if(TEST_REC_BAK){
+    rec=TEST_REC_BAK; TEST_REC_BAK=null; fillInputs(); render();
+  }
+  if(TEST){
     if(!me) me={user_id:"me",handle:pro.handle||"me",name:pro.name||"わたし",role:"admin"};
     if(REAL_ROLE===null) REAL_ROLE=me.role;
     if(!sess) sess={access_token:"test",expires_at:9e9,user:{id:"me"}};
@@ -5623,6 +5956,7 @@ function tstToggle(on){
     if(me&&REAL_ROLE!==null) me.role=REAL_ROLE;
     REAL_ROLE=null;
     SUBS=[];RVQ=[];PFEED=[];PCUPS=[];PCUPENT={};MYSTAT=null;RREQ=[];REPQ=[];
+    AQ=[];ACHS=[];ASECS=[];ACHRANK={};
   }
   $("#testBanner").hidden=!TEST;
   subsEnter(); snsEnter(); renderRole(); updateMenuBadge();
@@ -5659,12 +5993,25 @@ const jstShort=t=>{
   return `${g("year")}年${g("month").replace("月","")}月${g("day")}日 ${g("hour")}時${g("minute")}分（${agoWord(t)}）`;
 };
 const ytId=u=>{const m=String(u||"").match(/(?:youtu\.be\/|[?&]v=)([\w-]{6,})/); return m?m[1]:null;};
-function poLinkHTML(u){
+/** リンクはボタンにします。押すと確認してから別タブで開きます（はみ出さないように） */
+const LINK_BOX=[];
+function poLinkHTML(u,note){
   if(!u) return "";
+  const i=LINK_BOX.push({url:u,note:note||""})-1;
   const y=ytId(u);
-  return `<div class="tiny" style="margin-top:5px">`
-    +(y?`▶ YouTube　`:`𝕏 `)
-    +`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.length>52?u.slice(0,52)+"…":u)}</a></div>`;
+  return `<div class="tools" style="margin-top:6px;gap:6px">`
+    +`<button class="btn sm" data-link="${i}">${y?"▶ YouTube のリンク":"𝕏 のリンク"}</button>`
+    +(note?`<span class="tiny" style="align-self:center;word-break:break-word">${esc(note)}</span>`:"")
+    +`</div>`;
+}
+async function openLink(i){
+  const L=LINK_BOX[i]; if(!L) return;
+  const host=(L.url.match(/^https?:\/\/([^/]+)/)||[])[1]||"";
+  if(!await askYN("このリンクに飛びますか？",
+    (L.note?esc(L.note)+"<br><br>":"")
+    +`<b>${esc(host)}</b><br><span class="tiny" style="word-break:break-all">${esc(L.url)}</span>`,
+    "別タブで開く")) return;
+  window.open(L.url,"_blank","noopener,noreferrer");
 }
 
 /* タブを行き来するたびに取りに行かないよう、30秒だけ手元に置いておきます。
@@ -5731,21 +6078,30 @@ function renderPfeed(){
   const box=$("#feedBox"); if(!box) return;
   if(!PFEED.length){ box.innerHTML='<p class="muted">まだ投稿がありません。</p>'; return; }
   /* 検索中はサーバーが返した分を出します（過去ぶんもここに入ります） */
+  LINK_BOX.length=0;
   let src = SEARCH ? SEARCH : PFEED.filter(feedMatch);
   const top=src.filter(p=>!p.reply_to);
   if(!top.length&&(TAGQ||feedActive())){
     box.innerHTML=`<p class="muted">その条件に合う投稿はまだありません。</p>`; return; }
   box.innerHTML=top.map(p=>{
-    const reps=src.filter(r=>r.reply_to===p.id)
+    /* 返信への返信も、まとめて root の下に時間順で並べます */
+    const ids=new Set([p.id]); let grew=true;
+    while(grew){ grew=false;
+      src.forEach(r=>{ if(r.reply_to&&ids.has(r.reply_to)&&!ids.has(r.id)){ ids.add(r.id); grew=true; } }); }
+    const reps=src.filter(r=>r.id!==p.id&&ids.has(r.id))
       .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-    return poHTML(p)+reps.map(r=>`<div style="margin-left:18px">${poHTML(r,true)}</div>`).join("");
+    const nameOf=id=>{ const q=src.find(x=>x.id===id); return q?(q.name||q.handle||"名無し"):""; };
+    return poHTML(p)+reps.map(r=>`<div style="margin-left:18px">`
+      +poHTML(r,true,r.reply_to!==p.id?nameOf(r.reply_to):"")+`</div>`).join("");
   }).join("");
   box.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>poMore(b.dataset.more));
   box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openProfile(b.dataset.open));
   box.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>tagFilter(b.dataset.tag));
+  box.querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>openLink(+b.dataset.link));
+  box.querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>poLike(b.dataset.like,b));
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>poReply(b.dataset.rep));
 }
-function poHTML(p,isRep){
+function poHTML(p,isRep,toWho){
   const rec = p.kind==="record"
     ? `<div class="sbtop" style="margin-top:6px">
          <span class="sbev">${esc(p.event||"")}</span>
@@ -5763,12 +6119,14 @@ function poHTML(p,isRep){
       ${cup}<span class="tiny" style="margin-left:auto">${jstShort(p.created_at)}</span>
     </div>
     ${rec}
+    ${toWho?`<div class="tiny" style="margin-top:4px;color:var(--dim2)">→ ${esc(toWho)} さんへの返信</div>`:""}
     ${p.body?`<div style="margin-top:6px;white-space:pre-wrap;font-size:.9rem">${bodyHTML(p.body)}</div>`:""}
     ${poLinkHTML(p.link)}
-    ${(p.links||[]).map(L=>`<div class="tiny" style="margin-top:4px">`
-      +`${L.note?esc(L.note)+"　":""}<a href="${esc(L.url)}" target="_blank" rel="noopener noreferrer">別タブで開く</a></div>`).join("")}
+    ${(p.links||[]).map(L=>poLinkHTML(L.url,L.note)).join("")}
     <div class="tools" style="margin-top:7px">
-      ${isRep?"":`<button class="btn sm" data-rep="${p.id}">返信</button>`}
+      <button class="heart${p.liked?" on":""}" data-like="${p.id}" title="いいね">
+        <span class="hi">${p.liked?"♥":"♡"}</span><span class="hn">${jp(+p.likes||0)}</span></button>
+      <button class="btn sm" data-rep="${p.id}">返信</button>
       <button class="btn sm dots" data-more="${p.id}">・・・</button>
     </div></div>`;
 }
@@ -5789,14 +6147,21 @@ let poLinks=[];
 $("#poGo").onclick=async()=>{
   const L=cleanLinks(poLinks);
   const ok=await poSend($("#poBody").value.trim(),L.length?L[0].url:"",null,$("#poMsg"),L);
-  if(ok){ $("#poBody").value=""; poLinks=[]; $("#poLinkRow").hidden=true; }
+  if(ok){ $("#poBody").value=""; poGrow(); poLinks=[]; $("#poLinkRow").hidden=true; }
 };
 $("#poPlus").onclick=()=>{ const r=$("#poLinkRow"); r.hidden=!r.hidden;
   if(!r.hidden){ if(!poLinks.length) poLinks=[{url:"",note:""}];
     linkEditor("poLinks",poLinks); } };
 $("#poAddLink").onclick=()=>{ if(poLinks.length>=5) return toast("リンクは5つまでです");
   poLinks.push({url:"",note:""}); linkEditor("poLinks",poLinks); };
-$("#poBody").onkeydown=e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("#poGo").click(); } };
+/* Enter は改行、Ctrl（または ⌘）＋Enter で投稿します */
+$("#poBody").onkeydown=e=>{
+  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $("#poGo").click(); }
+};
+const poGrow=()=>{ const t=$("#poBody"); if(!t) return;
+  t.style.height="auto"; t.style.height=Math.min(t.scrollHeight,Math.round(innerHeight*0.34))+"px"; };
+$("#poBody").oninput=poGrow;
+poGrow();
 /** 名前を押したときにその人のプロフィールを開く。ランキングと同じ画面です */
 async function openProfile(handle){
   if(TEST){
@@ -5861,17 +6226,70 @@ function poReport(id){
   };
 }
 function poReply(id){
+  const t=PFEED.find(x=>x.id===id);
   const M=modal(`<h2>返信する</h2>
-    <textarea id="rpB" rows="3" maxlength="500" placeholder="返信を書く"></textarea>
+    ${t?`<p class="tiny" style="margin-top:-8px">${esc(t.name||t.handle||"")} さんへ</p>`:""}
+    <textarea id="rpB" rows="5" maxlength="500"
+      placeholder="返信を書く（Enterで改行・Ctrl+Enterで送信）"></textarea>
     <label class="fl">リンク（任意）</label>
     <input type="text" class="txt" id="rpL" placeholder="https://…">
     <div class="tools"><button class="btn pri" id="rpGo">返信する</button></div>
     <p class="tiny" id="rpM"></p>`);
-  M.q("#rpGo").onclick=async()=>{
+  const send=async()=>{
     const ok=await poSend(M.q("#rpB").value.trim(),M.q("#rpL").value.trim(),id,M.q("#rpM"));
     if(ok) M.close();
   };
+  M.q("#rpGo").onclick=send;
+  M.q("#rpB").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); send(); } };
 }
+
+/* ---- 6) いいね ---- */
+async function poLike(id,btn){
+  if(!(TEST||(sess&&sbOn()))) return toast("先にログインしてください");
+  const p=PFEED.find(x=>x.id===id); if(!p) return;
+  const was=!!p.liked;
+  /* 押した感じをすぐ出してから送ります */
+  p.liked=!was; p.likes=Math.max(0,(+p.likes||0)+(was?-1:1));
+  btn.classList.toggle("on",p.liked);
+  btn.querySelector(".hi").textContent=p.liked?"♥":"♡";
+  btn.querySelector(".hn").textContent=jp(p.likes);
+  if(p.liked){ btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop"); }
+  try{
+    if(TEST){ const t=TDB.posts.find(x=>x.id===id); if(t){ t.liked=p.liked; t.likes=p.likes; } return; }
+    const r=await callRpc("like_post",{p_id:id});
+    if(typeof r==="boolean"&&r!==p.liked){ p.liked=r; renderPfeed(); }
+  }catch(e){
+    p.liked=was; p.likes=Math.max(0,(+p.likes||0)+(was?1:-1));
+    renderPfeed(); toast(String(e.message||e).slice(0,90));
+  }
+}
+
+/* ---- 5) 個人データ入力の保護 ---- */
+let editMode=false;
+function setEditMode(on){
+  editMode=!!on;
+  const eo=$("#editOn"), ef=$("#editOff"), nt=$("#editNote");
+  if(eo) eo.hidden=editMode; if(ef) ef.hidden=!editMode;
+  if(nt) nt.textContent=editMode
+    ? "いま編集できます。書き終わったら「入力を終わる」を押してください。"
+    : "まちがえて書き換えないよう、ふだんは編集できません。";
+  $$("#tb input[data-in]").forEach(el=>{
+    const isTotal=el.dataset.in==="合計スコア";
+    el.disabled=!editMode||isTotal;
+    el.title=isTotal?"9種目の合計から自動で計算されます":"";
+    el.style.opacity=(el.disabled?.55:1);
+    if(isTotal) el.placeholder="自動";
+  });
+}
+/** 合計スコア＝十種競技9種目の合計。手では入れられません */
+function recalcTotal(){
+  const t=autoTotal();
+  if(t!==null) rec["合計スコア"]=t;
+  const el=document.querySelector('#tb input[data-in="合計スコア"]');
+  if(el) el.value=(t!==null&&t>0)?commaFmt(String(t)):"";
+}
+if($("#editOn")) $("#editOn").onclick=()=>setEditMode(true);
+if($("#editOff")) $("#editOff").onclick=()=>{ setEditMode(false); toast("入力を終わりました"); };
 
 /* ---- 大会 ---- */
 let cuSteps=[{event:"暗素因数分解lv.1",n:1}];
@@ -6210,7 +6628,7 @@ function linkEditor(boxId,list,onChange){
   if(!list.length) list.push({url:"",note:""});
   box.innerHTML=list.map((L,i)=>`<div class="lkrow" data-i="${i}">
     <input type="text" data-u placeholder="X または YouTube のリンク" value="${esc(L.url||"")}">
-    <input type="text" data-t placeholder="このリンクの説明（例：素因数分解（上級）の1回目）" value="${esc(L.note||"")}">
+    <textarea data-t rows="3" placeholder="このリンクの説明（改行できます。例：素因数分解（上級）の1回目〜3回目）">${esc(L.note||"")}</textarea>
     <div class="tools" style="margin-top:0">
       <button class="btn sm" data-tool>ツール</button>
       ${list.length>1?`<button class="btn sm" data-x>消す</button>`:""}
@@ -6234,7 +6652,7 @@ function linkEditor(boxId,list,onChange){
   });
 }
 const cleanLinks=list=>(list||[]).filter(L=>L.url&&isProofUrl(L.url))
-  .map(L=>({url:L.url,note:(L.note||"").slice(0,80)}));
+  .map(L=>({url:L.url,note:(L.note||"").slice(0,400)}));
 
 /* ---- 13/16) タグ ---- */
 const TAG_RE=/#([^\s#、。，．!！?？"'`()（）\[\]{}]{1,30})/g;
@@ -6258,7 +6676,7 @@ const K_TAGSEEN="sa-tagseen-v1", K_TAGWATCH="sa-tagwatch-v1", K_AUTOPOST="sa-aut
 let tagWatch=ls(K_TAGWATCH,null);
 const saveWatch=()=>{try{localStorage.setItem(K_TAGWATCH,JSON.stringify(tagWatch));}catch(e){}};
 /** 自動投稿の設定 */
-let autoPost=ls(K_AUTOPOST,{rec:true,cup:true});
+let autoPost=ls(K_AUTOPOST,{rec:true,cup:true,ach:true});
 const saveAutoPost=()=>{try{localStorage.setItem(K_AUTOPOST,JSON.stringify(autoPost));}catch(e){}};
 const fmtAt=t=>t?jstShort(t):"—";
 function myTags(){
@@ -6446,7 +6864,7 @@ function liveStart(){
       if(snsShown("feed")){ await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice(); }
       if(snsShown("cup")) { await loadPcups(); renderPcups(); }
       if(snsShown("rank")) loadRanking(true);
-      if(snsShown("rv"))  { await Promise.all([loadRvq(),loadReports()]); renderRvq(); }
+      if(snsShown("rv"))  { await Promise.all([loadRvq(),loadReports(),loadAchQ()]); renderRvq(); }
       /* 役職が変わっていたら画面の作りも変える */
       if(sess&&sbOn()){ const before=me&&me.role; await loadMe();
         if(me&&me.role!==before){ renderRvq(); renderRole(); renderPcups();
@@ -6454,6 +6872,691 @@ function liveStart(){
       await loadFriendReq(); updateMenuBadge();
     }catch(e){}
   },20000);
+}
+
+/* ---- 8) 正多角形のチャート ----
+   各頂点はその種目のレート割合（1位＝いちばん外側）。25%・50%・75% に薄い線を引きます。 */
+function radarSVG(events,rates,recs,title){
+  const N=events.length, W=520, H=470, cx=W/2, cy=225, R=140;
+  const pt=(i,r)=>{
+    const a=-Math.PI/2+i*2*Math.PI/N;
+    return [cx+Math.cos(a)*R*r, cy+Math.sin(a)*R*r];
+  };
+  const poly=r=>Array.from({length:N},(_,i)=>pt(i,r).map(v=>v.toFixed(1)).join(",")).join(" ");
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:${W}px;margin:0 auto"
+    xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(title)}">`;
+  /* 25%・50%・75% の薄い線 */
+  [0.25,0.5,0.75].forEach(r=>{
+    g+=`<polygon points="${poly(r)}" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="1"/>`;
+    g+=`<text x="${cx+3}" y="${(cy-R*r-2).toFixed(1)}" fill="#ffffff" fill-opacity=".3"
+      style="font:400 9px ui-sans-serif">${r*100}%</text>`;
+  });
+  g+=`<polygon points="${poly(1)}" fill="none" stroke="#4a5d78" stroke-width="1.4"/>`;
+  Array.from({length:N},(_,i)=>{
+    const [x,y]=pt(i,1);
+    g+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"
+      stroke="#3a4a63" stroke-width=".8"/>`;
+  });
+  /* 自分の形 */
+  const mine=Array.from({length:N},(_,i)=>pt(i,Math.max(0.02,Math.min(1,rates[i]||0)))
+    .map(v=>v.toFixed(1)).join(",")).join(" ");
+  g+=`<polygon points="${mine}" fill="#4da3ff" fill-opacity=".26" stroke="#7fc4ff" stroke-width="2"/>`;
+  Array.from({length:N},(_,i)=>{
+    const [x,y]=pt(i,Math.max(0.02,Math.min(1,rates[i]||0)));
+    g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="#eaf3ff"/>`;
+  });
+  /* 頂点のラベル：ゲーム名・記録・レート割合 */
+  Array.from({length:N},(_,i)=>{
+    const a=-Math.PI/2+i*2*Math.PI/N;
+    const lx=cx+Math.cos(a)*(R+30), ly=cy+Math.sin(a)*(R+30);
+    const an=Math.abs(Math.cos(a))<0.34?"middle":(Math.cos(a)>0?"start":"end");
+    const dy=Math.sin(a)>0.6?10:(Math.sin(a)<-0.6?-4:2);
+    g+=`<text x="${lx.toFixed(1)}" y="${(ly+dy).toFixed(1)}" text-anchor="${an}"
+      fill="#c8d6ea" style="font:600 9.5px ui-sans-serif">${esc(events[i])}</text>`
+     +`<text x="${lx.toFixed(1)}" y="${(ly+dy+11).toFixed(1)}" text-anchor="${an}"
+      fill="#8fbdf0" style="font:400 9px ui-monospace,monospace">${esc(recs[i]||"—")}</text>`
+     +`<text x="${lx.toFixed(1)}" y="${(ly+dy+21).toFixed(1)}" text-anchor="${an}"
+      fill="#57e0a0" style="font:700 9px ui-monospace,monospace">${((rates[i]||0)*100).toFixed(1)}%</text>`;
+  });
+  g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" fill="#61748f"
+    style="font:600 10px ui-sans-serif">${esc(title)}</text></svg>`;
+  return g;
+}
+/** 2つのチャートを作る。CAT2＝10種目（正十角形）、CAT3＝8種目（正八角形） */
+function radarPair(rc){
+  const c=compute(rc);
+  const mk=(list,title)=>radarSVG(list,
+    list.map(n=>c.rates[n]||0),
+    list.map(n=>rc[n]>0?fmtRec(n,rc[n]):"—"), title);
+  return `<div class="radars">
+    <div>${mk(CAT2,"十種（正十角形）")}</div>
+    <div>${mk(CAT3,"EX・タイムアタック（正八角形）")}</div></div>`;
+}
+
+/* =========================================================
+   10g-2. アチーブメント
+   ========================================================= */
+let ACHS=[], ASECS=[], achKind="official", achPos=false, ACHRANK={};
+const TROPHY={bronze:"ブロンズ",silver:"シルバー",gold:"ゴールド",platinum:"プラチナ"};
+const canOffAch=()=>myLv()>=4;
+
+async function loadAch(){
+  if(TEST){ ACHS=TDB.achs.slice(); ASECS=TDB.asecs.slice(); return; }
+  if(!sbOn()){ ACHS=[]; ASECS=[]; return; }
+  try{
+    const q1="ach_shelf?select=*&order=pos.asc";
+    const q2="ach_sections?select=*&order=pos.asc";
+    ACHS = sess? await sbAuth(q1) : await sb(q1);
+    ASECS= sess? await sbAuth(q2) : await sb(q2);
+  }catch(e){ ACHS=[]; ASECS=[]; }
+}
+async function loadAchRank(id){
+  if(TEST){ ACHRANK[id]=tstAchRank(id); return; }
+  try{
+    const body={p_ach:id};
+    ACHRANK[id]= sess? await sbAuth("rpc/ach_ranking",{method:"POST",body:JSON.stringify(body)})
+                     : await sb("rpc/ach_ranking",{method:"POST",body:JSON.stringify(body)});
+  }catch(e){ ACHRANK[id]=[]; }
+}
+async function achEnter(){
+  renderAch();
+  await loadAch();
+  renderAch();
+}
+$$("#achTabs button").forEach(b=>b.onclick=()=>{
+  achKind=b.dataset.av; achPos=false;
+  $$("#achTabs button").forEach(x=>x.classList.toggle("on",x===b));
+  renderAch();
+});
+
+/** メダル1枚 */
+function medalHTML(a){
+  const tro=a.trophy&&TROPHY[a.trophy]?a.trophy:"none";
+  const got=!!a.my_done_at;
+  const cls="mdisc "+tro+(got?" shine":(a.kind==="official"?" lock":""));
+  const mark=a.kind==="official"?(TROPHY[a.trophy]||"—").slice(0,2):"★";
+  const st=[];
+  if(a.kind==="official"&&!a.published) st.push('<div class="mstate un">（未公開）</div>');
+  else if(a.kind==="official"&&a.dirty) st.push('<div class="mstate ed">（編集中）</div>');
+  if(a.my_pending) st.push('<div class="mstate pd">'+(got?"記録更新申請中":"審査中")+'</div>');
+  return `<div class="medal" data-ach="${a.id}" ${achPos&&a.can_edit?'draggable="true"':""}>
+    <div class="${cls}">${esc(mark)}</div>
+    <div class="mname">${esc(a.title)}</div>
+    <div class="mdate ${got?"done":""}">${got?jstFull(a.my_done_at).slice(0,10)+" 達成":"未達成"}</div>
+    ${st.join("")}
+  </div>`;
+}
+function renderAch(){
+  const tools=$("#achTools"), shelf=$("#achShelf"), note=$("#achNote");
+  if(!tools) return;
+  const mine=ACHS.filter(a=>a.kind===achKind);
+  const secs=ASECS.filter(x=>x.kind===achKind);
+  const canMake = achKind==="official" ? canOffAch() : !!(TEST||sess);
+  const unpub=mine.filter(a=>a.kind==="official"&&(!a.published||a.dirty)).length;
+  tools.innerHTML=
+    (canMake?`<button class="btn pri" id="achNew">＋ アチーブメントを作る</button>`:"")
+   +(achKind==="official"&&canOffAch()
+      ?`<button class="btn" id="achSec">部門を作る</button>`
+      +`<button class="btn" id="achPos">${achPos?"位置の編集をやめる":"位置を編集する"}</button>`
+      +`<button class="btn ${unpub?"pri":""}" id="achPub" ${unpub?"":"disabled"}>`
+      +`編集したアチーブメントをすべて公開する${unpub?"（"+unpub+"）":""}</button>`:"");
+  note.textContent = achKind==="official"
+    ? (canOffAch()?"ジャッジマンだけが作れます。作ったものは「すべて公開する」を押すまで、ほかの人には見えません。"
+                  :"公式アチーブメントはジャッジマンが用意します。挑みたいメダルを押してください。")
+    : "誰でも作れます。トロフィーのランクはありません。";
+  if($("#achNew")) $("#achNew").onclick=()=>achForm(null);
+  if($("#achSec")) $("#achSec").onclick=achSecForm;
+  if($("#achPos")) $("#achPos").onclick=()=>{ achPos=!achPos; renderAch(); };
+  if($("#achPub")) $("#achPub").onclick=async()=>{
+    if(!await askYN("編集したものをすべて公開しますか？",
+      "未公開・編集中の <b>"+unpub+"件</b> が、いちどに全員に見えるようになります。","公開する")) return;
+    try{ await callRpc("ach_publish_all",{}); toast("公開しました");
+      await loadAch(); renderAch(); }catch(e){ toast(String(e.message||e).slice(0,90)); }
+  };
+
+  const group=id=>mine.filter(a=>(a.section_id||null)===(id||null))
+    .sort((x,y)=>(x.pos||0)-(y.pos||0));
+  const box=[];
+  secs.forEach(sc=>{
+    const list=group(sc.id);
+    box.push(`<div class="shelf" data-sec="${sc.id}"><h3>${esc(sc.title)}
+      ${canOffAch()&&achKind==="official"?`<button class="btn sm" data-secdel="${sc.id}"
+        style="float:right">部門を消す</button>`:""}</h3>
+      <div class="shelfgrid">${list.map(medalHTML).join("")
+        ||'<p class="tiny">まだありません。</p>'}</div></div>`);
+  });
+  const rest=group(null);
+  if(rest.length||!secs.length)
+    box.push(`<div class="shelf" data-sec=""><h3>${secs.length?"部門なし":"アチーブメント"}</h3>
+      <div class="shelfgrid">${rest.map(medalHTML).join("")
+        ||'<p class="tiny">まだありません。上の「＋ アチーブメントを作る」から作れます。</p>'}</div></div>`);
+  shelf.innerHTML=box.join("");
+  shelf.querySelectorAll("[data-ach]").forEach(el=>{
+    el.onclick=()=>{ if(!achPos) achDetail(el.dataset.ach); };
+    if(!achPos) return;
+    el.ondragstart=e=>{ e.dataTransfer.setData("text/plain",el.dataset.ach); el.classList.add("drag"); };
+    el.ondragend=()=>el.classList.remove("drag");
+    el.ondragover=e=>{ e.preventDefault(); el.classList.add("over"); };
+    el.ondragleave=()=>el.classList.remove("over");
+    el.ondrop=async e=>{
+      e.preventDefault(); el.classList.remove("over");
+      const from=e.dataTransfer.getData("text/plain"), to=el.dataset.ach;
+      if(!from||from===to) return;
+      const t=ACHS.find(a=>a.id===to);
+      try{ await callRpc("ach_move",{p_id:from,p_pos:t.pos,p_section:t.section_id||null},[["p_section"]]);
+        await loadAch(); renderAch(); }catch(e2){ toast(String(e2.message||e2).slice(0,90)); }
+    };
+  });
+  shelf.querySelectorAll("[data-secdel]").forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();
+    if(!await askYN("この部門を消しますか？","中のアチーブメントは「部門なし」に移ります。","消す")) return;
+    try{ await callRpc("ach_section_del",{p_id:b.dataset.secdel});
+      await loadAch(); renderAch(); }catch(e2){ toast(String(e2.message||e2).slice(0,90)); }
+  });
+}
+function achSecForm(){
+  const M=modal(`<h2>部門を作る</h2>
+    <p class="muted" style="margin-top:-8px">棚を区切る見出しです。先に作ってから、その中にアチーブメントを置きます。</p>
+    <label class="fl">部門の名前</label>
+    <input type="text" class="txt" id="scT" placeholder="例：計算スピード部門">
+    <div class="tools"><button class="btn pri" id="scGo">作る</button></div>
+    <p class="tiny" id="scM"></p>`);
+  M.q("#scGo").onclick=async()=>{
+    const t=M.q("#scT").value.trim(); if(!t) return toast("名前を入れてください");
+    try{ await callRpc("ach_section_save",{p_id:null,p_title:t,p_kind:achKind,p_pos:ASECS.length},
+      [["p_pos"]]);
+      M.close(); await loadAch(); renderAch(); toast("作りました");
+    }catch(e){ M.q("#scM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+
+/* ---- 作成・編集 ---- */
+function achForm(id){
+  const a=id?ACHS.find(x=>x.id===id):null;
+  const kind=a?a.kind:achKind;
+  const off=(kind==="official");
+  let fields=(a&&Array.isArray(a.fields)&&a.fields.length)?JSON.parse(JSON.stringify(a.fields))
+    :[{key:"a",label:""}];
+  let sheet=(a&&a.sheet)?JSON.parse(JSON.stringify(a.sheet)):null;
+  const secs=ASECS.filter(x=>x.kind===kind);
+  const M=modal(`<h2>${a?"アチーブメントを編集する":(off?"公式":"みんなの")+"アチーブメントを作る"}</h2>
+    <label class="fl">名前</label>
+    <input type="text" class="txt" id="afT" style="max-width:none" value="${a?esc(a.title):""}"
+      placeholder="例：素因数分解（上級）9万点">
+    ${off?`<label class="fl">トロフィーのランク</label>
+      <select id="afTro" style="max-width:none">${Object.keys(TROPHY).map(k=>
+        `<option value="${k}"${a&&a.trophy===k?" selected":""}>${TROPHY[k]}</option>`).join("")}</select>`:""}
+    ${secs.length?`<label class="fl">部門</label>
+      <select id="afSec" style="max-width:none"><option value="">部門なし</option>${secs.map(x=>
+        `<option value="${x.id}"${a&&a.section_id===x.id?" selected":""}>${esc(x.title)}</option>`).join("")}</select>`:""}
+    <label class="fl">内容（どうすれば達成なのか）</label>
+    <textarea id="afB" rows="8" placeholder="例：素因数分解（上級）で90,000点以上を出す。&#10;1回のプレイで達成すること。">${a?esc(a.body):""}</textarea>
+    <label class="fl">提出方法の説明（任意）</label>
+    <textarea id="afH" rows="6" placeholder="例：Xに動画を投稿して、そのリンクを貼ってください。&#10;結果画面が最後まで映っていることが必要です。">${a?esc(a.how||""):""}</textarea>
+    <label class="fl">提出できる形</label>
+    <div class="tools" style="margin-top:0">
+      <label class="pk"><input type="radio" name="afN" value="video" ${!a||a.need==="video"?"checked":""}> 動画のみ</label>
+      <label class="pk"><input type="radio" name="afN" value="image" ${a&&a.need==="image"?"checked":""}> 画像のみ</label>
+      <label class="pk"><input type="radio" name="afN" value="either" ${a&&a.need==="either"?"checked":""}> どちらでもよい</label>
+    </div>
+    <h3 style="margin-top:16px">記入してもらう値</h3>
+    <p class="tiny" style="margin-top:-6px">何を書いてもらうかを必ず決めてください。a, b, c… の記号で表計算にも使えます。</p>
+    <div id="afFields"></div>
+    <div class="tools" style="margin-top:8px">
+      <button class="btn sm" id="afAdd">＋ 値を増やす</button>
+      <button class="btn sm" id="afSheet">表計算を用いる${sheet?"（設定ずみ）":""}</button>
+    </div>
+    <h3 style="margin-top:16px">ランキング</h3>
+    <div class="tools" style="margin-top:0">
+      <label class="pk"><input type="radio" name="afR" value="1" ${a&&a.ranked?"checked":""}> ランキングを作る</label>
+      <label class="pk"><input type="radio" name="afR" value="0" ${!a||!a.ranked?"checked":""}> 作らない（提出者と達成者を並べる）</label>
+    </div>
+    ${off?"":`<h3 style="margin-top:16px">みんなのアチーブメントだけの設定</h3>
+      <label class="pk" style="display:inline-flex"><input type="checkbox" id="afAuto"
+        ${a&&a.auto_done?"checked":""}> 提出したら達成にする</label>
+      <div class="tools" style="margin-top:6px">
+        <label class="pk"><input type="radio" name="afK" value="best" ${!a||a.keep!=="all"?"checked":""}> 最高記録だけ出す</label>
+        <label class="pk"><input type="radio" name="afK" value="all" ${a&&a.keep==="all"?"checked":""}> すべての提出を出す</label>
+      </div>`}
+    <div class="tools"><button class="btn pri" id="afGo">${a?"保存する":"作る"}</button>
+      ${a&&a.can_edit?`<button class="btn" id="afDel" style="border-color:#7a3030;color:#ff8a8a">消す</button>`:""}
+      <span class="tiny" id="afM"></span></div>
+    ${off?`<p class="tiny">公式は「すべて公開する」を押すまで、ほかの人には見えません。</p>`:""}`,
+    {w:820});
+
+  const drawFields=()=>{
+    M.q("#afFields").innerHTML=fields.map((f,i)=>`<div class="lkrow" data-i="${i}">
+      <div class="tools" style="margin-top:0">
+        <span class="tiny" style="min-width:1.4em;font-weight:800;color:var(--acc)">${f.key}</span>
+        <input type="text" data-l placeholder="この値の名前（例：1回目の点数）" value="${esc(f.label||"")}" style="flex:1">
+        ${fields.length>1?`<button class="btn sm" data-x>消す</button>`:""}
+      </div></div>`).join("");
+    M.qa("#afFields .lkrow").forEach(row=>{
+      const i=+row.dataset.i;
+      row.querySelector("[data-l]").oninput=e=>{ fields[i].label=e.target.value; };
+      const x=row.querySelector("[data-x]");
+      if(x) x.onclick=()=>{ fields.splice(i,1);
+        fields.forEach((f,j)=>f.key=String.fromCharCode(97+j)); drawFields(); };
+    });
+  };
+  drawFields();
+  M.q("#afAdd").onclick=()=>{
+    if(fields.length>=12) return toast("値は12個までです");
+    fields.push({key:String.fromCharCode(97+fields.length),label:""}); drawFields();
+  };
+  M.q("#afSheet").onclick=()=>xlEditor(fields,sheet,r=>{ sheet=r;
+    M.q("#afSheet").textContent="表計算を用いる"+(sheet?"（設定ずみ）":""); });
+  if(M.q("#afDel")) M.q("#afDel").onclick=async()=>{
+    if(!await askYN("このアチーブメントを消しますか？","提出された記録もすべて消えます。","消す")) return;
+    try{ await callRpc("ach_del",{p_id:id}); M.close(); await loadAch(); renderAch(); toast("消しました"); }
+    catch(e){ toast(String(e.message||e).slice(0,90)); }
+  };
+  M.q("#afGo").onclick=async()=>{
+    const t=M.q("#afT").value.trim(), b=M.q("#afB").value.trim();
+    if(!t) return toast("名前を入れてください");
+    if(!b) return toast("内容を書いてください");
+    if(!fields.length||fields.some(f=>!f.label.trim()))
+      return toast("記入してもらう値の名前をすべて書いてください");
+    const need=(M.qa('input[name="afN"]').find(x=>x.checked)||{}).value||"either";
+    const ranked=((M.qa('input[name="afR"]').find(x=>x.checked)||{}).value==="1");
+    const body={p_id:id||null,p_kind:kind,p_title:t,p_body:b,p_how:M.q("#afH").value.trim()||null,
+      p_need:need,p_fields:fields,p_sheet:sheet,p_ranked:ranked,
+      p_trophy:off?(M.q("#afTro")||{}).value||null:null,
+      p_auto_done:off?false:!!(M.q("#afAuto")&&M.q("#afAuto").checked),
+      p_keep:off?"best":((M.qa('input[name="afK"]').find(x=>x.checked)||{}).value||"best"),
+      p_section:(M.q("#afSec")||{}).value||null};
+    try{
+      await callRpc("ach_save",body,[["p_section"],["p_keep","p_section"],
+        ["p_auto_done","p_keep","p_section"]]);
+      M.close(); await loadAch(); renderAch();
+      toast(off?"作りました（まだ公開されていません）":"作りました");
+    }catch(e){ M.q("#afM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+
+/* ---- 詳細と提出 ---- */
+async function achDetail(id){
+  const a=ACHS.find(x=>x.id===id); if(!a) return;
+  await loadAchRank(id);
+  const rows=ACHRANK[id]||[];
+  const got=!!a.my_done_at;
+  const tro=a.trophy&&TROPHY[a.trophy]?a.trophy:"none";
+  const list=rows.map(r=>{
+    const nm=r.done
+      ? `<b style="color:#ffd45e;text-shadow:0 0 9px #ffd45e77">${esc(r.name||r.handle||"")}</b>`
+      : `<span style="color:#eaf3ff">${esc(r.name||r.handle||"")}</span>`;
+    const st=r.status==="pending"?'<span class="sbtag pending">審査中</span>':"";
+    return `<tr>
+      ${a.ranked?`<td><b>${r.rk}${r.tie_n>1?"T":""}</b></td>`:""}
+      <td>${a.handle?"":""}<span data-open="${esc(r.handle||"")}" style="cursor:pointer">${nm}</span>
+        ${r.done?'<span class="sbtag certified">達成</span>':""}${st}</td>
+      <td><b>${r.main==null?"—":jp(Math.round(+r.main*1000)/1000)}</b></td>
+      <td>${(r.links||[]).length?`<button class="btn sm" data-alink="${esc(r.id)}">証明</button>`:"—"}</td>
+      <td><button class="btn sm" data-adet="${esc(r.id)}">詳細</button></td>
+    </tr>`;}).join("");
+  const M=modal(`<div class="prof" style="align-items:center">
+      <div class="mdisc ${tro}${got?" shine":""}" style="width:74px;height:74px;font-size:1.5rem">
+        ${esc(a.kind==="official"?(TROPHY[a.trophy]||"—").slice(0,2):"★")}</div>
+      <div><div class="pname">${esc(a.title)}</div>
+        <div class="tiny">${a.kind==="official"?"公式アチーブメント":"みんなのアチーブメント"}
+          ${a.trophy?"／"+TROPHY[a.trophy]:""}
+          ${a.kind==="community"&&a.owner_name?"／作った人 "+esc(a.owner_name):""}</div>
+        <div class="tiny ${got?"":"muted"}" style="color:${got?"#ffd45e":""}">
+          ${got?jstFull(a.my_done_at)+" に達成":"未達成"}
+          ${a.my_pending?(got?"／記録更新申請中":"／審査中"):""}</div>
+      </div>
+    </div>
+    ${a.kind==="official"&&!a.published?'<p class="tiny" style="color:var(--warn)">（未公開）まだ全体に公開されていません。</p>':""}
+    ${a.kind==="official"&&a.dirty?'<p class="tiny" style="color:var(--warn)">（編集中）直した内容はまだ公開されていません。</p>':""}
+    <h3>内容</h3>
+    <div style="white-space:pre-wrap;font-size:.88rem">${esc(a.body||"")}</div>
+    ${a.how?`<h3 style="margin-top:14px">提出のしかた</h3>
+      <div style="white-space:pre-wrap;font-size:.88rem">${esc(a.how)}</div>`:""}
+    <p class="tiny">出せるのは ${a.need==="video"?"動画のリンクだけ":a.need==="image"?"画像のリンクだけ":"動画でも画像でも構いません"}
+      （X または YouTube）。記入する値：${(a.fields||[]).map(f=>esc(f.label||f.key)).join("、")}</p>
+    <div class="tools">
+      <button class="btn pri" id="adSub">${got?"記録を更新する":"挑んだ記録を出す"}</button>
+      ${a.can_edit?`<button class="btn" id="adEdit">編集する</button>`:""}
+    </div>
+    <h3 style="margin-top:16px">${a.ranked?"ランキング":"提出した人・達成した人"}
+      <span class="tiny">達成者は金色、提出だけの人は白</span></h3>
+    ${rows.length?`<div class="scroll"><table><thead><tr>
+      ${a.ranked?"<th>順位</th>":""}<th>名前</th><th>記録</th><th>証明</th><th></th>
+      </tr></thead><tbody>${list}</tbody></table></div>`
+      :'<p class="muted">まだ提出がありません。</p>'}`,{w:900});
+  M.qa("[data-open]").forEach(b=>b.onclick=()=>{ if(b.dataset.open) openProfile(b.dataset.open); });
+  M.qa("[data-adet]").forEach(b=>b.onclick=()=>achSubDetail(a,rows.find(r=>r.id===b.dataset.adet)));
+  M.qa("[data-alink]").forEach(b=>b.onclick=()=>{
+    const r=rows.find(x=>x.id===b.dataset.alink);
+    LINK_BOX.length=0;
+    const html=(r.links||[]).map(L=>poLinkHTML(L.url,L.note)).join("");
+    const M2=modal(`<h2>証明のリンク</h2><div id="alBox">${html}</div>`,{w:600});
+    M2.qa("[data-link]").forEach(x=>x.onclick=()=>openLink(+x.dataset.link));
+  });
+  M.q("#adSub").onclick=()=>{ M.close(); achSubmit(a); };
+  if(M.q("#adEdit")) M.q("#adEdit").onclick=()=>{ M.close(); achForm(a.id); };
+}
+/** 提出された値の中身を見せます */
+function achSubDetail(a,r){
+  if(!r) return;
+  const fs=a.fields||[];
+  const sh=a.sheet;
+  const cv=r.computed||{};
+  modal(`<h2>${esc(r.name||r.handle||"")} さんの提出</h2>
+    <p class="muted" style="margin-top:-8px">${esc(a.title)}　${jstShort(r.created_at)}
+      ${r.done?'　<span class="sbtag certified">達成</span>':r.status==="pending"?'　<span class="sbtag pending">審査中</span>':""}</p>
+    <h3>記入した値</h3>
+    <div class="scroll"><table><thead><tr><th>記号</th><th>名前</th><th>入れた値</th></tr></thead><tbody>`
+    +fs.map(f=>`<tr><td><b>${esc(f.key)}</b></td><td>${esc(f.label||"")}</td>
+      <td><b>${(r.vals||{})[f.key]==null?"—":jp(+(r.vals||{})[f.key])}</b></td></tr>`).join("")
+    +`</tbody></table></div>
+    ${sh&&sh.picks?`<h3 style="margin-top:14px">表計算の結果</h3>
+      <div class="scroll"><table><thead><tr><th>セル</th><th>式</th><th>結果</th></tr></thead><tbody>`
+      +sh.picks.map(pk=>`<tr><td><b>${esc(pk)}</b>${pk===sh.main?" <span class='sbtag'>メイン</span>":""}</td>
+        <td class="tiny">${esc((sh.cells||{})[pk]||"")}</td>
+        <td><b>${cv[pk]==null?"—":jp(Math.round(+cv[pk]*1000)/1000)}</b></td></tr>`).join("")
+      +`</tbody></table></div>`:""}
+    ${r.note?`<h3 style="margin-top:14px">ひとこと</h3>
+      <div style="white-space:pre-wrap;font-size:.88rem">${esc(r.note)}</div>`:""}
+    ${(r.judge_handle||r.judge_name)?`<p class="tiny" style="margin-top:12px">審査：
+      ${byWho(r.judge_handle,r.judge_name,r.judge_role)}
+      ${r.judge_act==="approve"?"承認":r.judge_act==="reject"?"却下":""}
+      ${r.judge_note?"　"+esc(r.judge_note):""}</p>`:""}`,{w:760});
+}
+/** 提出する画面 */
+function achSubmit(a){
+  const fs=a.fields||[];
+  const links=[{url:"",note:""}];
+  const M=modal(`<h2>${esc(a.title)} に出す</h2>
+    ${a.how?`<div class="hintbox" style="margin-top:0"><b>提出のしかた</b><br>
+      <span class="tiny" style="white-space:pre-wrap">${esc(a.how)}</span></div>`:""}
+    <p class="tiny">出せるのは ${a.need==="video"?"<b>動画</b>のリンクだけ":a.need==="image"?"<b>画像</b>のリンクだけ":"動画でも画像でも構いません"}
+      （X または YouTube）。</p>
+    <h3>値を記入する</h3>
+    <div id="asVals"></div>
+    ${a.sheet&&a.sheet.picks?`<div class="hintbox" style="margin-top:10px" id="asCalc"></div>`:""}
+    <h3 style="margin-top:14px">証明のリンク（複数可）</h3>
+    <div id="asLinks"></div>
+    <div class="tools" style="margin-top:6px"><button class="btn sm" id="asAdd">＋ リンクを増やす</button>
+      <span class="tiny">「ツール」で種目名を説明に入れられます</span></div>
+    <label class="fl">ひとこと（任意）</label>
+    <textarea id="asNote" rows="4" placeholder="伝えたいことがあれば書いてください"></textarea>
+    <div class="tools"><button class="btn pri" id="asGo">提出する</button>
+      <span class="tiny" id="asM"></span></div>
+    <p class="tiny">${a.kind==="official"
+      ?"公式アチーブメントは、審査員の審査を通ると達成になります。それまでは「審査中」です。"
+      :(a.auto_done?"提出すると達成になります。":"作った人の決めた条件で達成が決まります。")}</p>`,
+    {w:820});
+  M.q("#asVals").innerHTML=fs.map(f=>`<div class="lkrow">
+    <div class="tools" style="margin-top:0">
+      <span class="tiny" style="min-width:1.4em;font-weight:800;color:var(--acc)">${esc(f.key)}</span>
+      <span class="tiny" style="flex:1">${esc(f.label||"")}</span>
+      <input type="text" inputmode="decimal" data-v="${esc(f.key)}" style="max-width:150px"></div></div>`).join("");
+  const vals=()=>{ const o={}; M.qa("[data-v]").forEach(el=>o[el.dataset.v]=num(el.value)||0); return o; };
+  const calc=()=>{
+    if(!(a.sheet&&a.sheet.picks)) return {};
+    const r=xlCalc(a.sheet.cells||{},vals());
+    const box=M.q("#asCalc");
+    if(box) box.innerHTML="<b>いまの値で計算すると</b><br>"+a.sheet.picks.map(pk=>
+      `<span class="tiny">${esc(pk)}${pk===a.sheet.main?"（メイン）":""}＝<b>`
+      +(r[pk]==null?"—":jp(Math.round(+r[pk]*1000)/1000))+"</b></span>").join("　／　");
+    return r;
+  };
+  M.qa("[data-v]").forEach(el=>el.oninput=()=>{ applyComma(el); calc(); });
+  linkEditor("asLinks",links);
+  M.q("#asAdd").onclick=()=>{ if(links.length>=8) return toast("リンクは8つまでです");
+    links.push({url:"",note:""}); linkEditor("asLinks",links); };
+  calc();
+  M.q("#asGo").onclick=async()=>{
+    const v=vals();
+    if(fs.some(f=>!(v[f.key]>0))) return toast("すべての値を記入してください");
+    const LK=cleanLinks(links);
+    if(!LK.length) return toast("証明のリンクを1つ以上入れてください");
+    const c=calc();
+    const main=(a.sheet&&a.sheet.main)?(+c[a.sheet.main]||0):(+v[fs[0].key]||0);
+    if(!await askYN("この内容で提出しますか？",
+      `<b>${esc(a.title)}</b><br>記録 <b>${jp(Math.round(main*1000)/1000)}</b>`,"提出する")) return;
+    try{
+      await callRpc("ach_submit",{p_ach:a.id,p_vals:v,p_main:main,p_links:LK,
+        p_computed:(a.sheet?c:null),p_note:M.q("#asNote").value.trim()||null},
+        [["p_note"],["p_computed","p_note"]]);
+      M.close(); toast("提出しました");
+      await loadAch(); await loadAchRank(a.id); renderAch();
+      if(!TEST){ await loadFeed(true); renderPfeed(); }
+    }catch(e){ M.q("#asM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+
+/* ---- 表計算の画面 ---- */
+function xlEditor(fields,cur,onOk){
+  let cells=Object.assign({},(cur&&cur.cells)||{});
+  let picks=((cur&&cur.picks)||[]).slice();
+  let main=(cur&&cur.main)||null;
+  const demo={}; fields.forEach((f,i)=>demo[f.key]=[100,200,300,400][i%4]);
+  const M=modal(`<h2>表計算を用いる</h2>
+    <p class="muted" style="margin-top:-8px">Excel と同じ書き方が使えます。
+      <b>=SUM(A1:A3)</b> や <b>=AVERAGE(a,b)</b> のように書いてください。
+      a, b, c… は提出者が記入する値です。</p>
+    <div class="hintbox" style="margin-top:0"><span class="tiny">
+      <b>使える記号</b>　+ − × ÷ ^ 、かっこ、比べる記号（= &lt; &gt; &lt;= &gt;= &lt;&gt;）<br>
+      <b>使える関数</b>　SUM／AVERAGE／MAX／MIN／COUNT／COUNTA／IF／IFERROR／ROUND／ROUNDDOWN／ROUNDUP／
+      INT／MOD／ABS／SQRT／POWER／LOG／LN／EXP／AND／OR／NOT／CONCATENATE／VLOOKUP<br>
+      <b>記入してもらう値</b>　${fields.map(f=>`<b>${f.key}</b>＝${esc(f.label||"（名前なし）")}`).join("　")}
+    </span></div>
+    <p class="tiny">セルを押して数式を書き、「記録にする」でランキングに使うセルを選びます（複数可）。</p>
+    <div class="xlwrap"><table class="xl" id="xlT"></table></div>
+    <div class="tools" style="margin-top:10px">
+      <span class="tiny" id="xlSel">セルを選んでください</span>
+      <button class="btn sm" id="xlPick" disabled>記録にする／やめる</button>
+      <button class="btn sm" id="xlMain" disabled>メインにする</button>
+    </div>
+    <p class="tiny" id="xlInfo">—</p>
+    <div class="tools"><button class="btn pri" id="xlGo">この表を使う</button>
+      <button class="btn" id="xlOff">表計算を使わない</button></div>`,{w:960});
+  let sel=null;
+  const draw=()=>{
+    const vals=xlCalc(cells,demo);
+    let h="<thead><tr><th></th>";
+    for(let c=0;c<XL_COLS;c++) h+=`<th>${xlColName(c)}</th>`;
+    h+="</tr></thead><tbody>";
+    for(let r=1;r<=XL_ROWS;r++){
+      h+=`<tr><td class="rh">${r}</td>`;
+      for(let c=0;c<XL_COLS;c++){
+        const nm=xlColName(c)+r;
+        const k=(main===nm?" main":(picks.includes(nm)?" pick":""));
+        h+=`<td class="${k}"><input data-c="${nm}" value="${esc(cells[nm]||"")}"></td>`;
+      }
+      h+="</tr>";
+    }
+    h+="</tbody>";
+    M.q("#xlT").innerHTML=h;
+    M.qa("#xlT input").forEach(el=>{
+      el.onfocus=()=>{ sel=el.dataset.c; M.q("#xlSel").textContent="選んでいるセル："+sel;
+        M.q("#xlPick").disabled=false; M.q("#xlMain").disabled=!picks.includes(sel); };
+      el.onchange=()=>{ const v=el.value.trim();
+        if(v) cells[el.dataset.c]=v; else delete cells[el.dataset.c];
+        draw(); info(); };
+    });
+    info(vals);
+  };
+  const info=(vals)=>{
+    vals=vals||xlCalc(cells,demo);
+    const list=picks.map(p=>`${p}${p===main?"（メイン）":""}＝${
+      typeof vals[p]==="number"?jp(Math.round(vals[p]*1000)/1000):esc(String(vals[p]==null?"":vals[p]))}`);
+    M.q("#xlInfo").innerHTML=picks.length
+      ? "記録にするセル："+list.join("　／　")
+        +`<br><span class="tiny">（${fields.map(f=>f.key+"="+demo[f.key]).join(", ")} を入れたときの計算結果）</span>`
+      : "まだ記録にするセルを選んでいません。";
+  };
+  M.q("#xlPick").onclick=()=>{
+    if(!sel) return;
+    if(picks.includes(sel)){ picks=picks.filter(p=>p!==sel); if(main===sel) main=picks[0]||null; }
+    else { picks.push(sel); if(!main) main=sel; }
+    draw();
+  };
+  M.q("#xlMain").onclick=()=>{ if(sel&&picks.includes(sel)){ main=sel; draw(); } };
+  M.q("#xlGo").onclick=()=>{
+    if(!picks.length) return toast("記録にするセルを1つ以上選んでください");
+    if(!main) main=picks[0];
+    onOk({cells:cells,picks:picks,main:main}); M.close(); toast("表計算を設定しました");
+  };
+  M.q("#xlOff").onclick=()=>{ onOk(null); M.close(); };
+  draw();
+}
+
+/* =========================================================
+   10h. 表計算（Excel と同じ書き方で計算します）
+   ========================================================= */
+const XL_COLS=8, XL_ROWS=12;                      /* A〜H × 1〜12 */
+const xlColName=i=>String.fromCharCode(65+i);
+const xlCells=()=>{ const a=[]; for(let r=1;r<=XL_ROWS;r++) for(let c=0;c<XL_COLS;c++)
+  a.push(xlColName(c)+r); return a; };
+/** A1 → [列,行] */
+function xlRef(ref){
+  const m=String(ref).toUpperCase().match(/^\$?([A-H])\$?(\d{1,2})$/);
+  return m?[m[1].charCodeAt(0)-65, +m[2]]:null;
+}
+/** A1:C3 を展開する */
+function xlRange(a,b){
+  const p1=xlRef(a), p2=xlRef(b); if(!p1||!p2) return [];
+  const out=[];
+  for(let r=Math.min(p1[1],p2[1]); r<=Math.max(p1[1],p2[1]); r++)
+    for(let c=Math.min(p1[0],p2[0]); c<=Math.max(p1[0],p2[0]); c++)
+      out.push(xlColName(c)+r);
+  return out;
+}
+const XL_FN={
+  SUM:a=>a.reduce((x,v)=>x+(+v||0),0),
+  AVERAGE:a=>{const n=a.filter(v=>v!==""&&v!=null&&!isNaN(+v)); return n.length?n.reduce((x,v)=>x+ +v,0)/n.length:0;},
+  MAX:a=>a.length?Math.max(...a.map(v=>+v||0)):0,
+  MIN:a=>a.length?Math.min(...a.map(v=>+v||0)):0,
+  COUNT:a=>a.filter(v=>v!==""&&v!=null&&!isNaN(+v)).length,
+  COUNTA:a=>a.filter(v=>v!==""&&v!=null).length,
+  ABS:a=>Math.abs(+a[0]||0),
+  ROUND:a=>{const d=Math.pow(10,+a[1]||0); return Math.round((+a[0]||0)*d)/d;},
+  ROUNDDOWN:a=>{const d=Math.pow(10,+a[1]||0); const v=(+a[0]||0)*d;
+    return (v<0?Math.ceil(v):Math.floor(v))/d;},
+  ROUNDUP:a=>{const d=Math.pow(10,+a[1]||0); const v=(+a[0]||0)*d;
+    return (v<0?Math.floor(v):Math.ceil(v))/d;},
+  INT:a=>Math.floor(+a[0]||0),
+  MOD:a=>{const y=+a[1]||0; return y?((+a[0]||0)%y+y)%y:0;},
+  SQRT:a=>Math.sqrt(Math.max(0,+a[0]||0)),
+  POWER:a=>Math.pow(+a[0]||0,+a[1]||0),
+  LOG:a=>a.length>1?Math.log(+a[0])/Math.log(+a[1]):Math.log10(+a[0]||1),
+  LN:a=>Math.log(+a[0]||1),
+  EXP:a=>Math.exp(+a[0]||0),
+  IF:a=>a[0]?a[1]:a[2],
+  AND:a=>a.every(v=>!!v),
+  OR:a=>a.some(v=>!!v),
+  NOT:a=>!a[0],
+  IFERROR:a=>(a[0]===undefined||a[0]===null||(typeof a[0]==="number"&&!isFinite(a[0]))||a[0]==="#ERR")?a[1]:a[0],
+  CONCATENATE:a=>a.map(v=>v==null?"":String(v)).join(""),
+  VLOOKUP:(a,raw)=>{
+    /* VLOOKUP(探す値, 範囲, 何列目, 完全一致か) */
+    const key=a[0], tbl=raw[1]||[], col=(+a[2]||1)-1, exact=(a[3]===false||a[3]===0);
+    const w=tbl.w||1, rows=[];
+    for(let i=0;i<tbl.length;i+=w) rows.push(tbl.slice(i,i+w));
+    if(exact){ const r=rows.find(r2=>String(r2[0])===String(key)); return r?r[col]:"#ERR"; }
+    let best=null;
+    rows.forEach(r2=>{ if(+r2[0]<=+key&&(!best||+r2[0]>+best[0])) best=r2; });
+    return best?best[col]:"#ERR";
+  }
+};
+/** 数式を1つ計算します。get(cellName) で他のセルの値を取ります */
+function xlEval(src,get,depth){
+  depth=depth||0;
+  if(depth>24) return "#ERR";
+  let t=String(src==null?"":src).trim();
+  if(!t.startsWith("=")) return t===""?"":(isNaN(+t)?t:+t);
+  t=t.slice(1);
+  let i=0;
+  const ws=()=>{ while(i<t.length&&t[i]===" ") i++; };
+  const num=()=>{ const m=/^\d+(\.\d+)?/.exec(t.slice(i)); if(!m) return null;
+    i+=m[0].length; return +m[0]; };
+  function primary(){
+    ws();
+    if(t[i]==="("){ i++; const v=expr(); ws(); if(t[i]===")") i++; return v; }
+    if(t[i]==='"'){ i++; let s2=""; while(i<t.length&&t[i]!=='"'){ s2+=t[i++]; } i++; return s2; }
+    if(t[i]==="-"){ i++; const v=primary(); return -(+v||0); }
+    if(t[i]==="+"){ i++; return primary(); }
+    const n=num(); if(n!==null) return n;
+    const m=/^[A-Za-z_][A-Za-z0-9_.]*/.exec(t.slice(i));
+    if(!m) return 0;
+    const word=m[0]; i+=word.length; ws();
+    if(t[i]==="("){                                   /* 関数 */
+      i++; const args=[], raws=[];
+      ws();
+      if(t[i]!==")"){
+        for(;;){
+          const v=argExpr(); args.push(v); raws.push(v);
+          ws();
+          if(t[i]===","){ i++; continue; }
+          break;
+        }
+      }
+      ws(); if(t[i]===")") i++;
+      const up2=word.toUpperCase();
+      const fn=XL_FN[up2];
+      if(!fn) return "#ERR";
+      /* 範囲は1つの並びにほぐしてから関数に渡します */
+      const flat=[];
+      args.forEach(a2=>{ if(Array.isArray(a2)) flat.push(...a2); else flat.push(a2); });
+      return fn(up2==="VLOOKUP"?args:flat, raws);
+    }
+    /* 範囲かセルか変数 */
+    const up=word.toUpperCase();
+    if(xlRef(up)){
+      ws();
+      if(t[i]===":"){
+        i++; ws();
+        const m2=/^\$?[A-H]\$?\d{1,2}/.exec(t.slice(i));
+        if(m2){ i+=m2[0].length;
+          const list=xlRange(up,m2[0].toUpperCase());
+          const arr=list.map(c=>get(c,depth+1)); arr.w=Math.abs(xlRef(m2[0])[0]-xlRef(up)[0])+1;
+          return arr; }
+      }
+      return get(up,depth+1);
+    }
+    return get(word,depth+1);                         /* a,b,c… の変数 */
+  }
+  function argExpr(){ return expr(); }
+  function pow(){ let v=primary(); ws();
+    while(t[i]==="^"){ i++; v=Math.pow(+v||0,+primary()||0); ws(); } return v; }
+  function mul(){ let v=pow(); ws();
+    while(t[i]==="*"||t[i]==="/"){ const o=t[i++]; const r=pow();
+      v=o==="*"?(+v||0)*(+r||0):((+r)?(+v||0)/(+r):"#ERR"); ws(); } return v; }
+  function add(){ let v=mul(); ws();
+    while(t[i]==="+"||t[i]==="-"){ const o=t[i++]; const r=mul();
+      v=o==="+"?(+v||0)+(+r||0):(+v||0)-(+r||0); ws(); } return v; }
+  function expr(){
+    let v=add(); ws();
+    const two=t.slice(i,i+2);
+    if(two==="<="||two===">="||two==="<>"){ i+=2; const r=add();
+      return two==="<="?(+v<=+r):two===">="?(+v>=+r):(String(v)!==String(r)); }
+    if(t[i]==="="||t[i]==="<"||t[i]===">"){ const o=t[i++]; const r=add();
+      return o==="="?(String(v)===String(r)):o==="<"?(+v<+r):(+v>+r); }
+    return v;
+  }
+  const out=expr();
+  return (typeof out==="number"&&!isFinite(out))?"#ERR":out;
+}
+/** 表全体を計算します。vars は {a:1,b:2} のような入力値 */
+function xlCalc(cells,vars){
+  const done={}, busy={};
+  const get=(name,d)=>{
+    const up=String(name).toUpperCase();
+    if(vars&&Object.prototype.hasOwnProperty.call(vars,name)) return +vars[name]||0;
+    if(vars&&Object.prototype.hasOwnProperty.call(vars,up.toLowerCase())) return +vars[up.toLowerCase()]||0;
+    if(!xlRef(up)) return 0;
+    if(done[up]!==undefined) return done[up];
+    if(busy[up]) return "#ERR";
+    busy[up]=1;
+    const v=xlEval((cells||{})[up],get,d||0);
+    busy[up]=0; done[up]=v; return v;
+  };
+  const out={};
+  Object.keys(cells||{}).forEach(k=>{ const up=k.toUpperCase(); out[up]=get(up,0); });
+  return out;
 }
 
 /* ---- 11) ヘルプ ---- */
@@ -6537,6 +7640,81 @@ cup:`<h3>大会とチャレンジのちがい</h3>
 リンクは何本でも足せて、それぞれに説明を書けます。「ツール」を押すと種目名をそのまま入れられます。</p>
 <p class="tiny">出し直すと、良いほうの記録だけが残ります。出し直した記録はもう一度審査を受けます。</p>`,
 
+ach:`<h3>アチーブメントは2種類</h3>
+<div class="scroll"><table><thead><tr><th></th><th>公式アチーブメント</th><th>みんなのアチーブメント</th></tr></thead><tbody>
+<tr><td>だれが作れる</td><td>ジャッジマンだけ</td><td>だれでも</td></tr>
+<tr><td>トロフィーのランク</td><td>ブロンズ／シルバー／ゴールド／プラチナ</td><td>なし</td></tr>
+<tr><td>達成のしかた</td><td><b>審査員の審査を通ると達成</b></td><td>作った人の設定どおり（提出したら達成にもできる）</td></tr>
+<tr><td>出せる回数</td><td>何回でも（達成後は記録更新の申請になります）</td><td>何回でも</td></tr>
+<tr><td>公開のしかた</td><td>「すべて公開する」を押すまで見えません</td><td>作るとすぐ見えます</td></tr>
+</tbody></table></div>
+<h3 style="margin-top:16px">達成までの流れ（公式）</h3>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  出す ──▶ 審査中 ──▶ 審査員が中身を見る
+                          │
+                 ┌────────┴────────┐
+        「達成している」に          チェックなしで
+         チェックして承認             承認
+                 │                     │
+              ★ 達成               内容は正しいが
+          メダルが光る               まだ未達成
+        タイムラインに流れる      （流れません）
+</pre>
+<h3 style="margin-top:16px">メダルの色</h3>
+<div class="tools" style="margin-top:6px;gap:14px">
+  ${["bronze","silver","gold","platinum"].map(k=>
+    `<div style="text-align:center"><div class="mdisc ${k} shine" style="width:46px;height:46px;font-size:1rem">
+      ${TROPHY[k].slice(0,2)}</div><div class="tiny">${TROPHY[k]}</div></div>`).join("")}
+  <div style="text-align:center"><div class="mdisc none lock" style="width:46px;height:46px;font-size:1rem">—</div>
+    <div class="tiny">未達成</div></div>
+</div>
+<p class="tiny">達成すると色がつき、ゆっくり光ります。メダルの下には名前と達成日が出ます。まだなら「未達成」です。</p>
+<h3 style="margin-top:16px">棚の並べ方</h3>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  ┌─ 計算スピード部門 ────────────────┐
+  │  ●        ●        ●        ●      │  1列に4つ
+  │ 名前     名前     名前     名前     │
+  │ 達成日   未達成   （未公開）（編集中）│
+  └───────────────────────────────────┘
+  ┌─ 暗算部門 ────────────────────────┐
+  │  ●        ●                        │
+  └───────────────────────────────────┘
+</pre>
+<p class="tiny">先に「部門を作る」で棚を分けてから、その中にアチーブメントを置きます。
+「位置を編集する」を押すと、メダルをつまんで動かせます（ドラッグ）。
+編集画面から部門を選び直すこともできます。</p>
+<h3 style="margin-top:16px">（未公開）と（編集中）</h3>
+<div class="scroll"><table><thead><tr><th>下に出る文字</th><th>意味</th><th>ほかの人には</th></tr></thead><tbody>
+<tr><td>（未公開）</td><td>作ったけれど、まだ公開していない</td><td>見えません</td></tr>
+<tr><td>（編集中）</td><td>公開したあとに直したが、まだ公開していない</td><td><b>前の内容</b>が見えます</td></tr>
+<tr><td>なし</td><td>公開ずみ</td><td>いまの内容が見えます</td></tr>
+</tbody></table></div>
+<p class="tiny">1つずつ出すと誤解を招くので、直し終わったら
+<b>「編集したアチーブメントをすべて公開する」</b>を押して、いちどに公開します。</p>
+<h3 style="margin-top:16px">ランキングを作る／作らない</h3>
+<div class="scroll"><table><thead><tr><th></th><th>並び方</th><th>色</th></tr></thead><tbody>
+<tr><td>作る</td><td>メインの値の大きい順。未達成の人も並びます</td><td>達成者は<b style="color:#ffd45e">金色</b>、提出だけの人は白</td></tr>
+<tr><td>作らない</td><td>達成した人が先、そのあと提出した人</td><td>同じ</td></tr>
+</tbody></table></div>
+<p class="tiny">どちらでも、名前の右に「証明」と「詳細」のボタンが出ます。
+詳細を押すと、その人が記入した値と表計算の結果を全部見られます。</p>
+<h3 style="margin-top:16px">表計算を使う</h3>
+<p class="tiny">記入してもらう値を <b>a, b, c…</b> で受け取り、Excel と同じ書き方で計算できます。
+どのセルを記録にするかを選び、複数選んだ場合は<b>メイン</b>を決めます（ランキングに使います）。</p>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+       A          B        C
+  1  =a                =SUM(A1:A3)   ← 記録（メイン）
+  2  =b                =AVERAGE(A1:A3)
+  3  =c                =MIN(A1:A3)
+</pre>
+<p class="tiny"><b>使える関数</b>：SUM／AVERAGE／MAX／MIN／COUNT／COUNTA／IF／IFERROR／
+ROUND／ROUNDDOWN／ROUNDUP／INT／MOD／ABS／SQRT／POWER／LOG／LN／EXP／AND／OR／NOT／
+CONCATENATE／VLOOKUP</p>
+<h3 style="margin-top:16px">タイムラインへの投稿</h3>
+<p class="tiny">達成すると <b style="color:#ffd45e">#公式アチーブメント</b> または
+<b style="color:#ffd45e">#みんなのアチーブメント</b> の金色タグが自動で付きます。
+公式は<b>達成したときだけ</b>流れます。設定タブで止められます。</p>`,
+
 etc:`<h3>RATING のしくみ</h3>
 <p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
 <div class="scroll"><table><thead><tr><th>まとまり</th><th>内容</th><th>配点</th></tr></thead><tbody>
@@ -6588,11 +7766,13 @@ function renderAutoPost(){
     a.classList.toggle("pri",v); b.classList.toggle("pri",!v); };
   set("#apRecOn","#apRecOff",!!autoPost.rec);
   set("#apCupOn","#apCupOff",!!autoPost.cup);
+  set("#apAchOn","#apAchOff",autoPost.ach!==false);
 }
-["#apRecOn","#apRecOff","#apCupOn","#apCupOff"].forEach(id=>{
+["#apRecOn","#apRecOff","#apCupOn","#apCupOff","#apAchOn","#apAchOff"].forEach(id=>{
   const el=$(id); if(!el) return;
   el.onclick=()=>{
     if(id.indexOf("Rec")>0) autoPost.rec=id.endsWith("On");
+    else if(id.indexOf("Ach")>0) autoPost.ach=id.endsWith("On");
     else autoPost.cup=id.endsWith("On");
     saveAutoPost(); renderAutoPost();
     toast("設定を変えました");
@@ -6602,9 +7782,9 @@ renderAutoPost();
 
 /* ---- Prime SNS のシェル（起動アニメーション・メニュー・4つの画面） ---- */
 let snsView="feed", snsBooted=false;
-const SNS_NAME={feed:"タイムライン",cup:"大会",rank:"ランキング",fr:"フレンド",
-                rv:"審査室",me:"プロフィール"};
-const SNS_VIEWS=["feed","cup","rank","fr","rv","me"];
+const SNS_NAME={feed:"タイムライン",cup:"大会",ach:"アチーブメント",rank:"ランキング",
+                fr:"フレンド",rv:"審査室",me:"プロフィール"};
+const SNS_VIEWS=["feed","cup","ach","rank","fr","rv","me"];
 /** その画面がいま表示されているか（もう無いセクションを見に行かないための入口） */
 function snsShown(v){ const el=$("#sv"+v[0].toUpperCase()+v.slice(1)); return !!(el&&!el.hidden); }
 function snsMenu(open){
@@ -6624,8 +7804,9 @@ function snsGo(v){
   $("#snsNow").textContent=SNS_NAME[v]||"";
   snsMenu(false); saveWhere();
   if(v==="cup"){ loadPcups().then(renderPcups); try{ loadCups(); }catch(e){} }
-  if(v==="rv")  { Promise.all([loadRvq(),loadReports()]).then(renderRvq); }
+  if(v==="rv")  { Promise.all([loadRvq(),loadReports(),loadAchQ()]).then(renderRvq); }
   if(v==="me")  { subsEnter(); }
+  if(v==="ach"){ achEnter(); }
   if(v==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
   if(v==="fr")  { renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
   if(v==="feed"){ loadFeed().then(()=>loadTags()).then(()=>{renderPfeed();renderTags();tagNotice();}); }
@@ -6634,23 +7815,49 @@ function snsGo(v){
 $("#snsMenuBtn").onclick=()=>snsMenu();
 $$("#snsNav button").forEach(b=>b.onclick=()=>snsGo(b.dataset.sv));
 /** Windows のような起動画面。初回だけ流します */
-function snsBoot(){
+/** 読み込みが終わるまで起動画面を出しておきます */
+function bootShow(){
+  $("#snsBoot").hidden=false; $("#snsApp").hidden=true;
+  const hi=$("#bootHi");
+  if(hi) hi.textContent = pro.name ? "ようこそ、"+pro.name+" さん" : "ようこそ";
+  $("#bootFill").style.width="8%";
+}
+function bootStep(pct,msg){
+  const f=$("#bootFill"); if(f) f.style.width=pct+"%";
+  const t=$("#bootMsg"); if(t) t.textContent=msg||"";
+}
+function bootHide(){
   return new Promise(res=>{
-    if(snsBooted){ $("#snsBoot").hidden=true; $("#snsApp").hidden=false; return res(); }
-    snsBooted=true;
-    $("#snsBoot").hidden=false; $("#snsApp").hidden=true;
-    const hi=$("#bootHi");
-    hi.textContent = pro.name ? "ようこそ、"+pro.name+" さん" : "ようこそ";
-    setTimeout(()=>{ $("#bootFill").style.width="100%"; },60);
-    setTimeout(()=>{ $("#snsBoot").hidden=true; $("#snsApp").hidden=false; res(); },1250);
+    bootStep(100,"できました");
+    setTimeout(()=>{ $("#snsBoot").hidden=true; $("#snsApp").hidden=false; res(); },420);
   });
 }
 async function snsEnter(){
-  await snsBoot();
+  if(snsBooted){
+    $("#snsBoot").hidden=true; $("#snsApp").hidden=false;
+    renderRvq(); snsGo(snsView);
+    await Promise.all([loadFeed(),loadPcups(),loadTags(),loadLastUp()]);
+    renderPfeed(); renderPcups(); renderTags(); tagNotice(); liveStart();
+    return;
+  }
+  snsBooted=true;
+  bootShow();
   if($("#cuSteps")&&!$("#cuSteps").children.length) cuRender();
+  bootStep(24,"タイムラインを読んでいます");
+  await loadFeed();
+  bootStep(44,"大会とチャレンジを読んでいます");
+  await loadPcups();
+  bootStep(56,"アチーブメントを読んでいます");
+  await loadAch();
+  bootStep(66,"タグを数えています");
+  await loadTags();
+  bootStep(80,"審査の待ちを見ています");
+  try{ await Promise.all([loadRvq(),loadReports(),loadAchQ(),loadMyStat(),loadLastUp()]); }catch(e){}
+  bootStep(92,"画面を用意しています");
   renderRvq(); snsGo(snsView);
-  await Promise.all([loadFeed(),loadPcups(),loadTags(),loadLastUp()]);
-  renderPfeed(); renderPcups(); renderTags(); tagNotice(); liveStart();
+  renderPfeed(); renderPcups(); renderTags(); tagNotice(); renderMyStat(); renderAch();
+  await bootHide();
+  liveStart();
 }
 /* 大会画面の中の切り替え */
 $$("#cupTabs button").forEach(b=>b.onclick=()=>{
