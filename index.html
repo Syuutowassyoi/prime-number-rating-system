@@ -485,6 +485,41 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .xl td.pick{background:#12351f}
 .xl td.main{background:#3a2f12}
 .xl .val{font-size:.7rem;color:#8fbdf0;padding:0 5px;text-align:right}
+/* カードの表／裏など、画面の中の小さな切り替え（メニューの折りたたみとは別物） */
+.segs2{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#0f1828;
+  border:1px solid var(--line);border-radius:11px;padding:5px}
+.segs2 button{background:#16202f;border:1px solid transparent;color:var(--dim);font:inherit;
+  font-size:.82rem;padding:9px 6px;border-radius:8px;cursor:pointer}
+.segs2 button.on{background:linear-gradient(180deg,#31456610,#2b3d5a);color:var(--tx);
+  border-color:#3f5b82;font-weight:700}
+.segs2 button:hover:not(.on){color:var(--tx);background:#1c2739}
+/* プロフィール右上のトロフィー・スター */
+.awbox{float:right;display:flex;gap:16px;text-align:center;margin:-4px 0 6px 12px}
+.awn{font-family:Impact,"Arial Black",sans-serif;font-size:2rem;line-height:1;color:#eaf3ff}
+.awl{font-size:.66rem;color:var(--dim2);margin-top:2px}
+/* 部屋 */
+.roomgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.room{position:relative;aspect-ratio:1/1;background:linear-gradient(180deg,#1a2437ee,#141d2cee);
+  border:1px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;
+  display:flex;flex-direction:column;transition:transform .16s,border-color .16s}
+.room:hover{transform:translateY(-2px);border-color:var(--acc)}
+.room .rt{font-weight:800;font-size:.92rem;line-height:1.3;padding-right:26px}
+.room .rlast{font-size:.74rem;color:var(--dim);margin-top:8px;flex:1;
+  overflow:hidden;line-height:1.5}
+.room .rfoot{font-size:.7rem;color:var(--dim2);display:flex;gap:10px;flex-wrap:wrap}
+.room .rpin{position:absolute;top:8px;right:8px;border:none;background:none;cursor:pointer;
+  font-size:1rem;color:#44536b;padding:2px 4px}
+.room .rpin.on{color:#ffc861;text-shadow:0 0 8px #ffc86188}
+.room .runread{position:absolute;top:-7px;right:-7px;background:#ff5470;color:#fff;
+  border-radius:99px;min-width:22px;height:22px;display:flex;align-items:center;
+  justify-content:center;font-size:.7rem;font-weight:800;box-shadow:0 0 10px #ff547088;
+  padding:0 6px}
+.room .rtag{font-size:.64rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);
+  color:var(--dim2);align-self:flex-start;margin-top:6px}
+.room.pinned{border-color:#8a7330}
+.mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
+.mbtn.alert{animation:mblink 1.6s ease-in-out infinite}
+@keyframes mblink{0%,100%{opacity:1}50%{opacity:.45}}
 /* 開発者を応援する */
 .chpop{width:138px;height:138px;border-radius:50%;border:2px solid #ffc861;cursor:pointer;
   background:radial-gradient(circle at 36% 30%,#3a2f12,#241a08);font-size:3.6rem;line-height:1;
@@ -656,6 +691,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>開催中の大会</h2>
     <div id="homeCups"><p class="muted">読み込み中…</p></div>
+  </div>
+  <div class="card">
+    <h2>開催中のチャレンジ・競技会</h2>
+    <div id="homeCh"><p class="muted">読み込み中…</p></div>
   </div>
 
   <div class="card">
@@ -840,6 +879,28 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
     <!-- ===== タイムライン ===== -->
     <div id="svFeed">
+      <!-- 部屋えらび -->
+      <div id="roomPick">
+        <div class="card">
+          <h2>部屋をえらぶ</h2>
+          <p class="tiny" id="feedStat">—</p>
+          <p class="tiny" id="feedAt">—</p>
+          <div class="tools" style="margin-top:8px">
+            <button class="btn pri" id="roomNew">＋ 部屋を作る</button>
+            <button class="btn" id="roomReload">読み込み直す</button>
+          </div>
+        </div>
+        <div class="roomgrid" id="roomBox"></div>
+      </div>
+      <!-- 部屋の中 -->
+      <div id="roomIn" hidden>
+      <div class="tools" style="margin-top:0;margin-bottom:10px">
+        <button class="btn" id="roomBack">◀ 部屋をえらぶ</button>
+        <b id="roomTitle" style="align-self:center"></b>
+        <span class="tiny" id="roomWho" style="align-self:center"></span>
+        <button class="btn sm" id="roomEdit" hidden style="margin-left:auto">部屋の設定</button>
+        <button class="btn sm" id="roomDel" hidden style="border-color:#7a3030;color:#ff8a8a">部屋を消す</button>
+      </div>
       <div class="banner" id="tagNote" hidden style="background:#12351f;border-color:#2c7a4b;margin:0 0 12px"></div>
       <div class="card" style="padding-bottom:8px">
         <h2>タイムライン</h2>
@@ -872,14 +933,13 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
             <button class="btn sm" id="fdClear">条件をすべて消す</button></div>
         </div>
         <div class="ptags" id="tagCloud"></div>
-        <p class="tiny" id="feedStat">—</p>
         <p class="tiny" id="srNote" hidden style="color:var(--acc2)"></p>
-        <p class="tiny" id="feedAt">—</p>
         <div class="tools" style="margin-top:6px">
           <button class="btn sm" id="tagPick">通知するタグを選ぶ</button>
           <span class="tiny" id="tagPickNow"></span>
         </div>
         <div id="feedBox"></div>
+      </div>
       </div>
       <div style="height:78px"></div>
       <div class="composer" id="composer">
@@ -1160,7 +1220,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>プロフィールカード</h2>
     <p class="muted" style="margin-top:-8px">SNSにそのまま貼れる 1200×630 の画像を生成します。裏面には18種目すべての記録とレート値が入ります。</p>
-    <div class="tabs" style="max-width:280px;margin-bottom:14px">
+    <div class="segs2" style="max-width:280px;margin-bottom:14px">
       <button id="cbFront" class="on">表面</button><button id="cbBack">裏面</button>
     </div>
     <canvas id="cardCanvas" width="1200" height="630"></canvas>
@@ -1363,7 +1423,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v47";
+const APP_VERSION = "v48";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -5440,6 +5500,7 @@ function rvRow(s){
     </div>
     <div class="tools" style="margin-top:5px">
       <button class="btn sm" data-proof="${esc(s.proof_url)}">証明を見る</button>
+      ${s.entry_id?`<button class="btn sm" data-cdet="${esc(s.entry_id)}|${esc(s.cup_id||"")}">中身を見る</button>`:""}
       <span class="tiny" style="align-self:center">${jstFull(s.created_at)}</span></div>
     ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}
     ${hist.length?`<div class="tiny" style="margin-top:5px;color:var(--dim)">${hist.join("<br>")}</div>`:""}
@@ -5553,7 +5614,11 @@ function renderMeCards(){
   const h=$("#meHead"); if(!h) return;
   const c=compute(rec), rk=c.complete?rankOf(c.total):null;
   const lv=MYSTAT?(+MYSTAT.lv||0):0;
-  h.innerHTML=`<div class="prof">
+  h.innerHTML=`<div class="awbox">
+      <div><div class="awn">${jp(MY_AW.trophies||0)}</div><div class="awl">トロフィー</div></div>
+      <div><div class="awn" style="color:#ffd45e">${jp(MY_AW.stars||0)}</div><div class="awl">スター</div></div>
+    </div>
+    <div class="prof">
     <div>${avatarHTML(pro)}</div>
     <div><div class="pname">${lviHTML(lv)} ${nameHTML(pro.name||pro.handle||"名無し",
         (me&&me.role)||"user",c.complete?c.total:null)}</div>
@@ -5755,7 +5820,10 @@ function tstBuild(){
      rule:{nomiss:true,loops:1,steps:[{event:"素数判定",n:10}]}}
   ];
   const ent=[
-    {id:"e1",cup_id:"c1",handle:"mikan",   name:"みかん",   total:1980000,proof_url:yt(21),nomiss:false,created_at:ago(500)},
+    {id:"e1",cup_id:"c1",handle:"mikan",   name:"みかん",   total:1980000,proof_url:yt(21),nomiss:false,created_at:ago(500),
+     status:"certified",judge_handle:"ringo",judge_name:"りんご",judge_role:"judge",judge_act:"approve",
+     sv_handle:"kuroneko",sv_name:"くろねこ",sv_role:"supervisor",sv_act:"accept",
+     detail:{steps:["暗素因数分解lv.1"],loops:1,grid:[[[660000,660000,660000]]]}},
     {id:"e2",cup_id:"c1",handle:"kuroneko",name:"くろねこ", total:1980000,proof_url:yt(22),nomiss:false,created_at:ago(480)},
     {id:"e3",cup_id:"c1",handle:"ringo",   name:"りんご",   total:1755000,proof_url:yt(23),nomiss:false,created_at:ago(460)},
     {id:"e4",cup_id:"c2",handle:"aozora",  name:"あおぞら", total:938000, proof_url:yt(24),nomiss:true, created_at:ago(800)}
@@ -5816,7 +5884,31 @@ function tstBuild(){
     judge_handle:"ringo",judge_name:"りんご",judge_role:"judge",judge_act:"approve",
     created_at:new Date(now-86400000*3).toISOString()}
   ];
-  return {subs,posts,cups,ent,reps,asecs,achs,asubs,req:[
+  const rooms=[
+    {id:"00000000-0000-0000-0000-000000000001",title:"雑談部屋",access:"all",is_default:true,
+     owner_name:"",posts_n:23,people_n:8,unread:0,pinned:false,can_del:false,mine:false,
+     last_body:"暗素因数分解、lv.3だけ急に難しくなりませんか",last_at:ago(15)},
+    {id:"r2",title:"暗算のコツを話す部屋",access:"all",is_default:false,
+     owner_handle:"mikan",owner_name:"みかん",posts_n:12,people_n:4,unread:3,pinned:true,
+     can_del:false,mine:false,last_body:"lv.2 は 91 と 97 を覚えると一気に楽になります",last_at:ago(40)},
+    {id:"r3",title:"審査員の相談室",access:"judge",is_default:false,
+     owner_handle:"hakase",owner_name:"素数博士",posts_n:6,people_n:3,unread:1,pinned:false,
+     can_del:false,mine:false,last_body:"この提出、どう判断しますか？",last_at:ago(90)},
+    {id:"r4",title:"スーパーバイザー会議",access:"supervisor",is_default:false,
+     owner_handle:"hakase",owner_name:"素数博士",posts_n:4,people_n:2,unread:0,pinned:false,
+     can_del:false,mine:false,last_body:"来週の方針について",last_at:ago(200)},
+    {id:"r5",title:"ないしょの部屋",access:"invite",is_default:false,members:["syuuto"],
+     owner_handle:"mikan",owner_name:"みかん",posts_n:2,people_n:2,unread:2,pinned:false,
+     can_del:false,mine:false,last_body:"ここだけの話ですが",last_at:ago(300)}
+  ];
+  posts.forEach(p2=>{ if(!p2.room_id) p2.room_id="00000000-0000-0000-0000-000000000001"; });
+  posts.push({id:"pr2",room_id:"r2",handle:"mikan",name:"みかん",kind:"chat",
+    body:"lv.2 は 91 と 97 を覚えると一気に楽になります",link:null,
+    created_at:ago(40),mine:false,lv:21,role:"supervisor",likes:2,liked:false});
+  posts.push({id:"pr3",room_id:"r3",handle:"hakase",name:"素数博士",kind:"chat",
+    body:"この提出、どう判断しますか？",link:null,
+    created_at:ago(90),mine:false,lv:34,role:"judgeman",likes:0,liked:false});
+  return {subs,posts,cups,ent,reps,asecs,achs,asubs,rooms,req:[
     {id:"r1",user_id:"t6",handle:"tsukiyo",name:"つきよ",want:"judge",status:"pending",reason:"毎日確認できます"},
     {id:"r2",user_id:"t4",handle:"ringo",  name:"りんご",want:"supervisor",status:"pending",reason:"条件を満たしました"}
   ]};
@@ -6018,6 +6110,34 @@ function tstRpc(name,b){
     if(a){ a.my_pending=false; if(x.done) a.done_n=(a.done_n||0)+1; }
     return null;
   }
+  if(name==="room_save"){
+    if(b.p_id){ const r=TDB.rooms.find(x=>x.id===b.p_id);
+      if(r){ r.title=b.p_title; r.access=b.p_access; r.members=b.p_members||r.members; }
+      return b.p_id; }
+    const id="nr"+Date.now();
+    TDB.rooms.push({id,title:b.p_title,access:b.p_access,is_default:false,
+      owner_handle:pro.handle,owner_name:pro.name,members:b.p_members||[],
+      posts_n:0,people_n:0,unread:0,pinned:false,can_del:true,mine:true,
+      last_body:"",last_at:new Date().toISOString()});
+    return id;
+  }
+  if(name==="room_del"){
+    const r=TDB.rooms.find(x=>x.id===b.p_id);
+    if(r&&r.is_default) bad("雑談部屋は消せません");
+    TDB.rooms=TDB.rooms.filter(x=>x.id!==b.p_id);
+    TDB.posts=TDB.posts.filter(x=>x.room_id!==b.p_id);
+    return null;
+  }
+  if(name==="room_pin"){ const r=TDB.rooms.find(x=>x.id===b.p_id);
+    if(r) r.pinned=!!b.p_on; return null; }
+  if(name==="room_read"){ const r=TDB.rooms.find(x=>x.id===b.p_id);
+    if(r) r.unread=0; return null; }
+  if(name==="ach_sv"){ const x=TDB.asubs.find(y=>y.id===b.p_id);
+    if(x){ x.sv_act=b.p_act; x.sv_handle=pro.handle; x.sv_name=pro.name; x.sv_role=(me&&me.role);
+      x.sv_at=new Date().toISOString(); } return null; }
+  if(name==="ach_jm"){ const x=TDB.asubs.find(y=>y.id===b.p_id);
+    if(x){ x.jm_act=b.p_act; x.jm_handle=pro.handle; x.jm_name=pro.name; x.jm_role=(me&&me.role);
+      x.jm_at=new Date().toISOString(); } return null; }
   if(name==="same_pcup"){
     const c=TDB.cups.find(x=>!x.closed&&ruleKey(x.rule)===ruleKey(b.p_rule));
     return c?c.id:null;
@@ -6081,7 +6201,7 @@ function tstToggle(on){
     if(me&&REAL_ROLE!==null) me.role=REAL_ROLE;
     REAL_ROLE=null;
     SUBS=[];RVQ=[];PFEED=[];PCUPS=[];PCUPENT={};MYSTAT=null;RREQ=[];REPQ=[];
-    AQ=[];ACHS=[];ASECS=[];ACHRANK={};
+    AQ=[];ADONE=[];ACHS=[];ASECS=[];ACHRANK={};ROOMS=[];curRoom=null;
   }
   $("#testBanner").hidden=!TEST;
   subsEnter(); snsEnter(); renderRole(); updateMenuBadge();
@@ -6172,11 +6292,14 @@ function openLink(i){
    1回の読み込みは50件で約20KB。無料枠の転送量を無駄づかいしないための工夫です。 */
 let feedCache={at:0,rows:null};
 async function loadFeed(force){
-  if(TEST){ PFEED=TDB.posts.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)); return; }
+  if(TEST){ const rid=curRoom?curRoom.id:DEFAULT_ROOM;
+    PFEED=TDB.posts.filter(p=>(p.room_id||DEFAULT_ROOM)===rid)
+      .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)); return; }
   if(!sbOn()){ PFEED=[]; return; }
   if(!force && feedCache.rows && Date.now()-feedCache.at<30000){ PFEED=feedCache.rows; return; }
   try{
-    const q="posts_feed?select=*&order=created_at.desc&limit=50";
+    const rid=curRoom?curRoom.id:DEFAULT_ROOM;
+    const q=`posts_feed?select=*&room_id=eq.${rid}&order=created_at.desc&limit=50`;
     PFEED = sess ? await sbAuth(q) : await sb(q);
     feedCache={at:Date.now(),rows:PFEED};
   }catch(e){ PFEED=[]; }
@@ -6254,6 +6377,10 @@ function renderPfeed(){
   box.querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>openLink(+b.dataset.link));
   box.querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>poLike(b.dataset.like,b));
   box.querySelectorAll("[data-rvgo]").forEach(b=>b.onclick=async()=>{
+    if(b.dataset.rvt==="公式アチーブメント"){
+      rvMode="do"; rvTab="ach"; snsGo("rv");
+      setTimeout(()=>{ loadAchQ().then(renderRvq); },200); return;
+    }
     await loadRvq();
     const t=RVQ.find(x=>x.id===b.dataset.rvgo);
     if(!t) return toast("いま審査できる記録が見つかりません");
@@ -6280,7 +6407,9 @@ function poHTML(p,isRep,toWho){
     : "";
   const cup = p.kind==="cup" ? '<span class="sbtag">大会</span>' : "";
   /* 未審査の記録は、審査員以上ならその場で審査できます */
-  const canRv = myLv()>=2 && p.sub_id && p.sub_status==="pending";
+  /* 記録の提出（公式タグつき）は、審査員以上ならここから審査できます */
+  const off=(p.body||"").match(/#(チャレンジ参加|大会参加|公式アチーブメント)/);
+  const canRv = myLv()>=2 && ((p.sub_id && p.sub_status!=="certified") || !!off);
   return `<div class="sbrow"${isRep?' style="background:#101827"':""}>
     <div class="sbtop">
       ${lviHTML(p.lv)}
@@ -6297,7 +6426,8 @@ function poHTML(p,isRep,toWho){
     <div class="tools" style="margin-top:7px">
       <button class="heart${p.liked?" on":""}" data-like="${p.id}" title="いいね">
         <span class="hi">${p.liked?"♥":"♡"}</span><span class="hn">${jp(+p.likes||0)}</span></button>
-      ${canRv?`<button class="btn sm pri" data-rvgo="${esc(p.sub_id)}">審査する</button>`:""}
+      ${canRv?`<button class="btn sm pri" data-rvgo="${esc(p.sub_id||"")}"
+        data-rvt="${off?esc(off[1]):""}">審査する</button>`:""}
       <button class="btn sm" data-rep="${p.id}">返信</button>
       <button class="btn sm dots" data-more="${p.id}">・・・</button>
     </div></div>`;
@@ -6308,7 +6438,8 @@ async function poSend(body,link,reply,msgEl,links){
   if(link&&!isProofUrl(link)) return toast("リンクは X か YouTube だけです");
   try{
     await callRpc("post_chat",{p_body:body||null,p_link:link||null,p_reply:reply||null,
-      p_links:links&&links.length?links:null},[["p_links"],["p_links","p_reply"]]);
+      p_links:links&&links.length?links:null,p_room:curRoom?curRoom.id:null},
+      [["p_room"],["p_links","p_room"],["p_links","p_reply","p_room"]]);
     await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice();
     if(msgEl) msgEl.innerHTML='<span style="color:var(--acc2)">投稿しました</span>';
     return true;
@@ -6413,6 +6544,137 @@ function poReply(id){
   };
   M.q("#rpGo").onclick=send;
   M.q("#rpB").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); send(); } };
+}
+
+/* ---- 2〜6) 部屋 ---- */
+let ROOMS=[], curRoom=null;
+const DEFAULT_ROOM="00000000-0000-0000-0000-000000000001";
+const ACC_N={all:"だれでも",invite:"呼ばれた人だけ",judge:"審査員以上",supervisor:"スーパーバイザー以上"};
+async function loadRooms(){
+  if(TEST){ ROOMS=TDB.rooms.filter(r=>tstCanSee(r)); return; }
+  if(!(sess&&sbOn())){ ROOMS=[]; return; }
+  try{ ROOMS=await sbAuth("rooms_view?select=*"); }catch(e){ ROOMS=[]; }
+}
+const roomSort=(a,b)=>(b.pinned?1:0)-(a.pinned?1:0)
+  ||(b.is_default?1:0)-(a.is_default?1:0)
+  ||new Date(b.last_at||0)-new Date(a.last_at||0);
+function unreadTotal(){ return ROOMS.reduce((n,r)=>n+(+r.unread||0),0); }
+function renderRooms(){
+  const box=$("#roomBox"); if(!box) return;
+  const list=ROOMS.slice().sort(roomSort);
+  box.innerHTML=list.length?list.map(r=>{
+    const last=(r.last_body||"").replace(/\s+/g," ").trim();
+    const cut=last.length>20?last.slice(0,20)+"…":last;
+    return `<div class="room${r.pinned?" pinned":""}" data-room="${r.id}">
+      ${+r.unread>0?`<div class="runread">${r.unread>99?"99+":r.unread}</div>`:""}
+      <button class="rpin${r.pinned?" on":""}" data-pin="${r.id}" title="ピン止め">📌</button>
+      <div class="rt">${esc(r.title)}</div>
+      <div class="rlast">${cut?esc(cut):'<span style="opacity:.6">まだ投稿がありません</span>'}</div>
+      ${r.access!=="all"?`<div class="rtag">${ACC_N[r.access]||""}</div>`:""}
+      <div class="rfoot">
+        <span>投稿 ${jp(+r.posts_n||0)}</span>
+        <span>参加 ${jp(+r.people_n||0)}人</span>
+      </div>
+      <div class="rfoot" style="margin-top:3px">
+        <span>${r.is_default?"みんなの部屋":"作った人 "+esc(r.owner_name||r.owner_handle||"—")}</span>
+      </div>
+    </div>`;}).join(""):'<p class="muted">入れる部屋がありません。</p>';
+  box.querySelectorAll("[data-room]").forEach(el=>el.onclick=e=>{
+    if(e.target.closest("[data-pin]")) return;
+    enterRoom(el.dataset.room);
+  });
+  box.querySelectorAll("[data-pin]").forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();
+    const r=ROOMS.find(x=>x.id===b.dataset.pin); if(!r) return;
+    r.pinned=!r.pinned; renderRooms();
+    try{ await callRpc("room_pin",{p_id:r.id,p_on:r.pinned}); }catch(e2){}
+  });
+  /* 未読があればメニューの三重線を赤く点滅させます */
+  const mb=$("#menuBtn"), sb=$("#snsMenuBtn"), n=unreadTotal();
+  [mb,sb].forEach(b=>{ if(b) b.classList.toggle("alert",n>0); });
+  const st=$("#feedStat");
+  if(st) st.textContent=FSTAT
+    ? `これまでの投稿 ${jp(FSTAT.posts_n||0)} 件`
+      +`（つぶやき ${jp(FSTAT.chat_n||0)}／大会・チャレンジ ${jp(FSTAT.record_n||0)}`
+      +`／記録の更新 ${jp(FSTAT.update_n||0)}）　タグ ${jp(FSTAT.tag_n||0)} 種類`
+      +`　部屋 ${jp(FSTAT.rooms_n||ROOMS.length)} 室`
+    : `部屋 ${jp(ROOMS.length)} 室`;
+  const at=$("#feedAt");
+  if(at) at.textContent="最終更新 "+fmtAt(LASTUP&&LASTUP.feed_at?LASTUP.feed_at:
+      list.reduce((a2,r)=>(r.last_at&&(!a2||r.last_at>a2))?r.last_at:a2,null))
+    +"　／　この画面を読み込んだのは "+jstShort(new Date().toISOString());
+}
+async function enterRoom(id){
+  curRoom=ROOMS.find(r=>r.id===id)||{id:id,title:"部屋"};
+  $("#roomPick").hidden=true; $("#roomIn").hidden=false; $("#composer").hidden=false;
+  $("#roomTitle").textContent=curRoom.title||"";
+  $("#roomWho").textContent=(curRoom.access&&curRoom.access!=="all")
+    ? "（"+(ACC_N[curRoom.access]||"")+"）" : "";
+  $("#roomEdit").hidden=!(curRoom.mine||myLv()>=4);
+  $("#roomDel").hidden=!(curRoom.can_del&&!curRoom.is_default);
+  await loadFeed(true); await loadTags();
+  renderPfeed(); renderTags(); tagNotice();
+  try{ await callRpc("room_read",{p_id:id}); }catch(e){}
+  const r=ROOMS.find(x=>x.id===id); if(r) r.unread=0;
+  renderRooms();
+}
+function backToRooms(){
+  curRoom=null;
+  $("#roomIn").hidden=true; $("#roomPick").hidden=false; $("#composer").hidden=true;
+  renderRooms();
+}
+$("#roomBack").onclick=backToRooms;
+$("#roomReload").onclick=async()=>{ await Promise.all([loadRooms(),loadTags(),loadLastUp()]); renderRooms(); };
+$("#roomNew").onclick=()=>roomForm(null);
+$("#roomEdit").onclick=()=>roomForm(curRoom);
+$("#roomDel").onclick=async()=>{
+  if(!curRoom) return;
+  if(!await askYN("この部屋を消しますか？",
+    `<b>${esc(curRoom.title)}</b><br>中の投稿もすべて消えます。`,"消す")) return;
+  try{ await callRpc("room_del",{p_id:curRoom.id}); toast("消しました");
+    await loadRooms(); backToRooms(); }
+  catch(e){ toast(String(e.message||e).slice(0,90)); }
+};
+function roomForm(r){
+  const M=modal(`<h2>${r?"部屋の設定":"部屋を作る"}</h2>
+    <label class="fl">部屋の名前</label>
+    <input type="text" class="txt" id="rmT" style="max-width:none"
+      value="${r?esc(r.title):""}" placeholder="例：暗算のコツを話す部屋">
+    <label class="fl">入れる人</label>
+    <select id="rmA" style="max-width:none">
+      ${Object.keys(ACC_N).map(k=>`<option value="${k}"${r&&r.access===k?" selected":""}>${ACC_N[k]}</option>`).join("")}
+    </select>
+    <div id="rmInv" hidden>
+      <label class="fl">呼ぶ人の @ID（カンマか改行で区切る）</label>
+      <textarea id="rmM" rows="3" placeholder="例：mikan, hakase"></textarea>
+    </div>
+    <p class="tiny">「呼ばれた人だけ」「審査員以上」「スーパーバイザー以上」にすると、
+      条件に合わない人には<b>部屋があること自体が見えません</b>。</p>
+    <div class="tools"><button class="btn pri" id="rmGo">${r?"保存する":"作る"}</button>
+      <span class="tiny" id="rmM2"></span></div>`,{w:640});
+  const sync=()=>{ M.q("#rmInv").hidden=(M.q("#rmA").value!=="invite"); };
+  M.q("#rmA").onchange=sync; sync();
+  M.q("#rmGo").onclick=async()=>{
+    const t=M.q("#rmT").value.trim(); if(!t) return toast("名前を入れてください");
+    const acc=M.q("#rmA").value;
+    const mem=acc==="invite"
+      ? M.q("#rmM").value.split(/[,\s、]+/).map(x=>x.replace(/^@/,"").trim().toLowerCase()).filter(Boolean)
+      : null;
+    try{
+      await callRpc("room_save",{p_id:r?r.id:null,p_title:t,p_access:acc,p_members:mem},[["p_members"]]);
+      M.close(); toast(r?"保存しました":"作りました");
+      await loadRooms(); renderRooms(); if(r) enterRoom(r.id);
+    }catch(e){ M.q("#rmM2").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+/* テストモードでの見え方 */
+function tstCanSee(r){
+  if(myLv()>=4) return true;
+  if(r.access==="all") return true;
+  if(r.access==="judge") return myLv()>=2;
+  if(r.access==="supervisor") return myLv()>=3;
+  if(r.access==="invite") return (r.members||[]).includes(pro.handle);
+  return false;
 }
 
 /* ---- 6) いいね ---- */
@@ -6680,6 +6942,14 @@ function cupDetail(cid,idx){
       　${jstShort(e.created_at)}</p>
     ${e.discord?`<div class="hintbox" style="margin-top:0"><b>Discord に提出</b><br>
       <span class="tiny">${esc(e.discord_note||"")}</span></div>`:""}
+    ${(e.judge_handle||e.sv_handle||e.jm_handle)?`<p class="tiny" style="margin-top:8px">
+      ${e.judge_handle?"審査："+byWho(e.judge_handle,e.judge_name,e.judge_role)
+        +"　"+({approve:"承認",fix:"修正",reject:"却下"}[e.judge_act]||""):""}
+      ${e.sv_handle?"　／　審査員審査："+byWho(e.sv_handle,e.sv_name,e.sv_role)
+        +"　"+({accept:"認定",fix:"修正"}[e.sv_act]||""):""}
+      ${e.jm_handle?"　／　スーパーバイザー審査："+byWho(e.jm_handle,e.jm_name,e.jm_role)
+        +"　"+({accept:"認定",fix:"修正"}[e.jm_act]||""):""}</p>`
+      :'<p class="tiny" style="margin-top:8px">まだ審査されていません。</p>'}
     ${(e.links||[]).length?`<p class="tiny">${(e.links||[]).map(L=>
       `${esc(L.note||"")} <a href="${esc(L.url)}" target="_blank" rel="noopener noreferrer">別タブで開く</a>`).join("<br>")}</p>`:""}
     ${body}`,{w:900});
@@ -7062,7 +7332,10 @@ function liveStart(){
     if($("#sns").hidden) return;
     try{
       await loadLastUp();
-      if(snsShown("feed")){ await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice(); }
+      if(snsShown("feed")){
+        await loadRooms(); renderRooms();
+        if(curRoom){ await loadFeed(true); await loadTags(); renderPfeed(); renderTags(); tagNotice(); }
+      }
       if(snsShown("cup")) { await loadPcups(); renderPcups(); }
       if(snsShown("rank")) loadRanking(true);
       if(snsShown("rv"))  { await Promise.all([loadRvq(),loadReports(),loadAchQ(),loadAchDone()]); renderRvq(); }
@@ -7371,6 +7644,7 @@ function achForm(id){
         ["p_auto_done","p_keep","p_section"]]);
       M.close(); await loadAch(); renderAch();
       toast(off?"作りました（まだ公開されていません）":"作りました");
+      if(!id) askAchPost(kind,t);
     }catch(e){ M.q("#afM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
 }
@@ -7704,6 +7978,31 @@ async function cupReview(cid,i){
     if(el) el.closest(".sbrow").scrollIntoView({behavior:"smooth",block:"center"});
     else toast("この記録はいま自分が審査できる段階ではありません");
   },260);
+}
+
+/** アチーブメントを作ったあと、雑談部屋に知らせるか聞きます */
+function askAchPost(kind,title){
+  const tag=kind==="official"?"#公式アチーブメント":"#みんなのアチーブメント";
+  const M=modal(`<h2>作ったことを雑談部屋に投稿しますか？</h2>
+    <p class="muted" style="margin-top:-8px">投稿する場合は、文章を直せます。</p>
+    <textarea id="apT" rows="5">${esc(tag+" 「"+title+"」を作りました！ ぜひ挑んでみてください。")}</textarea>
+    <div class="tools"><button class="btn pri" id="apGo">投稿する</button>
+      <button class="btn" id="apNo">しない</button></div>`,{w:640});
+  M.q("#apNo").onclick=()=>M.close();
+  M.q("#apGo").onclick=async()=>{
+    const b=M.q("#apT").value.trim(); if(!b) return M.close();
+    try{ await callRpc("post_update",{p_body:b}); M.close(); toast("投稿しました");
+      if(snsShown("feed")){ await loadFeed(true); renderPfeed(); } }
+    catch(e){ toast(String(e.message||e).slice(0,90)); }
+  };
+}
+/** 大会・チャレンジの提出の中身を、審査室からも見られるようにします */
+async function entryDetail(cid,eid){
+  if(!PCUPENT[cid]) await loadPcupEnt(cid,"all");
+  const rows=PCUPENT[cid]||[];
+  const i=rows.findIndex(r=>r.id===eid);
+  if(i<0) return toast("記録の中身を取れませんでした");
+  cupDetail(cid,i);
 }
 
 /* ---- 表計算の画面 ---- */
@@ -8079,7 +8378,9 @@ async function cheerEnter(){
 function cheerSubmit(){
   if(TEST||!(sess&&sbOn())) return;
   sbAuth("rpc/cheer",{method:"POST",body:JSON.stringify({p_n:3,p_src:"submit"})})
-    .then(()=>{ chAdd(3); renderCheer(); }).catch(()=>{});
+    .then(async()=>{ chAdd(3); await loadCheer(); renderCheer();
+      toast("応援ポイントを3つ入れました"); })
+    .catch(e=>{ toast("応援ポイントを入れられませんでした："+String(e.message||e).slice(0,50)); });
 }
 
 /* ---- 11) ヘルプ ---- */
@@ -8332,7 +8633,11 @@ function snsGo(v){
   if(v==="ach"){ achEnter(); }
   if(v==="rank"){ loadRanking(); if(sess&&sbOn()) loadFriendReq().then(()=>loadRanking(true)); }
   if(v==="fr")  { renderFriendReq(); loadFriendReq().then(()=>{renderFriendReq();render();}); }
-  if(v==="feed"){ loadFeed().then(()=>loadTags()).then(()=>{renderPfeed();renderTags();tagNotice();}); }
+  if(v==="feed"){
+    if(curRoom){ enterRoom(curRoom.id); }
+    else{ $("#roomPick").hidden=false; $("#roomIn").hidden=true; $("#composer").hidden=true;
+      loadRooms().then(()=>loadTags()).then(renderRooms); }
+  }
   scrollTo({top:0,behavior:"smooth"});
 }
 $("#snsMenuBtn").onclick=()=>snsMenu();
@@ -8359,14 +8664,16 @@ async function snsEnter(){
   if(snsBooted){
     $("#snsBoot").hidden=true; $("#snsApp").hidden=false;
     renderRvq(); snsGo(snsView);
-    await Promise.all([loadFeed(),loadPcups(),loadTags(),loadLastUp()]);
-    renderPfeed(); renderPcups(); renderTags(); tagNotice(); liveStart();
+    await Promise.all([loadRooms(),loadFeed(),loadPcups(),loadTags(),loadLastUp()]);
+    renderPfeed(); renderPcups(); renderTags(); tagNotice(); renderRooms(); liveStart();
     return;
   }
   snsBooted=true;
   bootShow();
   if($("#cuSteps")&&!$("#cuSteps").children.length) cuRender();
-  bootStep(24,"タイムラインを読んでいます");
+  bootStep(20,"部屋を読んでいます");
+  await loadRooms();
+  bootStep(30,"タイムラインを読んでいます");
   await loadFeed();
   bootStep(44,"大会とチャレンジを読んでいます");
   await loadPcups();
@@ -8381,6 +8688,8 @@ async function snsEnter(){
   bootStep(92,"画面を用意しています");
   renderRvq(); snsGo(snsView);
   renderPfeed(); renderPcups(); renderTags(); tagNotice(); renderMyStat(); renderAch();
+  renderRooms();
+  $("#roomPick").hidden=false; $("#roomIn").hidden=true; $("#composer").hidden=true;
   await bootHide();
   liveStart();
 }
@@ -8525,7 +8834,7 @@ function devEditor(box,close){
     <button class="btn" id="dvSbSave">この値で試す</button>
     <button class="btn" id="dvSbClear">一時設定を消す</button></div>
   <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
-  <div class="tabs" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+  <div class="segs2" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
     <button id="bdGame" class="on">素数ゲームのボーダー</button>
     <button id="bdLS">乱数累積・スコア累積のボーダー</button>
   </div>
@@ -8860,7 +9169,33 @@ async function renderHome(){
     }
   }
   renderHomeFriends();
+  renderHomeChallenges();
   renderFriday();
+}
+/** ホームに開催中のチャレンジを出します */
+async function renderHomeChallenges(){
+  const box=$("#homeCh"); if(!box) return;
+  if(!PCUPS.length){ try{ await loadPcups(); }catch(e){} }
+  const open=PCUPS.filter(c=>!c.closed).sort((a3,b3)=>
+    new Date(b3.created_at||0)-new Date(a3.created_at||0)).slice(0,6);
+  if(!open.length){ box.innerHTML='<p class="muted">いま開催中のものはありません。</p>'; return; }
+  box.innerHTML=open.map(c=>`<div class="sbrow">
+    <div class="sbtop">
+      <b>${esc(c.title)}</b>
+      <span class="sbtag ${c.kind==="official"?"judged":""}">${c.kind==="official"?"競技会":"チャレンジ"}</span>
+      <span class="tiny" style="margin-left:auto">${esc(c.owner_name||c.owner_handle||"")}</span>
+    </div>
+    <div class="tiny" style="margin-top:4px;color:var(--acc)">${esc(ruleText(c.rule||{}))}</div>
+    <div class="tiny">合計 ${jp(rulePlays(c.rule||{}))} 回　
+      Daily の締切まで 残り ${periodLeft("day")}</div>
+    <div class="tools" style="margin-top:6px">
+      <button class="btn sm pri" data-goch="${c.id}">見に行く</button></div>
+  </div>`).join("");
+  box.querySelectorAll("[data-goch]").forEach(b3=>b3.onclick=()=>{
+    goTab("cup");
+    setTimeout(()=>{ const el=document.querySelector(`[data-cup="${b3.dataset.goch}"]`);
+      if(el) el.scrollIntoView({behavior:"smooth",block:"center"}); },1600);
+  });
 }
 /** フレンドの更新履歴（登録時に取り込んだ記録の新しい順）*/
 /** フレンド情報を差し替えるとき、前回との差分を「更新履歴」として残す */
