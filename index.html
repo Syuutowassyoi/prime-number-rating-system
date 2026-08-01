@@ -493,6 +493,24 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .segs2 button.on{background:linear-gradient(180deg,#31456610,#2b3d5a);color:var(--tx);
   border-color:#3f5b82;font-weight:700}
 .segs2 button:hover:not(.on){color:var(--tx);background:#1c2739}
+/* 目標・次のボーダーの3段ブロック */
+.gwrap{display:grid;grid-template-columns:104px 1fr;gap:8px;margin-bottom:10px}
+.glabel{display:flex;align-items:center;justify-content:center;text-align:center;
+  background:#131c2b;border:1px solid var(--line);border-radius:10px;
+  font-size:.78rem;font-weight:700;color:var(--dim);padding:6px}
+.grows{display:grid;gap:5px}
+.grow{background:#0f1726;border:1px solid var(--line);border-radius:9px;
+  padding:7px 11px;display:flex;align-items:baseline;gap:9px;font-variant-numeric:tabular-nums}
+.grow .gk{font-size:.7rem;color:var(--dim2);min-width:5.4em}
+.grow .gv{font-size:1.02rem;font-weight:700;transition:color .25s}
+.grow.v1 .gv{color:#eef3fa}
+.grow.v2 .gv{color:#57e0a0}
+.grow.v3 .gv{color:#ffd45e}
+.grow .gv.up{animation:gflash .5s ease-out}
+@keyframes gflash{0%{transform:translateY(-3px);opacity:.4}100%{transform:none;opacity:1}}
+/* S値・L値の細かい桁 */
+.lsval .lsfine{font-size:.62em;color:#7fe9ff;margin-left:1px}
+.lsval.bump{animation:bump .35s ease-out}
 /* プロフィール右上のトロフィー・スター */
 .awbox{float:right;display:flex;gap:16px;text-align:center;margin:-4px 0 6px 12px}
 .awn{font-family:Impact,"Arial Black",sans-serif;font-size:2rem;line-height:1;color:#eaf3ff}
@@ -517,6 +535,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .room .rtag{font-size:.64rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);
   color:var(--dim2);align-self:flex-start;margin-top:6px}
 .room.pinned{border-color:#8a7330}
+.btn.blink{border-color:#ff5470;color:#ff8fa3;animation:btnblink 1.8s ease-in-out infinite}
+@keyframes btnblink{0%,100%{background:#2a1220}50%{background:#4a1a2c}}
 .mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
 .mbtn.alert{animation:mblink 1.6s ease-in-out infinite}
 @keyframes mblink{0%,100%{opacity:1}50%{opacity:.45}}
@@ -548,12 +568,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .calday.hot{background:#3a2a10;border-color:#c98a2e;color:#ffd8a0;
   box-shadow:0 0 10px -2px #f0a94088}
 .calday:hover{border-color:var(--acc)}
-.calday.sel,.band.sel{outline:2px solid var(--acc);outline-offset:-2px}
-.band{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin-bottom:6px;
+.calday.sel,.wband.sel{outline:2px solid var(--acc);outline-offset:-2px}
+.wband{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin-bottom:6px;
   border:1px solid #222d3d;background:#151d2a;color:#66748a;border-radius:9px;
   padding:9px 12px;font:inherit;font-size:.8rem;cursor:pointer}
-.band.hot{background:#3a2a10;border-color:#c98a2e;color:#ffd8a0}
-.band:hover{border-color:var(--acc)}
+.wband.hot{background:#3a2a10;border-color:#c98a2e;color:#ffd8a0}
+.wband:hover{border-color:var(--acc)}
 .radars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 @media (max-width:760px){.radars{grid-template-columns:1fr}}
 .ptags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 6px}
@@ -823,21 +843,23 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
     </div>
     <div class="lsgrid2">
       <div class="lsbox big"><div class="t">現在までのスコア増加</div>
-        <div class="v big" id="lsScoreAll" style="color:var(--warn)">0</div>
-        <div class="s" id="lsScoreNext">—</div></div>
+        <div class="v big" id="lsScoreAll" style="color:var(--warn)">0</div></div>
       <div class="lsbox big"><div class="t">現在までの乱数増加</div>
-        <div class="v big" id="lsRandAll" style="color:var(--warn)">0</div>
-        <div class="s" id="lsRandNext">—</div></div>
+        <div class="v big" id="lsRandAll" style="color:var(--warn)">0</div></div>
     </div>
     <div class="tools" style="margin-top:0">
       <button class="btn sm" id="lsResetAll">「現在まで」をリセット</button>
       <span class="tiny">リセットするまで、クリアするたびに足し続けます。累積の見込みはこの値を使います。</span>
     </div>
+    <h3 style="margin-top:16px">スコアの累積</h3>
+    <div id="lsScoreNext"></div>
+    <h3 style="margin-top:14px">生成した乱数の累積</h3>
+    <div id="lsRandNext"></div>
     <div class="lsgrid2">
-      <div class="lsbox"><div class="t">S値の予測</div><div class="v" id="lsSv">—</div>
+      <div class="lsbox"><div class="t">S値の予測</div><div class="v lsval" id="lsSv">—</div>
         <div class="s" id="lsSvNext">—</div>
         <div class="s" id="lsSvGoal" style="color:var(--warn);margin-top:4px">—</div></div>
-      <div class="lsbox"><div class="t">L値の予測</div><div class="v" id="lsLv">—</div>
+      <div class="lsbox"><div class="t">L値の予測</div><div class="v lsval" id="lsLv">—</div>
         <div class="s" id="lsLvNext">—</div>
         <div class="s" id="lsLvGoal" style="color:var(--warn);margin-top:4px">—</div></div>
     </div>
@@ -1131,7 +1153,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
           <div class="lsbox"><div class="t">高評価率</div>
             <div class="v" id="stRate" style="font-size:1.6rem">—</div>
             <div class="s" id="stGp">—</div></div>
-          <div class="lsbox"><div class="t">タイムラインへの投稿</div>
+          <div class="lsbox" style="grid-column:1/-1">
+        <div class="tools" style="margin-top:0"><button class="btn sm" id="xpBreak">通算経験値の内訳</button></div>
+      </div>
+      <div class="lsbox"><div class="t">タイムラインへの投稿</div>
             <div class="v" id="stPosts" style="font-size:1.6rem">—</div>
             <div class="s">件（つぶやき1件で＋1XP）</div></div>
         </div>
@@ -1423,7 +1448,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v49";
+const APP_VERSION = "v50";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1458,13 +1483,39 @@ const EMBEDDED_WEEK = {
 const FONTS = `"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,system-ui,sans-serif`;
 const SERIF = `Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif`;
 
-const CAT2 = ["素因数分解（初級）","素因数分解（上級）","素数判定","素数特定","素数判定・改",
-              "素数増強","二数限定","暗素因数分解lv.1","暗素因数分解lv.2","暗素因数分解lv.3"];
+const CAT2 = ["素因数分解・初級","素因数分解・上級","素数判定","素数特定","素数判定・改",
+              "素数増強","二数限定","暗素因数分解 Lv.1","暗素因数分解 Lv.2","暗素因数分解 Lv.3"];
 const CAT3 = ["暗素因数分解・壱","暗素因数分解・参","暗素因数分解・闇","1から順に","2から順に",
               "1桁素数","2の累乗数","1から順にEX"];
 const EVENTS = CAT2.concat(CAT3);
-const ORDER  = ["合計スコア"].concat(EVENTS, ["乱数累積","スコア累積"]);
+const RAND="生成した乱数の累積", SCORE="スコアの累積";
+const ORDER  = ["合計スコア"].concat(EVENTS, [RAND,SCORE]);
 const LOW    = new Set(["1から順に","2から順に","1桁素数","2の累乗数"]);
+/* 名前を変えたので、前の名前で保存されているデータも読めるようにします */
+const RENAME={
+  "素因数分解（初級）":"素因数分解・初級",
+  "素因数分解（上級）":"素因数分解・上級",
+  "暗素因数分解lv.1":"暗素因数分解 Lv.1",
+  "暗素因数分解lv.2":"暗素因数分解 Lv.2",
+  "暗素因数分解lv.3":"暗素因数分解 Lv.3",
+  "乱数累積":RAND,
+  "スコア累積":SCORE
+};
+/** 前の名前のキーを、新しい名前に付け替えます */
+function fixNames(o){
+  if(!o||typeof o!=="object") return o;
+  Object.keys(RENAME).forEach(old=>{
+    if(Object.prototype.hasOwnProperty.call(o,old)){
+      const nu=RENAME[old];
+      if(o[nu]===undefined||o[nu]===null||o[nu]==="") o[nu]=o[old];
+      delete o[old];
+    }
+  });
+  return o;
+}
+/** 種目名の単位。タイムアタック系は秒 */
+const UNIT=n=>LOW.has(n)?"秒":(n==="1から順にEX"?"点":"");
+const evLabel=n=>UNIT(n)?`${n}（単位:${UNIT(n)}）`:n;
 const LS_RANKS=[1,2,3,4,5,6,7,8,9,10,15,20,25,30,50,75,100,150,200,250,300,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000];
 /* 十種競技総合＝CAT2 から素数判定を除いた9種の合計。各種目の理論値は10万点 */
 const DECA   = CAT2.filter(n=>n!=="素数判定");
@@ -1484,12 +1535,12 @@ const RANKS=[{min:0,n:"NOVICE",c:"#8ba0bd"},{min:4,n:"BRONZE",c:"#c98a52"},
  {min:12.5,n:"PLATINUM",c:"#7fe6d4"},{min:15,n:"TITAN",c:"#a98bff"},
  {min:17,n:"MASTER",c:"#ff7b8a"},{min:19,n:"RAINBOW",c:"#57e0a0"}];
 
-const SAMPLE={"合計スコア":789918,"素因数分解（初級）":79798,"素因数分解（上級）":13395,
+const SAMPLE={"合計スコア":789918,"素因数分解・初級":79798,"素因数分解・上級":13395,
  "素数判定":75062,"素数特定":48886,"素数判定・改":56503,"素数増強":75525,"二数限定":45204,
- "暗素因数分解lv.1":82407,"暗素因数分解lv.2":55100,"暗素因数分解lv.3":42368,
+ "暗素因数分解 Lv.1":82407,"暗素因数分解 Lv.2":55100,"暗素因数分解 Lv.3":42368,
  "暗素因数分解・壱":557,"暗素因数分解・参":94,"暗素因数分解・闇":30,"1から順に":16.641,
  "2から順に":16.004,"1桁素数":9.119,"2の累乗数":4.178,"1から順にEX":62.67,
- "乱数累積":258120254191,"スコア累積":2484070136};
+ "生成した乱数の累積":258120254191,"スコアの累積":2484070136};
 
 let WEEKS=[EMBEDDED_WEEK], wIdx=0;
 const DATA = () => WEEKS[wIdx];
@@ -1544,7 +1595,7 @@ function compute(rc,opt){
   const used={"合計スコア":rates["合計スコア"]>0};
   for(const n of CAT2) used[n]=rates[n]>0&&rates[n]>=cut2;
   for(const n of CAT3) used[n]=rates[n]>0&&rates[n]>=cut3;
-  const a=rc["乱数累積"]||0,b=rc["スコア累積"]||0;
+  const a=rc["生成した乱数の累積"]||0,b=rc["スコアの累積"]||0;
   const missing=ORDER.filter(n=>!(rc[n]>0));
   return {rates,bands,used,pts,total:pts.reduce((x,y)=>x+y,0),missing,complete:!missing.length,
     L:lvalOf(a), S:svalOf(b)};
@@ -1841,7 +1892,9 @@ function toJstInput(t){ const d=new Date(t); if(isNaN(d)) return "";
   return p.replace(" ","T").slice(0,16); }
 /* JSTとして入力された値を正しいUTC時刻に直す */
 function fromJstInput(v){ return new Date(v+"+09:00"); }
-const nice=v=>Number.isInteger(v)?jp(v):v.toLocaleString("ja-JP",{maximumFractionDigits:3});
+/* 値が無いときでも落ちないようにします */
+const nice=v=>(v===null||v===undefined||v===""||!isFinite(+v))?"—"
+  :(Number.isInteger(+v)?jp(+v):(+v).toLocaleString("ja-JP",{maximumFractionDigits:3}));
 /** 種目に応じた表記。タイム系は必ず小数第3位まで */
 function fmtRec(n,v){
   if(v===null||v===undefined||v==="") return "—";
@@ -1980,7 +2033,7 @@ const proTouch=()=>{
 };
 const K_TIMES="sa-times-v1", K_BASE="sa-baseline-v1";
 let recTimes={}, baseline={done:false,at:0};
-rec=ls(K_REC,{}); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
+rec=fixNames(ls(K_REC,{})); pro=Object.assign(pro,ls(K_PRO,{})); friends=ls(K_FR,[]);
 recTimes=ls(K_TIMES,{}); baseline=ls(K_BASE,{done:false,at:0});
 const saveTimes=()=>{try{localStorage.setItem(K_TIMES,JSON.stringify(recTimes));
   localStorage.setItem(K_BASE,JSON.stringify(baseline));}catch(e){}};
@@ -2010,14 +2063,14 @@ const save=()=>{try{
    4. 入力テーブル
    ========================================================= */
 const ROWS=[{sec:"① 十種競技総合スコア（素数判定を除く9種の合計）　6点"},{name:"合計スコア"},
- {sec:"② 素数ゲームV1・V2／暗素因数分解lv.1-3（10種）　上位4種目 × 各2点"},...CAT2.map(n=>({name:n})),
+ {sec:"② 素数ゲームV1・V2／暗素因数分解 Lv.1-3（10種）　上位4種目 × 各2点"},...CAT2.map(n=>({name:n})),
  {sec:"③ EX系・タイムアタック系（8種）　上位3種目 × 各2点"},...CAT3.map(n=>({name:n})),
- {sec:"参考値（RATINGには加算しません）"},{name:"乱数累積",ref:1},{name:"スコア累積",ref:1}];
+ {sec:"参考値（RATINGには加算しません）"},{name:"生成した乱数の累積",ref:1},{name:"スコアの累積",ref:1}];
 (function(){const tb=$("#tb");
  for(const r of ROWS){const tr=document.createElement("tr");
   if(r.sec){tr.className="sec";tr.innerHTML=`<td colspan="7">${r.sec}</td>`;}
   else{tr.dataset.name=r.name;
-   tr.innerHTML=`<td>${r.name}${LOW.has(r.name)?' <span class="band">(秒)</span>':""}</td>`+
+   tr.innerHTML=`<td>${esc(evLabel(r.name))}</td>`+
     `<td><input type="text" inputmode="decimal" data-in="${r.name}" placeholder="—"></td>`+
     (r.auto?`<td class="pct" data-r>0.00%</td><td class="band" data-b>—</td>`+
             `<td class="tgt" data-t>—</td><td data-p>0.000</td><td class="chk" data-c></td>`
@@ -2077,9 +2130,12 @@ function render(){
     const n=tr.dataset.name;
     if(tr.querySelector("[data-ref]")){
       const v=rec[n]||0;
-      tr.querySelector("[data-ref]").textContent = n==="乱数累積"
-        ? (c.L===null?"—":`L値 ${f3(c.L)}　（log₂₅ ${logb(v,25).toFixed(4)} − 5.5）`)
-        : (c.S===null?"—":`S値 ${f3(c.S)}　（log₂₅ ${logb(v,25).toFixed(4)} − 4.75）`);
+      const isR=(n===RAND), sub=isR?5.5:4.75, val=isR?c.L:c.S;
+      tr.querySelector("[data-ref]").innerHTML = (val===null||!(v>0))
+        ? "—"
+        : `${isR?"L値":"S値"} <b>${f3(val)}</b>　`
+          +`<span class="tiny">log<sub>25</sub>(${jp(v)}) − ${sub} = ${logb(v,25).toFixed(6)} − ${sub}`
+          +` = <b>${(logb(v,25)-sub).toFixed(6)}</b>（小数第3位で切り捨て）</span>`;
       return;
     }
     const cl=claims[n];
@@ -2118,9 +2174,9 @@ function render(){
   $("#sTotal").textContent=ts>0?jp(ts):"—";
   $("#sTotalSub").textContent=ts>0?`${c.bands["合計スコア"]}　レート割合 ${pctf(c.rates["合計スコア"])}`:"未入力";
   $("#sL").textContent=c.L===null?"—":f3(c.L);
-  $("#sLsub").textContent=rec["乱数累積"]>0?`乱数累積 ${jp(rec["乱数累積"])}`:"未入力";
+  $("#sLsub").textContent=rec["生成した乱数の累積"]>0?`生成した乱数の累積 ${jp(rec["生成した乱数の累積"])}`:"未入力";
   $("#sS").textContent=c.S===null?"—":f3(c.S);
-  $("#sSsub").textContent=rec["スコア累積"]>0?`スコア累積 ${jp(rec["スコア累積"])}`:"未入力";
+  $("#sSsub").textContent=rec["スコアの累積"]>0?`スコアの累積 ${jp(rec["スコアの累積"])}`:"未入力";
   c.pts.forEach((p,i)=>{$("#p"+i).textContent=f3(p);
     $("#b"+i).style.width=(100*p/BRK[i].max).toFixed(2)+"%";});
   /* 公開トグル */
@@ -2132,7 +2188,7 @@ function render(){
     if(over.length) cw.innerHTML=
       `<b style="color:var(--bad)">入力値がおかしいようです。</b><br>`+
       `<span class="muted">次の種目は理論値の ${jp(MAXSCORE)} 点を超えています。`+
-      `素数ゲームV1・V2／暗素因数分解lv.1-3 の10種は ${jp(MAXSCORE)} 点が上限です。</span><br>`+
+      `素数ゲームV1・V2／暗素因数分解 Lv.1-3 の10種は ${jp(MAXSCORE)} 点が上限です。</span><br>`+
       over.map(n=>`<span class="tiny">${esc(n)}：${jp(rec[n])} 点</span>`).join("　");
   }
   const step=(name,fn)=>{ try{ fn(); }catch(e){
@@ -2191,7 +2247,7 @@ function renderPyramid(){
     `<p class="tiny" style="margin-top:10px">RATINGは <b>20.000点満点</b>。3つの枠の合計で決まります。</p>`+
     `<div class="scroll"><table><thead><tr><th>枠</th><th>対象</th><th>数え方</th><th>満点</th></tr></thead><tbody>`+
     `<tr><td>①</td><td>十種競技総合スコア</td><td>合計1種目</td><td>6.000</td></tr>`+
-    `<tr><td>②</td><td>素数ゲームV1・V2／暗素因数分解lv.1-3（10種）</td><td>上位4種目 × 各2点</td><td>8.000</td></tr>`+
+    `<tr><td>②</td><td>素数ゲームV1・V2／暗素因数分解 Lv.1-3（10種）</td><td>上位4種目 × 各2点</td><td>8.000</td></tr>`+
     `<tr><td>③</td><td>EX系・タイムアタック系（8種）</td><td>上位3種目 × 各2点</td><td>6.000</td></tr>`+
     `</tbody></table></div>`+
     `<p class="tiny">各種目の点数は「1位で満点、10位で8割、50位で6割、100位で5割、200位で4割」を基準に、`+
@@ -3330,8 +3386,8 @@ async function drawCardNow(){
 
   const nPend=Object.keys(claims).filter(k=>claims[k]&&claims[k].status!=="approved").length;
   const box=[["十種競技総合スコア",shown["合計スコア"]>0?jp(shown["合計スコア"]):"—",""],
-             ["L値",c.L===null?"—":f3(c.L),shown["乱数累積"]>0?"乱数累積 "+jp(shown["乱数累積"]):""],
-             ["S値",c.S===null?"—":f3(c.S),shown["スコア累積"]>0?"スコア累積 "+jp(shown["スコア累積"]):""],
+             ["L値",c.L===null?"—":f3(c.L),shown["生成した乱数の累積"]>0?"生成した乱数の累積 "+jp(shown["生成した乱数の累積"]):""],
+             ["S値",c.S===null?"—":f3(c.S),shown["スコアの累積"]>0?"スコアの累積 "+jp(shown["スコアの累積"]):""],
              /* 競技会の優勝でもらうトロフィーと、チャレンジの上位でもらうスター */
              ["トロフィー / スター",
               `${jp(MY_AW.trophies||0)} / ${jp(MY_AW.stars||0)}`,
@@ -3743,6 +3799,8 @@ async function loadRanking(force){
                 rating:r.rating,updated_at:r.updated_at};
       try{ const lv=await sb(`user_levels?select=*&handle=eq.${encodeURIComponent(r.handle)}&limit=1`);
         if(lv&&lv[0]) Object.assign(pp,lv[0]); }catch(e){}
+      try{ const aw=await sb(`award_totals?select=*&handle=eq.${encodeURIComponent(r.handle)}&limit=1`);
+        pp.trophies=(aw&&aw[0])?aw[0].trophies:0; pp.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
       showPlayer(pp,rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
@@ -3852,7 +3910,7 @@ async function loadMe(){
       if(pro.img && !pro.imgSm){ makeSmall(pro.img).then(u=>{ if(u){ pro.imgSm=u; pushMe(true).catch(()=>{}); } }); }
       if(needPush) pushMe(true).catch(()=>{});
       avatarWarn();
-      const cloud=me.records||{};
+      const cloud=fixNames(me.records||{});
       const mine=ORDER.some(n=>rec[n]>0);
       if(!mine && Object.keys(cloud).length) rec=cloud;         /* 手元が空ならクラウドを採用 */
       else if(Object.keys(cloud).length) mergeCloud(cloud);
@@ -3862,6 +3920,7 @@ async function loadMe(){
 }
 /** 各項目ごとに良い方を残す（タイム系は小さい方） */
 function mergeCloud(cloud){
+  cloud=fixNames(cloud);
   for(const n of ORDER){
     const a=rec[n]||0, b=cloud[n]||0;
     if(!b) continue;
@@ -4597,6 +4656,10 @@ function showPlayer(p,rc){
         <div class="ratebox"><div><div class="rtlabel">RATING</div>${ratingHTML(c.complete?c.total:null,.75)}</div>
         ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div></div>
     </div>
+    <div class="awbox">
+      <div><div class="awn">${jp(+p.trophies||0)}</div><div class="awl">トロフィー</div></div>
+      <div><div class="awn" style="color:#ffd45e">${jp(+p.stars||0)}</div><div class="awl">スター</div></div>
+    </div>
     ${(p.rate!=null||p.checked_n>0)?`<p class="tiny" style="margin-top:8px">
       高評価率 <b style="color:var(--acc2);font-size:1.05rem">${p.rate!=null?(+p.rate).toFixed(1)+"%":"—"}</b>
       　グッドポイント ${jp(+p.good_points||0)} / 審査件数 ${jp(+p.checked_n||0)}</p>`:""}
@@ -4608,9 +4671,9 @@ function showPlayer(p,rc){
     <div class="stats">
       <div class="stat"><div class="t">十種競技総合スコア</div><div class="v">${rc["合計スコア"]>0?jp(rc["合計スコア"]):"—"}</div></div>
       <div class="stat"><div class="t">L値</div><div class="v">${c.L===null?"—":f3(c.L)}</div>
-        <div class="s">${rc["乱数累積"]>0?jp(rc["乱数累積"]):""}</div></div>
+        <div class="s">${rc["生成した乱数の累積"]>0?jp(rc["生成した乱数の累積"]):""}</div></div>
       <div class="stat"><div class="t">S値</div><div class="v">${c.S===null?"—":f3(c.S)}</div>
-        <div class="s">${rc["スコア累積"]>0?jp(rc["スコア累積"]):""}</div></div>
+        <div class="s">${rc["スコアの累積"]>0?jp(rc["スコアの累積"]):""}</div></div>
     </div>
     ${radarPair(rc)}
     <h3>全種目の記録</h3>
@@ -4726,61 +4789,111 @@ function lsFmtTime(ms){
   const sec=Math.floor(ms%60000/1000), mil=Math.floor(ms%1000);
   return (h?`${h}:${p(m)}`:p(m))+`:${p(sec)}.${p(mil,3)}`;
 }
+/** 「現在まで」の基準。ここからの増分を「現在までの増加」とみなします */
+const K_LSBASE="sa-lsbase-v1";
+let lsBase=ls(K_LSBASE,{score:null,rand:null});
+const saveLsBase=()=>{try{localStorage.setItem(K_LSBASE,JSON.stringify(lsBase));}catch(e){}};
+/** リセット直後は、いまの累積を基準として覚えます */
+function lsSyncBase(){
+  const S=rec[SCORE]||0, R=rec[RAND]||0;
+  if(lsAll===0){
+    /* 手で累積を書き換えたぶんを「現在まで」に取り込みます */
+    if(lsBase.score===null) lsBase.score=S;
+    if(lsBase.rand===null)  lsBase.rand=R;
+    saveLsBase();
+  }
+}
+/** 「現在まで」の増加＝（基準からの手入力ぶん）＋（クリア回数ぶん） */
+function lsGain(){
+  lsSyncBase();
+  const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
+  const manS=Math.max(0,(rec[SCORE]||0)-(lsBase.score||0));
+  const manR=Math.max(0,(rec[RAND] ||0)-(lsBase.rand ||0));
+  return {s:manS+lsAll*perS, r:manR+lsAll*perR,
+          baseS:(lsBase.score||0), baseR:(lsBase.rand||0)};
+}
+/** 目標・次のボーダーを3段のブロックで見せます */
+function goalBlock(el,label,target,cur,per,cls){
+  if(!el) return;
+  const left=Math.max(0,target-cur);
+  const need=per>0?Math.ceil(left/per):null;
+  const rows=[["目標値",jp(target),"v1"],
+              ["あと",left>0?jp(left):"達成しました","v2"],
+              ["残り回数",need===null?"—":(left>0?jp(need)+" 回":"—"),"v3"]];
+  el.innerHTML=`<div class="gwrap"><div class="glabel">${esc(label)}</div>
+    <div class="grows">${rows.map(r=>`<div class="grow ${r[2]}">
+      <span class="gk">${r[0]}</span><span class="gv" data-g="${r[0]}">${r[1]}</span></div>`).join("")}</div></div>`;
+}
+/** 数が変わったところだけ光らせます */
+function goalPaint(el,html){
+  if(!el) return;
+  const before={};
+  el.querySelectorAll("[data-g]").forEach(x=>before[x.dataset.g]=x.textContent);
+  el.innerHTML=html;
+  el.querySelectorAll("[data-g]").forEach(x=>{
+    if(before[x.dataset.g]!==undefined&&before[x.dataset.g]!==x.textContent) x.classList.add("up");
+  });
+}
+/** S値・L値。小数第4〜7位は小さく水色で出します */
+function lsValHTML(v){
+  if(v===null||v===undefined) return "—";
+  const s7=(Math.floor(v*1e7)/1e7).toFixed(7);
+  return `${s7.slice(0,s7.length-4)}<span class="lsfine">${s7.slice(-4)}</span>`;
+}
 function renderLs(prev){
   const n=lsRun?lsRun.count:0;
   const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
-  /* 表示の主役は「今回の増加」。0から積み上がる */
   const gainS=n*perS, gainR=n*perR;
-  const allS=lsAll*perS, allR=lsAll*perR;
   const pGainS=prev!==undefined?prev*perS:gainS, pGainR=prev!==undefined?prev*perR:gainR;
   $("#lsCount").textContent=jp(n);
   animNum($("#lsScore"),pGainS,gainS,v=>(v>0?"+":"")+jp(v));
   animNum($("#lsRand"), pGainR,gainR,v=>(v>0?"+":"")+jp(v));
 
-  /* 累積の見込み（プロフィールの値＋今回の増加）で、次のボーダーまでを出す */
-  /* 「現在まで」の増加だけを見込みに足します */
+  const G=lsGain();
   const aS=$("#lsScoreAll"), aR=$("#lsRandAll");
-  if(aS) aS.textContent=(allS>0?"+":"")+jp(allS);
-  if(aR) aR.textContent=(allR>0?"+":"")+jp(allR);
-  const baseS=rec["スコア累積"]||0, baseR=rec["乱数累積"]||0;
-  const totS=baseS+allS, totR=baseR+allR;
-  const sv=svalOf(totS), lv=lvalOf(totR);
-  $("#lsSv").textContent=sv===null?"—":f3(sv);
-  $("#lsLv").textContent=lv===null?"—":f3(lv);
+  if(aS) animNum(aS,+String(aS.textContent).replace(/[^\d.-]/g,"")||0,G.s,v=>(v>0?"+":"")+jp(v));
+  if(aR) animNum(aR,+String(aR.textContent).replace(/[^\d.-]/g,"")||0,G.r,v=>(v>0?"+":"")+jp(v));
 
-  /** 目標までの残りと、次のボーダーまでの残りを同時に出す */
+  /* 見込みは「基準＋現在までの増加」 */
+  const totS=G.baseS+G.s, totR=G.baseR+G.r;
+  const sv=svalOf(totS), lv=lvalOf(totR);
+  const svRaw=totS>0?Math.max(logb(totS,S_BASE)-S_SUB,0):null;
+  const lvRaw=totR>0?Math.max(logb(totR,L_BASE)-L_SUB,0):null;
+  const setV=(id,v)=>{ const el=$(id); if(!el) return;
+    const h=lsValHTML(v);
+    if(el.innerHTML!==h){ el.innerHTML=h;
+      el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } };
+  setV("#lsSv",svRaw); setV("#lsLv",lvRaw);
+
   const info=(kind,base,gain,goal,per,elN,vGoal,vLabel)=>{
     const cur=base+gain;
-    const cname=kind==="rand"?"乱数累積":"スコア累積";
-    /* 1行分。残りと、そこまでに必要なクリア回数 */
-    const row=(head,val)=>{
-      const left=val-cur;
-      if(left<=0) return `${head} <b style="color:var(--acc2)">達成済み</b>`;
-      const need=per>0?Math.ceil(left/per):null;
-      return `${head} あと <b>${jp(left)}</b>`
-        +(need!==null?` ／ <b style="color:var(--warn)">約 ${jp(need)} 回</b>`
-                     :` <span class="tiny">（1回あたりの増加量を登録すると回数も出ます）</span>`);
-    };
-    const out=[];
-    out.push(base>0
-      ? `累積の見込み <b>${jp(cur)}</b>`
-      : `<span class="tiny">累積を入力タブに登録すると、順位やボーダーまでの残りも出ます</span>`);
-    /* ① 目標まで（L値・S値の目標から逆算した累積を優先し、なければ直接指定した累積） */
+    const cname=kind==="rand"?RAND:SCORE;
     const auto=vGoal>0?Math.ceil(kind==="rand"?randForL(vGoal):scoreForS(vGoal)):0;
-    if(auto>0)      out.push(row(`<b>目標 ${vLabel} ${f3(vGoal)}</b>（${cname} ${jp(auto)}）まで`,auto));
-    else if(goal>0) out.push(row(`<b>目標 ${jp(goal)}</b> まで`,goal));
-    else            out.push(`<span class="tiny">目標を登録すると、達成までの残りが出ます</span>`);
-    /* ② 次のボーダーまで */
+    const target = auto>0?auto:(goal>0?goal:0);
+    const label  = auto>0?`目標 ${vLabel} ${f3(vGoal)}`:(goal>0?"目標":"");
     const hasB=Object.keys(lsB()[kind]||{}).length>0;
     const b=hasB?nextLsBorder(kind,cur):null;
-    out.push(!hasB ? `<span class="tiny">ボーダーのデータがまだ登録されていません</span>`
-           : b    ? row(`<b>次のボーダー ${b.rank}位</b>（${jp(b.val)}）まで`,b.val)
-                  : `<b style="color:var(--acc2)">1位ボーダーに到達しています</b>`);
-    elN.innerHTML=out.join("<br>");
+    let html=`<p class="tiny" style="margin:0 0 6px">${cname}の見込み <b>${jp(cur)}</b></p>`;
+    const rows=(lab,tg)=>{
+      const left=Math.max(0,tg-cur), need=per>0?Math.ceil(left/per):null;
+      return `<div class="gwrap"><div class="glabel">${esc(lab)}</div><div class="grows">`
+        +`<div class="grow v1"><span class="gk">目標値</span><span class="gv" data-g="${esc(lab)}1">${jp(tg)}</span></div>`
+        +`<div class="grow v2"><span class="gk">あと</span><span class="gv" data-g="${esc(lab)}2">`
+          +(left>0?jp(left):"達成しました")+`</span></div>`
+        +`<div class="grow v3"><span class="gk">残り回数</span><span class="gv" data-g="${esc(lab)}3">`
+          +(need===null?"—":(left>0?jp(need)+" 回":"—"))+`</span></div>`
+        +`</div></div>`;
+    };
+    if(target>0) html+=rows(label||"目標",target);
+    else html+=`<p class="tiny">目標を登録すると、達成までの残りが出ます。</p>`;
+    if(!hasB) html+=`<p class="tiny">ボーダーのデータがまだ登録されていません。</p>`;
+    else if(b) html+=rows(`次のボーダー ${b.rank}位`,b.val);
+    else html+=`<p class="tiny" style="color:var(--acc2)">1位ボーダーに到達しています。</p>`;
+    goalPaint(elN,html);
   };
-  info("score",baseS,allS,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
-  info("rand", baseR,allR,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
-  /* 次のL値・S値の目標。届いたら自動で繰り上げる */
+  info("score",G.baseS,G.s,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
+  info("rand", G.baseR,G.r,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
+
   const bump=(key,cur,stepKey)=>{
     if(cur===null) return null;
     const st=lsCfg[stepKey]>0?lsCfg[stepKey]:0.010;
@@ -4797,53 +4910,80 @@ function renderLs(prev){
   $("#lsLvGoal").innerHTML=gL===null?"—":
     `次の目標 <b>${f3(gL)}</b>（あと ${f3(Math.max(gL-lv,0))}）`;
   const rkS=lsRankOf("score",totS), rkR=lsRankOf("rand",totR);
-  $("#lsSvNext").textContent=totS>0?(rkS?`スコア累積 ${rkS}位以内`:"ランキング圏外"):"未登録";
-  $("#lsLvNext").textContent=totR>0?(rkR?`乱数累積 ${rkR}位以内`:"ランキング圏外"):"未登録";
+  $("#lsSvNext").textContent=totS>0?(rkS?`${SCORE} ${rkS}位以内`:"ランキング圏外"):"未登録";
+  $("#lsLvNext").textContent=totR>0?(rkR?`${RAND} ${rkR}位以内`:"ランキング圏外"):"未登録";
   $("#lsTime").textContent=lsFmtTime(lsElapsed());
   $("#lsStart").textContent=lsRun?`開始 ${jstFull(lsRun.start)}`:"未開始";
   if($("#lsKeyNow")) $("#lsKeyNow").textContent=`カウントキー：${keyLabel(lsCfg.key)}`;
   renderLsLog();
 }
+/* 10) やりこみ記録の並び替え */
+let lsSort={k:"start",asc:false};
 function renderLsLog(){
   const box=$("#lsLog"); if(!box) return;
   if(!lsLog.length){ box.innerHTML=`<p class="muted">まだ記録がありません。スタート→終了で残ります。</p>`; return; }
-  box.innerHTML=`<div class="scroll"><table><thead><tr><th>開始時刻(JST)</th><th>時間</th><th>回数</th>`+
-    `<th>1時間あたり</th><th>今回の増加</th><th>スコア累積</th><th>乱数累積</th><th></th></tr></thead><tbody>`+
-    lsLog.slice().reverse().map((L,i)=>{
-      const hr=L.ms>0?(L.count/(L.ms/3600000)):0;
-      return `<tr><td>${jstFull(L.start)}</td><td>${lsFmtTime(L.ms)}</td><td><b>${jp(L.count)}</b></td>`+
-        `<td class="tiny">${hr.toFixed(1)} 回</td>`+
-        `<td class="tiny">${L.gainS||L.gainR?`S +${jp(L.gainS||0)}<br>L +${jp(L.gainR||0)}`:"—"}</td>`+
-        `<td>${L.score?jp(L.score):"—"}</td><td>${L.rand?jp(L.rand):"—"}</td>`+
-        `<td><button class="btn sm" data-lsdel="${lsLog.length-1-i}">削除</button></td></tr>`;}).join("")+
+  const rows=lsLog.map((L,idx)=>Object.assign({},L,{idx,
+    hr:L.ms>0?(L.count/(L.ms/3600000)):0}));
+  const key={start:r=>new Date(r.start).getTime(),count:r=>r.count||0,hr:r=>r.hr}[lsSort.k]||(r=>0);
+  rows.sort((a2,b2)=>(key(a2)-key(b2))*(lsSort.asc?1:-1));
+  const th=(k,t)=>`<th style="cursor:pointer" data-lss="${k}">${t}`
+    +(lsSort.k===k?(lsSort.asc?" ▲":" ▼"):"")+`</th>`;
+  box.innerHTML=`<p class="tiny">見出しを押すと並び替えられます。</p>
+    <div class="scroll"><table><thead><tr>`
+    +th("start","開始時刻(JST)")+`<th>時間</th>`+th("count","回数")+th("hr","1時間あたり")
+    +`<th>今回の増加</th><th>スコアの累積</th><th>生成した乱数の累積</th><th></th></tr></thead><tbody>`+
+    rows.map(L=>
+      `<tr><td>${jstFull(L.start)}</td><td>${lsFmtTime(L.ms)}</td><td><b>${jp(L.count)}</b></td>`+
+      `<td class="tiny">${L.hr.toFixed(1)} 回</td>`+
+      `<td class="tiny">${L.gainS||L.gainR?`S +${jp(L.gainS||0)}<br>L +${jp(L.gainR||0)}`:"—"}</td>`+
+      `<td>${L.score?jp(L.score):"—"}</td><td>${L.rand?jp(L.rand):"—"}</td>`+
+      `<td><button class="btn sm" data-lsdel="${L.idx}">削除</button></td></tr>`).join("")+
     `</tbody></table></div>`;
-  $$("[data-lsdel]").forEach(b=>b.onclick=async()=>{
+  box.querySelectorAll("[data-lss]").forEach(h=>h.onclick=()=>{
+    const k=h.dataset.lss;
+    if(lsSort.k===k) lsSort.asc=!lsSort.asc; else lsSort={k,asc:false};
+    renderLsLog();
+  });
+  box.querySelectorAll("[data-lsdel]").forEach(b=>b.onclick=async()=>{
     if(!await askYN("この記録を削除しますか？","やりこみ記録から1件消します。","削除する")) return;
     lsLog.splice(+b.dataset.lsdel,1); saveLs(); renderLsLog();});
 }
 /* ---- クリアしたときの光と音 ---- */
 let lsAC=null;
 /** 電子音。big=true は目標やボーダーを越えたときの少し長い音 */
-function lsBeep(big){
+/* キリ番ごとの音。倍数が重なったら、いちばん大きい数の音だけ鳴らします */
+const LS_TONES={
+  1  :{notes:[880,1320],            type:"square",  gap:0.055,vol:0.16,len:0.24},
+  5  :{notes:[988,1319,1568],       type:"square",  gap:0.060,vol:0.19,len:0.34},
+  10 :{notes:[784,1047,1319,1568],  type:"triangle",gap:0.070,vol:0.22,len:0.48},
+  50 :{notes:[523,659,784,1047,1319],type:"triangle",gap:0.080,vol:0.25,len:0.62},
+  100:{notes:[523,659,784,1047,1319,1568,2093],type:"sine",gap:0.085,vol:0.28,len:0.85}
+};
+/** その回数で鳴らす音を選びます（100 → 50 → 10 → 5 → 1 の順に見ます） */
+function lsTone(count){
+  for(const k of [100,50,10,5,1]) if(count%k===0) return {k,t:LS_TONES[k]};
+  return {k:1,t:LS_TONES[1]};
+}
+function lsBeep(big,count){
   if(lsCfg.mute) return;
   try{
     const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
     if(!lsAC) lsAC=new AC();
     if(lsAC.state==="suspended") lsAC.resume();
+    const pick=(count!=null)?lsTone(count):{k:big?50:1,t:big?LS_TONES[50]:LS_TONES[1]};
+    const T=pick.t;
     const t=lsAC.currentTime, g=lsAC.createGain();
     g.gain.setValueAtTime(0.0001,t);
-    g.gain.exponentialRampToValueAtTime(big?0.26:0.18,t+0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+(big?0.55:0.22));
+    g.gain.exponentialRampToValueAtTime(T.vol,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+T.len);
     g.connect(lsAC.destination);
-    /* 上がっていく短い和音。big のときは4音まで伸ばす */
-    const notes=big?[784,988,1175,1568]:[880,1320];
-    const gap=big?0.075:0.055;
-    notes.forEach((f,i)=>{
+    T.notes.forEach((f,i)=>{
       const o=lsAC.createOscillator();
-      o.type=big?"triangle":"square";
-      o.frequency.setValueAtTime(f,t+i*gap);
-      o.connect(g); o.start(t+i*gap); o.stop(t+(big?0.6:0.25));
+      o.type=T.type;
+      o.frequency.setValueAtTime(f,t+i*T.gap);
+      o.connect(g); o.start(t+i*T.gap); o.stop(t+T.len+0.05);
     });
+    return pick.k;
   }catch(e){}
 }
 /** 画面と押したボタンを光らせる */
@@ -4864,8 +5004,8 @@ function lsCrossed(a,b){
     const nb=nextLsBorder(kind,x); if(nb) t.push(nb.val);
     return t.some(v=>x<v&&y>=v);
   };
-  return chk("score",rec["スコア累積"]||0,lsCfg.perScore,lsCfg.goalSv,lsCfg.goalS)
-      || chk("rand", rec["乱数累積"]||0, lsCfg.perRand, lsCfg.goalLv,lsCfg.goalR);
+  return chk("score",rec["スコアの累積"]||0,lsCfg.perScore,lsCfg.goalSv,lsCfg.goalS)
+      || chk("rand", rec["生成した乱数の累積"]||0, lsCfg.perRand, lsCfg.goalLv,lsCfg.goalR);
 }
 function lsFxLabels(){
   const s=$("#lsSnd"), l=$("#lsLit");
@@ -4873,7 +5013,7 @@ function lsFxLabels(){
   if(l) l.textContent="光："+(lsCfg.nolight?"オフ":"オン");
 }
 function lsHit(){
-  if(!lsRun) return;
+  if(!lsRun||lsRun.paused) return;      /* 休憩中は数えません */
   const now=Date.now();
   if(now-lsCool<1000) return;      /* 二重クリック防止：1秒 */
   lsCool=now;
@@ -4881,13 +5021,13 @@ function lsHit(){
   lsRun.count++;
   lsAll++; saveLsAll();
   const big=lsCrossed(lsAll-1,lsAll);
-  lsFlash(big); lsBeep(big);
+  lsFlash(big); lsBeep(big,lsRun.count);
   $("#lsHit").disabled=true;
-  setTimeout(()=>{ if(lsRun) $("#lsHit").disabled=false; },1000);
+  setTimeout(()=>{ if(lsRun&&!lsRun.paused) $("#lsHit").disabled=false; },1000);
   renderLs(prev);
 }
 $("#lsSnd").onclick=()=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
-  if(!lsCfg.mute) lsBeep(false); };
+  if(!lsCfg.mute) lsBeep(false,1); };
 $("#lsLit").onclick=()=>{ lsCfg.nolight=!lsCfg.nolight; saveLs(); lsFxLabels();
   if(!lsCfg.nolight) lsFlash(false); };
 lsFxLabels();
@@ -4952,9 +5092,9 @@ $("#lsOpenCfg").onclick=()=>{
     <div class="hintbox" id="mAuto"></div>
     <details style="margin-top:10px"><summary class="muted">累積値で直接指定する（上の目標より優先されません）</summary>
       <div class="frow" style="margin-top:8px">
-        <div><label class="fl">目標スコア累積</label>
+        <div><label class="fl">目標スコアの累積</label>
           <input type="text" inputmode="numeric" id="mGoalS" style="max-width:none" value="${lsCfg.goalS?commaFmt(String(lsCfg.goalS)):""}"></div>
-        <div><label class="fl">目標乱数累積</label>
+        <div><label class="fl">目標生成した乱数の累積</label>
           <input type="text" inputmode="numeric" id="mGoalR" style="max-width:none" value="${lsCfg.goalR?commaFmt(String(lsCfg.goalR)):""}"></div>
       </div>
       <p class="tiny">S値・L値の目標が入っていれば、そちらから自動で逆算した値が使われます。</p>
@@ -4965,8 +5105,8 @@ $("#lsOpenCfg").onclick=()=>{
   const autoView=()=>{
     const sv=num(M.q("#mGSv").value), lv=num(M.q("#mGLv").value);
     const parts=[];
-    if(sv>0) parts.push(`S値 <b>${f3(sv)}</b> → スコア累積 <b>${jp(Math.ceil(scoreForS(sv)))}</b>`);
-    if(lv>0) parts.push(`L値 <b>${f3(lv)}</b> → 乱数累積 <b>${jp(Math.ceil(randForL(lv)))}</b>`);
+    if(sv>0) parts.push(`S値 <b>${f3(sv)}</b> → スコアの累積 <b>${jp(Math.ceil(scoreForS(sv)))}</b>`);
+    if(lv>0) parts.push(`L値 <b>${f3(lv)}</b> → 生成した乱数の累積 <b>${jp(Math.ceil(randForL(lv)))}</b>`);
     M.q("#mAuto").innerHTML=parts.length
       ? `<b>目標から逆算した累積値</b><br>${parts.join("<br>")}`+
         `<br><span class="tiny">この値が自動で目標に使われます。手入力は不要です。</span>`
@@ -5053,14 +5193,14 @@ $("#lsStopBtn").onclick=()=>{
       <div class="lsbox"><div class="t">かかった時間</div><div class="v" style="font-size:1.5rem">${lsFmtTime(L.ms)}</div>
         <div class="s">${L.ms>0?(L.count/(L.ms/3600000)).toFixed(1)+" 回/時":""}</div></div>
     </div>
-    <h3>乱数累積・スコア累積の入力（任意）</h3>
+    <h3>生成した乱数の累積・スコアの累積の入力（任意）</h3>
     <p class="muted" style="margin-top:-6px">ゲーム内の実際の値を入れると、記録に残り、プロフィールの記録も更新されます。
       分からなければ「今回はスキップ」で構いません。</p>
     <div class="frow">
-      <div><label class="fl">いまのスコア累積</label>
-        <input type="text" inputmode="numeric" id="fS" style="max-width:none" value="${rec["スコア累積"]?commaFmt(String(rec["スコア累積"])):""}"></div>
-      <div><label class="fl">いまの乱数累積</label>
-        <input type="text" inputmode="numeric" id="fR" style="max-width:none" value="${rec["乱数累積"]?commaFmt(String(rec["乱数累積"])):""}"></div>
+      <div><label class="fl">いまのスコアの累積</label>
+        <input type="text" inputmode="numeric" id="fS" style="max-width:none" value="${rec["スコアの累積"]?commaFmt(String(rec["スコアの累積"])):""}"></div>
+      <div><label class="fl">いまの生成した乱数の累積</label>
+        <input type="text" inputmode="numeric" id="fR" style="max-width:none" value="${rec["生成した乱数の累積"]?commaFmt(String(rec["生成した乱数の累積"])):""}"></div>
     </div>
     <div id="fPrev" class="tiny" style="margin-top:8px"></div>
     <div class="tools"><button class="btn pri" id="fSave">入力して記録する</button>
@@ -5069,9 +5209,9 @@ $("#lsStopBtn").onclick=()=>{
     const sv=num(M.q("#fS").value), rv=num(M.q("#fR").value);
     const parts=[];
     if(sv>0) parts.push(`S値 ${f3(svalOf(sv))}`+
-      (lsRankOf("score",sv)?`（スコア累積 ${lsRankOf("score",sv)}位以内）`:""));
+      (lsRankOf("score",sv)?`（スコアの累積 ${lsRankOf("score",sv)}位以内）`:""));
     if(rv>0) parts.push(`L値 ${f3(lvalOf(rv))}`+
-      (lsRankOf("rand",rv)?`（乱数累積 ${lsRankOf("rand",rv)}位以内）`:""));
+      (lsRankOf("rand",rv)?`（生成した乱数の累積 ${lsRankOf("rand",rv)}位以内）`:""));
     M.q("#fPrev").innerHTML=parts.length?`入力した値だと ${parts.join("　／　")} になります。`:"";
   };
   M.qa("input").forEach(el=>el.oninput=()=>{applyComma(el);upd();});
@@ -5080,8 +5220,8 @@ $("#lsStopBtn").onclick=()=>{
   M.q("#fSave").onclick=()=>{
     const sv=num(M.q("#fS").value), rv=num(M.q("#fR").value);
     L.score=sv; L.rand=rv;
-    if(sv>0) rec["スコア累積"]=sv;
-    if(rv>0) rec["乱数累積"]=rv;
+    if(sv>0) rec["スコアの累積"]=sv;
+    if(rv>0) rec["生成した乱数の累積"]=rv;
     if(sv>0||rv>0){ fillInputs(); render(); }
     M.close(); finish();
   };
@@ -5095,8 +5235,10 @@ $("#lsReset").onclick=async()=>{
 $("#lsHit").onclick=lsHit;
 $("#lsResetAll").onclick=async()=>{
   if(!await askYN("「現在まで」をリセットしますか？",
-    "足し続けてきたクリア回数を0に戻します。<br>いま "+jp(lsAll)+" 回ぶんです。","リセットする")) return;
-  lsAll=0; saveLsAll(); renderLs(); toast("リセットしました");
+    "足し続けてきたぶんを0に戻し、<b>いまの累積を新しい基準</b>にします。","リセットする")) return;
+  lsAll=0; saveLsAll();
+  lsBase={score:rec[SCORE]||0, rand:rec[RAND]||0}; saveLsBase();
+  renderLs(); toast("リセットしました（いまの累積が基準になりました）");
 };
 /* 休憩用のストップ。時計を止めるだけで、数えた回数は残ります */
 $("#lsPause").onclick=()=>{
@@ -5498,9 +5640,11 @@ function rvRow(s){
       <span class="sbtag ${s.status==="removed"?"rejected":s.status}">${st}</span>
       ${s.nomiss?'<span class="sbtag">ノーミス</span>':""}
     </div>
+    ${s.discord?`<div class="hintbox" style="margin:6px 0 0"><b>記録は Discord に提出されています</b>
+      ${s.discord_note?`<br><span class="tiny" style="white-space:pre-wrap">${esc(s.discord_note)}</span>`:""}</div>`:""}
     <div class="tools" style="margin-top:5px">
-      <button class="btn sm" data-proof="${esc(s.proof_url)}">証明を見る</button>
-      ${s.entry_id?`<button class="btn sm" data-cdet="${esc(s.entry_id)}|${esc(s.cup_id||"")}">中身を見る</button>`:""}
+      ${s.discord?"":`<button class="btn sm" data-proof="${esc(s.proof_url)}">証明を見る</button>`}
+      ${s.entry_id?`<button class="btn sm pri" data-cdet="${esc(s.entry_id)}|${esc(s.cup_id||"")}">中身を見る</button>`:""}
       <span class="tiny" style="align-self:center">${jstFull(s.created_at)}</span></div>
     ${s.note?`<div class="tiny">${esc(s.note)}</div>`:""}
     ${hist.length?`<div class="tiny" style="margin-top:5px;color:var(--dim)">${hist.join("<br>")}</div>`:""}
@@ -5634,9 +5778,9 @@ function renderMeCards(){
       <div class="stat"><div class="t">十種競技総合スコア</div>
         <div class="v">${rec["合計スコア"]>0?jp(rec["合計スコア"]):"—"}</div></div>
       <div class="stat"><div class="t">L値</div><div class="v">${c.L===null?"—":f3(c.L)}</div>
-        <div class="s">${rec["乱数累積"]>0?jp(rec["乱数累積"]):""}</div></div>
+        <div class="s">${rec["生成した乱数の累積"]>0?jp(rec["生成した乱数の累積"]):""}</div></div>
       <div class="stat"><div class="t">S値</div><div class="v">${c.S===null?"—":f3(c.S)}</div>
-        <div class="s">${rec["スコア累積"]>0?jp(rec["スコア累積"]):""}</div></div>
+        <div class="s">${rec["スコアの累積"]>0?jp(rec["スコアの累積"]):""}</div></div>
     </div>
     <div class="tools" style="margin-top:4px">
       <button class="btn" id="meDetBtn">詳細データ</button></div>
@@ -5757,7 +5901,7 @@ function tstBuild(){
   const subs=[
     /* 未審査：審査員の出番 */
     mk({user_id:"t6",event:"素数判定",     value:94500},1),
-    mk({user_id:"t7",event:"暗素因数分解lv.1",value:84200},2),
+    mk({user_id:"t7",event:"暗素因数分解 Lv.1",value:84200},2),
     mk({user_id:"t8",event:"1から順に",    value:9.482},3),
     /* 審査ずみ：審査員審査の出番 */
     mk({user_id:"t6",event:"素数特定",value:90100,status:"judged",
@@ -5769,10 +5913,10 @@ function tstBuild(){
         judge_id:"t4",judge_act:"reject",judge_reason:"動画に映っている数値と一致しません",
         judged_at:ago(70)},6),
     /* 審査員審査ずみ：スーパーバイザー審査の出番 */
-    mk({user_id:"t6",event:"素因数分解（上級）",value:95800,status:"certified",
+    mk({user_id:"t6",event:"素因数分解・上級",value:95800,status:"certified",
         judge_id:"t4",judge_act:"approve",judged_at:ago(100),
         sv_id:"t2",sv_act:"accept",sv_at:ago(90)},7),
-    mk({user_id:"t7",event:"暗素因数分解lv.3",value:76300,status:"certified",
+    mk({user_id:"t7",event:"暗素因数分解 Lv.3",value:76300,status:"certified",
         judge_id:"t5",judge_act:"approve",judged_at:ago(140),
         sv_id:"t3",sv_act:"fix",sv_from:76900,sv_at:ago(130)},8),
     /* 全部おわり */
@@ -5813,8 +5957,8 @@ function tstBuild(){
   const cups=[
     {id:"c1",kind:"challenge",owner_handle:"hakase",owner_name:"素数博士",title:"暗素因数分解ぐるぐる杯",
      intro:"lv.1〜3を順番に回します",closed:false,created_at:ago(600),
-     rule:{nomiss:false,loops:3,steps:[{event:"暗素因数分解lv.1",n:5},
-       {event:"暗素因数分解lv.2",n:3},{event:"暗素因数分解lv.3",n:1}]}},
+     rule:{nomiss:false,loops:3,steps:[{event:"暗素因数分解 Lv.1",n:5},
+       {event:"暗素因数分解 Lv.2",n:3},{event:"暗素因数分解 Lv.3",n:1}]}},
     {id:"c2",kind:"official",owner_handle:"ringo",owner_name:"りんご",title:"素数判定10連ノーミス",
      intro:"1回でもミスしたらやり直しです",closed:false,created_at:ago(900),
      rule:{nomiss:true,loops:1,steps:[{event:"素数判定",n:10}]}}
@@ -5823,7 +5967,7 @@ function tstBuild(){
     {id:"e1",cup_id:"c1",handle:"mikan",   name:"みかん",   total:1980000,proof_url:yt(21),nomiss:false,created_at:ago(500),
      status:"certified",judge_handle:"ringo",judge_name:"りんご",judge_role:"judge",judge_act:"approve",
      sv_handle:"kuroneko",sv_name:"くろねこ",sv_role:"supervisor",sv_act:"accept",
-     detail:{steps:["暗素因数分解lv.1"],loops:1,grid:[[[660000,660000,660000]]]}},
+     detail:{steps:["暗素因数分解 Lv.1"],loops:1,grid:[[[660000,660000,660000]]]}},
     {id:"e2",cup_id:"c1",handle:"kuroneko",name:"くろねこ", total:1980000,proof_url:yt(22),nomiss:false,created_at:ago(480)},
     {id:"e3",cup_id:"c1",handle:"ringo",   name:"りんご",   total:1755000,proof_url:yt(23),nomiss:false,created_at:ago(460)},
     {id:"e4",cup_id:"c2",handle:"aozora",  name:"あおぞら", total:938000, proof_url:yt(24),nomiss:true, created_at:ago(800)}
@@ -5847,7 +5991,7 @@ function tstBuild(){
   const F1=[{key:"a",label:"1回目の点数"},{key:"b",label:"2回目の点数"},{key:"c",label:"3回目の点数"}];
   const achs=[
    {id:"a1",kind:"official",section_id:"s1",title:"素因数分解マスター",trophy:"platinum",
-    body:"素因数分解（上級）で95,000点以上を3回そろえる。",how:"Xに動画を投稿してリンクを貼ってください。",
+    body:"素因数分解・上級で95,000点以上を3回そろえる。",how:"Xに動画を投稿してリンクを貼ってください。",
     need:"video",fields:F1,ranked:true,
     sheet:{cells:{A1:"=a",A2:"=b",A3:"=c",C1:"=SUM(A1:A3)",C2:"=AVERAGE(A1:A3)",C3:"=MIN(A1:A3)"},
            picks:["C1","C2","C3"],main:"C1"},
@@ -5858,7 +6002,7 @@ function tstBuild(){
     fields:[{key:"a",label:"スコア"}],ranked:true,pos:1,published:true,dirty:true,
     can_edit:canOffAch(),done_n:1,sub_n:2,my_done_at:null,my_pending:true},
    {id:"a3",kind:"official",section_id:"s2",title:"暗算3連覇",trophy:"silver",
-    body:"暗素因数分解lv.3を3回連続でクリア。",how:"",need:"either",
+    body:"暗素因数分解 Lv.3を3回連続でクリア。",how:"",need:"either",
     fields:[{key:"a",label:"合計点"}],ranked:false,pos:2,published:false,dirty:false,
     can_edit:canOffAch(),done_n:0,sub_n:0,my_done_at:null,my_pending:false},
    {id:"a4",kind:"official",title:"はじめの一歩",trophy:"bronze",
@@ -5876,7 +6020,7 @@ function tstBuild(){
     vals:{a:95200,b:95800,c:96100},computed:{C1:287100,C2:95700,C3:95200},main:287100,
     links:[{url:"https://youtu.be/a1",note:"3回ぶんまとめて"}],status:"pending",done:false,
     created_at:new Date(now-3600000).toISOString(),
-    achievements:{id:"a1",title:"素因数分解マスター",kind:"official",body:"素因数分解（上級）で95,000点以上を3回そろえる。",fields:F1,
+    achievements:{id:"a1",title:"素因数分解マスター",kind:"official",body:"素因数分解・上級で95,000点以上を3回そろえる。",fields:F1,
       sheet:{cells:{A1:"=a",A2:"=b",A3:"=c",C1:"=SUM(A1:A3)"},picks:["C1"],main:"C1"}}},
    {id:"as2",ach_id:"a1",kind:"official",user_id:"me",handle:"syuuto",name:"わたし",
     vals:{a:96000,b:96500,c:97000},computed:{C1:289500},main:289500,
@@ -5927,6 +6071,7 @@ function tstAchRank(id){
   });
 }
 function tstRanks(cupId,pd){
+  /* 期間内の最高記録だけを1人1件にまとめます */
   const now=Date.now();
   const inP=e=>{
     if(!pd||pd==="all") return true;
@@ -5936,10 +6081,16 @@ function tstRanks(cupId,pd){
   };
   const rows=TDB.ent.filter(e=>e.cup_id===cupId&&inP(e))
     .sort((a,b)=>b.total-a.total||new Date(a.created_at)-new Date(b.created_at));
+  const byUser={};
+  rows.forEach(e=>{ const k=e.handle;
+    if(!byUser[k]||e.total>byUser[k].total) byUser[k]=e; });
+  const best=Object.values(byUser).sort((a2,b2)=>b2.total-a2.total);
   let rk=0,prev=null;
-  return rows.map((e,i)=>{
+  return best.map((e,i)=>{
     if(e.total!==prev){ rk=i+1; prev=e.total; }
-    return Object.assign({},e,{rk,tie_n:rows.filter(x=>x.total===e.total).length});
+    const all=rows.filter(x=>x.handle===e.handle);
+    return Object.assign({},e,{rk,tie_n:best.filter(x=>x.total===e.total).length,
+      n_subs:all.length, n_wait:all.filter(x=>x.status!=="certified").length});
   });
 }
 function tstStat(){
@@ -6185,7 +6336,7 @@ function tstToggle(on){
         const t=[0.30,0.55,0.80,0.95][i%4];              /* 200位〜1位の間をばらけさせる */
         rec[n]=Math.round((b[200]+(b[1]-b[200])*t)*(LOW.has(n)?1000:1))/(LOW.has(n)?1000:1);
       });
-      rec["乱数累積"]=3e10; rec["スコア累積"]=5e8;
+      rec["生成した乱数の累積"]=3e10; rec["スコアの累積"]=5e8;
       fillInputs(); render();
     }
   }else if(TEST_REC_BAK){
@@ -6472,7 +6623,8 @@ async function openProfile(handle){
     const pp=(PFEED.find(x=>x.handle===handle)||{});
     const rc={}; ORDER.forEach((n,i)=>{ if(i<12) rc[n]=LOW.has(n)?(6+i*0.4):(70000+i*1500); });
     return showPlayer({name:u.name,handle:u.handle,role:u.role,
-      lv:pp.lv!=null?pp.lv:0, xp:(pp.lv||0)*250+120},rc);
+      lv:pp.lv!=null?pp.lv:0, xp:(pp.lv||0)*250+120,
+      trophies:(pp.lv||0)%3, stars:(pp.lv||0)*2},rc);
   }
   if(!sbOn()) return toast("Supabase が未設定です");
   try{
@@ -6480,6 +6632,8 @@ async function openProfile(handle){
     const pr=(rows&&rows[0])||{handle,name:handle};
     try{ const lv=await sb(`user_levels?select=*&handle=eq.${encodeURIComponent(handle)}&limit=1`);
       if(lv&&lv[0]) Object.assign(pr,lv[0]); }catch(e){}
+    try{ const aw=await sb(`award_totals?select=*&handle=eq.${encodeURIComponent(handle)}&limit=1`);
+      pr.trophies=(aw&&aw[0])?aw[0].trophies:0; pr.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
     const rc=(await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}))||{};
     showPlayer(pr,rc);
   }catch(e){ toast("プロフィールを開けませんでした"); }
@@ -6726,7 +6880,7 @@ if($("#editOn")) $("#editOn").onclick=()=>setEditMode(true);
 if($("#editOff")) $("#editOff").onclick=()=>{ setEditMode(false); toast("入力を終わりました"); };
 
 /* ---- 大会 ---- */
-let cuSteps=[{event:"暗素因数分解lv.1",n:1}];
+let cuSteps=[{event:"暗素因数分解 Lv.1",n:1}];
 function cuRender(){
   const box=$("#cuSteps"); if(!box) return;
   box.innerHTML=cuSteps.map((s,i)=>`<div class="tools" style="margin-top:6px" data-i="${i}">
@@ -6753,7 +6907,7 @@ function cuRule(){
 }
 function rulePlays(r){ return (r.loops||1)*(r.steps||[]).reduce((a,s)=>a+(s.n||1),0); }
 /* 種目によって「ノーミス」の中身が違うので、そのまま文章で出します */
-const SKIP_EV=new Set(["暗素因数分解lv.1","暗素因数分解lv.2","暗素因数分解lv.3"]);
+const SKIP_EV=new Set(["暗素因数分解 Lv.1","暗素因数分解 Lv.2","暗素因数分解 Lv.3"]);
 const nomissWord=n=>SKIP_EV.has(n)?"ノースキップ回答率が100%":"ノーミス回答率が100%";
 function nomissNote(r){
   const evs=[...new Set((r.steps||[]).map(s=>s.event))];
@@ -6852,8 +7006,8 @@ function renderPcups(){
   });
   box.querySelectorAll("[data-pd]").forEach(b=>b.onclick=async()=>{
     await loadPcupEnt(b.dataset.cid,b.dataset.pd); renderPcups(); });
-  box.querySelectorAll("[data-det]").forEach(b=>b.onclick=()=>{
-    const [cid,i]=b.dataset.det.split("|"); cupDetail(cid,+i); });
+  box.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{
+    const [cid,h]=b.dataset.all.split("|"); allEntries(cid,h,cupPeriod[cid]||"all"); });
   box.querySelectorAll("[data-past]").forEach(b=>b.onclick=()=>pastRanking(b.dataset.past));
   box.querySelectorAll("[data-rvach]").forEach(b=>b.onclick=()=>{
     const [cid,i]=b.dataset.rvach.split("|"); cupReview(cid,+i); });
@@ -6908,12 +7062,9 @@ function pcupTable(rows,cup){
       <td>${esc(e.name||e.handle||"")}${e.nomiss?' <span class="sbtag">ノーミス</span>':""}
         ${e.status?`<span class="sbtag ${e.status}">${SB_ST[e.status]||"未審査"}</span>`:""}</td>
       <td><b class="sbval st-${e.status||"pending"}" style="font-size:1rem">${jp(+e.total)}</b></td>
-      <td>${e.discord
-        ?`<span class="tiny" title="${esc(e.discord_note||"")}">Discord</span>`
-        :`<a href="${esc(e.proof_url)}" target="_blank" rel="noopener noreferrer">別タブで見る</a>`}</td>
-      <td><button class="btn sm" data-det="${cup.id}|${i}">詳細</button>
-        ${(myLv()>=2&&e.status!=="certified"&&e.handle!==(pro.handle||""))
-          ?`<button class="btn sm pri" data-rvach="${cup.id}|${i}">審査</button>`:""}</td>
+      <td>${e.discord?'<span class="tiny">Discord</span>':""}</td>
+      <td><button class="btn sm${(+e.n_wait>0)?" blink":""}"
+        data-all="${cup.id}|${esc(e.handle||"")}">全データ閲覧${+e.n_subs>1?"（"+e.n_subs+"）":""}</button></td>
     </tr>`).join("")+"</tbody></table></div>";
 }
 /** 入力された1回ぶんずつの記録をすべて見せます（誰でも見られます） */
@@ -6940,8 +7091,8 @@ function cupDetail(cid,idx){
   modal(`<h2>${esc(e.name||e.handle||"")} さんの記録</h2>
     <p class="muted" style="margin-top:-8px">${esc(cup.title)}　合計スコア <b>${jp(+e.total)}</b>
       　${jstShort(e.created_at)}</p>
-    ${e.discord?`<div class="hintbox" style="margin-top:0"><b>Discord に提出</b><br>
-      <span class="tiny">${esc(e.discord_note||"")}</span></div>`:""}
+    ${e.discord?`<div class="hintbox" style="margin-top:0"><b>記録は Discord に提出されています</b>
+      ${e.discord_note?`<br><span class="tiny" style="white-space:pre-wrap">${esc(e.discord_note)}</span>`:""}</div>`:""}
     ${(e.judge_handle||e.sv_handle||e.jm_handle)?`<p class="tiny" style="margin-top:8px">
       ${e.judge_handle?"審査："+byWho(e.judge_handle,e.judge_name,e.judge_role)
         +"　"+({approve:"承認",fix:"修正",reject:"却下"}[e.judge_act]||""):""}
@@ -7099,7 +7250,7 @@ function linkEditor(boxId,list,onChange){
   if(!list.length) list.push({url:"",note:""});
   box.innerHTML=list.map((L,i)=>`<div class="lkrow" data-i="${i}">
     <input type="text" data-u placeholder="X または YouTube のリンク" value="${esc(L.url||"")}">
-    <textarea data-t rows="3" placeholder="このリンクの説明（改行できます。例：素因数分解（上級）の1回目〜3回目）">${esc(L.note||"")}</textarea>
+    <textarea data-t rows="3" placeholder="このリンクの説明（改行できます。例：素因数分解・上級の1回目〜3回目）">${esc(L.note||"")}</textarea>
     <div class="tools" style="margin-top:0">
       <button class="btn sm" data-tool>ツール</button>
       ${list.length>1?`<button class="btn sm" data-x>消す</button>`:""}
@@ -7556,7 +7707,7 @@ function achForm(id){
   const M=modal(`<h2>${a?"アチーブメントを編集する":(off?"公式":"みんなの")+"アチーブメントを作る"}</h2>
     <label class="fl">名前</label>
     <input type="text" class="txt" id="afT" style="max-width:none" value="${a?esc(a.title):""}"
-      placeholder="例：素因数分解（上級）9万点">
+      placeholder="例：素因数分解・上級9万点">
     ${off?`<label class="fl">トロフィーのランク</label>
       <select id="afTro" style="max-width:none">${Object.keys(TROPHY).map(k=>
         `<option value="${k}"${a&&a.trophy===k?" selected":""}>${TROPHY[k]}</option>`).join("")}</select>`:""}
@@ -7564,7 +7715,7 @@ function achForm(id){
       <select id="afSec" style="max-width:none"><option value="">部門なし</option>${secs.map(x=>
         `<option value="${x.id}"${a&&a.section_id===x.id?" selected":""}>${esc(x.title)}</option>`).join("")}</select>`:""}
     <label class="fl">内容（どうすれば達成なのか）</label>
-    <textarea id="afB" rows="8" placeholder="例：素因数分解（上級）で90,000点以上を出す。&#10;1回のプレイで達成すること。">${a?esc(a.body):""}</textarea>
+    <textarea id="afB" rows="8" placeholder="例：素因数分解・上級で90,000点以上を出す。&#10;1回のプレイで達成すること。">${a?esc(a.body):""}</textarea>
     <label class="fl">提出方法の説明（任意）</label>
     <textarea id="afH" rows="6" placeholder="例：Xに動画を投稿して、そのリンクを貼ってください。&#10;結果画面が最後まで映っていることが必要です。">${a?esc(a.how||""):""}</textarea>
     <label class="fl">提出できる形</label>
@@ -7802,6 +7953,77 @@ function achSubmit(a){
   };
 }
 
+/* ---- 14) 1人ぶんの全提出 ---- */
+let allSort={k:"total",asc:false};
+async function allEntries(cid,handle,period){
+  const cup=PCUPS.find(c=>c.id===cid)||{title:"チャレンジ"};
+  let rows=[];
+  if(TEST){
+    rows=(TDB.ent||[]).filter(e=>e.cup_id===cid&&e.handle===handle);
+  }else{
+    try{
+      const body={p_cup:cid,p_handle:handle,p_period:period||"all"};
+      rows= sess? await sbAuth("rpc/pcup_all",{method:"POST",body:JSON.stringify(body)})
+                : await sb("rpc/pcup_all",{method:"POST",body:JSON.stringify(body)});
+    }catch(e){ rows=[]; }
+  }
+  const M=modal(`<h2>${esc(handle)} さんの全記録</h2>
+    <p class="muted" style="margin-top:-8px">${esc(cup.title)}　
+      ${({all:"通算",day:"Daily",week:"Weekly",month:"Monthly"})[period||"all"]}　${rows.length} 件</p>
+    <div class="segs" id="alSort" style="grid-template-columns:1fr 1fr">
+      <button data-s="total" class="on">記録の高い順</button>
+      <button data-s="date">日付・時刻順</button>
+    </div>
+    <div id="alBox"></div>`,{w:880});
+  const draw=()=>{
+    const key=allSort.k==="total"?(r=>+r.total||0):(r=>new Date(r.created_at).getTime());
+    const list=rows.slice().sort((a3,b3)=>(key(a3)-key(b3))*(allSort.asc?1:-1));
+    M.q("#alBox").innerHTML=list.length?`<div class="scroll"><table><thead><tr>
+      <th>記録</th><th>出した日時</th><th>状態</th><th>審査した人</th><th></th></tr></thead><tbody>`
+      +list.map((e,i)=>{
+        const wait=(e.status!=="certified");
+        const who=[e.judge_handle&&"審査:"+esc(e.judge_name||e.judge_handle),
+                   e.sv_handle&&"審査員審査:"+esc(e.sv_name||e.sv_handle),
+                   e.jm_handle&&"SV審査:"+esc(e.jm_name||e.jm_handle)].filter(Boolean).join("<br>");
+        return `<tr>
+          <td><b class="sbval st-${e.status||"pending"}" style="font-size:1rem">${jp(+e.total)}</b></td>
+          <td class="tiny">${jstShort(e.created_at)}</td>
+          <td><span class="sbtag ${e.status||"pending"}">${SB_ST[e.status]||"未審査"}</span></td>
+          <td class="tiny">${who||"—"}</td>
+          <td><button class="btn sm" data-ed2="${i}">詳細</button>
+            ${(myLv()>=2&&wait&&e.handle!==(pro.handle||""))
+              ?`<button class="btn sm pri" data-rv2="${esc(e.sub_id||"")}">審査</button>`:""}</td>
+        </tr>`;}).join("")+`</tbody></table></div>`
+      :'<p class="muted">記録がありません。</p>';
+    M.qa("[data-ed2]").forEach(b3=>b3.onclick=()=>showEntry(cup,list[+b3.dataset.ed2]));
+    M.qa("[data-rv2]").forEach(b3=>b3.onclick=async()=>{
+      M.close(); await gotoReview(b3.dataset.rv2); });
+  };
+  M.qa("#alSort button").forEach(b3=>b3.onclick=()=>{
+    allSort.k=b3.dataset.s;
+    M.qa("#alSort button").forEach(x=>x.classList.toggle("on",x===b3));
+    draw();
+  });
+  draw();
+}
+/** 審査室のその段階へ飛びます */
+async function gotoReview(subId){
+  await loadRvq();
+  const t=RVQ.find(x=>x.id===subId);
+  if(!t) return toast("いま審査できる記録が見つかりません");
+  const my=myId();
+  if(t.user_id===my) return toast("自分の記録は審査できません");
+  rvMode="do";
+  rvTab = !t.judge_id ? "j" : (!t.sv_id&&t.judge_id!==my&&myLv()>=3) ? "s"
+        : (!t.jm_id&&t.sv_id&&t.sv_id!==my&&myLv()>=4) ? "m" : "j";
+  snsGo("rv");
+  setTimeout(()=>{ renderRvq();
+    const el=document.querySelector(`#rvBox .tools[data-id="${t.id}"]`);
+    if(el) el.closest(".sbrow").scrollIntoView({behavior:"smooth",block:"center"});
+    else toast("この記録はいま自分が審査できる段階ではありません");
+  },260);
+}
+
 /* ---- 3/4/5) 過去のランキング ---- */
 const pkOf=(pd,d)=>{
   const y=d.getFullYear(), m=d.getMonth()+1, dd=d.getDate();
@@ -7900,7 +8122,7 @@ async function pastRanking(cid){
         const st=new Date(d), en=new Date(d); en.setDate(st.getDate()+6);
         bands.push({st,en,key:pkOf("week",st),n:weekPeople(st),nth:nthOf(cup,"week",st)});
       }
-      box.innerHTML=bands.map(b=>`<button class="band${b.n?" hot":""}${pick===b.key?" sel":""}"
+      box.innerHTML=bands.map(b=>`<button class="wband${b.n?" hot":""}${pick===b.key?" sel":""}"
         data-w="${f(b.st)}">
         <b>${nthTxt(b.nth)}</b>　${b.st.getFullYear()}年${MD(b.st)} 〜 ${MD(b.en)}
         <span style="margin-left:auto">${b.n?b.n+"人":"—"}</span></button>`).join("");
@@ -7916,7 +8138,7 @@ async function pastRanking(cid){
     const d=new Date(dayKey+"T12:00:00+09:00");
     const key=pkOf(pd,d);
     pick=key;
-    M.qa(".calday,.band").forEach(el=>el.classList.toggle("sel",
+    M.qa(".calday,.wband").forEach(el=>el.classList.toggle("sel",
       (el.dataset.d&&pkOf(pd,new Date(el.dataset.d+"T12:00:00+09:00"))===key)
       ||(el.dataset.w&&pkOf(pd,new Date(el.dataset.w+"T12:00:00+09:00"))===key)));
     setBusy(true);
@@ -7997,12 +8219,55 @@ function askAchPost(kind,title){
   };
 }
 /** 大会・チャレンジの提出の中身を、審査室からも見られるようにします */
+/** 審査室から、その1件の中身（1回目・2回目…）を見せます */
 async function entryDetail(cid,eid){
-  if(!PCUPENT[cid]) await loadPcupEnt(cid,"all");
-  const rows=PCUPENT[cid]||[];
-  const i=rows.findIndex(r=>r.id===eid);
-  if(i<0) return toast("記録の中身を取れませんでした");
-  cupDetail(cid,i);
+  let e=null;
+  if(TEST){ e=(TDB.ent||[]).find(x=>x.id===eid); }
+  else{
+    try{
+      const r=await sbAuth(`pcup_entries?select=*&id=eq.${eid}&limit=1`);
+      e=(r&&r[0])||null;
+    }catch(err){}
+    if(!e){ await loadPcupEnt(cid,"all"); e=(PCUPENT[cid]||[]).find(x=>x.id===eid)||null; }
+  }
+  if(!e) return toast("記録の中身を取れませんでした");
+  const cup=PCUPS.find(c=>c.id===cid)||{title:"チャレンジ"};
+  showEntry(cup,e);
+}
+/** 1件ぶんの中身を出す共通の画面 */
+function showEntry(cup,e){
+  const d=e.detail||{}, grid=d.grid||[], steps=d.steps||[];
+  let body;
+  if(!grid.length){ body='<p class="muted">この記録には1回ごとの内訳が残っていません。</p>'; }
+  else body=grid.map((page,li)=>{
+    const maxN=Math.max(...page.map(a=>a.length));
+    return `<h3 style="margin-top:${li?16:8}px">${li+1}周目</h3>
+      <div class="scroll"><table><thead><tr><th>種目</th>`
+      +Array.from({length:maxN},(_,k)=>`<th>${k+1}回目</th>`).join("")+`<th>小計</th></tr></thead><tbody>`
+      +page.map((arr,si)=>`<tr><td class="tiny">${esc(steps[si]||"")}</td>`
+        +Array.from({length:maxN},(_,k)=>k<arr.length
+          ?`<td>${jp(+arr[k]||0)}</td>`:`<td class="tiny" style="color:var(--dim2)">—</td>`).join("")
+        +`<td><b>${jp(arr.reduce((x,v)=>x+(+v||0),0))}</b></td></tr>`).join("")
+      +`</tbody></table></div>`;
+  }).join("");
+  const M=modal(`<h2>${esc(e.name||e.handle||"")} さんの記録</h2>
+    <p class="muted" style="margin-top:-8px">${esc(cup.title||"")}　合計スコア <b>${jp(+e.total)}</b>
+      　${jstShort(e.created_at)}</p>
+    ${e.discord?`<div class="hintbox" style="margin-top:0"><b>記録は Discord に提出されています</b>
+      ${e.discord_note?`<br><span class="tiny" style="white-space:pre-wrap">${esc(e.discord_note)}</span>`:""}</div>`
+      :`<div class="tools" style="margin-top:0"><button class="btn sm" id="seProof">証明を見る</button></div>`}
+    ${(e.judge_handle||e.sv_handle||e.jm_handle)?`<p class="tiny" style="margin-top:8px">
+      ${e.judge_handle?"審査："+byWho(e.judge_handle,e.judge_name,e.judge_role)
+        +"　"+({approve:"承認",fix:"修正",reject:"却下"}[e.judge_act]||""):""}
+      ${e.sv_handle?"　／　審査員審査："+byWho(e.sv_handle,e.sv_name,e.sv_role)
+        +"　"+({accept:"認定",fix:"修正"}[e.sv_act]||""):""}
+      ${e.jm_handle?"　／　スーパーバイザー審査："+byWho(e.jm_handle,e.jm_name,e.jm_role)
+        +"　"+({accept:"認定",fix:"修正"}[e.jm_act]||""):""}</p>`
+      :'<p class="tiny" style="margin-top:8px">まだ審査されていません。</p>'}
+    ${body}`,{w:900});
+  if(M.q("#seProof")) M.q("#seProof").onclick=()=>showProof(
+    (e.links&&e.links.length)?e.links:[{url:e.proof_url,note:""}]);
+  M.qa("[data-open]").forEach(b=>b.onclick=()=>{ if(b.dataset.open) openProfile(b.dataset.open); });
 }
 
 /* ---- 表計算の画面 ---- */
@@ -8237,6 +8502,61 @@ function xlCalc(cells,vars){
   return out;
 }
 
+/* ---- 18) 経験値の内訳 ---- */
+async function xpBreakdown(){
+  let d=null;
+  if(TEST){
+    d={sub:12,subBonus:5,judge:8,judgeBonus:6,sv:4,svBonus:3,jm:2,chat:37,ach:[{t:"gold",n:1},{t:"bronze",n:2}],
+       star:37,trophy:2};
+  }else if(sess&&sbOn()){
+    try{
+      const [a,b2,c,e,f2,g2]=await Promise.all([
+        sbAuth("submissions?select=judge_act,sv_act,jm_act&user_id=eq."+sess.user.id),
+        sbAuth("submissions?select=sv_act&judge_id=eq."+sess.user.id),
+        sbAuth("submissions?select=jm_act&sv_id=eq."+sess.user.id),
+        sbAuth("submissions?select=id&jm_id=eq."+sess.user.id),
+        sbAuth("posts?select=id&kind=eq.chat&user_id=eq."+sess.user.id),
+        sbAuth("my_awards?select=kind,stars,xp")
+      ]);
+      d={ sub:(a||[]).length,
+          subBonus:(a||[]).filter(x=>x.judge_act==="approve"
+            &&(x.sv_act||"accept")==="accept"&&(x.jm_act||"accept")==="accept").length,
+          judge:(b2||[]).length, judgeBonus:(b2||[]).filter(x=>x.sv_act==="accept").length,
+          sv:(c||[]).length,     svBonus:(c||[]).filter(x=>x.jm_act==="accept").length,
+          jm:(e||[]).length, chat:(f2||[]).length, ach:[],
+          star:(g2||[]).filter(x=>x.kind==="star").reduce((n,x)=>n+(+x.stars||0),0),
+          trophy:(g2||[]).filter(x=>x.kind==="trophy").length };
+    }catch(err){}
+  }
+  if(!d) return toast("内訳を取れませんでした");
+  const rows=[
+    ["記録の提出", d.sub, 25, d.sub*25],
+    ["　修正なしで通った", d.subBonus, 25, d.subBonus*25],
+    ["審査した", d.judge, 10, d.judge*10],
+    ["　審査員審査で認定された", d.judgeBonus, 10, d.judgeBonus*10],
+    ["審査員審査した", d.sv, 20, d.sv*20],
+    ["　スーパーバイザー審査で認定された", d.svBonus, 20, d.svBonus*20],
+    ["スーパーバイザー審査した", d.jm, 30, d.jm*30],
+    ["タイムラインへのつぶやき", d.chat, 1, d.chat*1],
+    ["スター", d.star, 5, d.star*5],
+    ["競技会のトロフィー", d.trophy, 50, d.trophy*50]
+  ];
+  const sum=rows.reduce((a2,r)=>a2+r[3],0);
+  const xp=MYSTAT?(+MYSTAT.xp||0):sum;
+  modal(`<h2>通算経験値の内訳</h2>
+    <p class="muted" style="margin-top:-8px">いまの通算は <b>${jp(xp)} XP</b>（Lv.${Math.floor(xp/250)}）です。</p>
+    <div class="scroll"><table><thead><tr>
+      <th>したこと</th><th>件数</th><th>1件</th><th>合計</th></tr></thead><tbody>`
+    +rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${jp(r[1])}</td>
+      <td class="tiny">${r[2]} XP</td><td><b>${jp(r[3])}</b></td></tr>`).join("")
+    +`<tr><td colspan="3"><b>合計</b></td><td><b>${jp(sum)}</b></td></tr>`
+    +`</tbody></table></div>
+    <p class="tiny">アチーブメントは初達成のときだけ、ランクに応じて
+      ブロンズ5／シルバー10／ゴールド20／プラチナ40 XP が入ります（上の表には含みません）。
+      合計と通算が合わない差は、そのぶんです。</p>`,{w:720});
+}
+if($("#xpBreak")) $("#xpBreak").onclick=xpBreakdown;
+
 /* ---- 1) カードに出すトロフィーとスター ---- */
 let MY_AW={trophies:0,stars:0};
 async function loadMyAwards(){
@@ -8448,7 +8768,7 @@ cup:`<h3>大会とチャレンジのちがい</h3>
 <tr><td>ノーミスモード</td><td>すべての記録でノーミス</td><td>下の表を参照</td></tr>
 </tbody></table></div>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto;margin-top:10px">
-  暗素因数分解lv.1 を5回 → lv.2 を3回 → lv.3 を1回
+  暗素因数分解 Lv.1 を5回 → lv.2 を3回 → lv.3 を1回
   これを3回くりかえす  ＝ 合計 27 回
 </pre>
 <p class="tiny">合計プレイ回数は100回までです。記録は1回ぶんずつ全部入力します。
@@ -8543,15 +8863,15 @@ etc:`<h3>RATING のしくみ</h3>
 <p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
 <div class="scroll"><table><thead><tr><th>まとまり</th><th>内容</th><th>配点</th></tr></thead><tbody>
 <tr><td>①</td><td>十種競技総合スコア（素数判定を除く9種の合計）</td><td>6点</td></tr>
-<tr><td>②</td><td>素数ゲームV1・V2／暗素因数分解lv.1〜3 の上位4種</td><td>8点</td></tr>
+<tr><td>②</td><td>素数ゲームV1・V2／暗素因数分解 Lv.1〜3 の上位4種</td><td>8点</td></tr>
 <tr><td>③</td><td>EX系・タイムアタック系 の上位3種</td><td>6点</td></tr>
 </tbody></table></div>
 <p class="tiny" style="margin-top:8px">それぞれの種目は、毎週のボーダー（1位・10位・50位・100位・200位）の間を
 まっすぐつないで割合を出しています。</p>
 <h3 style="margin-top:16px">L値・S値</h3>
 <div class="hintbox" style="margin-top:6px"><span class="tiny">
-L値 ＝ log<sub>25</sub>(乱数累積) − 5.5<br>
-S値 ＝ log<sub>25</sub>(スコア累積) − 4.75<br>
+L値 ＝ log<sub>25</sub>(生成した乱数の累積) − 5.5<br>
+S値 ＝ log<sub>25</sub>(スコアの累積) − 4.75<br>
 どちらも小数第3位で<b>切り捨て</b>です。RATING には加えません。</span></div>
 <h3 style="margin-top:16px">タイムライン</h3>
 <p class="tiny">本文に <b>#素数</b> のように書くとタグになります。押すとそのタグの投稿だけ表示されます。
@@ -8880,7 +9200,7 @@ function devEditor(box,close){
   <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
   <div class="segs2" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
     <button id="bdGame" class="on">素数ゲームのボーダー</button>
-    <button id="bdLS">乱数累積・スコア累積のボーダー</button>
+    <button id="bdLS">生成した乱数の累積・スコアの累積のボーダー</button>
   </div>
   <div id="bdGameBox">
   <details style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（おすすめ）</summary>
@@ -8888,7 +9208,7 @@ function devEditor(box,close){
       3種目が横に並んだ形のまま読み取ります。差分（⤴+1,607）の列は無視します。<br>
       「種目名」の行のあとに「1位 79,799」が続く形式、
       「種目名 79799 78192 …」の1行形式にも対応しています。</p>
-    <textarea id="pasteGame" style="min-height:120px" placeholder="素因数分解（初級）&#9;1位&#9;79,799&#9;&#9;0&#9;二数限定&#9;1位&#9;90,916&#9;&#9;0&#10;&#9;5位&#9;78,192&#9;⤴+1,607&#9;0&#9;&#9;5位&#9;89,005&#9;⤴+1,911&#9;0"></textarea>
+    <textarea id="pasteGame" style="min-height:120px" placeholder="素因数分解・初級&#9;1位&#9;79,799&#9;&#9;0&#9;二数限定&#9;1位&#9;90,916&#9;&#9;0&#10;&#9;5位&#9;78,192&#9;⤴+1,607&#9;0&#9;&#9;5位&#9;89,005&#9;⤴+1,911&#9;0"></textarea>
     <div class="tools"><button class="btn pri sm" id="pasteGameGo">読み取って入力欄に反映</button></div>
     <div id="pasteGameMsg" class="tiny"></div>
   </details>
@@ -8901,23 +9221,23 @@ function devEditor(box,close){
     tRanks.map(r=>`<td><input type="text" inputmode="decimal" data-t="${r}" value="${w.totalBorders[r]}"></td>`).join("")+
     `</tr></tbody></table></div></div>
   <div id="bdLSBox" hidden>
-    <p class="muted">乱数累積・スコア累積のランキングボーダーです。LSやりこみタブで使われます。</p>
+    <p class="muted">生成した乱数の累積・スコアの累積のランキングボーダーです。LSやりこみタブで使われます。</p>
     <details open style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（おすすめ）</summary>
       <p class="tiny">ランキング表をそのままコピーして貼り付けてください。「1位&nbsp;&nbsp;1,702,125,499,390」のような行を読み取ります。</p>
       <div class="frow">
-        <div><label class="fl">乱数累積</label>
+        <div><label class="fl">生成した乱数の累積</label>
           <textarea id="pasteRand" style="min-height:110px" placeholder="1位	1,702,125,499,390&#10;2位	1,155,838,961,966&#10;…"></textarea></div>
-        <div><label class="fl">スコア累積</label>
+        <div><label class="fl">スコアの累積</label>
           <textarea id="pasteScore" style="min-height:110px" placeholder="1位	73,556,568,644&#10;2位	62,019,382,503&#10;…"></textarea></div>
       </div>
       <div class="tools"><button class="btn pri sm" id="pasteLsGo">読み取って入力欄に反映</button></div>
       <div id="pasteLsMsg" class="tiny"></div>
     </details>
-    <h3>乱数累積</h3><div class="scroll devgrid"><table><tbody>`+
+    <h3>生成した乱数の累積</h3><div class="scroll devgrid"><table><tbody>`+
     LS_RANKS.map(r=>`<tr><td class="tiny">${r}位</td><td><input type="text" inputmode="numeric"
       data-lr="${r}" value="${(w.lsBorders&&w.lsBorders.rand&&w.lsBorders.rand[r])||""}" style="max-width:170px"></td></tr>`).join("")+
     `</tbody></table></div>
-    <h3>スコア累積</h3><div class="scroll devgrid"><table><tbody>`+
+    <h3>スコアの累積</h3><div class="scroll devgrid"><table><tbody>`+
     LS_RANKS.map(r=>`<tr><td class="tiny">${r}位</td><td><input type="text" inputmode="numeric"
       data-ls2="${r}" value="${(w.lsBorders&&w.lsBorders.score&&w.lsBorders.score[r])||""}" style="max-width:170px"></td></tr>`).join("")+
     `</tbody></table></div>
@@ -9178,9 +9498,9 @@ function renderFriday(){
   if(jstDay!==5||localStorage.getItem(key)==="1"){ b.hidden=true; return; }
   b.hidden=false;
   $("#friMsg").innerHTML=`<b>本日は金曜日です。記録を入力しましょう。</b>`+
-    `乱数累積やスコア累積など、すべての記録を入力してください。`+
+    `生成した乱数の累積やスコアの累積など、すべての記録を入力してください。`+
     `<br><span class="tiny">入力済みの記録が消えることはありません。`+
-    `素数ゲームの記録更新は難しいので、まずは L値・S値（乱数累積・スコア累積）の更新から試してみてください。もちろん任意です。</span>`;
+    `素数ゲームの記録更新は難しいので、まずは L値・S値（生成した乱数の累積・スコアの累積）の更新から試してみてください。もちろん任意です。</span>`;
   $("#friGo").onclick=()=>goTab("input");
   $("#friX").onclick=()=>{ localStorage.setItem(key,"1"); b.hidden=true; };
 }
@@ -9352,8 +9672,15 @@ function openHistory(latestOnly){
   mask.innerHTML=`<div class="modal"><h2>${latestOnly?"現在のボーダーライン":"過去のランキング"}</h2>
     <p class="muted" style="margin-top:-8px">${latestOnly?"最新の集計週のボーダーラインです。":
       "当時のボーダーラインを確認できます。RATINGは常に最新のボーダーで計算されます。"}</p>
-    <label class="fl" ${latestOnly?'style="display:none"':""}>集計週</label>
-    <select id="hkWeek" style="max-width:260px${latestOnly?";display:none":""}"></select>
+    <div ${latestOnly?'hidden':""}>
+      <div class="tools" style="margin-top:0">
+        <button class="btn sm" id="hkPrev">◀ 前の月</button>
+        <b id="hkNow" style="align-self:center"></b>
+        <button class="btn sm" id="hkNext">次の月 ▶</button>
+      </div>
+      <div id="hkBands" style="margin-top:10px"></div>
+    </div>
+    <select id="hkWeek" style="display:none"></select>
     <div id="hkBody" style="margin-top:14px"></div>
     <div class="tools"><button class="btn" id="hkX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
@@ -9361,10 +9688,34 @@ function openHistory(latestOnly){
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   q("#hkX").onclick=close;
   q("#hkWeek").innerHTML=WEEKS.map((w,i)=>
-    `<option value="${i}">${w.date}${i===WEEKS.length-1?"（最新）":""}</option>`).join("");
+    `<option value="${i}">${w.date}</option>`).join("");
   q("#hkWeek").value=WEEKS.length-1;
+  /* 年月を選ぶと、その月に更新された回がすべて帯で出ます */
+  let hkM=(()=>{ const d=new Date(WEEKS[WEEKS.length-1].date+"T12:00:00+09:00");
+    return new Date(d.getFullYear(),d.getMonth(),1); })();
+  const bands=()=>{
+    const y=hkM.getFullYear(), m=hkM.getMonth();
+    q("#hkNow").textContent=`${y}年${m+1}月`;
+    const list=WEEKS.map((w,i)=>({i,w,d:new Date(w.date+"T12:00:00+09:00")}))
+      .filter(x=>x.d.getFullYear()===y&&x.d.getMonth()===m);
+    const cur=+q("#hkWeek").value;
+    q("#hkBands").innerHTML=list.length?list.map(x=>
+      `<button class="wband hot${x.i===cur?" sel":""}" data-w="${x.i}">
+        <b>第${x.i+1}回</b>　${x.d.getFullYear()}年${x.d.getMonth()+1}月${x.d.getDate()}日
+        <span style="margin-left:auto">${x.i===WEEKS.length-1?"最新":""}</span></button>`).join("")
+      :'<p class="tiny">この月に更新された回はありません。前後の月を見てください。</p>';
+    q("#hkBands").querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{
+      q("#hkWeek").value=b.dataset.w; bands(); draw(); });
+  };
+  q("#hkPrev").onclick=()=>{ hkM=new Date(hkM.getFullYear(),hkM.getMonth()-1,1); bands(); };
+  q("#hkNext").onclick=()=>{ hkM=new Date(hkM.getFullYear(),hkM.getMonth()+1,1); bands(); };
   const draw=()=>{
     const i=+q("#hkWeek").value, w=WEEKS[i], ranks=[1,5,10,50,100,200];
+    if(!latestOnly){
+      const d0=new Date(w.date+"T12:00:00+09:00");
+      const t=mask.querySelector("h2");
+      if(t) t.textContent=`第${i+1}回　${d0.getFullYear()}年${d0.getMonth()+1}月${d0.getDate()}日`;
+    }
     const c=withWeek(i,()=>compute(rec));
     const latest=compute(rec);
     let h="";
@@ -9384,13 +9735,17 @@ function openHistory(latestOnly){
       `</tr></tbody></table></div>`;
     q("#hkBody").innerHTML=h;
   };
-  q("#hkWeek").onchange=draw; draw();
+  q("#hkWeek").onchange=draw;
+  if(!latestOnly) bands();
+  draw();
 }
-$("#histBtn2").onclick=openHistory;
+/* onclick はイベントを引数に渡すので、必ず false を明示します */
+$("#histBtn2").onclick=()=>openHistory(false);
 $("#borderBtn").onclick=()=>openHistory(true);
 
 /** 週データを読み込み直したあとに、画面全体を作り直す */
 function applyData(){
+  try{ (WEEKS||[]).forEach(w=>{ if(w&&w.borders) fixNames(w.borders); }); }catch(e){}
   _diffCache=null;                        /* 難易度の計算結果を捨てる */
   if($("#histBtn2")) $("#histBtn2").textContent =
     WEEKS.length>1 ? `過去のランキングを見る（全${WEEKS.length}週）` : "過去のランキングを見る";
