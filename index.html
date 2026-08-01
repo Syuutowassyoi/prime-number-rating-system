@@ -185,7 +185,23 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
   font-family:ui-monospace,"SF Mono",Menlo,monospace}
 .lsbox .v.big{font-size:1.7rem;color:var(--acc2)}
 .lsbox .s{font-size:.74rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+.lsbox{position:relative;overflow:hidden}
 .lsbox .v.bump{animation:bump .35s ease-out}
+/* S値・L値が伸びるときの光と、増えたぶんの吹き出し */
+.lsval.rise{color:#9dffe4;text-shadow:0 0 18px #7fe9ffaa,0 0 42px #7fe9ff44;
+  transition:color .5s ease,text-shadow .5s ease}
+.lspop{position:absolute;right:12px;top:28px;text-align:right;pointer-events:none;
+  font-size:.86rem;font-weight:800;letter-spacing:.02em;color:#9dffe4;
+  text-shadow:0 0 12px #7fe9ff99;animation:lspop 1.1s cubic-bezier(.2,.8,.3,1) forwards;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.lsbar{position:absolute;left:0;bottom:0;height:3px;width:0;
+  background:linear-gradient(90deg,#4da3ff,#9dffe4);box-shadow:0 0 12px #7fe9ffaa;
+  animation:lsbar 1.1s ease-out forwards}
+@keyframes lspop{0%{opacity:0;transform:translateY(10px) scale(.9)}
+  18%{opacity:1;transform:translateY(0) scale(1.06)}
+  40%{transform:translateY(-2px) scale(1)}
+  100%{opacity:0;transform:translateY(-26px) scale(1)}}
+@keyframes lsbar{0%{width:0;opacity:1}70%{width:100%;opacity:1}100%{width:100%;opacity:0}}
 @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.18);color:var(--warn)}100%{transform:scale(1)}}
 .lshit{width:100%;margin-top:14px;padding:22px;border-radius:16px;font:inherit;font-size:1.15rem;
   font-weight:800;letter-spacing:.06em;cursor:pointer;color:#fff;border:1px solid #4da3ff;
@@ -208,7 +224,8 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 @keyframes lsfl{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
 @keyframes lsflb{0%{opacity:0}10%{opacity:1}45%{opacity:.55}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){
-  #lsFlash.go,#lsFlash.big,.lshit.hit,.lshit.hitbig{animation:none}}
+  #lsFlash.go,#lsFlash.big,.lshit.hit,.lshit.hitbig,.lspop,.lsbar{animation:none}
+  .lspop,.lsbar{display:none}}
 .pfrow{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
 .pfhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .pfchk{display:flex;flex-wrap:wrap;gap:6px}
@@ -1456,7 +1473,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v52";
+const APP_VERSION = "v53";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3128,14 +3145,41 @@ function renderFriends(){
         `<td style="color:${x.c.complete?rankOf(x.c.total).c:"var(--dim)"}">${x.c.complete?rankOf(x.c.total).n:"未完成"}</td>`+
         `</tr>`;}).join("")+
       `</tbody></table></div>`;
-  $$("[data-fp]").forEach(a=>a.onclick=e=>{ e.preventDefault();
+  $$("[data-fp]").forEach(a=>a.onclick=async e=>{ e.preventDefault();
     const f=friends[+a.dataset.fp];
-    const times={}; (f.log||[]).forEach(e=>{ if(!times[e.n]||e.at>times[e.n]) times[e.n]=e.at; });
+    /* ランキングから開いたときと同じ画面を出します（レベル・トロフィー・スターつき）*/
+    if(f.pro.handle && (TEST||sbOn())) return openProfile(f.pro.handle);
+    const times={}; (f.log||[]).forEach(e2=>{ if(!times[e2.n]||e2.at>times[e2.n]) times[e2.n]=e2.at; });
     showPlayer(Object.assign({},f.pro,{updated_at:f.at?new Date(f.at).toISOString():null,
       times,baseline:(f.log||[]).length>0}),f.rec);});
   $$("[data-cmp]").forEach(b=>b.onclick=()=>renderCompare(friends[+b.dataset.cmp]));
   wireProofs();
   $$("[data-del]").forEach(b=>b.onclick=()=>{friends.splice(+b.dataset.del,1);render();toast("削除しました");});
+  syncFriendPros();
+}
+/* フレンド一覧の名前・役職・RATING を、クラウドの今の内容に合わせます。
+   （相手が名前や役職を変えても、こちらの一覧が古いままにならないようにするため）*/
+let friSynced=0;
+async function syncFriendPros(){
+  if(TEST||!sbOn()) return;
+  const hs=friends.map(f=>(f.pro&&f.pro.handle||"").toLowerCase()).filter(Boolean);
+  if(!hs.length) return;
+  if(Date.now()-friSynced < 60000) return;      /* 1分に1回までにします */
+  friSynced=Date.now();
+  try{
+    const q=`profiles_public?select=handle,name,role,rating,x_url,proofs,updated_at`
+           +`&handle=in.(${hs.map(encodeURIComponent).join(",")})`;
+    const rows=await sb(q); if(!rows||!rows.length) return;
+    let moved=false;
+    rows.forEach(r=>{
+      const f=friends.find(x=>((x.pro&&x.pro.handle||"").toLowerCase())===(r.handle||"").toLowerCase());
+      if(!f) return;
+      ["name","role","rating","x_url","proofs"].forEach(k=>{
+        if(r[k]!=null && String(f.pro[k]||"")!==String(r[k])){ f.pro[k]=r[k]; moved=true; }
+      });
+    });
+    if(moved){ save(); renderFriends(); renderHomeFriends(); }
+  }catch(e){}
 }
 function renderCompare(op,sel){
   const me=compute(rec), th=compute(op.rec);
@@ -4870,6 +4914,39 @@ function lsValHTML(v){
   const s7=(Math.floor(v*1e7)/1e7).toFixed(7);
   return `${s7.slice(0,s7.length-4)}<span class="lsfine">${s7.slice(-4)}</span>`;
 }
+/* S値・L値が伸びるところを、数字を回しながら見せます */
+const lsPrevV={};
+const lsSlow=()=>{ try{ return matchMedia("(prefers-reduced-motion:reduce)").matches; }catch(e){ return false; } };
+function lsAnimVal(id,v,key){
+  const el=$(id); if(!el) return;
+  if(v===null||v===undefined){ el.innerHTML="—"; lsPrevV[key]=null; return; }
+  const from=(lsPrevV[key]==null)?v:lsPrevV[key];
+  lsPrevV[key]=v;
+  const d=v-from;
+  if(el._lt){ cancelAnimationFrame(el._lt); el._lt=0; }
+  if(!(d>1e-9)||lsSlow()){ el.innerHTML=lsValHTML(v); return; }
+
+  /* 増えたぶんを、値の下から浮かび上がらせます */
+  const box=el.closest(".lsbox");
+  if(box){
+    const pop=document.createElement("div");
+    pop.className="lspop"; pop.textContent="+"+(Math.floor(d*1e7)/1e7).toFixed(7).replace(/0+$/,"").replace(/\.$/,"");
+    const bar=document.createElement("div"); bar.className="lsbar";
+    box.appendChild(pop); box.appendChild(bar);
+    setTimeout(()=>{ pop.remove(); bar.remove(); },1200);
+  }
+  el.classList.add("rise");
+  clearTimeout(el._lg); el._lg=setTimeout(()=>el.classList.remove("rise"),820);
+
+  const t0=performance.now(), dur=700, ease=x=>1-Math.pow(1-x,3);
+  const step=t=>{
+    const k=Math.min(1,(t-t0)/dur);
+    el.innerHTML=lsValHTML(from+d*ease(k));
+    if(k<1) el._lt=requestAnimationFrame(step);
+    else { el._lt=0; el.innerHTML=lsValHTML(v); }
+  };
+  el._lt=requestAnimationFrame(step);
+}
 function renderLs(prev){
   const n=lsRun?lsRun.count:0;
   const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
@@ -4890,11 +4967,7 @@ function renderLs(prev){
   const sv=svalOf(totS), lv=lvalOf(totR);
   const svRaw=totS>0?Math.max(logb(totS,S_BASE)-S_SUB,0):null;
   const lvRaw=totR>0?Math.max(logb(totR,L_BASE)-L_SUB,0):null;
-  const setV=(id,v)=>{ const el=$(id); if(!el) return;
-    const h=lsValHTML(v);
-    if(el.innerHTML!==h){ el.innerHTML=h;
-      el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } };
-  setV("#lsSv",svRaw); setV("#lsLv",lvRaw);
+  lsAnimVal("#lsSv",svRaw,"sv"); lsAnimVal("#lsLv",lvRaw,"lv");
 
   const info=(kind,base,gain,goal,per,elN,vGoal,vLabel)=>{
     const cur=base+gain;
@@ -7043,6 +7116,7 @@ function renderPcups(){
   box.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{
     const [cid,h]=b.dataset.all.split("|"); allEntries(cid,h,cupPeriod[cid]||"all"); });
   box.querySelectorAll("[data-past]").forEach(b=>b.onclick=()=>pastRanking(b.dataset.past));
+  box.querySelectorAll("[data-champ]").forEach(b=>b.onclick=()=>champions(b.dataset.champ));
   box.querySelectorAll("[data-rvach]").forEach(b=>b.onclick=()=>{
     const [cid,i]=b.dataset.rvach.split("|"); cupReview(cid,+i); });
   clearInterval(window._cdT);
@@ -7078,7 +7152,8 @@ function pcupTable(rows,cup){
     +(pd!=="all"?`<p class="tiny" data-cd="${pd}">順位が決まるまで 残り <b>${periodLeft(pd)}</b>
         　（1位5個・2位3個・3位1個…のスターがもらえます）</p>`:"")
     +`<div class="tools" style="margin-top:6px">
-        <button class="btn sm" data-past="${cup.id}">過去のランキングを閲覧する</button></div>`;
+        <button class="btn sm" data-past="${cup.id}">過去のランキングを閲覧する</button>
+        <button class="btn sm" data-champ="${cup.id}">歴代チャンピオン</button></div>`;
   if(!rows.length) return head+'<p class="tiny">この期間の参加者はまだいません。</p>';
   return head+`<div class="scroll"><table><thead><tr>
     <th>順位</th><th>名前</th><th>合計スコア</th><th>証明</th><th></th></tr></thead><tbody>`
@@ -7118,7 +7193,10 @@ function cupDetail(cid,idx){
       　${jstShort(e.created_at)}</p>
     ${e.discord?`<div class="hintbox" style="margin-top:0"><b>記録は Discord に提出されています</b>
       ${e.discord_note?`<br><span class="tiny" style="white-space:pre-wrap">${esc(e.discord_note)}</span>`:""}</div>`:""}
-    ${(e.judge_handle||e.sv_handle||e.jm_handle)?`<p class="tiny" style="margin-top:8px">
+    ${e.restored?`<p class="tiny" style="margin-top:8px"><span class="sbtag">復元</span>
+      　この記録は、当時タイムラインに流れた投稿から作り直したものです。
+      審査した人の記録は残っていないため、表示できません。</p>`
+     :(e.judge_handle||e.sv_handle||e.jm_handle)?`<p class="tiny" style="margin-top:8px">
       ${e.judge_handle?"審査："+byWho(e.judge_handle,e.judge_name,e.judge_role)
         +"　"+({approve:"承認",fix:"修正",reject:"却下"}[e.judge_act]||""):""}
       ${e.sv_handle?"　／　審査員審査："+byWho(e.sv_handle,e.sv_name,e.sv_role)
@@ -8062,7 +8140,9 @@ async function restoreForm(c){
     <div class="hintbox" style="margin-top:0"><span class="tiny">
       記録を出すたびに<b>タイムラインへ流した投稿</b>が残っています。
       そこに書かれた「合計スコア」と投稿の日時から、当時の記録を作り直します。<br>
-      すでにある記録は二重になりません。何度押しても安全です。</span></div>
+      すでにある記録は二重になりません。何度押しても安全です。<br>
+      昔のバグで<b>同じ記録が2件</b>並んでいたり、<b>審査した人の名前が違って</b>いたら、
+      このボタンでいっしょに直ります。</span></div>
     <div id="rsBox"><p class="tiny">投稿を探しています…</p></div>
     <div class="tools"><button class="btn pri" id="rsGo" disabled>この内容で復元する</button>
       <span class="tiny" id="rsM"></span></div>`,{w:820});
@@ -8092,14 +8172,19 @@ async function restoreForm(c){
     : `<p class="muted">この大会の投稿が見つかりませんでした。<br>
        <span class="tiny">記録を出したときの投稿を消してしまった場合や、
        自動投稿を切っていた場合は復元できません。「過去データを手で入れる」をお使いください。</span></p>`;
-  M.q("#rsGo").disabled=!New.length;
+  M.q("#rsGo").disabled=!(list&&list.length);
+  if(list&&list.length&&!New.length)
+    M.q("#rsGo").textContent="重なりと審査者を整理する";
   M.q("#rsGo").onclick=async()=>{
     M.q("#rsGo").disabled=true;
     M.q("#rsM").textContent="復元しています…";
     try{
-      const n=await callRpc("pcup_restore",{p_cup:c.id});
-      M.q("#rsM").innerHTML=`<span style="color:var(--acc2)">${jp(+n||0)} 件を復元しました</span>`;
-      toast(`${jp(+n||0)} 件を復元しました`);
+      const r=await callRpc("pcup_restore",{p_cup:c.id})||{};
+      const made=+r.made||0, dup=+r.dup||0, fixed=+r.fixed||0;
+      const msg=[made?`${jp(made)} 件を復元`:"", dup?`${jp(dup)} 件の重なりを整理`:"",
+                 fixed?`${jp(fixed)} 件の審査者を修正`:""].filter(Boolean).join("、")||"直すところはありませんでした";
+      M.q("#rsM").innerHTML=`<span style="color:var(--acc2)">${esc(msg)}</span>`;
+      toast(msg);
       await loadPcupEnt(c.id,cupPeriod[c.id]||"all"); renderPcups();
       setTimeout(()=>M.close(),900);
     }catch(e){ M.q("#rsM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>';
@@ -8183,9 +8268,11 @@ async function allEntries(cid,handle,period){
       <th>記録</th><th>出した日時</th><th>状態</th><th>審査した人</th><th></th></tr></thead><tbody>`
       +list.map((e,i)=>{
         const wait=(e.status!=="certified");
-        const who=[e.judge_handle&&"審査:"+esc(e.judge_name||e.judge_handle),
-                   e.sv_handle&&"審査員審査:"+esc(e.sv_name||e.sv_handle),
-                   e.jm_handle&&"SV審査:"+esc(e.jm_name||e.jm_handle)].filter(Boolean).join("<br>");
+        const who=e.restored
+          ? `<span class="sbtag">復元</span><br><span style="color:var(--dim2)">当時の記録</span>`
+          : [e.judge_handle&&"審査:"+esc(e.judge_name||e.judge_handle),
+             e.sv_handle&&"審査員審査:"+esc(e.sv_name||e.sv_handle),
+             e.jm_handle&&"SV審査:"+esc(e.jm_name||e.jm_handle)].filter(Boolean).join("<br>");
         return `<tr>
           <td><b class="sbval st-${e.status||"pending"}" style="font-size:1rem">${jp(+e.total)}</b></td>
           <td class="tiny">${jstShort(e.created_at)}</td>
@@ -8238,9 +8325,14 @@ const pkOf=(pd,d)=>{
   const wk=Math.ceil((((th-j1)/86400000)+1)/7);
   return `${th.getFullYear()}-W${p2(wk)}`;
 };
+/* いちばん古い記録の日。開いた日より前の記録があれば、そちらを始まりにします */
+const CUP_FIRST={};
 /** その期間が「第何回」か。チャレンジが始まった日から数えます */
 function nthOf(cup,pd,d){
-  const st=new Date(new Date(cup.created_at).toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+  let s0j=new Date(cup.created_at);
+  const f=CUP_FIRST[cup.id];
+  if(f && new Date(f) < s0j) s0j=new Date(f);
+  const st=new Date(s0j.toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
   const s0=new Date(st.getFullYear(),st.getMonth(),st.getDate());
   const d0=new Date(d.getFullYear(),d.getMonth(),d.getDate());
   const mon=x=>{ const w=(x.getDay()+6)%7; const r=new Date(x); r.setDate(x.getDate()-w); return r; };
@@ -8251,6 +8343,141 @@ function nthOf(cup,pd,d){
   return n>=1?n:null;        /* 始まる前は回数がありません */
 }
 const nthTxt=n=>n?`第${n}回`:"開催前";
+/* 期間の名札（YYYY-MM-DD / IYYY-Www / YYYY-MM）から日付にもどします */
+function keyDate(pd,k){
+  k=String(k||"");
+  if(pd==="day"){ const m=k.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return null;
+    return new Date(+m[1],+m[2]-1,+m[3]); }
+  if(pd==="month"){ const m=k.match(/^(\d{4})-(\d{2})$/); if(!m) return null;
+    return new Date(+m[1],+m[2]-1,1); }
+  if(pd==="week"){ const m=k.match(/^(\d{4})-W(\d{2})$/); if(!m) return null;
+    /* ISO週：その年の1月4日を含む週の月曜日が第1週のはじまり */
+    const j4=new Date(+m[1],0,4), w=(j4.getDay()+6)%7;
+    const mon=new Date(j4.getFullYear(),j4.getMonth(),j4.getDate()-w);
+    return new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+(+m[2]-1)*7); }
+  return null;
+}
+/** その期間がいつからいつまでかを、読みやすい文にします */
+function keyLabelOf(pd,k){
+  const d=keyDate(pd,k); if(!d) return k;
+  if(pd==="day")   return `${d.getFullYear()}年${MD(d)}`;
+  if(pd==="month") return `${d.getFullYear()}年${d.getMonth()+1}月`;
+  const e=new Date(d.getFullYear(),d.getMonth(),d.getDate()+6);
+  return `${d.getFullYear()}年 ${MD(d)}〜${MD(e)}`;
+}
+const CH_PD={day:"Daily",week:"Weekly",month:"Monthly"};
+/** 歴代チャンピオン。第n回ごとの優勝者と、優勝回数・出場回数のランキングを出します */
+async function champions(cid){
+  const cup=PCUPS.find(c=>c.id===cid); if(!cup) return;
+  let pd="day", tab="list";
+  const M=modal(`<h2>歴代チャンピオン</h2>
+    <p class="muted" style="margin-top:-8px">${esc(cup.title)}</p>
+    <div class="segs" id="chPd" style="grid-template-columns:1fr 1fr 1fr">
+      <button data-p="day" class="on">Daily</button>
+      <button data-p="week">Weekly</button>
+      <button data-p="month">Monthly</button>
+    </div>
+    <div class="segs2" id="chTab" style="grid-template-columns:1fr 1fr 1fr">
+      <button data-t="list" class="on">優勝者の一覧</button>
+      <button data-t="win">優勝回数</button>
+      <button data-t="join">出場回数</button>
+    </div>
+    <div id="chBox"><p class="tiny">読み込んでいます…</p></div>`,{w:820});
+  const cache={};
+  const get=async()=>{
+    if(cache[pd]) return cache[pd];
+    let ch=[], st=[];
+    if(TEST){
+      const es=(TDB.ent||[]).filter(e=>e.cup_id===cid);
+      const key=at=>pkOf(pd,new Date(new Date(at).toLocaleString("en-US",{timeZone:"Asia/Tokyo"})));
+      const best={};
+      es.forEach(e=>{ const k=key(e.created_at), id=k+"|"+(e.handle||"");
+        if(!best[id]||+e.total>+best[id].total) best[id]={pk:k,handle:e.handle,name:e.name,
+          total:+e.total,at:e.created_at}; });
+      const by={}; Object.values(best).forEach(b=>{ (by[b.pk]=by[b.pk]||[]).push(b); });
+      Object.keys(by).forEach(k=>{
+        const g=by[k].sort((a,b)=>b.total-a.total), top=g.filter(x=>x.total===g[0].total);
+        top.forEach(t=>ch.push(Object.assign({pkey:k,tie_n:top.length,players:g.length,
+          first_at:t.at},t)));
+      });
+      const j={}; Object.values(best).forEach(b=>{ const u=j[b.handle]=j[b.handle]||
+        {handle:b.handle,name:b.name,wins:0,joins:0,best:0};
+        u.joins++; u.best=Math.max(u.best,b.total); });
+      ch.forEach(c=>{ if(j[c.handle]) j[c.handle].wins++; });
+      st=Object.values(j);
+    }else{
+      try{
+        ch=await sb("rpc/pcup_champions",{method:"POST",
+          body:JSON.stringify({p_cup:cid,p_period:pd})})||[];
+        st=await sb("rpc/pcup_champ_stats",{method:"POST",
+          body:JSON.stringify({p_cup:cid,p_period:pd})})||[];
+      }catch(e){ ch=[]; st=[]; }
+    }
+    ch=ch.filter(x=>x.pkey&&x.pkey!=="all");
+    ch.sort((a,b)=>String(b.pkey).localeCompare(String(a.pkey)));
+    /* いちばん古い記録を覚えておくと、第n回の数え方がずれません */
+    ch.forEach(x=>{ if(x.first_at && (!CUP_FIRST[cid] || x.first_at < CUP_FIRST[cid]))
+      CUP_FIRST[cid]=x.first_at; });
+    st=st.filter(x=>+x.joins>0);
+    cache[pd]={ch,st};
+    return cache[pd];
+  };
+  const nameCell=x=>`<a href="#" data-open="${esc(x.handle||"")}" style="text-decoration:none">`
+    +`${esc(x.name||x.handle||"名無し")}</a>`
+    +(x.handle?`<br><span class="tiny">@${esc(x.handle)}</span>`:"");
+  const draw=async()=>{
+    const {ch,st}=await get();
+    const now=pkOf(pd,jstNow());
+    let h="";
+    if(tab==="list"){
+      h=ch.length?`<p class="tiny">これまでに <b>${jp(ch.length)}</b> 回の優勝が決まっています。
+          <span style="color:var(--dim2)">同点で1位が並んだ回は、その人数ぶん並びます。</span></p>
+        <div class="scroll"><table><thead><tr>
+          <th>回</th><th>いつ</th><th>優勝</th><th>合計スコア</th><th>参加</th></tr></thead><tbody>`
+        +ch.map(x=>{
+          const d=keyDate(pd,x.pkey), n=d?nthOf(cup,pd,d):null;
+          const live=(x.pkey===now);
+          return `<tr>
+            <td><b style="color:var(--acc)">${nthTxt(n)}</b>
+              ${live?'<br><span class="sbtag">開催中</span>':""}</td>
+            <td class="tiny">${esc(keyLabelOf(pd,x.pkey))}</td>
+            <td>👑 ${x.tie_n>1?'<span class="sbtag">同点</span> ':""}${nameCell(x)}</td>
+            <td><b class="sbval st-certified" style="font-size:1rem">${jp(+x.total)}</b></td>
+            <td class="tiny">${jp(+x.players||0)} 人</td></tr>`;
+        }).join("")+`</tbody></table></div>`
+        :`<p class="muted">${CH_PD[pd]} の記録がまだありません。</p>`;
+    }else{
+      const win=(tab==="win");
+      const rows=st.slice().sort((a,b)=>win
+        ? (+b.wins-+a.wins)||(+b.joins-+a.joins)||(+b.best-+a.best)
+        : (+b.joins-+a.joins)||(+b.wins-+a.wins)||(+b.best-+a.best))
+        .filter(x=>win?+x.wins>0:true);
+      let rk=0, prev=null, same=0;
+      h=rows.length?`<p class="tiny">${win?"優勝した回数":"記録を出した期間の数"}で並べています（${CH_PD[pd]}）。</p>
+        <div class="scroll"><table><thead><tr>
+          <th>順位</th><th>名前</th><th>優勝</th><th>出場</th><th>勝率</th></tr></thead><tbody>`
+        +rows.map(x=>{
+          const v=win?+x.wins:+x.joins;
+          if(v===prev){ same++; } else { rk+=same+1; same=0; prev=v; }
+          const pc=+x.joins>0?(+x.wins/+x.joins*100):0;
+          return `<tr><td><b>${rk}</b></td><td>${nameCell(x)}</td>
+            <td><b style="color:${+x.wins>0?"#ffd45e":"var(--dim)"}">${jp(+x.wins)}</b> 回</td>
+            <td>${jp(+x.joins)} 回</td>
+            <td class="tiny">${Math.floor(pc*10)/10}%</td></tr>`;
+        }).join("")+`</tbody></table></div>`
+        :`<p class="muted">${win?"まだ優勝者がいません。":"まだ出場した人がいません。"}</p>`;
+    }
+    M.q("#chBox").innerHTML=h;
+    M.qa("[data-open]").forEach(b=>b.onclick=e=>{ e.preventDefault();
+      if(b.dataset.open) openProfile(b.dataset.open); });
+  };
+  M.qa("#chPd button").forEach(b=>b.onclick=()=>{
+    pd=b.dataset.p; M.qa("#chPd button").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+  M.qa("#chTab button").forEach(b=>b.onclick=()=>{
+    tab=b.dataset.t; M.qa("#chTab button").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+  draw();
+}
+
 const MD=d=>`${d.getMonth()+1}月${d.getDate()}日`;
 async function pastRanking(cid){
   const cup=PCUPS.find(c=>c.id===cid); if(!cup) return;
