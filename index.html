@@ -494,7 +494,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   border-color:#3f5b82;font-weight:700}
 .segs2 button:hover:not(.on){color:var(--tx);background:#1c2739}
 /* 目標・次のボーダーの3段ブロック */
-.gwrap{display:grid;grid-template-columns:104px 1fr;gap:8px;margin-bottom:10px}
+.lsgoals{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.lsgoals{grid-template-columns:1fr}}
+.gwrap{display:grid;grid-template-columns:92px 1fr;gap:8px;margin-bottom:10px}
 .glabel{display:flex;align-items:center;justify-content:center;text-align:center;
   background:#131c2b;border:1px solid var(--line);border-radius:10px;
   font-size:.78rem;font-weight:700;color:var(--dim);padding:6px}
@@ -535,6 +537,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .room .rtag{font-size:.64rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);
   color:var(--dim2);align-self:flex-start;margin-top:6px}
 .room.pinned{border-color:#8a7330}
+.codebox{text-align:center;background:#0d1524;border:1px solid #33455f;border-radius:12px;
+  padding:14px;margin:12px 0}
+.codenum{font-family:Impact,"Arial Black",sans-serif;font-size:2.6rem;letter-spacing:.22em;
+  color:#ffd45e;text-shadow:0 0 14px #ffd45e55;line-height:1.1}
 .btn.blink{border-color:#ff5470;color:#ff8fa3;animation:btnblink 1.8s ease-in-out infinite}
 @keyframes btnblink{0%,100%{background:#2a1220}50%{background:#4a1a2c}}
 .mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
@@ -851,10 +857,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn sm" id="lsResetAll">「現在まで」をリセット</button>
       <span class="tiny">リセットするまで、クリアするたびに足し続けます。累積の見込みはこの値を使います。</span>
     </div>
-    <h3 style="margin-top:16px">スコアの累積</h3>
-    <div id="lsScoreNext"></div>
-    <h3 style="margin-top:14px">生成した乱数の累積</h3>
-    <div id="lsRandNext"></div>
+    <div class="lsgoals">
+      <div><h3 style="margin:16px 0 8px">スコアの累積</h3><div id="lsScoreNext"></div></div>
+      <div><h3 style="margin:16px 0 8px">生成した乱数の累積</h3><div id="lsRandNext"></div></div>
+    </div>
     <div class="lsgrid2">
       <div class="lsbox"><div class="t">S値の予測</div><div class="v lsval" id="lsSv">—</div>
         <div class="s" id="lsSvNext">—</div>
@@ -1209,10 +1215,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <div class="card">
     <h2>ヘルプ</h2>
     <p class="muted" style="margin-top:-8px">このアプリの仕組みをまとめています。分からないところはここを見てください。</p>
-    <div class="segs" id="helpTabs" style="grid-template-columns:1fr 1fr 1fr 1fr">
+    <div class="segs" id="helpTabs" style="grid-template-columns:repeat(3,1fr)">
       <button data-hp="role" class="on">審査のしくみ</button>
       <button data-hp="cup">大会とチャレンジ</button>
       <button data-hp="ach">アチーブメント</button>
+      <button data-hp="award">ごほうび</button>
+      <button data-hp="tool">道具の使い方</button>
       <button data-hp="etc">そのほか</button>
     </div>
     <div id="helpBox"></div>
@@ -1448,7 +1456,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v50";
+const APP_VERSION = "v52";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4824,14 +4832,36 @@ function goalBlock(el,label,target,cur,per,cls){
     <div class="grows">${rows.map(r=>`<div class="grow ${r[2]}">
       <span class="gk">${r[0]}</span><span class="gv" data-g="${r[0]}">${r[1]}</span></div>`).join("")}</div></div>`;
 }
-/** 数が変わったところだけ光らせます */
-function goalPaint(el,html){
+/** 数字がパラパラ動きながら目的の値まで進みます（毎秒60コマ） */
+function countTo(el,from,to,fmt,ms){
   if(!el) return;
-  const before={};
-  el.querySelectorAll("[data-g]").forEach(x=>before[x.dataset.g]=x.textContent);
+  fmt=fmt||(v=>jp(Math.round(v)));
+  if(el._ct) cancelAnimationFrame(el._ct);
+  const dur=ms||600, t0=performance.now();
+  const ease=x=>1-Math.pow(1-x,3);
+  const step=t=>{
+    const k=Math.min(1,(t-t0)/dur);
+    el.textContent=fmt(from+(to-from)*ease(k));
+    if(k<1) el._ct=requestAnimationFrame(step); else { el._ct=null; el.textContent=fmt(to); }
+  };
+  el._ct=requestAnimationFrame(step);
+}
+/** 前回の値を覚えておいて、変わったところだけ数字を動かします */
+const goalPrev={};
+function goalPaint(el,html,vals){
+  if(!el) return;
   el.innerHTML=html;
   el.querySelectorAll("[data-g]").forEach(x=>{
-    if(before[x.dataset.g]!==undefined&&before[x.dataset.g]!==x.textContent) x.classList.add("up");
+    const k=x.dataset.g, want=vals&&vals[k];
+    if(want===undefined||want===null||typeof want!=="number"){ return; }
+    const was=goalPrev[k];
+    if(was!==undefined&&was!==want){
+      countTo(x,was,want,v=>jp(Math.round(v)));
+      x.classList.add("up");
+    }else{
+      x.textContent=jp(want);
+    }
+    goalPrev[k]=want;
   });
 }
 /** S値・L値。小数第4〜7位は小さく水色で出します */
@@ -4851,8 +4881,9 @@ function renderLs(prev){
 
   const G=lsGain();
   const aS=$("#lsScoreAll"), aR=$("#lsRandAll");
-  if(aS) animNum(aS,+String(aS.textContent).replace(/[^\d.-]/g,"")||0,G.s,v=>(v>0?"+":"")+jp(v));
-  if(aR) animNum(aR,+String(aR.textContent).replace(/[^\d.-]/g,"")||0,G.r,v=>(v>0?"+":"")+jp(v));
+  const cur0=el=>+String(el.textContent).replace(/[^\d.-]/g,"")||0;
+  if(aS) countTo(aS,cur0(aS),G.s,v=>(v>0?"+":"")+jp(Math.round(v)));
+  if(aR) countTo(aR,cur0(aR),G.r,v=>(v>0?"+":"")+jp(Math.round(v)));
 
   /* 見込みは「基準＋現在までの増加」 */
   const totS=G.baseS+G.s, totR=G.baseR+G.r;
@@ -4874,22 +4905,26 @@ function renderLs(prev){
     const hasB=Object.keys(lsB()[kind]||{}).length>0;
     const b=hasB?nextLsBorder(kind,cur):null;
     let html=`<p class="tiny" style="margin:0 0 6px">${cname}の見込み <b>${jp(cur)}</b></p>`;
-    const rows=(lab,tg)=>{
+    const vals={};
+    const rows=(id,lab,tg)=>{
       const left=Math.max(0,tg-cur), need=per>0?Math.ceil(left/per):null;
+      vals[id+"1"]=tg;
+      if(left>0) vals[id+"2"]=left;
+      if(need!==null&&left>0) vals[id+"3"]=need;
       return `<div class="gwrap"><div class="glabel">${esc(lab)}</div><div class="grows">`
-        +`<div class="grow v1"><span class="gk">目標値</span><span class="gv" data-g="${esc(lab)}1">${jp(tg)}</span></div>`
-        +`<div class="grow v2"><span class="gk">あと</span><span class="gv" data-g="${esc(lab)}2">`
+        +`<div class="grow v1"><span class="gk">目標値</span><span class="gv" data-g="${id}1">${jp(tg)}</span></div>`
+        +`<div class="grow v2"><span class="gk">あと</span><span class="gv" data-g="${id}2">`
           +(left>0?jp(left):"達成しました")+`</span></div>`
-        +`<div class="grow v3"><span class="gk">残り回数</span><span class="gv" data-g="${esc(lab)}3">`
+        +`<div class="grow v3"><span class="gk">残り回数</span><span class="gv" data-g="${id}3">`
           +(need===null?"—":(left>0?jp(need)+" 回":"—"))+`</span></div>`
         +`</div></div>`;
     };
-    if(target>0) html+=rows(label||"目標",target);
+    if(target>0) html+=rows(kind+"g",label||"目標",target);
     else html+=`<p class="tiny">目標を登録すると、達成までの残りが出ます。</p>`;
     if(!hasB) html+=`<p class="tiny">ボーダーのデータがまだ登録されていません。</p>`;
-    else if(b) html+=rows(`次のボーダー ${b.rank}位`,b.val);
+    else if(b) html+=rows(kind+"b",`次のボーダー ${b.rank}位`,b.val);
     else html+=`<p class="tiny" style="color:var(--acc2)">1位ボーダーに到達しています。</p>`;
-    goalPaint(elN,html);
+    goalPaint(elN,html,vals);
   };
   info("score",G.baseS,G.s,lsCfg.goalS,perS,$("#lsScoreNext"),lsCfg.goalSv,"S値");
   info("rand", G.baseR,G.r,lsCfg.goalR,perR,$("#lsRandNext"),lsCfg.goalLv,"L値");
@@ -6994,8 +7029,7 @@ function renderPcups(){
       <div class="tools" style="margin-top:8px">
         <button class="btn sm" data-see="${c.id}">${rows?"順位を隠す":"順位を見る"}</button>
         ${c.closed?"":`<button class="btn sm pri" data-join="${c.id}">参加する</button>`}
-        ${mine?`<button class="btn sm" data-close="${c.id}">${c.closed?"再開する":"終了する"}</button>
-                <button class="btn sm" data-delc="${c.id}">消す</button>`:""}
+        ${mine?`<button class="btn sm dots" data-more2="${c.id}">・・・</button>`:""}
       </div>
       ${rows?pcupTable(rows,c):""}
     </div>`;}).join("");
@@ -7017,16 +7051,7 @@ function renderPcups(){
       const bb=el.querySelector("b"); if(bb) bb.textContent=periodLeft(el.dataset.cd); });
   },1000);
   box.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>pcupJoin(b.dataset.join));
-  box.querySelectorAll("[data-close]").forEach(b=>b.onclick=async()=>{
-    const c=PCUPS.find(x=>x.id===b.dataset.close);
-    try{ await callRpc("close_pcup",{p_id:b.dataset.close,p_closed:!c.closed},[["p_closed"]]);
-      await loadPcups(); renderPcups(); }catch(e){ toast(String(e.message||e).slice(0,120)); }
-  });
-  box.querySelectorAll("[data-delc]").forEach(b=>b.onclick=async()=>{
-    if(!await askYN("この大会を消しますか？","参加記録もすべて消えます。","消す")) return;
-    try{ await callRpc("delete_pcup",{p_id:b.dataset.delc});
-      await loadPcups(); renderPcups(); }catch(e){ toast(String(e.message||e).slice(0,120)); }
-  });
+  box.querySelectorAll("[data-more2]").forEach(b=>b.onclick=()=>cupMore(b.dataset.more2));
 }
 /** 同点は同じ順位。並んでいる人が2人以上なら「T」を付ける */
 /** 次の切り替わりまでの残り時間（日本時間） */
@@ -7953,6 +7978,182 @@ function achSubmit(a){
   };
 }
 
+/* ---- 3) 大切な操作は、5桁の合言葉を入れてから ---- */
+/** 15秒ごとに変わる5桁の数を入れてもらってから実行します */
+function confirmCode(title,body,okLabel,onOk){
+  let code="", timer=null, left=15;
+  const gen=()=>{ code=String(Math.floor(10000+Math.random()*90000)); left=15; };
+  gen();
+  const M=modal(`<h2>${esc(title)}</h2>
+    <div class="muted" style="margin-top:-8px">${body}</div>
+    <div class="codebox">
+      <div class="codenum" id="ccNum">${code}</div>
+      <div class="tiny" id="ccLeft">この数字はあと 15 秒で変わります</div>
+    </div>
+    <label class="fl">上の5桁をそのまま入力してください</label>
+    <input type="text" inputmode="numeric" maxlength="5" id="ccIn"
+      style="max-width:180px;font-size:1.3rem;letter-spacing:.3em;text-align:center" autocomplete="off">
+    <div class="tools"><button class="btn pri" id="ccGo" disabled>${esc(okLabel)}</button>
+      <button class="btn" id="ccX">やめる</button></div>
+    <p class="tiny" id="ccMsg"></p>`,{w:560,sticky:true,onClose:()=>clearInterval(timer)});
+  const paint=()=>{
+    M.q("#ccNum").textContent=code;
+    M.q("#ccLeft").textContent=`この数字はあと ${left} 秒で変わります`;
+    M.q("#ccGo").disabled=(M.q("#ccIn").value.trim()!==code);
+  };
+  timer=setInterval(()=>{
+    left--;
+    if(left<=0){ gen(); M.q("#ccIn").value=""; M.q("#ccMsg").textContent="数字が変わりました。入れ直してください。"; }
+    paint();
+  },1000);
+  M.q("#ccIn").oninput=()=>{ M.q("#ccMsg").textContent=""; paint(); };
+  M.q("#ccX").onclick=()=>{ clearInterval(timer); M.close(); };
+  M.q("#ccGo").onclick=async()=>{
+    if(M.q("#ccIn").value.trim()!==code){ M.q("#ccMsg").textContent="数字が合っていません。"; return; }
+    clearInterval(timer); M.close();
+    if(!await askYN("本当に実行しますか？",body+"<br><br><b>この操作は元に戻せません。</b>",okLabel)) return;
+    onOk();
+  };
+  paint();
+}
+/** チャレンジ・競技会の「・・・」 */
+function cupMore(cid){
+  const c=PCUPS.find(x=>x.id===cid); if(!c) return;
+  const kindN=c.kind==="official"?"競技会":"チャレンジ";
+  const M=modal(`<h2>${esc(c.title)}</h2>
+    <p class="muted" style="margin-top:-8px">${kindN}の設定です。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn" id="cmClose">${c.closed?"受付を再開する":"受付を終了する"}</button>
+      <button class="btn pri" id="cmRestore">過去データを自動で復元する</button>
+      <button class="btn" id="cmBack">過去データを手で入れる</button>
+      <button class="btn" id="cmDel" style="border-color:#7a3030;color:#ff8a8a">${kindN}を消す</button>
+    </div>
+    <p class="tiny">終了と削除は、画面に出る5桁の数字を入れてから実行します。</p>`,{w:600});
+  M.q("#cmBack").onclick=()=>{ M.close(); backfillForm(c); };
+  M.q("#cmRestore").onclick=()=>{ M.close(); restoreForm(c); };
+  M.q("#cmClose").onclick=()=>{
+    M.close();
+    confirmCode(c.closed?"受付を再開しますか？":"受付を終了しますか？",
+      `<b>${esc(c.title)}</b><br>`+(c.closed?"また参加できるようになります。"
+        :"これ以上の提出ができなくなります。順位は残ります。"),
+      c.closed?"再開する":"終了する",
+      async()=>{
+        try{ await callRpc("close_pcup",{p_id:cid,p_closed:!c.closed},[["p_closed"]]);
+          toast(c.closed?"再開しました":"終了しました");
+          await loadPcups(); renderPcups(); }catch(e){ toast(String(e.message||e).slice(0,110)); }
+      });
+  };
+  M.q("#cmDel").onclick=()=>{
+    M.close();
+    confirmCode(kindN+"を消しますか？",
+      `<b>${esc(c.title)}</b><br>参加した人の記録もすべて消えます。`,
+      "消す",
+      async()=>{
+        try{ await callRpc("delete_pcup",{p_id:cid}); toast("消しました");
+          await loadPcups(); renderPcups(); }catch(e){ toast(String(e.message||e).slice(0,110)); }
+      });
+  };
+}
+/* ---- 2) 過去データを自動で復元する ---- */
+/** 記録を出したときのタイムライン投稿から、当時の記録を作り直します */
+async function restoreForm(c){
+  const M=modal(`<h2>過去データを自動で復元する</h2>
+    <p class="muted" style="margin-top:-8px">${esc(c.title)}</p>
+    <div class="hintbox" style="margin-top:0"><span class="tiny">
+      記録を出すたびに<b>タイムラインへ流した投稿</b>が残っています。
+      そこに書かれた「合計スコア」と投稿の日時から、当時の記録を作り直します。<br>
+      すでにある記録は二重になりません。何度押しても安全です。</span></div>
+    <div id="rsBox"><p class="tiny">投稿を探しています…</p></div>
+    <div class="tools"><button class="btn pri" id="rsGo" disabled>この内容で復元する</button>
+      <span class="tiny" id="rsM"></span></div>`,{w:820});
+  let list=[];
+  try{
+    if(TEST){
+      list=(TDB.posts||[]).filter(p2=>p2.cup_id===c.id&&/合計スコア/.test(p2.body||""))
+        .map(p2=>({handle:p2.handle,name:p2.name,
+          total:+String((p2.body.match(/合計スコア\s*([0-9,]+)/)||[])[1]||"0").replace(/,/g,""),
+          at:p2.created_at,already:false}));
+    }else{
+      list=await sbAuth("rpc/pcup_restore_preview",{method:"POST",
+        body:JSON.stringify({p_cup:c.id})});
+    }
+  }catch(e){ list=[]; }
+  const New=(list||[]).filter(x=>!x.already);
+  M.q("#rsBox").innerHTML=(list&&list.length)
+    ? `<p class="tiny">見つかった投稿 <b>${list.length}</b> 件、
+        そのうち新しく作るのは <b style="color:var(--acc2)">${New.length}</b> 件です。</p>
+      <div class="scroll" style="max-height:280px"><table><thead><tr>
+        <th>出した人</th><th>合計スコア</th><th>日時</th><th></th></tr></thead><tbody>`
+      +list.map(x=>`<tr><td>${esc(x.name||x.handle||"")}</td>
+        <td><b>${jp(+x.total)}</b></td><td class="tiny">${jstShort(x.at)}</td>
+        <td>${x.already?'<span class="tiny">すでにあります</span>'
+          :'<span class="sbtag certified">作ります</span>'}</td></tr>`).join("")
+      +`</tbody></table></div>`
+    : `<p class="muted">この大会の投稿が見つかりませんでした。<br>
+       <span class="tiny">記録を出したときの投稿を消してしまった場合や、
+       自動投稿を切っていた場合は復元できません。「過去データを手で入れる」をお使いください。</span></p>`;
+  M.q("#rsGo").disabled=!New.length;
+  M.q("#rsGo").onclick=async()=>{
+    M.q("#rsGo").disabled=true;
+    M.q("#rsM").textContent="復元しています…";
+    try{
+      const n=await callRpc("pcup_restore",{p_cup:c.id});
+      M.q("#rsM").innerHTML=`<span style="color:var(--acc2)">${jp(+n||0)} 件を復元しました</span>`;
+      toast(`${jp(+n||0)} 件を復元しました`);
+      await loadPcupEnt(c.id,cupPeriod[c.id]||"all"); renderPcups();
+      setTimeout(()=>M.close(),900);
+    }catch(e){ M.q("#rsM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>';
+      M.q("#rsGo").disabled=false; }
+  };
+}
+
+/* ---- 2) 過去データを手で入れる ---- */
+function backfillForm(c){
+  const M=modal(`<h2>過去データを入れる</h2>
+    <p class="muted" style="margin-top:-8px">${esc(c.title)}</p>
+    <div class="hintbox" style="margin-top:0"><span class="tiny">
+      v50 より前は「1人につき通算の最高記録が1件」しか残していませんでした。
+      そのため Daily・Weekly・Monthly に当時の記録が出ません。<br>
+      ここで<b>いつ・誰が・いくつ</b>を1件ずつ入れると、その日の順位に反映されます。</span></div>
+    <div class="frow">
+      <div><label class="fl">@ID</label>
+        <input type="text" class="txt" id="bfH" style="max-width:none" placeholder="例：mikan"></div>
+      <div><label class="fl">合計スコア</label>
+        <input type="text" inputmode="numeric" id="bfV" style="max-width:none"></div>
+    </div>
+    <div class="frow">
+      <div><label class="fl">出した日</label>
+        <input type="date" id="bfD" style="max-width:none"></div>
+      <div><label class="fl">時刻（だいたいで構いません）</label>
+        <input type="time" id="bfT" value="12:00" style="max-width:none"></div>
+    </div>
+    <label class="fl">証明のリンク（任意）</label>
+    <input type="text" class="txt" id="bfP" placeholder="https://…">
+    <div class="tools"><button class="btn pri" id="bfGo">この1件を入れる</button>
+      <span class="tiny" id="bfM"></span></div>
+    <h3 style="margin-top:16px">入れた過去データ</h3>
+    <div id="bfList"><p class="tiny">まだありません。</p></div>`,{w:760});
+  M.qa("[inputmode=numeric]").forEach(el=>el.oninput=()=>applyComma(el));
+  const added=[];
+  M.q("#bfGo").onclick=async()=>{
+    const h=M.q("#bfH").value.replace(/^@/,"").trim(), v=num(M.q("#bfV").value);
+    const d=M.q("#bfD").value, t=M.q("#bfT").value||"12:00";
+    if(!h) return toast("@IDを入れてください");
+    if(!(v>0)) return toast("合計スコアを入れてください");
+    if(!d) return toast("出した日を入れてください");
+    try{
+      await callRpc("pcup_backfill",{p_cup:c.id,p_handle:h,p_total:v,
+        p_at:`${d}T${t}:00+09:00`,p_proof:M.q("#bfP").value.trim()||null},
+        [["p_proof"]]);
+      added.unshift(`${d} ${t}　${h}　${jp(v)}`);
+      M.q("#bfList").innerHTML=added.map(x=>`<div class="tiny">${esc(x)}</div>`).join("");
+      M.q("#bfM").innerHTML='<span style="color:var(--acc2)">入れました</span>';
+      M.q("#bfV").value=""; M.q("#bfP").value="";
+      await loadPcupEnt(c.id,cupPeriod[c.id]||"all"); renderPcups();
+    }catch(e){ M.q("#bfM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
+  };
+}
+
 /* ---- 14) 1人ぶんの全提出 ---- */
 let allSort={k:"total",asc:false};
 async function allEntries(cid,handle,period){
@@ -8858,6 +9059,139 @@ CONCATENATE／VLOOKUP</p>
 <p class="tiny">達成すると <b style="color:#ffd45e">#公式アチーブメント</b> または
 <b style="color:#ffd45e">#みんなのアチーブメント</b> の金色タグが自動で付きます。
 公式は<b>達成したときだけ</b>流れます。設定タブで止められます。</p>`,
+
+award:`<h3>ごほうびは3種類</h3>
+<div class="scroll"><table><thead><tr><th></th><th>もらえるとき</th><th>経験値</th><th>どこに出る</th></tr></thead><tbody>
+<tr><td><b style="color:#ffd45e">スター</b></td><td>チャレンジの期間ごとの上位3人</td><td>1個 5 XP</td><td>プロフィール右上・カード</td></tr>
+<tr><td><b>トロフィー</b></td><td>競技会で優勝したとき</td><td>1個 50 XP</td><td>プロフィール右上・カード</td></tr>
+<tr><td><b>メダル</b></td><td>アチーブメントを達成したとき</td><td>ランクによる</td><td>アチーブメントの棚</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">スターのもらい方</h3>
+<p class="tiny">チャレンジには Daily・Weekly・Monthly の3つの期間があり、<b>それぞれ別々に</b>上位3人へ配られます。</p>
+<div class="scroll"><table><thead><tr><th>期間</th><th>区切り</th><th>1位</th><th>2位</th><th>3位</th></tr></thead><tbody>
+<tr><td><b>Daily</b></td><td>毎日 0時（日本時間）</td><td>5個</td><td>3個</td><td>1個</td></tr>
+<tr><td><b>Weekly</b></td><td>毎週 月曜 0時</td><td>15個</td><td>10個</td><td>5個</td></tr>
+<tr><td><b>Monthly</b></td><td>毎月 1日 0時</td><td>30個</td><td>20個</td><td>10個</td></tr>
+</tbody></table></div>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto;margin-top:10px">
+  月曜  火曜  水曜  木曜  金曜  土曜  日曜
+   ●    ●    ●    ●    ●    ●    ●     ← Daily は毎日リセット（毎日もらえる）
+  └──────────────────────────────────┘
+                 Weekly は1本                ← 月曜0時にリセット
+  └────────── 1か月ぶん ──────────┘
+                 Monthly は1本                ← 1日0時にリセット
+</pre>
+<p class="tiny"><b>3つは重なります。</b> 月曜に1位を取ると、その日の Daily で5個。
+そのまま週も月も1位なら、週の区切りで15個、月の区切りで30個が別々に入ります。</p>
+<div class="hintbox" style="margin-top:10px"><span class="tiny">
+<b>毎日1位を取り続けると</b><br>
+1日5個 × 30日 ＝ 150個　＋　Weekly 15個 × 4回 ＝ 60個　＋　Monthly 30個<br>
+合計 <b>240個</b>（1,200 XP ＝ 約4.8レベル）</span></div>
+
+<h3 style="margin-top:16px">順位の決め方</h3>
+<p class="tiny"><b>その期間に出した中でいちばん良い記録</b>で競います。通算の最高記録ではありません。</p>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  7/20 に 300点   ┐
+  7/21 に 500点   ├─ 7/21 の Daily は 500点で勝負
+  7/28 に 450点   ┘   7月の Monthly は 500点で勝負
+                      7/28 の Daily は 450点で勝負
+</pre>
+<p class="tiny">最高記録を更新していなくても、<b>何度でも出せます</b>。
+同点は同じ順位（1T のように T が付きます）で、どちらにもスターが入ります。</p>
+
+<h3 style="margin-top:16px">トロフィーのもらい方</h3>
+<p class="tiny">競技会（サポーター以上が開けるもの）が<b>終了したとき</b>、合計スコアが1位だった人に1個入ります。
+チャレンジではトロフィーは出ません。</p>
+
+<h3 style="margin-top:16px">いつ配られるか</h3>
+<p class="tiny">期間が終わったあと、誰かが Prime SNS を開いたときにまとめて配られます。
+<b>同じぶんが二重に配られることはありません。</b>もらったものはプロフィールとカードの右上に出ます。</p>`,
+
+tool:`<h3>画面の地図</h3>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  ホーム ─ RATING・開催中のチャレンジ・フレンドの更新
+  個人データ ─┬ カード（SNSに貼れる画像）
+              └ 個人データ入力（18種目の記録）
+  ツール ─┬ プラン（どこを伸ばすと効率がいいか）
+          ├ 分析（種目ごとの難易度）
+          └ LSやりこみ（周回のカウンター）
+  Prime SNS ─┬ タイムライン（部屋）
+              ├ 大会（チャレンジ・競技会）
+              ├ アチーブメント
+              ├ ランキング
+              ├ フレンド
+              ├ 審査室（審査員以上）
+              └ プロフィール
+  設定 ─ ログイン・公開・自動投稿・役職の申請
+  ヘルプ ─ いまここ
+</pre>
+
+<h3 style="margin-top:16px">個人データ入力</h3>
+<div class="scroll"><table><thead><tr><th>すること</th><th>やり方</th></tr></thead><tbody>
+<tr><td>記録を入れる</td><td>いちばん上の「個人データを入力する」を押してから書き換えます</td></tr>
+<tr><td>合計スコア</td><td><b>自動で計算</b>されます（十種競技9種目の合計）。手では入れられません</td></tr>
+<tr><td>タイムアタック系</td><td>種目名の隣に（単位:秒）と出ます。秒数を入れてください</td></tr>
+<tr><td>いまのボーダー</td><td>「現在のボーダーラインを見る」</td></tr>
+<tr><td>昔のボーダー</td><td>「過去のランキングを見る」→ 年月を選ぶ → 回を選ぶ</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">LSやりこみ（周回のカウンター）</h3>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  1回あたりの増加量を登録
+        ↓
+  スタート ──▶ ＋1回 クリア！ を押すたびに数える
+                    │
+              休憩したい → ストップ（時計も止まります）
+                    │
+              終了して記録する ──▶ やりこみ記録に残る
+</pre>
+<div class="scroll"><table><thead><tr><th>ことば</th><th>意味</th></tr></thead><tbody>
+<tr><td>今回の増加</td><td>いまの1回ぶんから数えた増加（スタートごとに0に戻ります）</td></tr>
+<tr><td><b>現在までの増加</b></td><td>リセットを押すまで足し続ける増加。<b>累積の見込みはこちらを使います</b></td></tr>
+<tr><td>目標値／あと／残り回数</td><td>白＝目標の数字、緑＝そこまでの残り、黄＝あと何回まわせばよいか</td></tr>
+</tbody></table></div>
+<p class="tiny">累積を手で書き換えると、そのぶんも「現在までの増加」に取り込まれます。
+リセットを押すと、そのときの累積が新しい基準になります。</p>
+<div class="scroll" style="margin-top:10px"><table><thead><tr><th>回数</th><th>鳴る音</th></tr></thead><tbody>
+<tr><td>ふつう</td><td>短い2音</td></tr>
+<tr><td>5の倍数</td><td>3音</td></tr>
+<tr><td>10の倍数</td><td>4音</td></tr>
+<tr><td>50の倍数</td><td>5音</td></tr>
+<tr><td>100の倍数</td><td>7音（いちばん華やか）</td></tr>
+</tbody></table></div>
+<p class="tiny">重なったときは<b>大きい数のほうが優先</b>です。50回目は「50の倍数の音」だけが鳴ります。</p>
+
+<h3 style="margin-top:16px">プランと分析</h3>
+<div class="scroll"><table><thead><tr><th>道具</th><th>できること</th></tr></thead><tbody>
+<tr><td><b>プラン</b></td><td>目標のRATINGを決めると、どの種目をどこまで伸ばせばよいかを均等に割り振ります</td></tr>
+<tr><td><b>分析</b></td><td>200位から1位までの登り幅で、種目ごとの難しさを並べます</td></tr>
+<tr><td>正十角形のチャート</td><td>十種の伸び具合をひと目で。外側ほど1位に近い</td></tr>
+<tr><td>正八角形のチャート</td><td>EX・タイムアタック系も同じ見方</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">部屋（タイムライン）</h3>
+<div class="scroll"><table><thead><tr><th>入れる人</th><th>だれに見えるか</th></tr></thead><tbody>
+<tr><td>だれでも</td><td>全員</td></tr>
+<tr><td>呼ばれた人だけ</td><td>呼ばれた人と作った人、管理者</td></tr>
+<tr><td>審査員以上</td><td>審査員・スーパーバイザー・ジャッジマン</td></tr>
+<tr><td>スーパーバイザー以上</td><td>スーパーバイザー・ジャッジマン</td></tr>
+</tbody></table></div>
+<p class="tiny">条件に合わない部屋は<b>あることすら見えません</b>。
+未読があると部屋の右上に赤い数字が出て、三重線が赤く点滅します。
+公式タグの投稿はすべて<b>雑談部屋</b>に流れます。</p>
+
+<h3 style="margin-top:16px">大切な操作の確かめ方</h3>
+<pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
+  「・・・」を押す ──▶ 5桁の数字が出る（15秒で変わります）
+                              ↓
+                      その数字を入力
+                              ↓
+                    「本当に実行しますか？」
+                              ↓
+                           実行
+</pre>
+<p class="tiny">チャレンジ・競技会の「終了する」「消す」は、この手順を通ります。うっかり押しても消えません。</p>`,
 
 etc:`<h3>RATING のしくみ</h3>
 <p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
