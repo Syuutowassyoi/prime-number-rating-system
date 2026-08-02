@@ -1639,7 +1639,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v55";
+const APP_VERSION = "v56";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -7378,6 +7378,7 @@ function openLink(i){
 /* タブを行き来するたびに取りに行かないよう、30秒だけ手元に置いておきます。
    1回の読み込みは50件で約20KB。無料枠の転送量を無駄づかいしないための工夫です。 */
 let feedCache={at:0,rows:null};
+let feedErr=null;
 async function loadFeed(force){
   if(TEST){ const rid=curRoom?curRoom.id:DEFAULT_ROOM;
     PFEED=TDB.posts.filter(p=>(p.room_id||DEFAULT_ROOM)===rid)
@@ -7389,7 +7390,8 @@ async function loadFeed(force){
     const q=`posts_feed?select=*&room_id=eq.${rid}&order=created_at.desc&limit=50`;
     PFEED = sess ? await sbAuth(q) : await sb(q);
     feedCache={at:Date.now(),rows:PFEED};
-  }catch(e){ PFEED=[]; }
+    feedErr=null;
+  }catch(e){ PFEED=[]; feedErr=String((e&&e.message)||e); }
 }
 async function loadPcups(){          
   if(TEST){ PCUPS=TDB.cups.slice(); return; }
@@ -7440,7 +7442,21 @@ async function loadPcupEnt(id,pd){
 /* ---- タイムライン ---- */
 function renderPfeed(){
   const box=$("#feedBox"); if(!box) return;
-  if(!PFEED.length){ box.innerHTML='<p class="muted">まだ投稿がありません。</p>'; return; }
+  if(!PFEED.length){
+    /* 投稿が0件なのか、読み込みに失敗したのかが分かるようにします */
+    box.innerHTML = feedErr
+      ? `<div class="hintbox" style="margin-top:0"><b>投稿を読み込めませんでした</b><br>
+          <span class="tiny">${esc(feedErr).slice(0,200)}</span><br>
+          <span class="tiny" style="color:var(--dim2)">
+            「posts_feed」という表が見つからない、という内容のときは、
+            SETUP.md を最後まで貼り直すと直ります。</span></div>
+         <div class="tools"><button class="btn sm" id="pfRetry">もう一度読み込む</button></div>`
+      : '<p class="muted">まだ投稿がありません。</p>';
+    const rb=box.querySelector("#pfRetry");
+    if(rb) rb.onclick=async()=>{ rb.disabled=true; feedCache={};
+      await loadFeed(true); renderPfeed(); };
+    return;
+  }
   /* 検索中はサーバーが返した分を出します（過去ぶんもここに入ります） */
   LINK_BOX.length=0;
   let src = SEARCH ? SEARCH : PFEED.filter(feedMatch);
