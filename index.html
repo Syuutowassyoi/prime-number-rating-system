@@ -634,6 +634,101 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   font-size:.8rem;padding:9px 4px;border-radius:9px;cursor:pointer}
 .segs button.on{background:#2b3d5a;color:var(--tx);border-color:#3f5b82;font-weight:700}
 .segs button .c{font-variant-numeric:tabular-nums;opacity:.8}
+
+/* ═══════════ 箱根駅伝モード（LSやりこみの中の、かくれた機能） ═══════════ */
+/* いちばん下の、何も書いていないボタン */
+.hkbtn{width:100%;margin-top:16px;padding:15px;border-radius:14px;font:inherit;font-size:1rem;
+  font-weight:800;letter-spacing:.06em;cursor:pointer;color:#fff;border:1px solid #4da3ff;
+  background:linear-gradient(135deg,#2f6fd0,#3f9de0);box-shadow:0 10px 30px -18px #4da3ff;
+  min-height:52px}
+.hkbtn:active{transform:translateY(2px)}
+/* S値・L値のとなりに足すブロック */
+.lsgrid2.hk3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:640px){.lsgrid2.hk3{grid-template-columns:1fr}}
+.lsbox.hkb{text-align:left}
+.lsbox.hkb .hkline{font-size:.8rem;color:var(--dim);margin-top:3px}
+.lsbox.hkb .hkline b{color:var(--tx);font-family:ui-monospace,Menlo,monospace;font-size:.98rem}
+.lsbox.hkb .hktop{font-size:.9rem;font-weight:800;color:var(--warn)}
+/* 箱根の画面 */
+.hkgrid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;align-items:start}
+@media(max-width:820px){.hkgrid{grid-template-columns:1fr}}
+.hktlab{font-size:.72rem;color:var(--dim);letter-spacing:.08em}
+.hktbig{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;
+  font-size:3.2rem;font-weight:800;line-height:1.02}
+.hktmid{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;
+  font-size:1.7rem;font-weight:800;line-height:1.1;color:var(--warn)}
+.hkleg{display:inline-block;padding:2px 12px;border-radius:999px;font-weight:800;font-size:.78rem;
+  border:1px solid;letter-spacing:.08em}
+.hkleg.out{color:#ffd45e;border-color:#ffd45e66;background:#ffd45e14}
+.hkleg.in{color:#7fe9ff;border-color:#7fe9ff66;background:#7fe9ff14}
+.hkpos{font-family:ui-monospace,Menlo,monospace;font-size:2.7rem;font-weight:800;
+  font-variant-numeric:tabular-nums;color:var(--acc2);line-height:1.05}
+.hkpos small{font-size:1rem;color:var(--dim)}
+.hkkv{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 14px;margin-top:8px}
+.hkkv div{font-size:.78rem;color:var(--dim)}
+.hkkv b{color:var(--tx);font-size:1rem;font-family:ui-monospace,Menlo,monospace}
+.hkmeter{margin-top:10px}
+.hkmeter .bar{height:14px;border-radius:8px;background:#16223a;border:1px solid var(--line);overflow:hidden}
+.hkmeter .bar i{display:block;height:100%;background:linear-gradient(90deg,#c2382f,#ff6b5e);
+  box-shadow:0 0 14px -2px #ff6b5e}
+.hkmeter .ends{display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;
+  font-size:.72rem;color:var(--dim);margin-top:3px}
+.hksash{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-top:12px}
+.hksash div{height:22px;border-radius:5px;background:#1a2438;border:1px solid var(--line);
+  font-size:.64rem;display:flex;align-items:center;justify-content:center;color:var(--dim2);
+  position:relative;overflow:hidden}
+.hksash div .fill{position:absolute;left:0;top:0;bottom:0;
+  background:linear-gradient(90deg,#c2382f,#ff6b5e);opacity:.85}
+.hksash div span{position:relative;z-index:2;font-weight:700}
+.hksash div.done span{color:#fff}
+.hksash div.now{border-color:var(--warn)}
+/* 地図 */
+#hkMapWrap{margin-top:14px}
+#hkMap{height:520px;border-radius:12px;border:1px solid var(--line);background:#0c1424}
+#hkMapWrap.full{position:fixed;inset:0;margin:0;z-index:40}
+#hkMapWrap.full #hkMap{height:100%;border-radius:0;border:0}
+.leaflet-container{background:#0c1424}
+.hkov{position:fixed;z-index:45;background:rgba(11,17,32,.86);border:1px solid var(--line);
+  border-radius:14px;padding:12px 16px;backdrop-filter:blur(6px);display:none}
+body.hkfull .hkov{display:block}
+#hkOvTime{right:14px;top:14px;min-width:230px;text-align:right}
+#hkOvPos {left:14px;top:14px;min-width:250px}
+#hkOvExit{left:14px;bottom:16px;padding:8px 14px;cursor:pointer}
+@media(max-width:600px){
+  #hkOvTime{right:10px;top:10px;min-width:0;padding:9px 12px}
+  #hkOvPos{left:10px;top:10px;min-width:0;padding:9px 12px}
+  .hkov .hktbig{font-size:2rem}.hkov .hkpos{font-size:2rem}}
+/* 右下の1回クリア */
+#hkHit{position:fixed;right:16px;bottom:16px;z-index:60;width:190px;height:78px;border-radius:18px;
+  font:inherit;font-size:1.02rem;font-weight:800;letter-spacing:.04em;color:#fff;cursor:pointer;
+  border:1px solid #ff6b5e;background:linear-gradient(135deg,#c2382f,#e8574a);
+  box-shadow:0 14px 34px -16px #ff6b5e;overflow:hidden;display:none}
+body.hkview #hkHit{display:block}
+body.hkview{padding-bottom:110px}
+#hkHit:active{transform:translateY(2px)}
+#hkHit:disabled{cursor:not-allowed;background:#2a3346;border-color:var(--line);color:var(--dim)}
+#hkHit .cd{position:absolute;left:0;bottom:0;height:4px;background:#ff6b5e;width:0}
+#hkHit.go{animation:hkhh .4s ease-out}
+@keyframes hkhh{0%{box-shadow:0 0 0 0 #ff6b5ecc,0 0 30px 6px #ff6b5e99;filter:brightness(1.8)}
+  100%{box-shadow:0 14px 34px -16px #ff6b5e;filter:brightness(1)}}
+@media(max-width:600px){#hkHit{width:150px;height:66px;font-size:.9rem}}
+/* いま走っている行が、ゆっくり緑に点滅します */
+@keyframes hknow{0%,100%{background:transparent}50%{background:#5ee6a826}}
+tr.hknow td{animation:hknow 2.4s ease-in-out infinite}
+tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
+@media (prefers-reduced-motion:reduce){tr.hknow td{animation:none;background:#5ee6a81a}}
+/* 5km・10km・15km・20km の標識 */
+.hksign{color:#ffd45e;text-align:center;font-weight:800;line-height:1;
+  text-shadow:0 0 4px #000,0 0 8px #000;pointer-events:none;white-space:nowrap}
+.hksign .ar{font-size:20px;display:block;line-height:1}
+.hksign .tx{font-size:15px;display:block;margin-top:-1px;letter-spacing:.02em}
+.hkrow{width:100%;text-align:left;background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;padding:9px 12px;margin-bottom:6px;color:var(--tx);font:inherit;
+  font-size:.85rem;cursor:pointer;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hkrow:hover{border-color:var(--acc)}
+.hkrow b{font-family:ui-monospace,Menlo,monospace}
+.hktot{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:600px){.hktot{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -855,8 +950,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <button class="btn" id="lsReset">リセット</button>
       <span class="tiny" id="lsKeyNow" style="margin-left:auto"></span>
     </div>
-    <button class="lshit" id="lsHit" disabled>＋1回　クリア！</button>
-    <p class="tiny" id="lsHint">スタートを押すとカウントできます。ボタンのクリック、または設定したキーでも数えられます（連打防止のため1秒間隔）。</p>
+    <button class="lshit" id="lsHit">＋1回　クリア！</button>
+    <p class="tiny" id="lsHint">スタートを押さなくても数えられます。経過時間を残したい人だけスタートを押してください。
+      ボタンのクリック、または設定したキーでも数えられます（連打防止のため1秒間隔）。</p>
 
     <div class="lsgrid2">
       <div class="lsbox big"><div class="t">今回のスコア増加</div>
@@ -885,12 +981,82 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       <div class="lsbox"><div class="t">L値の予測</div><div class="v lsval" id="lsLv">—</div>
         <div class="s" id="lsLvNext">—</div>
         <div class="s" id="lsLvGoal" style="color:var(--warn);margin-top:4px">—</div></div>
+      <div class="lsbox hkb" id="lsHk" hidden></div>
     </div>
   </div>
 
   <div class="card">
     <h2>やりこみ記録</h2>
     <div id="lsLog"></div>
+    <button class="hkbtn" id="hkGo" hidden></button>
+  </div>
+</section>
+
+<!-- ═══════════ 箱根駅伝モード ═══════════ -->
+<section id="hakone" hidden>
+  <div class="card">
+    <div class="tools" style="margin-top:0">
+      <button class="btn" id="hkBack">← LSやりこみへ</button>
+      <button class="btn" id="hkFull">マップだけ表示</button>
+      <button class="btn" id="hkLogBtn">軌跡</button>
+      <button class="btn pri" id="hkAgain" hidden>もう一度走る</button>
+      <span class="tiny" id="hkNo" style="margin-left:auto"></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hkgrid">
+      <div>
+        <div class="hktlab">総合タイム</div>
+        <div class="hktbig" id="hkTAll">00:00:00</div>
+        <div class="tiny" id="hkTStart" style="margin-top:2px">スタート前</div>
+        <div style="margin-top:12px">
+          <div class="hktlab">現在の区間のタイム</div>
+          <div class="hktmid" id="hkTKu">00:00:00</div>
+        </div>
+        <div class="tiny" id="hkOutIn" style="margin-top:8px"></div>
+      </div>
+      <div>
+        <div><span class="hkleg out" id="hkLegTag">往路</span>
+          <span style="font-size:1.2rem;font-weight:800;margin-left:8px" id="hkKuName">第1区</span></div>
+        <div class="hkpos" style="margin-top:4px"><span id="hkKmLeg">0.00</span><small> km地点</small></div>
+        <div class="hkmeter">
+          <div class="bar"><i id="hkBar" style="width:0%"></i></div>
+          <div class="ends"><span>0.00</span><span id="hkMax">21.30</span></div>
+        </div>
+        <div class="hkkv">
+          <div>区間 <b id="hkKuLen">21.30</b> km</div>
+          <div>通算 <b id="hkKmAll">0.00</b> km</div>
+          <div>残り <b id="hkKmLeft">217.10</b> km</div>
+          <div>標高 <b id="hkEle">4</b> m</div>
+        </div>
+        <div class="tiny" id="hkEver" style="margin-top:4px"></div>
+        <div class="tiny" id="hkSpot" style="margin-top:4px">大手町・読売新聞東京本社前</div>
+      </div>
+    </div>
+    <div class="hksash" id="hkSash"></div>
+  </div>
+  <div class="card" style="padding-bottom:8px">
+    <h2>コースマップ</h2>
+    <div class="tools" style="margin-top:0">
+      <button class="btn sm on" id="hkOsm">OpenStreetMap</button>
+      <span id="hkGooBox" hidden style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn sm" id="hkGoo">Google マップ</button>
+        <input type="text" class="txt" id="hkKey" placeholder="Google マップの API キー" style="max-width:240px">
+      </span>
+      <button class="btn sm" id="hkFollow">追いかける：オン</button>
+    </div>
+    <p class="tiny" style="margin:6px 0 0">白＝コース全体　／
+      <span style="color:#ff3b30">赤＝いま走ってきた道</span></p>
+  </div>
+  <div id="hkMapWrap"><div id="hkMap"></div></div>
+  <div class="card" style="margin-top:14px">
+    <h2>タイム</h2>
+    <div class="segs2" id="hkLapTab" style="grid-template-columns:1fr 1fr 1fr">
+      <button data-l="ku" class="on">区間ごと</button>
+      <button data-l="k5">5kmごと</button>
+      <button data-l="k1">1kmごと</button>
+    </div>
+    <div id="hkLapBox" style="margin-top:10px"></div>
   </div>
 </section>
 
@@ -1473,7 +1639,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v53";
+const APP_VERSION = "v54";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2750,7 +2916,9 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer"].forEach(id=>$("#"+id).hidden=(id!==b.dataset.tab));
+  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer","hakone"]
+    .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
+  hkLeave();
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
   if(b.dataset.tab==="card"){ (async()=>{ if(sbOn()&&pro.handle&&!MY_CUP) MY_CUP=await fetchCupHistory(pro.handle);
@@ -5018,6 +5186,7 @@ function renderLs(prev){
   $("#lsLvGoal").innerHTML=gL===null?"—":
     `次の目標 <b>${f3(gL)}</b>（あと ${f3(Math.max(gL-lv,0))}）`;
   const rkS=lsRankOf("score",totS), rkR=lsRankOf("rand",totR);
+  hkMini();
   $("#lsSvNext").textContent=totS>0?(rkS?`${SCORE} ${rkS}位以内`:"ランキング圏外"):"未登録";
   $("#lsLvNext").textContent=totR>0?(rkR?`${RAND} ${rkR}位以内`:"ランキング圏外"):"未登録";
   $("#lsTime").textContent=lsFmtTime(lsElapsed());
@@ -5121,17 +5290,20 @@ function lsFxLabels(){
   if(l) l.textContent="光："+(lsCfg.nolight?"オフ":"オン");
 }
 function lsHit(){
-  if(!lsRun||lsRun.paused) return;      /* 休憩中は数えません */
+  if(lsRun&&lsRun.paused) return;      /* 休憩中は数えません */
   const now=Date.now();
   if(now-lsCool<1000) return;      /* 二重クリック防止：1秒 */
   lsCool=now;
-  const prev=lsRun.count;
-  lsRun.count++;
+  const prev=lsRun?lsRun.count:0;
+  if(lsRun) lsRun.count++;
   lsAll++; saveLsAll();
+  hkAdvanceOne();                      /* 箱根駅伝モードの距離 */
   const big=lsCrossed(lsAll-1,lsAll);
-  lsFlash(big); lsBeep(big,lsRun.count);
+  lsFlash(big); lsBeep(big,lsRun?lsRun.count:1);
   $("#lsHit").disabled=true;
-  setTimeout(()=>{ if(lsRun&&!lsRun.paused) $("#lsHit").disabled=false; },1000);
+  if($("#hkHit")) $("#hkHit").disabled=true;
+  setTimeout(()=>{ const stop=!!(lsRun&&lsRun.paused);
+    $("#lsHit").disabled=stop; if($("#hkHit")) $("#hkHit").disabled=stop; },1000);
   renderLs(prev);
 }
 $("#lsSnd").onclick=()=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
@@ -5146,7 +5318,10 @@ const keyLabel=k=>{
   return k.label||k.code||"スペース";
 };
 document.addEventListener("keydown",e=>{
-  if(!lsRun) return;
+  /* LSやりこみか箱根駅伝の画面を見ているときだけ数えます */
+  const onLs=$("#ls")&&!$("#ls").hidden, onHk=$("#hakone")&&!$("#hakone").hidden;
+  if(!onLs&&!onHk) return;
+  if(document.querySelector(".mask")) return;
   const tag=(e.target.tagName||"").toLowerCase();
   if(tag==="input"||tag==="textarea"||tag==="select") return;
   const code=(lsCfg.key&&lsCfg.key.code)||"Space";
@@ -5289,7 +5464,7 @@ $("#lsStopBtn").onclick=()=>{
   cancelAnimationFrame(lsTimer); lsTimer=null;
   const finish=()=>{
     lsLog.push(L); saveLs();
-    lsRun=null; $("#lsHit").disabled=true;
+    lsRun=null;
     $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true; $("#lsPause").hidden=true;
     $("#lsHint").textContent="記録しました。もう一度スタートを押すと新しい計測を始めます。";
     renderLs(); toast("記録しました");
@@ -5337,7 +5512,7 @@ $("#lsStopBtn").onclick=()=>{
 $("#lsReset").onclick=async()=>{
   if(lsRun&&lsRun.count&&!await askYN("いまの計測を破棄しますか？","記録は保存されません。","破棄する")) return;
   cancelAnimationFrame(lsTimer); lsTimer=null; lsRun=null;
-  $("#lsHit").disabled=true; $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true; $("#lsPause").hidden=true;
+  $("#lsStartBtn").hidden=false; $("#lsStopBtn").hidden=true; $("#lsPause").hidden=true;
   renderLs();
 };
 $("#lsHit").onclick=lsHit;
@@ -5362,6 +5537,651 @@ $("#lsPause").onclick=()=>{
   }
   renderLs();
 };
+
+/* =========================================================
+   10d-2. 箱根駅伝モード（LSやりこみの中の、かくれた機能）
+   ・1回クリアで決まった距離だけ進みます
+   ・大手町→芦ノ湖→大手町 217.10km（第102回のコース）
+   ・管理者以外には、ボタンそのものが出ません
+   ========================================================= */
+const HK_PASS="hakone2026";                 /* 合いことば。ここを変えれば変わります */
+const K_HK="sa-hakone-v1", K_HKLOG="sa-hakonelog-v1", K_HKUNL="sa-hakoneunl-v1";
+const HK_OUT=107.5, HK_IN=109.6, HK_ALL=217.1;
+const HK_LV=[{k:"1",name:"Lv.1",step:1.00},{k:"2",name:"Lv.2",step:0.50},
+             {k:"3",name:"Lv.3",step:0.25},{k:"4",name:"Lv.4",step:0.10},
+             {k:"5",name:"Lv.5",step:0.05},{k:"M",name:"Lv.Max",step:0.01}];
+const hkLvName=k=>(HK_LV.find(x=>x.k===k)||{}).name||"—";
+const hkStep  =k=>(HK_LV.find(x=>x.k===k)||{}).step||0.1;
+const HK_KU=[
+  {n:1, name:"第1区", from:"大手町", to:"鶴見",   len:21.3, leg:"out"},
+  {n:2, name:"第2区", from:"鶴見",   to:"戸塚",   len:23.1, leg:"out"},
+  {n:3, name:"第3区", from:"戸塚",   to:"平塚",   len:21.4, leg:"out"},
+  {n:4, name:"第4区", from:"平塚",   to:"小田原", len:20.9, leg:"out"},
+  {n:5, name:"第5区", from:"小田原", to:"芦ノ湖", len:20.8, leg:"out"},
+  {n:6, name:"第6区", from:"芦ノ湖", to:"小田原", len:20.8, leg:"in"},
+  {n:7, name:"第7区", from:"小田原", to:"平塚",   len:21.3, leg:"in"},
+  {n:8, name:"第8区", from:"平塚",   to:"戸塚",   len:21.4, leg:"in"},
+  {n:9, name:"第9区", from:"戸塚",   to:"鶴見",   len:23.1, leg:"in"},
+  {n:10,name:"第10区",from:"鶴見",   to:"大手町", len:23.0, leg:"in"},
+];
+{ let a=0; HK_KU.forEach(k=>{ k.start=Math.round(a*100)/100; a+=k.len; k.end=Math.round(a*100)/100; }); }
+const HK_REL=[0,21.3,44.4,65.8,86.7,107.5];
+/* コース。km は往路のスタートからの距離、ele は標高(m) */
+const HK_R=[
+[0.0,35.68620,139.76450,4,"大手町・読売新聞東京本社前"],[0.3,35.68420,139.76300,4,"大手町"],
+[0.6,35.68150,139.76160,4,"和田倉門"],[0.9,35.67880,139.76020,4,"馬場先門"],
+[1.2,35.67560,139.75880,4,"日比谷"],[1.5,35.67300,139.75800,4,"日比谷公園"],
+[1.8,35.67030,139.75760,4,"内幸町"],[2.1,35.66800,139.75720,4,"西新橋"],
+[2.4,35.66600,139.75650,4,"新橋"],[2.8,35.66330,139.75540,4,"汐留"],
+[3.2,35.66050,139.75450,4,"浜松町"],[3.6,35.65760,139.75300,4,"大門"],
+[4.0,35.65460,139.75160,4,"芝"],[4.4,35.65150,139.75000,4,"三田"],
+[4.8,35.64830,139.74850,4,"三田三丁目"],[5.2,35.64520,139.74720,4,"田町"],
+[5.6,35.64200,139.74560,4,"札の辻"],[6.0,35.63880,139.74420,4,"高輪"],
+[6.4,35.63560,139.74300,4,"泉岳寺"],[6.8,35.63250,139.74180,4,"高輪ゲートウェイ"],
+[7.2,35.62950,139.74060,4,"港南"],[7.6,35.62700,139.73960,4,"品川駅前"],
+[8.0,35.62450,139.73900,4,"北品川"],[8.6,35.62050,139.73830,5,"品川"],
+[9.2,35.61650,139.73760,5,"青物横丁"],[9.8,35.61250,139.73680,5,"鮫洲"],
+[10.4,35.60830,139.73600,5,"立会川"],[11.0,35.60420,139.73520,5,"大森海岸"],
+[11.6,35.60000,139.73420,5,"大井"],[12.2,35.59560,139.73340,5,"大森北"],
+[12.8,35.59120,139.73240,5,"大森"],[13.4,35.58700,139.73120,5,"大森南"],
+[14.0,35.58280,139.72980,5,"平和島"],[14.6,35.57860,139.72840,5,"大森町"],
+[15.2,35.57440,139.72680,5,"梅屋敷"],[15.8,35.57020,139.72500,5,"京急蒲田"],
+[16.4,35.56600,139.72300,5,"蒲田"],[17.0,35.56150,139.72060,5,"雑色"],
+[17.6,35.55700,139.71800,5,"六郷"],[18.1,35.55300,139.71560,5,"六郷土手"],
+[18.5,35.54900,139.71260,5,"六郷橋"],[18.9,35.54520,139.70980,5,"川崎・本町"],
+[19.3,35.54120,139.70700,5,"川崎駅前"],[19.8,35.53620,139.70300,5,"小川町"],
+[20.3,35.53000,139.69850,6,"鶴見・尻手"],[20.8,35.52080,139.68960,6,"鶴見市場"],
+[21.3,35.50930,139.67950,6,"鶴見中継所"],[21.9,35.50400,139.67450,6,"鶴見駅前"],
+[22.5,35.49900,139.66950,6,"生麦"],[23.2,35.49400,139.66350,6,"新子安"],
+[23.9,35.48950,139.65750,5,"子安"],[24.6,35.48500,139.65150,5,"神奈川新町"],
+[25.3,35.48080,139.64550,5,"仲木戸"],[26.0,35.47650,139.63950,5,"神奈川"],
+[26.7,35.47200,139.63400,5,"青木橋"],[27.4,35.46850,139.62800,5,"金港町"],
+[28.0,35.46620,139.62280,5,"横浜駅東口"],[28.6,35.46320,139.62080,5,"横浜駅西口"],
+[29.2,35.46000,139.62000,5,"高島町"],[29.8,35.45900,139.61500,6,"平沼橋"],
+[30.4,35.46100,139.61050,7,"岡野町"],[31.0,35.46250,139.60700,8,"浅間下"],
+[31.6,35.45900,139.60300,9,"松原商店街"],[32.2,35.45550,139.59900,10,"天王町"],
+[32.8,35.45200,139.59500,12,"保土ヶ谷"],[33.5,35.44700,139.59000,16,"保土ヶ谷橋"],
+[34.2,35.44100,139.58400,25,"元町橋"],[34.9,35.43600,139.57800,40,"権太坂下"],
+[35.5,35.43200,139.57200,60,"権太坂"],[36.2,35.42900,139.56700,68,"権太坂上"],
+[36.9,35.42650,139.56300,72,"境木地蔵"],[37.6,35.42450,139.55900,70,"平戸"],
+[38.3,35.42300,139.55600,66,"東戸塚"],[39.0,35.42100,139.55250,58,"品濃坂"],
+[39.8,35.41800,139.54900,50,"柏尾"],[40.6,35.41500,139.54600,45,"不動坂"],
+[41.4,35.41100,139.54300,42,"戸塚の壁"],[42.2,35.40800,139.54000,40,"吉田町"],
+[43.0,35.40600,139.53800,38,"戸塚駅前"],[43.7,35.40500,139.53600,38,"矢部"],
+[44.4,35.40480,139.53470,38,"戸塚中継所"],[45.2,35.40100,139.53000,32,"影取"],
+[46.0,35.39700,139.52400,28,"原宿"],[46.8,35.39300,139.51800,26,"影取町"],
+[47.6,35.38900,139.51200,24,"藤沢バイパス入口"],[48.4,35.38400,139.50600,22,"城南"],
+[49.2,35.37900,139.50000,18,"羽鳥"],[50.0,35.37400,139.49300,16,"辻堂神台"],
+[50.8,35.36900,139.48600,14,"藤沢橋手前"],[51.6,35.36400,139.47800,13,"遊行寺坂上"],
+[52.4,35.35950,139.47000,10,"藤沢橋"],[53.2,35.35400,139.46300,9,"藤沢駅前"],
+[54.0,35.34900,139.45600,8,"鵠沼"],[54.8,35.34450,139.44900,8,"辻堂東海岸"],
+[55.6,35.34050,139.44200,7,"辻堂"],[56.4,35.33750,139.43500,6,"茅ヶ崎東海岸"],
+[57.2,35.33500,139.42800,6,"松が丘"],[58.0,35.33350,139.42100,6,"菱沼"],
+[58.8,35.33250,139.41400,6,"茅ヶ崎駅前"],[59.6,35.33150,139.40700,5,"茅ヶ崎中央"],
+[60.4,35.33080,139.40000,5,"南湖"],[61.2,35.33020,139.39300,5,"柳島"],
+[62.0,35.32980,139.38600,4,"相模川手前"],[62.8,35.32950,139.37900,4,"湘南大橋東"],
+[63.6,35.32950,139.37100,4,"湘南大橋"],[64.4,35.32920,139.36300,4,"馬入橋"],
+[65.1,35.32880,139.35600,5,"平塚駅前"],[65.8,35.32830,139.34940,5,"平塚中継所"],
+[66.6,35.32450,139.34200,6,"花水橋"],[67.4,35.31900,139.33400,7,"高麗山"],
+[68.2,35.31400,139.32700,8,"大磯駅前"],[69.0,35.31000,139.31900,9,"大磯"],
+[69.8,35.30650,139.31100,10,"大磯城山"],[70.6,35.30350,139.30300,12,"国府本郷"],
+[71.4,35.30150,139.29500,14,"国府新宿"],[72.2,35.29950,139.28700,16,"二宮駅前"],
+[73.0,35.29800,139.27900,18,"二宮"],[73.8,35.29650,139.27100,17,"押切坂上"],
+[74.6,35.29500,139.26300,16,"押切坂"],[75.4,35.29380,139.25500,14,"中村川"],
+[76.2,35.29260,139.24700,12,"前川"],[77.0,35.29120,139.23900,11,"小八幡"],
+[77.8,35.28980,139.23100,10,"川匂"],[78.6,35.28840,139.22300,9,"国府津駅前"],
+[79.4,35.28700,139.21500,8,"国府津"],[80.2,35.28580,139.20700,8,"親木橋"],
+[81.0,35.28450,139.19900,8,"酒匂"],[81.8,35.28100,139.19200,8,"小八幡三丁目"],
+[82.6,35.27700,139.18400,8,"鴨宮"],[83.4,35.27300,139.17600,8,"酒匂橋東"],
+[84.2,35.26950,139.16900,8,"酒匂橋"],[85.0,35.26800,139.16200,9,"栄町"],
+[85.8,35.26650,139.15700,9,"小田原駅前"],[86.7,35.26370,139.15240,10,"小田原中継所"],
+[87.4,35.25900,139.14700,14,"板橋"],[88.1,35.25400,139.14100,18,"風祭手前"],
+[88.8,35.24900,139.13400,24,"山崎"],[89.5,35.24450,139.12600,32,"風祭"],
+[90.2,35.24050,139.11800,45,"入生田"],[90.8,35.23700,139.11200,58,"三枚橋"],
+[91.4,35.23350,139.10850,70,"函嶺洞門"],[92.0,35.23200,139.10500,110,"箱根湯本"],
+[92.6,35.23350,139.10100,160,"塔ノ沢"],[93.2,35.23520,139.09600,230,"大平台入口"],
+[93.8,35.23120,139.07870,340,"大平台"],[94.4,35.23200,139.07400,375,"大平台ヘアピン"],
+[95.0,35.23400,139.06900,395,"宮ノ下手前"],[95.6,35.23600,139.06400,405,"堂ヶ島"],
+[96.2,35.23750,139.05950,415,"底倉"],[96.8,35.23820,139.05650,425,"木賀"],
+[97.2,35.23850,139.05530,430,"宮ノ下"],[97.8,35.23700,139.05000,480,"宮ノ下坂"],
+[98.4,35.23600,139.04600,545,"小涌谷"],[99.0,35.23450,139.03800,600,"小涌谷踏切"],
+[99.7,35.23300,139.03300,640,"小涌園前"],[100.3,35.23000,139.03000,690,"蓬莱園"],
+[100.9,35.22600,139.02700,750,"精進池"],[101.5,35.22050,139.02450,830,"芦之湯"],
+[102.2,35.21600,139.02200,865,"六道地蔵"],[102.9,35.21150,139.02100,874,"国道1号最高点"],
+[103.6,35.20950,139.02200,840,"箱根峠方面分岐"],[104.3,35.20800,139.02400,800,"元箱根坂"],
+[105.0,35.20700,139.02600,760,"曽根"],[105.7,35.20500,139.02700,730,"元箱根"],
+[106.3,35.20050,139.02650,724,"箱根神社前"],[106.9,35.19600,139.02550,723,"恩賜公園前"],
+[107.5,35.19050,139.02500,723,"芦ノ湖・箱根町"],
+];
+const HK_ROUTE=HK_R.map(a=>({km:a[0],lat:a[1],lng:a[2],ele:a[3],name:a[4]}));
+
+/* ── 状態 ── */
+let HK=Object.assign({on:false,started:false,lv:"4",km:0,startAt:null,endRt:null,
+  kuSplits:[],lap5:[],lap1:[],kuStartT:0,outTime:null,finished:false,no:0,clears:0},ls(K_HK,{}));
+if(HK.startAt) HK.startAt=new Date(HK.startAt);
+let HKLOG=ls(K_HKLOG,{runs:[]}); if(!HKLOG.runs) HKLOG={runs:[]};
+let hkUnlocked=false; try{ hkUnlocked=localStorage.getItem(K_HKUNL)==="1"; }catch(e){}
+const hkSave=()=>{try{
+  localStorage.setItem(K_HK,JSON.stringify(Object.assign({},HK,
+    {startAt:HK.startAt?HK.startAt.toISOString():null})));
+  localStorage.setItem(K_HKLOG,JSON.stringify(HKLOG));
+}catch(e){}};
+const hkCan=()=>isAdmin();          /* ★ 管理者だけ。ほかの人には出しません */
+
+/* ── 計算 ── */
+const hkKm2=v=>(Math.round((+v||0)*100)/100).toFixed(2);
+const hkR2=v=>Math.round(v*100)/100;
+function hkHms(sec){ if(sec==null) return "—"; sec=Math.floor(sec);
+  const p=x=>String(Math.floor(x)).padStart(2,"0");
+  return `${p(sec/3600)}:${p(sec%3600/60)}:${p(sec%60)}`; }
+function hkDur(sec){ if(sec==null) return "—"; sec=Math.floor(sec);
+  const p=x=>String(Math.floor(x)).padStart(2,"0");
+  return sec>=3600?`${Math.floor(sec/3600)}:${p(sec%3600/60)}:${p(sec%60)}`
+                  :`${Math.floor(sec/60)}:${p(sec%60)}`; }
+function hkWhen(d){ d=(d instanceof Date)?d:new Date(d);
+  const p=x=>String(x).padStart(2,"0");
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 `
+        +`${d.getHours()}時${p(d.getMinutes())}分${p(d.getSeconds())}秒`; }
+function hkYmd(d){ d=(d instanceof Date)?d:new Date(d);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; }
+/** 総合タイムは「スタートした時刻からいまの時刻までの差」。やりこみを止めても止まりません */
+function hkElapsed(){
+  if(!HK.started||!HK.startAt) return 0;
+  if(HK.finished&&HK.endRt!=null) return HK.endRt;
+  return (Date.now()-HK.startAt.getTime())/1000;
+}
+function hkKuOf(km){ for(let i=HK_KU.length-1;i>=0;i--) if(km>=HK_KU[i].start-1e-9) return i; return 0; }
+function hkOutPos(km){
+  const i=hkKuOf(Math.min(km,HK_ALL-1e-9)), k=HK_KU[i], r=Math.min(1,(km-k.start)/k.len);
+  if(k.leg==="out"){ const a=HK_REL[i],b=HK_REL[i+1]; return a+r*(b-a); }
+  const a=HK_REL[10-i],b=HK_REL[9-i]; return a+r*(b-a);
+}
+function hkAt(x){
+  x=Math.max(0,Math.min(HK_OUT,x));
+  for(let i=0;i<HK_ROUTE.length-1;i++){
+    const a=HK_ROUTE[i],b=HK_ROUTE[i+1];
+    if(x<=b.km+1e-9){ const r=(x-a.km)/((b.km-a.km)||1);
+      return {lat:a.lat+(b.lat-a.lat)*r,lng:a.lng+(b.lng-a.lng)*r,
+              ele:a.ele+(b.ele-a.ele)*r,name:r<.5?a.name:b.name}; }
+  }
+  const e=HK_ROUTE[HK_ROUTE.length-1]; return {lat:e.lat,lng:e.lng,ele:e.ele,name:e.name};
+}
+const hkNeed=k=>HK_KU.reduce((a,x)=>a+Math.ceil(x.len/hkStep(k||HK.lv)-1e-9),0);
+
+/* ── 軌跡 ── */
+function hkCur(){ return HKLOG.runs[HKLOG.runs.length-1]; }
+function hkNewRun(){
+  HK.no=HKLOG.runs.length+1;
+  HKLOG.runs.push({no:HK.no,lv:HK.lv,startAt:new Date().toISOString(),endAt:null,
+    km:0,t:0,clears:0,done:false,kuSplits:[],lap5:[],lap1:[]});
+  hkSave();
+}
+function hkSync(){
+  const r=hkCur(); if(!r) return;
+  r.km=HK.km; r.t=hkElapsed(); r.clears=HK.clears||0;
+  r.kuSplits=HK.kuSplits; r.lap5=HK.lap5; r.lap1=HK.lap1;
+  r.done=HK.finished; if(HK.finished&&!r.endAt) r.endAt=new Date().toISOString();
+  hkSave();
+}
+function hkTotals(){
+  let km=0,t=0,cl=0,done=0; const byLv={};
+  HKLOG.runs.forEach(r=>{ km+=r.km||0; t+=r.t||0; cl+=r.clears||0; if(r.done) done++;
+    const b=byLv[r.lv]=byLv[r.lv]||{km:0,t:0,done:0};
+    b.km+=r.km||0; b.t+=r.t||0; if(r.done) b.done++; });
+  return {km,t,cl,done,byLv};
+}
+
+/* ── 1回ぶん進む ── */
+function hkAdvanceOne(){
+  if(!HK.started||HK.finished) return;
+  HK.clears=(HK.clears||0)+1;
+  const now=hkElapsed();
+  const i=hkKuOf(HK.km), k=HK_KU[i];
+  let to=hkR2(HK.km+hkStep(HK.lv));
+  if(to>k.end-1e-9) to=k.end;        /* 中継所ではみ出したぶんは切り捨てます */
+  hkCross(HK.km,to,now);
+  HK.km=to;
+  if(to>=k.end-1e-9) hkRelay(i,now);
+  hkSync();
+  if($("#hakone")&&!$("#hakone").hidden) hkRender();
+}
+function hkCross(a,b,now){
+  for(let m=Math.floor(a)+1;m<=b+1e-9;m++){
+    if(m>HK_ALL) break;
+    if(!HK.lap1[m-1]) HK.lap1[m-1]={to:m,at:now,dur:now-(m>1&&HK.lap1[m-2]?HK.lap1[m-2].at:0)};
+  }
+  for(let m=Math.floor(a/5)*5+5;m<=b+1e-9;m+=5){
+    const j=m/5-1;
+    if(!HK.lap5[j]) HK.lap5[j]={to:m,at:now,dur:now-(j>0&&HK.lap5[j-1]?HK.lap5[j-1].at:0)};
+  }
+}
+function hkRelay(i,now){
+  if(HK.kuSplits[i]) return;
+  HK.kuSplits[i]={at:now,dur:now-HK.kuStartT};
+  HK.kuStartT=now;
+  if(i===4) HK.outTime=now;
+  if(i===9){
+    HK.finished=true; HK.endRt=now;
+    const li=Math.ceil(HK_ALL)-1, l5=Math.ceil(HK_ALL/5)-1;
+    if(!HK.lap1[li]) HK.lap1[li]={to:HK_ALL,at:now,dur:now-((HK.lap1[li-1]||{at:0}).at)};
+    if(!HK.lap5[l5]) HK.lap5[l5]={to:HK_ALL,at:now,dur:now-((HK.lap5[l5-1]||{at:0}).at)};
+    hkBeep(true); if($("#hkAgain")) $("#hkAgain").hidden=false;
+    toast(`箱根駅伝 第${HK.no}回 完全制覇！　${hkHms(now)}`);
+  }else hkBeep(false);
+}
+/* 区間ゴールと10区ゴールの音だけ鳴らします */
+function hkBeep(goal){
+  if(lsCfg.mute) return;
+  const one=(f,d,t,v,w)=>setTimeout(()=>{ try{
+    const A=window._hkA=window._hkA||new (window.AudioContext||window.webkitAudioContext)();
+    const o=A.createOscillator(), g=A.createGain();
+    o.type=t||"square"; o.frequency.value=f;
+    g.gain.setValueAtTime(v,A.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,A.currentTime+d);
+    o.connect(g); g.connect(A.destination); o.start(); o.stop(A.currentTime+d);
+  }catch(e){} },w||0);
+  if(goal) [523,659,784,1047,1319].forEach((f,i)=>one(f,.26,"triangle",.13,i*130));
+  else { one(784,.10,"square",.11,0); one(1046,.18,"square",.11,110); }
+}
+
+/* ── 地図（管理者が開いたときにだけ読み込みます） ── */
+let hkMap,hkLineAll,hkLineDone,hkMe,hkSigns,hkSignLeg="",hkFollow=true,
+    hkUseG=false,hkG,hkGDone,hkGMe,hkGSigns=[],hkLoading=false;
+function hkEnsureMap(cb){
+  if(!hkCan()) return;
+  if(window.L&&hkMap) return cb&&cb();
+  if(window.L) return hkBuildMap(),cb&&cb();
+  if(hkLoading) return;
+  hkLoading=true;
+  const css=document.createElement("link"); css.rel="stylesheet";
+  css.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+  document.head.appendChild(css);
+  const js=document.createElement("script");
+  js.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+  js.onload=()=>{ hkLoading=false; hkBuildMap(); cb&&cb(); };
+  js.onerror=()=>{ hkLoading=false; toast("地図を読み込めませんでした（通信を確認してください）"); };
+  document.head.appendChild(js);
+}
+function hkBuildMap(){
+  if(hkMap||!window.L||!$("#hkMap")) return;
+  hkMap=L.map("hkMap",{zoomControl:true}).setView([35.42,139.42],10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {maxZoom:18,attribution:"© OpenStreetMap"}).addTo(hkMap);
+  const pts=HK_ROUTE.map(p=>[p.lat,p.lng]);
+  hkLineAll =L.polyline(pts,{color:"#ffffff",weight:5,opacity:.92}).addTo(hkMap);
+  hkLineDone=L.polyline([],{color:"#ff3b30",weight:6,opacity:1}).addTo(hkMap);
+  HK_REL.forEach(km=>{ const q=hkAt(km);
+    L.circleMarker([q.lat,q.lng],{radius:5,color:"#ffd45e",weight:2,
+      fillColor:"#0b1120",fillOpacity:1}).addTo(hkMap).bindTooltip(q.name,{direction:"top"}); });
+  hkMe=L.circleMarker(pts[0],{radius:8,color:"#fff",weight:3,
+    fillColor:"#ff3b30",fillOpacity:1}).addTo(hkMap);
+  hkSigns=L.layerGroup().addTo(hkMap);
+  hkSignLeg=""; hkDrawSigns();
+  hkMap.fitBounds(hkLineAll.getBounds(),{padding:[24,24]});
+}
+/* 各区間の 5km・10km・15km・20km に「▲」の標識を立てます */
+function hkSignList(){
+  const leg=HK.km>HK_OUT?"in":"out", out=[];
+  HK_KU.filter(k=>k.leg===leg).forEach(k=>{
+    [5,10,15,20].forEach(d=>{ if(d>=k.len) return;
+      const q=hkAt(hkOutPos(k.start+d)); out.push({d,lat:q.lat,lng:q.lng}); }); });
+  return {leg,out};
+}
+function hkDrawSigns(){
+  const {leg,out}=hkSignList();
+  if(hkSignLeg===leg) return;
+  hkSignLeg=leg;
+  if(hkUseG&&hkG&&window.google){
+    hkGSigns.forEach(m=>m.setMap(null)); hkGSigns=[];
+    out.forEach(x=>hkGSigns.push(new google.maps.Marker({
+      position:{lat:x.lat,lng:x.lng},map:hkG,zIndex:5,clickable:false,
+      icon:{path:"M 0 0 L -8 -13 L 8 -13 z",fillColor:"#ffd45e",fillOpacity:1,
+            strokeColor:"#3a2a00",strokeWeight:1,scale:1,
+            labelOrigin:new google.maps.Point(0,-27)},
+      label:{text:x.d+"km",color:"#ffd45e",fontSize:"14px",fontWeight:"800"}})));
+    return;
+  }
+  if(!hkSigns) return;
+  hkSigns.clearLayers();
+  out.forEach(x=>hkSigns.addLayer(L.marker([x.lat,x.lng],{interactive:false,
+    icon:L.divIcon({className:"",iconSize:[54,40],iconAnchor:[27,40],
+      html:`<div class="hksign"><span class="ar">▲</span><span class="tx">${x.d}km</span></div>`})})));
+}
+/* 走ってきた道。復路に入ったら往路の線は消して、芦ノ湖から引き直します */
+function hkDonePts(){
+  const x=hkOutPos(HK.km), p=hkAt(x);
+  if(HK.km<=HK_OUT+1e-9){
+    const a=HK_ROUTE.filter(q=>q.km<=x).map(q=>[q.lat,q.lng]); a.push([p.lat,p.lng]); return a; }
+  const a=HK_ROUTE.filter(q=>q.km>=x).map(q=>[q.lat,q.lng]).reverse();
+  a.push([p.lat,p.lng]); return a;
+}
+function hkDrawMap(){
+  const p=hkAt(hkOutPos(HK.km));
+  if(hkUseG&&hkG){
+    if(hkGDone) hkGDone.setPath(hkDonePts().map(a=>({lat:a[0],lng:a[1]})));
+    hkDrawSigns();
+    if(hkGMe){ hkGMe.setPosition({lat:p.lat,lng:p.lng});
+      if(hkFollow&&HK.started) hkG.panTo({lat:p.lat,lng:p.lng}); }
+    return;
+  }
+  if(!hkMap) return;
+  hkLineDone.setLatLngs(hkDonePts());
+  hkDrawSigns();
+  hkMe.setLatLng([p.lat,p.lng]);
+  if(hkFollow&&HK.started) hkMap.panTo([p.lat,p.lng],{animate:false});
+}
+/* Google マップ。管理者以外は絶対に読み込みません */
+function hkInitGoogle(key){
+  if(!hkCan()) return;
+  if(window.google&&window.google.maps) return hkBuildGoogle();
+  const s=document.createElement("script");
+  s.src="https://maps.googleapis.com/maps/api/js?key="+encodeURIComponent(key);
+  s.onload=hkBuildGoogle;
+  s.onerror=()=>toast("Google マップを読み込めませんでした。キーを確かめてください");
+  document.head.appendChild(s);
+}
+function hkBuildGoogle(){
+  if(!hkCan()) return;
+  const h=document.createElement("div"); h.style.cssText="position:absolute;inset:0";
+  const box=$("#hkMap"); box.innerHTML=""; box.style.position="relative"; box.appendChild(h);
+  const pts=HK_ROUTE.map(p=>({lat:p.lat,lng:p.lng}));
+  hkG=new google.maps.Map(h,{center:pts[0],zoom:10,mapTypeControl:false,streetViewControl:false});
+  new google.maps.Polyline({path:pts,strokeColor:"#ffffff",strokeWeight:5,map:hkG,zIndex:1});
+  hkGDone=new google.maps.Polyline({path:[],strokeColor:"#ff3b30",strokeWeight:6,map:hkG,zIndex:2});
+  HK_REL.forEach(km=>{ const q=hkAt(km);
+    new google.maps.Marker({position:{lat:q.lat,lng:q.lng},map:hkG,title:q.name,zIndex:3,
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:5,fillColor:"#0b1120",fillOpacity:1,
+            strokeColor:"#ffd45e",strokeWeight:2}}); });
+  hkGMe=new google.maps.Marker({position:pts[0],map:hkG,title:"いまここ",zIndex:9,
+    icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:"#ff3b30",fillOpacity:1,
+          strokeColor:"#ffffff",strokeWeight:3}});
+  hkUseG=true; hkSignLeg=""; hkDrawSigns();
+  const b=new google.maps.LatLngBounds(); pts.forEach(p=>b.extend(p)); hkG.fitBounds(b);
+  hkDrawMap();
+}
+
+/* ── 画面 ── */
+function hkEnter(){
+  if(!hkCan()) return;
+  HK.on=true; hkSave();
+  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer"]
+    .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=true; });
+  $("#hakone").hidden=false;
+  document.body.classList.add("hkview");
+  $("#hkGooBox").hidden=!hkCan();
+  hkEnsureMap(()=>setTimeout(()=>{ hkMap&&hkMap.invalidateSize(); hkDrawMap(); },80));
+  hkRender();
+  if(!HK.started) hkAskLevel(true);
+  scrollTo({top:0,behavior:"smooth"});
+}
+function hkLeave(){
+  document.body.classList.remove("hkview","hkfull");
+  const w=$("#hkMapWrap"); if(w) w.classList.remove("full");
+}
+function hkFullOn(on){
+  document.body.classList.toggle("hkfull",on);
+  $("#hkMapWrap").classList.toggle("full",on);
+  setTimeout(()=>{ hkMap&&hkMap.invalidateSize(); hkDrawMap(); },80);
+}
+/* レベルを聞く（はじめの1回と、もう一度走るとき） */
+function hkAskLevel(first){
+  const M=modal(`<h2>${first?"箱根駅伝モードのはじめかた":"もう一度走ります"}</h2>
+    <p class="muted" style="margin-top:-8px">大手町から芦ノ湖を折り返して、大手町まで <b>217.10 km</b>。
+      これが <b>第${HKLOG.runs.length+1}回</b> になります。</p>
+    ${first?`<div class="hintbox" style="margin-top:0"><span class="tiny">
+      ・素数ゲームを<b>1回クリアするたびに距離が進みます</b>。<br>
+      ・進む距離は<b>スタートすると変えられません</b>。<br>
+      ・中継所をまたぐときは<b>はみ出したぶんを切り捨てて</b>、中継所でいったん止まります。
+        次のクリアは 0.00km 地点からです。<br>
+      ・この画面を閉じても距離は進みます。LSやりこみの画面でも今の位置が見られます。
+      </span></div>`:""}
+    <h3 style="margin:14px 0 6px">1回クリアで進む距離</h3>
+    <div id="hkLvPick" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <p class="tiny" id="hkLvNote" style="margin-top:8px"></p>
+    <div class="tools"><button class="btn pri" id="hkLvGo">この設定でスタートする</button>
+      <button class="btn" id="hkLvX">あとにする</button></div>`,{w:560});
+  const draw=()=>{
+    M.q("#hkLvPick").innerHTML=HK_LV.map(x=>
+      `<button class="btn sm ${x.k===HK.lv?"pri":""}" data-hl="${x.k}">${x.name}
+        <span class="tiny">${hkKm2(x.step)}km</span></button>`).join("");
+    M.q("#hkLvNote").innerHTML=`1回で <b>${hkKm2(hkStep(HK.lv))} km</b>　→　`
+      +`217.10km を走り切るには <b>${jp(hkNeed(HK.lv))} 回</b>のクリアが要ります。`;
+    M.qa("[data-hl]").forEach(b=>b.onclick=()=>{ HK.lv=b.dataset.hl; draw(); });
+  };
+  draw();
+  M.q("#hkLvGo").onclick=()=>{ M.close(); hkStart(); };
+  M.q("#hkLvX").onclick=()=>M.close();
+}
+function hkStart(){
+  HK.started=true; HK.finished=false; HK.endRt=null;
+  HK.km=0; HK.kuSplits=[]; HK.lap5=[]; HK.lap1=[];
+  HK.kuStartT=0; HK.outTime=null; HK.clears=0; HK.startAt=new Date();
+  hkNewRun(); hkSave();
+  if($("#hkAgain")) $("#hkAgain").hidden=true;
+  hkSignLeg=""; hkRender();
+}
+/* LSやりこみの画面に出す、3つ目のブロック */
+function hkMini(){
+  const box=$("#lsHk"), btn=$("#hkGo");
+  if(!box||!btn) return;
+  const can=hkCan();
+  btn.hidden=!can;
+  if(!can){ box.hidden=true; $("#lsSL")&&0; box.parentElement.classList.remove("hk3"); return; }
+  box.hidden=!HK.on;
+  box.parentElement.classList.toggle("hk3",!!HK.on);
+  if(!HK.on) return;
+  const T=hkTotals(), t=hkElapsed();
+  if(!HK.started){
+    box.innerHTML=`<div class="t">箱根駅伝</div>
+      <div class="hktop" style="margin-top:6px">まだスタートしていません</div>
+      <div class="hkline">下のボタンから、走る距離を決めてスタートしてください。</div>
+      <div class="hkline" style="margin-top:8px">今までの通算 <b>${hkKm2(T.km)}</b> km
+        （<b>${jp(T.cl)}</b>回）</div>
+      <div class="hkline">完全制覇 <b>${jp(T.done)}</b> 回</div>`;
+    return;
+  }
+  const k=HK_KU[hkKuOf(HK.km)], inLeg=hkR2(HK.km-k.start);
+  box.innerHTML=`<div class="t">箱根駅伝　第${HK.no}回</div>
+    <div class="hktop" style="margin-top:6px">
+      ${k.leg==="out"?"往路":"復路"}　${k.name}　${hkKm2(inLeg)} km地点</div>
+    <div class="hkline">通算 <b>${hkKm2(HK.km)}</b> km ／残り <b>${hkKm2(HK_ALL-HK.km)}</b> km</div>
+    <div class="hkline">今までの通算 <b>${hkKm2(T.km)}</b> km（<b>${jp(T.cl)}</b>回）</div>
+    <div class="hkline" style="margin-top:6px">総合タイム <b id="hkMiniT">${hkHms(t)}</b></div>
+    <div class="hkline">区間タイム <b id="hkMiniK">${hkHms(HK.finished?0:t-HK.kuStartT)}</b></div>
+    ${HK.finished?`<div class="hkline" style="color:var(--acc2);font-weight:800;margin-top:6px">
+      第${HK.no}回 完全制覇！</div>`:""}`;
+}
+function hkRender(){
+  const i=hkKuOf(HK.km), k=HK_KU[i];
+  const inLeg=Math.min(k.len,hkR2(HK.km-k.start));
+  const p=hkAt(hkOutPos(HK.km));
+  const t=hkElapsed();
+  const kuT=HK.finished?(HK.kuSplits[9]?HK.kuSplits[9].dur:0):t-HK.kuStartT;
+  const T=hkTotals();
+  const S=(id,v)=>{ const el=$(id); if(el) el.textContent=v; };
+  S("#hkNo",HK.started?`第${HK.no}回　${hkLvName(HK.lv)}（1回 ${hkKm2(hkStep(HK.lv))}km）`:"スタート前");
+  S("#hkTAll",hkHms(t)); S("#hkTKu",hkHms(kuT));
+  S("#hkTStart",HK.startAt?"スタート　"+hkWhen(HK.startAt):"スタート前");
+  const lt=$("#hkLegTag"); if(lt){ lt.textContent=k.leg==="out"?"往路":"復路";
+    lt.className="hkleg "+(k.leg==="out"?"out":"in"); }
+  S("#hkKuName",`${k.name}　${k.from}→${k.to}`);
+  S("#hkKmLeg",hkKm2(inLeg)); S("#hkKuLen",hkKm2(k.len));
+  S("#hkKmAll",hkKm2(HK.km)); S("#hkKmLeft",hkKm2(HK_ALL-HK.km));
+  S("#hkEle",Math.round(p.ele)); S("#hkSpot",p.name); S("#hkMax",hkKm2(k.len));
+  const bar=$("#hkBar"); if(bar) bar.style.width=(inLeg/k.len*100).toFixed(1)+"%";
+  const ev=$("#hkEver"); if(ev) ev.innerHTML=`今までの通算 <b style="color:var(--tx)">`
+    +`${hkKm2(T.km)}</b> km（<b style="color:var(--tx)">${jp(T.cl)}</b>回）`
+    +`　完全制覇 <b style="color:var(--acc2)">${jp(T.done)}</b> 回`;
+  const oi=$("#hkOutIn"); if(oi) oi.innerHTML=`往路 <b>${hkHms(HK.outTime)}</b>`
+    +`　／　復路 <b>${hkHms(HK.outTime!=null?t-HK.outTime:null)}</b>`;
+  S("#hkFAll",hkHms(t)); S("#hkFKu",hkHms(kuT));
+  const fl=$("#hkFLeg"); if(fl){ fl.textContent=k.leg==="out"?"往路":"復路";
+    fl.className="hkleg "+(k.leg==="out"?"out":"in"); }
+  S("#hkFKuName",k.name); S("#hkFKm",hkKm2(inLeg)); S("#hkFMax",hkKm2(k.len));
+  const fb=$("#hkFBar"); if(fb) fb.style.width=(inLeg/k.len*100).toFixed(1)+"%";
+  const sa=$("#hkSash"); if(sa) sa.innerHTML=HK_KU.map((x,j)=>{
+    const r=HK.km<=x.start?0:HK.km>=x.end?1:(HK.km-x.start)/x.len;
+    return `<div class="${r>=1?"done":""} ${j===i&&r<1?"now":""}">
+      <div class="fill" style="width:${(r*100).toFixed(1)}%"></div><span>${x.n}</span></div>`;
+  }).join("");
+  hkRenderLaps();
+  hkDrawMap();
+}
+/* タイムの表 */
+let hkLapTab="ku";
+function hkLapHTML(src,tab){
+  const ku=src.kuSplits||[], l5=src.lap5||[], l1=src.lap1||[];
+  const outT=ku[4]?ku[4].at:null, endT=ku[9]?ku[9].at:null, km=src.km!=null?src.km:0;
+  if(tab==="ku"){
+    return `<div class="scroll"><table><thead><tr><th>区間</th><th style="text-align:right">距離</th>
+      <th style="text-align:right">区間タイム</th><th style="text-align:right">通過</th></tr></thead><tbody>`
+      +HK_KU.map((k,i)=>{ const s=ku[i];
+        return `<tr class="${i===src.nowKu?"hknow":""}"><td><b>${k.name}</b>
+          <span class="tiny">${k.from}→${k.to}</span></td>
+          <td class="n">${hkKm2(k.len)}</td><td class="n">${hkDur(s&&s.dur)}</td>
+          <td class="n">${hkHms(s&&s.at)}</td></tr>`; }).join("")
+      +`<tr class="sum"><td>往路</td><td class="n">107.50</td>
+        <td class="n">${hkHms(outT)}</td><td class="n">${hkHms(outT)}</td></tr>`
+      +`<tr class="sum"><td>復路</td><td class="n">109.60</td>
+        <td class="n">${hkHms(endT!=null&&outT!=null?endT-outT:null)}</td><td class="n">—</td></tr>`
+      +`<tr class="sum"><td>総合</td><td class="n">217.10</td>
+        <td class="n">${hkHms(endT)}</td><td class="n">${hkHms(src.t)}</td></tr></tbody></table></div>`;
+  }
+  const arr=tab==="k5"?l5:l1, unit=tab==="k5"?5:1, n=Math.ceil(HK_ALL/unit);
+  let rows="";
+  for(let j=n-1;j>=0;j--){
+    const s=arr[j], from=j*unit, to=Math.min(HK_ALL,(j+1)*unit);
+    if(!s&&from>km) continue;
+    const now=(src.live&&km>=from-1e-9&&km<to-1e-9);
+    rows+=`<tr class="${now?"hknow":""}"><td>${hkKm2(from)} → <b>${hkKm2(to)}</b> km</td>
+      <td class="n">${hkDur(s&&s.dur)}</td><td class="n">${hkHms(s&&s.at)}</td></tr>`;
+  }
+  return `<div class="scroll"><table><thead><tr><th>区切り</th>
+    <th style="text-align:right">タイム</th><th style="text-align:right">通過</th></tr></thead><tbody>`
+    +(rows||`<tr><td colspan="3" class="tiny">まだありません。</td></tr>`)+`</tbody></table></div>`;
+}
+function hkRenderLaps(){
+  const box=$("#hkLapBox"); if(!box) return;
+  box.innerHTML=hkLapHTML({kuSplits:HK.kuSplits,lap5:HK.lap5,lap1:HK.lap1,
+    km:HK.km,t:hkElapsed(),live:HK.started&&!HK.finished,
+    nowKu:(HK.started&&!HK.finished)?hkKuOf(HK.km):-1},hkLapTab);
+}
+/* 軌跡 */
+function hkShowLog(){
+  const T=hkTotals();
+  const M=modal(`<h2>軌跡</h2>
+    <div class="hktot" style="margin-top:10px">
+      <div class="lsbox"><div class="t">累計 走行距離</div>
+        <div class="v big">${hkKm2(T.km)}</div><div class="s">km</div></div>
+      <div class="lsbox"><div class="t">累計 走行時間</div>
+        <div class="v big">${hkHms(T.t)}</div><div class="s">${jp(T.cl)} 回クリア</div></div>
+      <div class="lsbox"><div class="t">完全制覇</div>
+        <div class="v big" style="color:var(--acc2)">${jp(T.done)}</div><div class="s">回</div></div>
+    </div>
+    <h3 style="margin:16px 0 6px">レベルごと</h3>
+    <div class="scroll" style="max-height:230px"><table><thead><tr><th>レベル</th>
+      <th style="text-align:right">1回で</th><th style="text-align:right">走行距離</th>
+      <th style="text-align:right">走行時間</th><th style="text-align:right">完全制覇</th></tr></thead><tbody>
+      ${HK_LV.map(x=>{ const b=T.byLv[x.k]||{km:0,t:0,done:0};
+        return `<tr><td><b>${x.name}</b></td><td class="n">${hkKm2(x.step)} km</td>
+          <td class="n">${hkKm2(b.km)} km</td><td class="n">${hkHms(b.t)}</td>
+          <td class="n">${jp(b.done)}</td></tr>`; }).join("")}
+    </tbody></table></div>
+    <h3 style="margin:16px 0 6px">これまでの記録</h3>
+    <div id="hkLgList" class="scroll" style="padding:8px;max-height:300px"></div>`,{w:680});
+  const runs=HKLOG.runs.slice().reverse();
+  M.q("#hkLgList").innerHTML=runs.length?runs.map(r=>
+    `<button class="hkrow" data-hr="${r.no}"><b>第${r.no}回</b>
+      <span>${hkYmd(r.startAt)}</span><span>${hkLvName(r.lv)}</span>
+      ${r.done?`<b>ゴールタイム ${hkHms(r.t)}</b>
+        <span class="tiny" style="color:var(--acc2);font-weight:800">完全制覇</span>`
+        :`<b>${hkKm2(r.km)} km</b>
+        <span class="tiny" style="color:var(--warn);font-weight:800">走行中</span>`}
+    </button>`).join("") : `<p class="tiny">まだ記録がありません。</p>`;
+  M.qa("[data-hr]").forEach(b=>b.onclick=()=>{ M.close();
+    hkShowRun(HKLOG.runs.find(x=>x.no===+b.dataset.hr)); });
+}
+function hkShowRun(r){
+  if(!r) return;
+  let tab="ku";
+  const M=modal(`<h2>第${r.no}回　${r.done?"完全制覇":"走行中"}</h2>
+    <div class="lsgrid" style="margin-top:10px">
+      <div class="lsbox hkb">
+        <div class="hkline">スタート <b>${hkWhen(r.startAt)}</b></div>
+        ${r.endAt?`<div class="hkline">ゴール <b>${hkWhen(r.endAt)}</b></div>`:""}
+        <div class="hkline">レベル <b>${hkLvName(r.lv)}</b>（1回 ${hkKm2(hkStep(r.lv))} km）</div>
+        <div class="hkline">クリア回数 <b>${jp(r.clears||0)}</b> 回</div>
+      </div>
+      <div class="lsbox"><div class="t">${r.done?"ゴールタイム":"ここまでのタイム"}</div>
+        <div class="v big">${hkHms(r.t)}</div>
+        <div class="s">${hkKm2(r.km)} km / 217.10 km</div></div>
+    </div>
+    <div class="segs2" id="hkRTab" style="grid-template-columns:1fr 1fr 1fr;margin-top:12px">
+      <button data-l="ku" class="on">区間ごと</button>
+      <button data-l="k5">5kmごと</button>
+      <button data-l="k1">1kmごと</button>
+    </div>
+    <div id="hkRBox" style="margin-top:10px"></div>
+    <div class="tools"><button class="btn" id="hkRBack">← 軌跡へ</button></div>`,{w:680});
+  const draw=()=>M.q("#hkRBox").innerHTML=hkLapHTML(r,tab);
+  draw();
+  M.qa("#hkRTab button").forEach(b=>b.onclick=()=>{
+    tab=b.dataset.l; M.qa("#hkRTab button").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+  M.q("#hkRBack").onclick=()=>{ M.close(); hkShowLog(); };
+}
+/* 合いことば */
+function hkAskPass(){
+  const M=modal(`<h2>あいことば</h2>
+    <input type="password" class="txt" id="hkPw" style="max-width:none;margin-top:6px" autocomplete="off">
+    <p class="tiny" id="hkPwNg" style="color:var(--bad);min-height:1.2em;margin:6px 0 0"></p>
+    <div class="tools"><button class="btn pri" id="hkPwOk">決定</button>
+      <button class="btn" id="hkPwX">やめる</button></div>`,{w:400});
+  const go=()=>{
+    if(M.q("#hkPw").value===HK_PASS){
+      hkUnlocked=true; try{ localStorage.setItem(K_HKUNL,"1"); }catch(e){}
+      M.close(); hkEnter();
+    }else{ M.q("#hkPwNg").textContent="パスワードが違います"; M.q("#hkPw").value=""; }
+  };
+  M.q("#hkPwOk").onclick=go;
+  M.q("#hkPw").onkeydown=e=>{ if(e.key==="Enter") go(); };
+  M.q("#hkPwX").onclick=()=>M.close();
+  setTimeout(()=>{ const i=M.q("#hkPw"); if(i) i.focus(); },40);
+}
+/* ボタン */
+if($("#hkGo")) $("#hkGo").onclick=()=>{ if(!hkCan()) return; hkUnlocked?hkEnter():hkAskPass(); };
+if($("#hkBack")) $("#hkBack").onclick=()=>{ hkLeave(); goTab("ls"); };
+if($("#hkFull")) $("#hkFull").onclick=()=>hkFullOn(true);
+if($("#hkOvExit")) $("#hkOvExit").onclick=()=>hkFullOn(false);
+if($("#hkLogBtn")) $("#hkLogBtn").onclick=hkShowLog;
+if($("#hkAgain")) $("#hkAgain").onclick=()=>hkAskLevel(false);
+if($("#hkHit")) $("#hkHit").onclick=()=>{ lsHit();
+  const b=$("#hkHit"); b.classList.add("go"); setTimeout(()=>b.classList.remove("go"),450);
+  const bar=b.querySelector(".cd"), t0=performance.now();
+  const run=t=>{ const k=Math.min(1,(t-t0)/1000); if(bar) bar.style.width=((1-k)*100)+"%";
+    if(k<1) requestAnimationFrame(run); else if(bar) bar.style.width="0%"; };
+  requestAnimationFrame(run); };
+if($("#hkFollow")) $("#hkFollow").onclick=e=>{ hkFollow=!hkFollow;
+  e.target.textContent="追いかける："+(hkFollow?"オン":"オフ"); };
+if($("#hkOsm")) $("#hkOsm").onclick=()=>{ if(hkUseG) location.reload(); };
+if($("#hkGoo")) $("#hkGoo").onclick=()=>{
+  if(!hkCan()) return;
+  const key=($("#hkKey").value||"").trim();
+  if(!key) return toast("Google マップを使うには API キーが要ります（OpenStreetMap のままでも同じように動きます）");
+  $("#hkGoo").classList.add("on"); $("#hkOsm").classList.remove("on"); hkInitGoogle(key);
+};
+$$("#hkLapTab button").forEach(b=>b.onclick=()=>{
+  hkLapTab=b.dataset.l;
+  $$("#hkLapTab button").forEach(x=>x.classList.toggle("on",x===b)); hkRenderLaps(); });
+/* 秒ごとに時計だけ書き換えます */
+setInterval(()=>{
+  if($("#hakone")&&!$("#hakone").hidden){ hkRender(); return; }
+  if($("#ls")&&!$("#ls").hidden&&HK.on&&HK.started){
+    const t=hkElapsed();
+    const a=$("#hkMiniT"), b=$("#hkMiniK");
+    if(a) a.textContent=hkHms(t);
+    if(b) b.textContent=hkHms(HK.finished?(HK.kuSplits[9]?HK.kuSplits[9].dur:0):t-HK.kuStartT);
+  }
+},1000);
 
 /* =========================================================
    10e. 記録提出と審査（審査員 → スーパーバイザー → ジャッジマン）
@@ -10379,5 +11199,22 @@ function normalize(j){
   renderHome();
 })();
 </script>
+<div class="hkov" id="hkOvTime">
+  <div class="hktlab">総合タイム</div>
+  <div class="hktbig" id="hkFAll" style="font-size:2.4rem">00:00:00</div>
+  <div class="hktlab" style="margin-top:8px">区間タイム</div>
+  <div class="hktmid" id="hkFKu" style="font-size:1.5rem">00:00:00</div>
+</div>
+<div class="hkov" id="hkOvPos">
+  <div><span class="hkleg out" id="hkFLeg">往路</span>
+    <span style="font-weight:800;margin-left:6px" id="hkFKuName">第1区</span></div>
+  <div class="hkpos" style="font-size:2.4rem"><span id="hkFKm">0.00</span><small> km</small></div>
+  <div class="hkmeter" style="width:240px">
+    <div class="bar"><i id="hkFBar" style="width:0%"></i></div>
+    <div class="ends"><span>0.00</span><span id="hkFMax">21.30</span></div>
+  </div>
+</div>
+<div class="hkov" id="hkOvExit">← もどる</div>
+<button id="hkHit">＋1回　クリア！<span class="cd"></span></button>
 </body>
 </html>
