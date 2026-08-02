@@ -1045,6 +1045,17 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
         <button class="btn sm" id="hkKeyDel">キーを消す</button>
       </span>
       <button class="btn sm" id="hkFollow">追いかける：オン</button>
+      <button class="btn sm" id="hkRoad">道なりに引き直す</button>
+      <span class="tiny">標識</span>
+      <select id="hkSignSel" class="txt" style="max-width:190px">
+        <option value="auto">自動（地図の拡大に合わせる）</option>
+        <option value="0.5">0.5km ごと</option>
+        <option value="1">1km ごと</option>
+        <option value="2">2km ごと</option>
+        <option value="5">5km ごと</option>
+        <option value="10">10km ごと</option>
+        <option value="0">表示しない</option>
+      </select>
     </div>
     <p class="tiny" style="margin:6px 0 0">白＝コース全体　／
       <span style="color:#ff3b30">赤＝いま走ってきた道</span></p>
@@ -1406,6 +1417,7 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
       <button data-hp="award">ごほうび</button>
       <button data-hp="tool">道具の使い方</button>
       <button data-hp="etc">そのほか</button>
+      <button data-hp="hakone" id="hpHakone" hidden>箱根駅伝</button>
     </div>
     <div id="helpBox"></div>
   </div>
@@ -1650,7 +1662,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v58";
+const APP_VERSION = "v60";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2237,6 +2249,7 @@ const ST_KEYS=[
   "sa-mymax-v1","sa-claim-v1",
   "sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1",                 /* LSやりこみ */
   "sa-hakone-v1","sa-hakonelog-v1","sa-hakoneunl-v1","sa-hakonekey-v1",  /* 箱根駅伝 */
+  "sa-hakoneroad-v1","sa-hakonesign-v1",
   "sa-autopost-v1","sa-tagwatch-v1",
 ];
 const ST_MAX=150000;      /* 1つが大きすぎるものは送りません */
@@ -2270,6 +2283,17 @@ function stSoon(){
 function stCan(){
   return !(typeof TEST!=="undefined"&&TEST) && typeof sess!=="undefined" && !!sess
       && typeof sbOn==="function" && sbOn();
+}
+/** 同期の説明。かくれた機能のことは、管理者以外には出しません */
+function stWhat(){
+  const el=document.getElementById("syncWhat"); if(!el) return;
+  const admin=(typeof isAdmin==="function")&&isAdmin();
+  el.innerHTML=
+    "そろえるもの：個人データ（記録）・プロフィール・フレンド・LSやりこみ（設定と記録）"
+    +(admin?"・箱根駅伝（進みぐあいと軌跡）":"")+"・自動投稿の設定<br>"
+    +'<span style="color:var(--dim2)">'
+    +"パソコンで記録、スマホでLSやりこみ、のように別々にいじっても、両方とも残ります。"
+    +"同じところを同時にいじったときは、あとから保存したほうが残ります。</span>";
 }
 function stMark(t){
   stState=t;
@@ -4442,6 +4466,8 @@ async function syncAll(btn){
 
 /* 画面 */
 function renderSettings(){
+  if(typeof stWhat==="function") stWhat();
+  if(typeof hkHelpTab==="function") hkHelpTab();
   renderAcctTop();
   const a=$("#acctBox");
   if(!sbOn()){ a.innerHTML=`<p class="muted">Supabase が未設定のため、ログインは使えません。</p>
@@ -5818,6 +5844,110 @@ const HK_R=[
 ];
 const HK_ROUTE=HK_R.map(a=>({km:a[0],lat:a[1],lng:a[2],ele:a[3],name:a[4]}));
 
+/* ── 道なりのコース ──
+   上の167地点は「だいたいこの道を通る」ための目印です。直線で結ぶと建物の上を横切るので、
+   はじめて開いたときに1度だけ道案内のサーバーへ聞いて、実際の道路にそった線をもらいます。
+   もらった線はこの端末に保存し、ほかの端末にも同期されるので、聞きに行くのは1回だけです。 */
+const K_HKROAD="sa-hakoneroad-v1";
+let HK_ROAD=null;          /* [{pts:[[lat,lng],...], cum:[0,...], len:全長m}, ...] 区ごと */
+let hkRoadBusy=false;
+function hkPolyEnc(coords){
+  const one=v=>{ v=v<0?~(v<<1):(v<<1); let o="";
+    while(v>=0x20){ o+=String.fromCharCode((0x20|(v&0x1f))+63); v>>=5; }
+    return o+String.fromCharCode(v+63); };
+  let out="",pa=0,pb=0;
+  coords.forEach(c=>{ const a=Math.round(c[0]*1e5), b=Math.round(c[1]*1e5);
+    out+=one(a-pa)+one(b-pb); pa=a; pb=b; });
+  return out;
+}
+function hkPolyDec(str){
+  const out=[]; let i=0,lat=0,lng=0;
+  while(i<str.length){
+    let b,sh=0,r=0;
+    do{ b=str.charCodeAt(i++)-63; r|=(b&0x1f)<<sh; sh+=5; }while(b>=0x20);
+    lat+=((r&1)?~(r>>1):(r>>1)); sh=0; r=0;
+    do{ b=str.charCodeAt(i++)-63; r|=(b&0x1f)<<sh; sh+=5; }while(b>=0x20);
+    lng+=((r&1)?~(r>>1):(r>>1));
+    out.push([lat/1e5,lng/1e5]);
+  }
+  return out;
+}
+const hkMeters=(a,b)=>{
+  const R=6371000, t=Math.PI/180;
+  const dla=(b[0]-a[0])*t, dlo=(b[1]-a[1])*t, la=(a[0]+b[0])/2*t;
+  const x=dlo*Math.cos(la);
+  return Math.sqrt(dla*dla+x*x)*R;
+};
+function hkMakeSeg(pts){
+  const cum=[0];
+  for(let i=1;i<pts.length;i++) cum.push(cum[i-1]+hkMeters(pts[i-1],pts[i]));
+  return {pts,cum,len:cum[cum.length-1]||1};
+}
+function hkRoadFrom(list){
+  try{
+    const segs=list.map(e=>{ const pts=hkPolyDec(e); return pts.length>1?hkMakeSeg(pts):null; });
+    return segs.every(Boolean)&&segs.length===5 ? segs : null;
+  }catch(e){ return null; }
+}
+function hkRoadLoad(){
+  if(HK_ROAD) return true;
+  hkLineCache=null;
+  try{
+    const raw=localStorage.getItem(K_HKROAD);
+    if(!raw) return false;
+    const j=JSON.parse(raw);
+    HK_ROAD=hkRoadFrom(j&&j.segs||[]);
+    return !!HK_ROAD;
+  }catch(e){ return false; }
+}
+/** 道案内のサーバーに、区ごとの道のりを聞きます（1回だけ） */
+async function hkRoadFetch(quiet){
+  if(hkRoadBusy) return;
+  hkRoadBusy=true;
+  const btn=$("#hkRoad"); if(btn){ btn.disabled=true; btn.textContent="道を調べています…"; }
+  try{
+    const segs=[];
+    for(let i=0;i<5;i++){
+      const from=HK_REL[i], to=HK_REL[i+1];
+      const way=HK_ROUTE.filter(p=>p.km>=from-1e-9&&p.km<=to+1e-9).map(p=>[p.lat,p.lng]);
+      const url="https://router.project-osrm.org/route/v1/driving/polyline("
+        +encodeURIComponent(hkPolyEnc(way))+")?overview=full&geometries=polyline";
+      const r=await fetch(url);
+      if(!r.ok) throw new Error("道案内のサーバーに つながりませんでした");
+      const j=await r.json();
+      if(j.code!=="Ok"||!j.routes||!j.routes[0]) throw new Error("道が見つかりませんでした");
+      segs.push(j.routes[0].geometry);
+    }
+    const made=hkRoadFrom(segs);
+    if(!made) throw new Error("受け取った道を読めませんでした");
+    HK_ROAD=made; hkLineCache=null;
+    localStorage.setItem(K_HKROAD,JSON.stringify({v:1,at:Date.now(),segs}));
+    hkSignLeg=""; hkBuildLine(); hkDrawMap();
+    const km=hkRoadKm();
+    if(!quiet) toast("道路にそった線に引き直しました（道のり "+km+" km）");
+  }catch(e){
+    if(!quiet) toast(String((e&&e.message)||e).slice(0,120));
+  }finally{
+    hkRoadBusy=false;
+    const b=$("#hkRoad"); if(b){ b.disabled=false; b.textContent="道なりに引き直す"; }
+  }
+}
+/** 表示用のコース線。道なりがあればそれを、無ければ目印を直線でつないだものを返します */
+let hkLineCache=null;
+function hkLinePts(){
+  if(hkLineCache&&hkLineCache.road===!!HK_ROAD) return hkLineCache.pts;
+  let pts;
+  if(HK_ROAD){ pts=[]; HK_ROAD.forEach((sg,i)=>{ sg.pts.forEach((p,j)=>{ if(i&&!j) return; pts.push(p); }); }); }
+  else pts=HK_ROUTE.map(p=>[p.lat,p.lng]);
+  hkLineCache={road:!!HK_ROAD,pts};
+  return pts;
+}
+/** 道なりの線の全長（km）。ちゃんと道を通っているかの目安になります */
+function hkRoadKm(){
+  if(!HK_ROAD) return null;
+  return Math.round(HK_ROAD.reduce((a,s)=>a+s.len,0)/100)/10;
+}
+
 /* ── 状態 ── */
 let HK=Object.assign({on:false,started:false,lv:"4",km:0,startAt:null,endRt:null,
   kuSplits:[],lap5:[],lap1:[],kuStartT:0,outTime:null,finished:false,no:0,clears:0},ls(K_HK,{}));
@@ -5859,15 +5989,52 @@ function hkOutPos(km){
   if(k.leg==="out"){ const a=HK_REL[i],b=HK_REL[i+1]; return a+r*(b-a); }
   const a=HK_REL[10-i],b=HK_REL[9-i]; return a+r*(b-a);
 }
-function hkAt(x){
+/** 往路換算の距離 → 標高と地名（目印の表から） */
+function hkInfoAt(x){
   x=Math.max(0,Math.min(HK_OUT,x));
   for(let i=0;i<HK_ROUTE.length-1;i++){
     const a=HK_ROUTE[i],b=HK_ROUTE[i+1];
     if(x<=b.km+1e-9){ const r=(x-a.km)/((b.km-a.km)||1);
-      return {lat:a.lat+(b.lat-a.lat)*r,lng:a.lng+(b.lng-a.lng)*r,
-              ele:a.ele+(b.ele-a.ele)*r,name:r<.5?a.name:b.name}; }
+      return {ele:a.ele+(b.ele-a.ele)*r,name:r<.5?a.name:b.name}; }
   }
-  const e=HK_ROUTE[HK_ROUTE.length-1]; return {lat:e.lat,lng:e.lng,ele:e.ele,name:e.name};
+  const e=HK_ROUTE[HK_ROUTE.length-1]; return {ele:e.ele,name:e.name};
+}
+/** 往路換算の距離 → 緯度経度。道なりの線があれば、その道の上をたどります */
+function hkAt(x){
+  x=Math.max(0,Math.min(HK_OUT,x));
+  const info=hkInfoAt(x);
+  if(HK_ROAD){
+    let i=0; while(i<4&&x>HK_REL[i+1]-1e-9) i++;
+    const a=HK_REL[i], b=HK_REL[i+1];
+    const seg=HK_ROAD[i], r=Math.max(0,Math.min(1,(x-a)/((b-a)||1)));
+    const want=r*seg.len;
+    let lo=0, hi=seg.cum.length-1;
+    while(lo<hi-1){ const m=(lo+hi)>>1; if(seg.cum[m]<=want) lo=m; else hi=m; }
+    const d=(seg.cum[hi]-seg.cum[lo])||1, t=(want-seg.cum[lo])/d;
+    const p=seg.pts[lo], q=seg.pts[hi];
+    return {lat:p[0]+(q[0]-p[0])*t, lng:p[1]+(q[1]-p[1])*t, ele:info.ele, name:info.name};
+  }
+  for(let i=0;i<HK_ROUTE.length-1;i++){
+    const a=HK_ROUTE[i],b=HK_ROUTE[i+1];
+    if(x<=b.km+1e-9){ const r=(x-a.km)/((b.km-a.km)||1);
+      return {lat:a.lat+(b.lat-a.lat)*r,lng:a.lng+(b.lng-a.lng)*r,ele:info.ele,name:info.name}; }
+  }
+  const e=HK_ROUTE[HK_ROUTE.length-1];
+  return {lat:e.lat,lng:e.lng,ele:info.ele,name:info.name};
+}
+/** 走ってきた道を、線の点として切り出します */
+function hkCutPts(x, back){
+  const all=hkLinePts();
+  const here=hkAt(x);
+  /* いまの位置にいちばん近い点を探します */
+  let bi=0, bd=Infinity;
+  for(let i=0;i<all.length;i++){
+    const d=(all[i][0]-here.lat)**2+(all[i][1]-here.lng)**2;
+    if(d<bd){ bd=d; bi=i; }
+  }
+  const out = back ? all.slice(bi).reverse() : all.slice(0,bi+1);
+  out.push([here.lat,here.lng]);
+  return out;
 }
 const hkNeed=k=>HK_KU.reduce((a,x)=>a+Math.ceil(x.len/hkStep(k||HK.lv)-1e-9),0);
 
@@ -5949,7 +6116,10 @@ function hkBeep(goal){
 
 /* ── 地図（管理者が開いたときにだけ読み込みます） ── */
 let hkMap,hkLineAll,hkLineDone,hkMe,hkSigns,hkSignLeg="",hkFollow=true,
-    hkUseG=false,hkG,hkGDone,hkGMe,hkGSigns=[],hkLoading=false;
+    hkUseG=false,hkG,hkGAll,hkGDone,hkGMe,hkGSigns=[],hkLoading=false;
+/* 標識の間かく。"auto" は地図の拡大に合わせます。0 は出しません */
+let hkSignKm=(function(){ try{ return localStorage.getItem("sa-hakonesign-v1")||"auto"; }
+  catch(e){ return "auto"; } })();
 function hkEnsureMap(cb){
   if(!hkCan()) return;
   if(window.L&&hkMap) return cb&&cb();
@@ -5970,7 +6140,7 @@ function hkBuildMap(){
   hkMap=L.map("hkMap",{zoomControl:true}).setView([35.42,139.42],10);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {maxZoom:18,attribution:"© OpenStreetMap"}).addTo(hkMap);
-  const pts=HK_ROUTE.map(p=>[p.lat,p.lng]);
+  const pts=hkLinePts();
   hkLineAll =L.polyline(pts,{color:"#ffffff",weight:5,opacity:.92}).addTo(hkMap);
   hkLineDone=L.polyline([],{color:"#ff3b30",weight:6,opacity:1}).addTo(hkMap);
   HK_REL.forEach(km=>{ const q=hkAt(km);
@@ -5980,15 +6150,39 @@ function hkBuildMap(){
     fillColor:"#ff3b30",fillOpacity:1}).addTo(hkMap);
   hkSigns=L.layerGroup().addTo(hkMap);
   hkSignLeg=""; hkDrawSigns();
+  hkMap.on("zoomend",()=>{ if(hkSignKm==="auto"){ hkSignLeg=""; hkDrawSigns(); } });
   hkMap.fitBounds(hkLineAll.getBounds(),{padding:[24,24]});
 }
+/** 道なりの線をもらったあとに、白い線を引き直します */
+function hkBuildLine(){
+  const pts=hkLinePts();
+  if(hkLineAll) hkLineAll.setLatLngs(pts);
+  if(hkGAll) hkGAll.setPath(pts.map(a=>({lat:a[0],lng:a[1]})));
+}
 /* 各区間の 5km・10km・15km・20km に「▲」の標識を立てます */
+/** いま使う間かく（km）。0 なら出しません */
+function hkSignStep(){
+  if(hkSignKm!=="auto") return +hkSignKm||0;
+  let z=11;
+  if(hkUseG&&hkG&&hkG.getZoom) z=hkG.getZoom()||11;
+  else if(hkMap&&hkMap.getZoom) z=hkMap.getZoom()||11;
+  if(z>=14) return 0.5;
+  if(z>=13) return 1;
+  if(z>=12) return 2;
+  if(z>=11) return 5;
+  if(z>=10) return 10;
+  return 0;
+}
 function hkSignList(){
-  const leg=HK.km>HK_OUT?"in":"out", out=[];
+  const leg=HK.km>HK_OUT?"in":"out", out=[], st=hkSignStep();
+  if(!st) return {leg:leg+"|0",out};
   HK_KU.filter(k=>k.leg===leg).forEach(k=>{
-    [5,10,15,20].forEach(d=>{ if(d>=k.len) return;
-      const q=hkAt(hkOutPos(k.start+d)); out.push({d,lat:q.lat,lng:q.lng}); }); });
-  return {leg,out};
+    for(let d=st; d<k.len-1e-9; d=Math.round((d+st)*100)/100){
+      const q=hkAt(hkOutPos(k.start+d));
+      out.push({d:(st<1?d.toFixed(1):String(Math.round(d*10)/10)),lat:q.lat,lng:q.lng});
+    }
+  });
+  return {leg:leg+"|"+st,out};
 }
 function hkDrawSigns(){
   const {leg,out}=hkSignList();
@@ -6001,7 +6195,7 @@ function hkDrawSigns(){
       icon:{path:"M 0 0 L -8 -13 L 8 -13 z",fillColor:"#ffd45e",fillOpacity:1,
             strokeColor:"#3a2a00",strokeWeight:1,scale:1,
             labelOrigin:new google.maps.Point(0,-27)},
-      label:{text:x.d+"km",color:"#ffd45e",fontSize:"14px",fontWeight:"800"}})));
+      label:{text:x.d+"km",color:"#ffd45e",fontSize:"13px",fontWeight:"800"}})));
     return;
   }
   if(!hkSigns) return;
@@ -6012,11 +6206,7 @@ function hkDrawSigns(){
 }
 /* 走ってきた道。復路に入ったら往路の線は消して、芦ノ湖から引き直します */
 function hkDonePts(){
-  const x=hkOutPos(HK.km), p=hkAt(x);
-  if(HK.km<=HK_OUT+1e-9){
-    const a=HK_ROUTE.filter(q=>q.km<=x).map(q=>[q.lat,q.lng]); a.push([p.lat,p.lng]); return a; }
-  const a=HK_ROUTE.filter(q=>q.km>=x).map(q=>[q.lat,q.lng]).reverse();
-  a.push([p.lat,p.lng]); return a;
+  return hkCutPts(hkOutPos(HK.km), HK.km>HK_OUT+1e-9);
 }
 function hkDrawMap(){
   const p=hkAt(hkOutPos(HK.km));
@@ -6047,9 +6237,9 @@ function hkBuildGoogle(){
   if(!hkCan()) return;
   const h=document.createElement("div"); h.style.cssText="position:absolute;inset:0";
   const box=$("#hkMap"); box.innerHTML=""; box.style.position="relative"; box.appendChild(h);
-  const pts=HK_ROUTE.map(p=>({lat:p.lat,lng:p.lng}));
+  const pts=hkLinePts().map(a=>({lat:a[0],lng:a[1]}));
   hkG=new google.maps.Map(h,{center:pts[0],zoom:10,mapTypeControl:false,streetViewControl:false});
-  new google.maps.Polyline({path:pts,strokeColor:"#ffffff",strokeWeight:5,map:hkG,zIndex:1});
+  hkGAll=new google.maps.Polyline({path:pts,strokeColor:"#ffffff",strokeWeight:5,map:hkG,zIndex:1});
   hkGDone=new google.maps.Polyline({path:[],strokeColor:"#ff3b30",strokeWeight:6,map:hkG,zIndex:2});
   HK_REL.forEach(km=>{ const q=hkAt(km);
     new google.maps.Marker({position:{lat:q.lat,lng:q.lng},map:hkG,title:q.name,zIndex:3,
@@ -6059,6 +6249,7 @@ function hkBuildGoogle(){
     icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:"#ff3b30",fillOpacity:1,
           strokeColor:"#ffffff",strokeWeight:3}});
   hkUseG=true; hkSignLeg=""; hkDrawSigns();
+  hkG.addListener("zoom_changed",()=>{ if(hkSignKm==="auto"){ hkSignLeg=""; hkDrawSigns(); } });
   const b=new google.maps.LatLngBounds(); pts.forEach(p=>b.extend(p)); hkG.fitBounds(b);
   hkDrawMap();
 }
@@ -6075,6 +6266,7 @@ function hkEnter(){
   if(hkCan()&&$("#hkKey")&&!$("#hkKey").value){
     try{ $("#hkKey").value=localStorage.getItem(K_HKKEY)||""; }catch(e){}
   }
+  hkRoadLoad();
   let savedKey=""; try{ savedKey=localStorage.getItem(K_HKKEY)||""; }catch(e){}
   if(savedKey&&!hkG){
     /* キーを覚えていれば、そのまま Google マップで開きます */
@@ -6084,6 +6276,7 @@ function hkEnter(){
     hkEnsureMap(()=>setTimeout(()=>{ hkMap&&hkMap.invalidateSize(); hkDrawMap(); },80));
   }
   hkRender();
+  if(!HK_ROAD) setTimeout(()=>hkRoadFetch(true),600);   /* はじめの1回だけ道を聞きます */
   if(!HK.started) hkAskLevel(true);
   scrollTo({top:0,behavior:"smooth"});
 }
@@ -6335,6 +6528,15 @@ if($("#hkHit")) $("#hkHit").onclick=()=>{ lsHit();
   requestAnimationFrame(run); };
 if($("#hkFollow")) $("#hkFollow").onclick=e=>{ hkFollow=!hkFollow;
   e.target.textContent="追いかける："+(hkFollow?"オン":"オフ"); };
+if($("#hkRoad")) $("#hkRoad").onclick=()=>hkRoadFetch(false);
+if($("#hkSignSel")){
+  $("#hkSignSel").value=hkSignKm;
+  $("#hkSignSel").onchange=e=>{
+    hkSignKm=e.target.value;
+    try{ localStorage.setItem("sa-hakonesign-v1",hkSignKm); }catch(e2){}
+    hkSignLeg=""; hkDrawSigns();
+  };
+}
 if($("#hkOsm")) $("#hkOsm").onclick=()=>{ if(hkUseG) location.reload(); };
 if($("#hkGoo")) $("#hkGoo").onclick=()=>{
   if(!hkCan()) return;
@@ -10156,6 +10358,104 @@ function cheerSubmit(){
 
 /* ---- 11) ヘルプ ---- */
 const HELP={
+hakone:`<h3>箱根駅伝モード</h3>
+<p class="tiny">LSやりこみのおまけです。素数ゲームを1回クリアするたびに距離が進み、
+大手町から芦ノ湖を折り返して大手町まで <b>217.10 km</b> を走ります。
+<b>この機能と、このヘルプは管理者にしか見えません。</b></p>
+
+<h3 style="margin-top:16px">はじめかた</h3>
+<div class="scroll"><table><thead><tr><th>手順</th><th>すること</th></tr></thead><tbody>
+<tr><td><b>1</b></td><td>LSやりこみ の いちばん下にある、<b>何も書いていない青いボタン</b>を押します</td></tr>
+<tr><td><b>2</b></td><td>あいことばを入れます（1回通れば、その端末では次から聞かれません）</td></tr>
+<tr><td><b>3</b></td><td>1回クリアで進む距離を選んで「この設定でスタートする」</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">1回クリアで進む距離</h3>
+<p class="tiny">スタートすると変えられません。走り切るまでのクリア回数はこうなります。</p>
+<div class="scroll"><table><thead><tr><th>レベル</th><th style="text-align:right">1回で</th>
+<th style="text-align:right">217.10km に必要なクリア</th></tr></thead><tbody>
+<tr><td><b>Lv.1</b></td><td class="n">1.00 km</td><td class="n">222 回</td></tr>
+<tr><td><b>Lv.2</b></td><td class="n">0.50 km</td><td class="n">436 回</td></tr>
+<tr><td><b>Lv.3</b></td><td class="n">0.25 km</td><td class="n">870 回</td></tr>
+<tr><td><b>Lv.4</b></td><td class="n">0.10 km</td><td class="n">2,171 回</td></tr>
+<tr><td><b>Lv.5</b></td><td class="n">0.05 km</td><td class="n">4,342 回</td></tr>
+<tr><td><b>Lv.Max</b></td><td class="n">0.01 km</td><td class="n">21,710 回</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">コース</h3>
+<div class="scroll"><table><thead><tr><th>区間</th><th>どこからどこまで</th>
+<th style="text-align:right">距離</th></tr></thead><tbody>
+<tr><td><b>第1区</b></td><td>大手町 → 鶴見</td><td class="n">21.30 km</td></tr>
+<tr><td><b>第2区</b></td><td>鶴見 → 戸塚</td><td class="n">23.10 km</td></tr>
+<tr><td><b>第3区</b></td><td>戸塚 → 平塚</td><td class="n">21.40 km</td></tr>
+<tr><td><b>第4区</b></td><td>平塚 → 小田原</td><td class="n">20.90 km</td></tr>
+<tr><td><b>第5区</b></td><td>小田原 → 芦ノ湖</td><td class="n">20.80 km</td></tr>
+<tr class="sum"><td>往路</td><td>大手町 → 芦ノ湖</td><td class="n">107.50 km</td></tr>
+<tr><td><b>第6区</b></td><td>芦ノ湖 → 小田原</td><td class="n">20.80 km</td></tr>
+<tr><td><b>第7区</b></td><td>小田原 → 平塚</td><td class="n">21.30 km</td></tr>
+<tr><td><b>第8区</b></td><td>平塚 → 戸塚</td><td class="n">21.40 km</td></tr>
+<tr><td><b>第9区</b></td><td>戸塚 → 鶴見</td><td class="n">23.10 km</td></tr>
+<tr><td><b>第10区</b></td><td>鶴見 → 大手町</td><td class="n">23.00 km</td></tr>
+<tr class="sum"><td>復路</td><td>芦ノ湖 → 大手町</td><td class="n">109.60 km</td></tr>
+<tr class="sum"><td>合計</td><td>第102回大会のコース</td><td class="n">217.10 km</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">中継所をまたぐとき</h3>
+<p class="tiny">はみ出したぶんは<b>切り捨て</b>て、中継所でいったん止まります。
+次のクリアは、その区間の 0.00km 地点からです。</p>
+<div class="hintbox"><span class="tiny">
+Lv.1（1.00km）で第1区（21.30km）を走ると…<br>
+　21回目 → 21.00km<br>
+　22回目 → <b>21.30km</b>（0.70km ぶんは切り捨て。中継所で止まる）<br>
+　23回目 → 22.30km（第2区の 0.00km から再スタート）</span></div>
+
+<h3 style="margin-top:16px">画面の見かた</h3>
+<div class="scroll"><table><thead><tr><th>ところ</th><th>出るもの</th></tr></thead><tbody>
+<tr><td>左上</td><td>総合タイム、スタートした日時、いまの区間のタイム</td></tr>
+<tr><td>右上</td><td>いまの区・区間内の距離・メーター・通算・残り・標高</td></tr>
+<tr><td>メーター</td><td>その区間の進みぐあい。右はしがその区のゴールです</td></tr>
+<tr><td>マップ</td><td>白がコース全体、赤が走ってきた道。▲は 5km・10km・15km・20km の標識</td></tr>
+<tr><td>タイム</td><td>区間ごと／5kmごと／1kmごと。いま走っている行がゆっくり光ります</td></tr>
+</tbody></table></div>
+<p class="tiny">「マップだけ表示」を押すと、地図が画面いっぱいになります。
+右下の <b>＋1回 クリア！</b> は、押したあと1秒間押せなくなります（二重押し防止）。</p>
+
+<h3 style="margin-top:16px">総合タイム</h3>
+<p class="tiny">スタートした<b>時刻からいまの時刻まで</b>で数えます。
+LSやりこみのタイマーを止めても、こちらは止まりません。
+箱根駅伝モードを開いていなくても距離は進みます。</p>
+
+<h3 style="margin-top:16px">軌跡</h3>
+<p class="tiny">10区までゴールすると<b>第n回を完全制覇</b>したことになります。
+「軌跡」ボタンから、累計の走行距離・走行時間・完全制覇の回数と、
+レベルごとの成績、これまでの一回ずつの記録が見られます。
+記録の行を押すと、その回のスタート日時と区間タイムがすべて出ます。</p>
+<p class="tiny">ゴールすると「もう一度走る」が出ます。押すとレベルをもう一度選んで、次の回が始まります。</p>
+
+<h3 style="margin-top:16px">コースの線と標識</h3>
+<p class="tiny">はじめて開いたとき、<b>道案内のサーバーに1度だけ聞いて</b>、
+国道15号・国道1号にそった実際の道の形をもらいます（建物の上を横切りません）。
+もらった線はこの端末に保存され、ほかの端末にも同期されるので、聞きに行くのは1回だけです。
+うまくいかなかったときは「道なりに引き直す」を押してください。</p>
+<p class="tiny">▲の標識は、区間の中の距離です。間かくを選べます。</p>
+<div class="scroll"><table><thead><tr><th>選ぶもの</th><th>出るもの</th></tr></thead><tbody>
+<tr><td><b>自動</b></td><td>地図を拡げるほど細かくなります（0.5km 〜 10km、引きすぎると消えます）</td></tr>
+<tr><td>0.5km ごと</td><td>片道で 212 本</td></tr>
+<tr><td>1km ごと</td><td>片道で 105 本</td></tr>
+<tr><td>2km ごと</td><td>片道で 51 本</td></tr>
+<tr><td>5km ごと</td><td>片道で 20 本</td></tr>
+<tr><td>10km ごと</td><td>片道で 10 本</td></tr>
+<tr><td>表示しない</td><td>標識を出しません</td></tr>
+</tbody></table></div>
+<p class="tiny">往路と復路は同じ道なので、いま走っているほうだけ出ます。</p>
+
+<h3 style="margin-top:16px">地図について</h3>
+<p class="tiny">はじめは OpenStreetMap で表示します。
+Google マップの API キーを入れると、そちらに切り替わります。
+<b>キーはこの端末にだけ保存され、index.html には書きません。</b>
+ほかの人の画面には Google のスクリプトが届かないので、勝手に課金されることはありません。</p>
+<p class="tiny">キーは端末どうしで同期されるので、一度入れれば
+パソコンでもスマホでも入ったままになります。</p>`,
 role:`<h3>審査のしくみ</h3>
 <p class="tiny">出された記録は、3段階の確認を通ってはじめて公式の記録になります。</p>
 <div class="scroll"><table><thead><tr><th>段階</th><th>だれが</th><th>すること</th><th>記録の色</th></tr></thead><tbody>
@@ -10481,8 +10781,19 @@ Prime SNS からも見えなくなります。ただし、正しく却下した�
 </tbody></table></div>`
 };
 let helpTab="role";
+/** 「箱根駅伝」のヘルプは管理者にだけ見せます */
+function hkHelpTab(){
+  const t=$("#hpHakone"); if(!t) return;
+  const admin=(typeof isAdmin==="function")&&isAdmin();
+  t.hidden=!admin;
+  const tabs=$("#helpTabs");
+  if(tabs) tabs.style.gridTemplateColumns="repeat("+(admin?4:3)+",1fr)";
+  if(!admin&&helpTab==="hakone") helpTab="role";
+}
 function renderHelp(){
   const b=$("#helpBox"); if(!b) return;
+  hkHelpTab();
+  if(helpTab==="hakone"&&!((typeof isAdmin==="function")&&isAdmin())) helpTab="role";
   $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
   b.innerHTML=HELP[helpTab]||"";
 }
@@ -11391,12 +11702,7 @@ function normalize(j){
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
-  if($("#syncWhat")) $("#syncWhat").innerHTML=
-    "そろえるもの：個人データ（記録）・プロフィール・フレンド・LSやりこみ（設定と記録）"
-    +"・箱根駅伝（進みぐあいと軌跡）・自動投稿の設定<br>"
-    +'<span style="color:var(--dim2)">'
-    +"パソコンで記録、スマホでLSやりこみ、のように別々にいじっても、両方とも残ります。"
-    +"同じところを同時にいじったときは、あとから保存したほうが残ります。</span>";
+  stWhat();
   stMark(stState||(sess?"—":"ログインしていません"));
   /* ブラウザを更新しても、さっき見ていた場所に戻します */
   try{
