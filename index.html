@@ -1042,6 +1042,7 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
       <span id="hkGooBox" hidden style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn sm" id="hkGoo">Google マップ</button>
         <input type="text" class="txt" id="hkKey" placeholder="Google マップの API キー" style="max-width:240px">
+        <button class="btn sm" id="hkKeyDel">キーを消す</button>
       </span>
       <button class="btn sm" id="hkFollow">追いかける：オン</button>
     </div>
@@ -1507,6 +1508,16 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
 
 <section id="settings" hidden>
 <div class="card">
+    <h2>ほかの端末との同期</h2>
+    <p class="muted" style="margin-top:-8px">ログインしていると、
+      個人データ・フレンド・LSやりこみ・箱根駅伝などが、パソコンとスマホで同じになります。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="syncBtn">今すぐ同期する</button>
+      <span class="tiny" id="syncNow2">—</span>
+    </div>
+    <p class="tiny" id="syncWhat" style="margin-top:8px"></p>
+  </div>
+<div class="card">
     <h2>プロフィール設定</h2>
     <div id="acctTop" style="margin-bottom:14px"></div>
     <div class="frow">
@@ -1639,7 +1650,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v56";
+const APP_VERSION = "v58";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2209,6 +2220,155 @@ async function pbkdf2(pw,saltHex,iter){
 const b64e=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const b64d=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
 const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
+
+/* =========================================================
+   2z. 端末どうしの同期
+   ・「自分で持っているだけ」だったものを、ログインしていればクラウドにあずけます
+   ・キーごとに「あとで書いたほうが勝ち」なので、
+     パソコンで記録・スマホでLSやりこみ、のように別々にいじっても両方残ります
+   ========================================================= */
+const K_SYNCAT="sa-sync-at", K_SYNCSINCE="sa-sync-since";
+/* そろえるもの（ログイン情報・端末ごとの設定・大きな控えは入れません） */
+const ST_KEYS=[
+  "sa-rec-v3",        /* 個人データ（記録） */
+  "sa-pro-v3",        /* プロフィール */
+  "sa-fr-v3",         /* フレンド */
+  "sa-times-v1","sa-baseline-v1",
+  "sa-mymax-v1","sa-claim-v1",
+  "sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1",                 /* LSやりこみ */
+  "sa-hakone-v1","sa-hakonelog-v1","sa-hakoneunl-v1","sa-hakonekey-v1",  /* 箱根駅伝 */
+  "sa-autopost-v1","sa-tagwatch-v1",
+];
+const ST_MAX=150000;      /* 1つが大きすぎるものは送りません */
+let stStamp={}, stSince=0, stSnap={}, stReady=false;
+try{ stStamp=JSON.parse(localStorage.getItem(K_SYNCAT)||"{}")||{}; }catch(e){ stStamp={}; }
+try{ stSince=+localStorage.getItem(K_SYNCSINCE)||0; }catch(e){ stSince=0; }
+const stSaveAt=()=>{try{
+  localStorage.setItem(K_SYNCAT,JSON.stringify(stStamp));
+  localStorage.setItem(K_SYNCSINCE,String(stSince));
+}catch(e){}};
+/* 中身が変わったものを見つけて、変わった時刻を覚えます。
+   保存の書き方がどれでも取りこぼさないように、少し目を離した隙にも見に行きます */
+function stScan(baseline){
+  let moved=false;
+  ST_KEYS.forEach(k=>{
+    const cur=localStorage.getItem(k);
+    if(stSnap[k]===cur) return;
+    stSnap[k]=cur;
+    if(baseline) return;                 /* 最初の1回は「今の姿」を覚えるだけ */
+    if(cur==null) return;
+    stStamp[k]=Date.now(); moved=true;
+  });
+  if(moved){ stSaveAt(); stSoon(); }
+  return moved;
+}
+let stT=null, stBusy=false, stState="";
+function stSoon(){
+  if(!stCan()) return;
+  clearTimeout(stT); stT=setTimeout(()=>stSync(),4000);
+}
+function stCan(){
+  return !(typeof TEST!=="undefined"&&TEST) && typeof sess!=="undefined" && !!sess
+      && typeof sbOn==="function" && sbOn();
+}
+function stMark(t){
+  stState=t;
+  const el=document.getElementById("syncNow2");
+  if(el) el.textContent=t;
+}
+/** はじめてつないだとき。
+ *  クラウドにあるものはクラウドを正とし、クラウドに無いものだけこちらから足します */
+async function stStart(){
+  if(!stCan()||stReady) return;
+  stMark("同期中…");
+  try{
+    const got=await callRpc("state_get",{p_since:0},[["p_since"]]);
+    let changed=false;
+    Object.keys(got||{}).forEach(k=>{
+      if(ST_KEYS.indexOf(k)<0) return;
+      const e=got[k]||{}, at=+e.at||0;
+      if(typeof e.v!=="string") return;
+      if(at>stSince) stSince=at;
+      if(at>(stStamp[k]||0)){ localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
+    });
+    /* この端末にしかないものは、いまの時刻をつけて送ります */
+    ST_KEYS.forEach(k=>{
+      if(localStorage.getItem(k)!=null && !stStamp[k]) stStamp[k]=Date.now();
+    });
+    stSaveAt();
+    stScan(true);                    /* いまの姿を基準にします */
+    stReady=true;
+    if(changed) stReload(true);
+    await stSync();
+  }catch(e){ stMark("同期できませんでした"); }
+}
+async function stSync(showToast){
+  if(stBusy||!stCan()) return;
+  if(!stReady){ await stStart(); return; }
+  stScan(false);
+  stBusy=true; stMark("同期中…");
+  try{
+    const send={};
+    ST_KEYS.forEach(k=>{
+      const at=stStamp[k]||0;
+      if(at<=stSince) return;                 /* 変わっていないものは送りません */
+      const raw=localStorage.getItem(k);
+      if(raw==null||raw.length>ST_MAX) return;
+      send[k]={v:raw,at:at};
+    });
+    const got=await callRpc("state_put",{p_data:send,p_since:stSince},[["p_since"]]);
+    stApply(got);
+    stMark("そろっています　"+new Date().toLocaleTimeString("ja-JP"));
+    if(showToast) toast("同期しました");
+  }catch(e){
+    stMark("同期できませんでした");
+    if(showToast) toast(String((e&&e.message)||e).slice(0,120));
+  }finally{ stBusy=false; }
+}
+/** クラウドから来たぶんを、手元が古いときだけ書き戻します */
+function stApply(got){
+  if(!got||typeof got!=="object") return;
+  let changed=false, top=stSince;
+  Object.keys(got).forEach(k=>{
+    if(ST_KEYS.indexOf(k)<0) return;
+    const e=got[k]||{}, at=+e.at||0;
+    if(at>top) top=at;
+    if(typeof e.v!=="string") return;
+    if(at>(stStamp[k]||0)){ localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
+  });
+  stSince=Math.max(top,stSince);
+  stSaveAt();
+  stScan(true);                      /* 書き戻したぶんを「変更」と数えないように */
+  if(changed) stReload();
+}
+/** 受け取ったものを画面に反映します */
+function stReload(quiet){
+  try{
+    rec=fixNames(ls(K_REC,{}));
+    pro=Object.assign({name:"",handle:"",img:"",imgSm:"",pub:false,x_url:"",bio:"",proofs:[],at:0},ls(K_PRO,{}));
+    friends=ls(K_FR,[]);
+    recTimes=ls(K_TIMES,{}); baseline=ls(K_BASE,{done:false,at:0});
+    if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
+    if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
+    if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
+    if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null});
+    if(typeof autoPost!=="undefined") autoPost=ls(K_AUTOPOST,{rec:true,cup:true,ach:true});
+    if(typeof HK!=="undefined"){ HK=Object.assign(HK,ls(K_HK,{}));
+      if(HK.startAt&&!(HK.startAt instanceof Date)) HK.startAt=new Date(HK.startAt); }
+    if(typeof HKLOG!=="undefined"){ HKLOG=ls(K_HKLOG,{runs:[]}); if(!HKLOG.runs) HKLOG={runs:[]}; }
+    if(typeof hkUnlocked!=="undefined") hkUnlocked=localStorage.getItem(K_HKUNL)==="1";
+    if(typeof fillInputs==="function") fillInputs();
+    if(typeof render==="function") render();
+    if(typeof renderLs==="function" && $("#ls") && !$("#ls").hidden) renderLs();
+    if(typeof hkRender==="function" && $("#hakone") && !$("#hakone").hidden) hkRender();
+    if(typeof renderHomeFriends==="function") renderHomeFriends();
+    if(!quiet && typeof toast==="function") toast("ほかの端末の変更を取り込みました");
+  }catch(e){}
+}
+/* 変わったものを探して、ときどきほかの端末の変更も見に行きます */
+setInterval(()=>{ if(!document.hidden) stScan(false); },3000);
+setInterval(()=>{ if(!document.hidden&&stCan()) stSync(); },120000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&stCan()) stSync(); });
 
 /* =========================================================
    3. 状態
@@ -5546,6 +5706,9 @@ $("#lsPause").onclick=()=>{
    ========================================================= */
 const HK_PASS="hakone2026";                 /* 合いことば。ここを変えれば変わります */
 const K_HK="sa-hakone-v1", K_HKLOG="sa-hakonelog-v1", K_HKUNL="sa-hakoneunl-v1";
+/* Google マップのキーは、この端末の中だけに置きます。
+   index.html には書かないので、ほかの人には絶対に渡りません */
+const K_HKKEY="sa-hakonekey-v1";
 const HK_OUT=107.5, HK_IN=109.6, HK_ALL=217.1;
 const HK_LV=[{k:"1",name:"Lv.1",step:1.00},{k:"2",name:"Lv.2",step:0.50},
              {k:"3",name:"Lv.3",step:0.25},{k:"4",name:"Lv.4",step:0.10},
@@ -5909,7 +6072,17 @@ function hkEnter(){
   $("#hakone").hidden=false;
   document.body.classList.add("hkview");
   $("#hkGooBox").hidden=!hkCan();
-  hkEnsureMap(()=>setTimeout(()=>{ hkMap&&hkMap.invalidateSize(); hkDrawMap(); },80));
+  if(hkCan()&&$("#hkKey")&&!$("#hkKey").value){
+    try{ $("#hkKey").value=localStorage.getItem(K_HKKEY)||""; }catch(e){}
+  }
+  let savedKey=""; try{ savedKey=localStorage.getItem(K_HKKEY)||""; }catch(e){}
+  if(savedKey&&!hkG){
+    /* キーを覚えていれば、そのまま Google マップで開きます */
+    $("#hkGoo").classList.add("on"); $("#hkOsm").classList.remove("on");
+    hkInitGoogle(savedKey);
+  }else{
+    hkEnsureMap(()=>setTimeout(()=>{ hkMap&&hkMap.invalidateSize(); hkDrawMap(); },80));
+  }
   hkRender();
   if(!HK.started) hkAskLevel(true);
   scrollTo({top:0,behavior:"smooth"});
@@ -6167,7 +6340,13 @@ if($("#hkGoo")) $("#hkGoo").onclick=()=>{
   if(!hkCan()) return;
   const key=($("#hkKey").value||"").trim();
   if(!key) return toast("Google マップを使うには API キーが要ります（OpenStreetMap のままでも同じように動きます）");
+  try{ localStorage.setItem(K_HKKEY,key); }catch(e){}   /* この端末にだけ覚えます */
   $("#hkGoo").classList.add("on"); $("#hkOsm").classList.remove("on"); hkInitGoogle(key);
+};
+if($("#hkKeyDel")) $("#hkKeyDel").onclick=()=>{
+  try{ localStorage.removeItem(K_HKKEY); }catch(e){}
+  if($("#hkKey")) $("#hkKey").value="";
+  toast("この端末に覚えていたキーを消しました");
 };
 $$("#hkLapTab button").forEach(b=>b.onclick=()=>{
   hkLapTab=b.dataset.l;
@@ -11197,15 +11376,28 @@ function normalize(j){
       try{ const r=await fetch(SB_URL+"/auth/v1/user",{headers:{apikey:SB_KEY,Authorization:"Bearer "+sess.access_token}});
         sess.user=await r.json(); }catch(e){}
       saveSess(); history.replaceState(null,"",location.pathname); toast("ログインしました");
+      stReady=false;
     }
   }
   fillInputs(); lsFxLabels();
   try{ applyData(); }catch(e){ console.error(e); }
+  /* ★ ほかの端末との同期。記録・LSやりこみ・箱根駅伝などをそろえます */
+  if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
     try{ await loadFriendReq(); renderFriendReq(); }catch(e){}
     try{ await loadMyStat(); renderRole(); }catch(e){}
     try{ await askAwards(); await loadMyAwards(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
+  if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
+    if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
+    $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
+  if($("#syncWhat")) $("#syncWhat").innerHTML=
+    "そろえるもの：個人データ（記録）・プロフィール・フレンド・LSやりこみ（設定と記録）"
+    +"・箱根駅伝（進みぐあいと軌跡）・自動投稿の設定<br>"
+    +'<span style="color:var(--dim2)">'
+    +"パソコンで記録、スマホでLSやりこみ、のように別々にいじっても、両方とも残ります。"
+    +"同じところを同時にいじったときは、あとから保存したほうが残ります。</span>";
+  stMark(stState||(sess?"—":"ログインしていません"));
   /* ブラウザを更新しても、さっき見ていた場所に戻します */
   try{
     const w=ls(K_TAB,null);
