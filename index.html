@@ -1639,7 +1639,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v54";
+const APP_VERSION = "v55";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -7230,12 +7230,20 @@ function tstRpc(name,b){
     return null;
   }
   if(name==="join_pcup"){
-    const e=TDB.ent.find(x=>x.cup_id===b.p_cup&&x.handle===pro.handle);
-    if(e){ if(b.p_total>=e.total){ e.total=b.p_total; e.proof_url=b.p_proof; e.detail=b.p_detail; }
-           e.nomiss=!!b.p_nomiss; }
-    else TDB.ent.push({id:"ne"+Date.now(),cup_id:b.p_cup,handle:pro.handle,name:pro.name||"わたし",
-      total:b.p_total,detail:b.p_detail,proof_url:b.p_proof,nomiss:!!b.p_nomiss,
+    /* 本番と同じで、出すたびに1件ずつ残ります */
+    TDB.ent.push({id:"ne"+Date.now()+Math.random(),cup_id:b.p_cup,handle:pro.handle,
+      name:pro.name||"わたし",total:b.p_total,detail:b.p_detail,proof_url:b.p_proof,
+      nomiss:!!b.p_nomiss,links:b.p_links||[],status:"pending",
       created_at:new Date().toISOString()});
+    /* タイムラインには公式タグつきの1件だけを流します */
+    if(b.p_post!==false){
+      const c=TDB.cups.find(x=>x.id===b.p_cup)||{title:"チャレンジ",kind:"challenge"};
+      const tag=c.kind==="official"?"#大会参加":"#チャレンジ参加";
+      TDB.posts.unshift({id:"nj"+Date.now(),handle:pro.handle,name:pro.name,kind:"record",
+        cup_id:b.p_cup,body:`${tag} ${c.title} に記録を出しました！ 合計スコア ${b.p_total}`,
+        link:b.p_proof||null,lv:(tstStat().lv||0),role:(me&&me.role)||"user",
+        created_at:new Date().toISOString(),mine:true});
+    }
     return null;
   }
   if(name==="close_pcup"){ const c=TDB.cups.find(x=>x.id===b.p_id); if(c) c.closed=b.p_closed!==false; return null; }
@@ -8152,14 +8160,14 @@ function pcupJoin(id){
       await callRpc("join_pcup",{p_cup:id,p_total:t,p_proof:pf,
         p_detail:{steps:steps.map(x=>x.event),loops:loops,grid:grid},
         p_nomiss:r.nomiss?!!M.q("#jN").checked:false,p_links:LK,
-        p_discord:dis,p_dnote:dnote||null},
-        [["p_discord","p_dnote"],["p_links","p_discord","p_dnote"],
-         ["p_detail","p_nomiss","p_links","p_discord","p_dnote"]]);
+        p_discord:dis,p_dnote:dnote||null,
+        p_post:autoPost.cup!==false},
+        [["p_post"],["p_post","p_discord","p_dnote"],
+         ["p_post","p_links","p_discord","p_dnote"],
+         ["p_post","p_detail","p_nomiss","p_links","p_discord","p_dnote"]]);
       M.close(); toast("提出しました"); cheerSubmit();
-      if(autoPost.cup){
-        try{ await callRpc("post_update",{p_body:
-          `${c.title} に記録を出しました！　合計スコア ${jp(t)}`,p_link:pf}); }catch(e){}
-      }
+      /* タイムラインへの投稿は join_pcup（サーバー側）が
+         公式タグつきで1件だけ作ります。ここでは投稿しません。 */
       await loadPcupEnt(id); renderPcups();
       await loadFeed(true); renderPfeed();
     }catch(e){ M.q("#jM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
