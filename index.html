@@ -1045,7 +1045,6 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
         <button class="btn sm" id="hkKeyDel">キーを消す</button>
       </span>
       <button class="btn sm" id="hkFollow">追いかける：オン</button>
-      <button class="btn sm" id="hkRoad">道なりに引き直す</button>
       <span class="tiny">標識</span>
       <select id="hkSignSel" class="txt" style="max-width:190px">
         <option value="auto">自動（地図の拡大に合わせる）</option>
@@ -1662,7 +1661,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v60";
+const APP_VERSION = "v61";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2249,7 +2248,7 @@ const ST_KEYS=[
   "sa-mymax-v1","sa-claim-v1",
   "sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1",                 /* LSやりこみ */
   "sa-hakone-v1","sa-hakonelog-v1","sa-hakoneunl-v1","sa-hakonekey-v1",  /* 箱根駅伝 */
-  "sa-hakoneroad-v1","sa-hakonesign-v1",
+  "sa-hakonesign-v1",
   "sa-autopost-v1","sa-tagwatch-v1",
 ];
 const ST_MAX=150000;      /* 1つが大きすぎるものは送りません */
@@ -5845,21 +5844,18 @@ const HK_R=[
 const HK_ROUTE=HK_R.map(a=>({km:a[0],lat:a[1],lng:a[2],ele:a[3],name:a[4]}));
 
 /* ── 道なりのコース ──
-   上の167地点は「だいたいこの道を通る」ための目印です。直線で結ぶと建物の上を横切るので、
-   はじめて開いたときに1度だけ道案内のサーバーへ聞いて、実際の道路にそった線をもらいます。
-   もらった線はこの端末に保存し、ほかの端末にも同期されるので、聞きに行くのは1回だけです。 */
-const K_HKROAD="sa-hakoneroad-v1";
-let HK_ROAD=null;          /* [{pts:[[lat,lng],...], cum:[0,...], len:全長m}, ...] 区ごと */
-let hkRoadBusy=false;
-function hkPolyEnc(coords){
-  const one=v=>{ v=v<0?~(v<<1):(v<<1); let o="";
-    while(v>=0x20){ o+=String.fromCharCode((0x20|(v&0x1f))+63); v>>=5; }
-    return o+String.fromCharCode(v+63); };
-  let out="",pa=0,pb=0;
-  coords.forEach(c=>{ const a=Math.round(c[0]*1e5), b=Math.round(c[1]*1e5);
-    out+=one(a-pa)+one(b-pb); pa=a; pb=b; });
-  return out;
-}
+   国道15号・国道1号にそった実際の道の形です（OpenStreetMap の道案内から作り、
+   2m の誤差までまとめました）。区間ごとに1本ずつ、5桁の折れ線でしまってあります。
+   道のりの合計は 107.18km（公式の往路 107.50km とほぼ同じ）。
+   ここに入れてあるので、地図を開くたびに外へ聞きに行くことはありません。 */
+const HK_ROADS=[
+  "o}xxEaw`tYQjDxCv@NIx@RBD|NrCNOb@JtAZBVxRvEFCv@PHHnOtDH?dBd@LJRAh@r@?X`J|IBJnMxGVN@HhGxCFJvAd@LCj@RDLfG|BLCrGdC~Bl@CFfIxCvAf@FA~KvElCbAb@?bDjA@FfQ|A`FPbL~@Lt@ZJpCNpJbAbHh@nD`@NF|@|BnAxDHJdClG|BlEBVTRTx@r@h@bArA|CvCtH~D~BfApBz@bEpAfNnGRNf@NFCbHpBnKhC~IpAhBL|HRd@\\bE^A]F]~CE|DS`Ei@zCq@fAM|AD|Er@Ja@xTeMtBaA`AUxASpH[NN`@@PWbJ]xAQBDPEDGz[iFJ?r@OIL@LH[hN{BJF^?FI^Ft@ZhOxLhBnAvAv@xj@nS`D~@pBXhE^fBVHL^BDGHy@nDj@xCXxMr@nD@lAPFSJGJ??DtN}AjIs@|AGl@B~Ch@jTbFT\\b@J^KdYvGn@ZpFbElAn@rB`Bb@?XPpI~FH@T[fJrGfMbIdKhH`GvDrRtMTHJEf@XBRLN`JlGh@b@RV|MdJ`CfBRV~CzB|TjOXJnCnB`@NjFzDH@pAfAfQpMZGDKjDzBpC`B~@d@~@X@EVFh@V?HrSrBbCN\\EhATNA~Dx@n@FJLlBv@jS|MXRAFhDxBBIvCvBbHjEd@^RC@Hp@j@Fh@dB|C\\bArK~UhSfe@|@jBbA~AtBfBrBpA|g@b[~BdBN\\TR~BxAxCfC@DOZfCxBuC`G|BnCm@lAfArA",
+  "glvwEwcpsY`BnBnAm@zAlBDL?Zh@?Fu@dAx@p@JFBAFfATpFxBXo@xBoBh^dZnAjAjd@bk@`A`B|@|BDBXMrBpEhE`IxGfJvAzBbFvKx@pA`CfCxAbCj@|AfExSRhBjAzORvBN|@@n@t@hI|@pDlC~Ft@tAfC|DjA~BTVBPi@p@xAjCpApBfDpEnCzCvTbT~@jAPCxRrPfKbKzAfB\\`AApAp@@GbHRv@`E|Ca@|@bAx@bBfB~FpEGJEb@@b@Rn@QHw@bBtA~AGHhAnAzApABPh@d@@VfAhA?^O^RRpBfAEVPFo@VfHvYHFJpAHDp@xAtCrGBPJJzAbDxEpKBTKhAa@jCNJ]nClJjDdCdAvHhCb@TPIVPFF@VjInInE|EKXrAtAEj@F`@zAlApDpFPbBv@rDLDjBEAj@Nf@AF_@XFNVJALMNPR?JWh@cATHtEGdEcBGbBFhAED~JJNQPGb@PnF`Bi@^lAvAvCFh@dCEB`@W\\D\\Zf@@b@FRZ^JXvFrDx@^TDvAE`Cf@MpAhANGp@bALDdHGTPZBvAvArNAbC]bEd@Fm@jHElA@pBRlD^bBb@`A`AjA`E|BF?`@ZfBx@j@Nd@^r@XjBjAlAjAv@^XH`ADzFEB`@d@Ip@tAf@`B`@z@E@pAtGp@hALj@Lr@X~C`Kq@JvC~Fi@|D~@t@GLzB\\n@rFm@`@JBj@lC\\j@@HtAIr@tAQ^bEtAULlBTIvA|B\\bAd@]x@MH`@Wj@C^AbBHf@`AOJzAt@lBb@r@@`@|@zCrAY@Bu@|@GjA?Pt@THrAMzAZD@GdBXNVf@FLI~XtD`D\\HFDTSdBcBlKIBCRZZOjB?jBd@jI\\nDfCtM`@|Ad@~@`@n@~BjCvBtAfA|AhAvBJBVp@LJ?NzAzC|DpGj@fAtBfFfA`Dj@rAVPT?`CbCF?~@l@R^jKxF`@NBE`@HDHpFnAj@FNJlBj@ZLj@b@`BdCn@VrCXATl@JZNdCfCzAjB`Az@a@vBdCr@i@|C^J",
+  "__bwEyzsrYLBSjAxAb@AJeCKC`@\\BCz@TL?J`A`@OhA@jCF^Z@`AMXLLJJ|@p@bAdAhAbCvAJMt@fAl@rA|A|BzAnFJDOvCc@lCc@hA}AfCZVb@FFXCZP\\SnAK??FOA[RLb@MHWz@Fj@EFI?Kj@AtBFxAFJb@bCOt@hAz@`@LNLRVTfAZf@xAbBSdCQj@XFJEVn@x@f@zB|@bGdBDFrBp@TPb@j@bA`CpAvA`AtBe@nBEACn@~@N~@p@vCp@Cv@^LNj@HCp@b@r@GhAl@^~@f@v@t@l@fBtBtBZhA|A^^DGl@p@L]j@Zp@RKhAIBEf@~@B|@NXd@PKTAx@FnBhAv@LLl@hA|@lCx@f@v@J`@HD?^NBpA~AlCtDJVj@j@xBpCb@?fDrE`AfAj@`BzCvQr@|Ad@j@p@d@jLjFfBfAbLpK\\ThG~FD?BLn@j@DAx@h@l@LhBFv@Lv@Xd@ZhAnAy@v@zEdLf@bAx@jAfB`BpBbAjBd@l@H`EDxANo@zKPl@dAHB~AEjBNlBF\\Zx@F\\ATx@CAlHH@i@bI`ACKzEr@Jv@dAl@j@AbB`@?w@tC@Px@xCb@n@rAhAYn@PJn@?HXFEFHJI|B`Cr@LPTRx@@Th@dAB`BlArAFdEP??JbHPFjBB|EExEN|Bh@pD`@Dx@V@DfCl@fDPvUt@AXH@hL`@dBNGJ]tIe@vGC|BBdDJHrAHTLx@t@Lz@LVJD`@@xA]zAAb@XlCzD`@N~@NAJ\\NJNRt@vA|ID|@IdCBXJTLKLVx@pCtAQrBKJPz@KBKvFYDBh@rEbAbHbAxD`@zBFdB?x@Gt@PDq@nECrBJlANl@P\\|@xALBVj@CLHXvA~BpAhD]P`@hAZvAh@pDTnCB~DDFJbBRtAnB~I~AxD`ArAEHL~@b@zBx@`B\\`C@p@\\TZn@n@TdAlB@VKnAAbALn@Zt@hBxCBBDK~BbCdBzBZHd@n@|@lBhBlCXl@~@hA^Np@dAL~@?n@YxHmAxKk@bCCpAHzFZbM`@xD`A`FRtBLNp@lFl@jGNvE@t@GN@LDPD@RpA`@|A`@hAfAvBjB|GvAbC`@z@^jA\\nBX|CPfAhA~Df@~EEVDDHj@HHf@fBrA|Gr@tCv@xB~B~Df@jArDvK`@|AxDvTxBrKB^Cl@QfBkAbEi@hAuCpCXJKNTB?Ny@rf@CdGoD@w@`BEREzDi@S^fAJ`B@~BSpBO`@w@fAo@p@k@ZCP_@Ny@G?VMNEvELrCtAtNVlBRd@Hh@XzCJtBl@`XDvHLbDh@`XLdCFBDp@EHh@lJXrCBNFDBVCNrAnMn@pH?`@j@nIFDF`AlC_@b@^FdBvAOHdA",
+  "}asvEotoqYVnC_BJJbDDNCT`AbHK@VdBAD{BXHz@Ab@~C|VJHFl@EF|BhO~@nEAJrIx\\Bl@HTn@\\nB`CtDzG\\NJRAJDLzBdDjCzEvGrIzCvGt@lAn@v@r@p@j@^fAb@xB^dCHATF@zBJpA\\hB~@xAzAvIjMlCbEFVPLt@`ApDrFfAdA]dAb@pGY`CEhALDp@jA\\|AfBdDp@bBk@d@JH`@~@d@tB[CG|@PBr@tENZJ`CRrJ?`AMpA_@xAyArDSz@@^VpARdB@xFD`AnBd\\b@tIG~BqBnQGlAB`AD^Xx@r@v@l@\\z@T@Iv@RbAl@j@LPJJTt@x@hBhADP?`C`Dre@Gv@x@\\F^tA`TAb@HRATOXGtBDCBDNz@@rA\\?JpAl@KGcAd@jITxBd@`Dr@nDx@`DLL\\lA@PbD`LFNj@]|@vCv@~Dv@rANtBt@zCRlAbDzKpADj@z@t@~FUZj@~BCDJb@w@z@h@l@t@rC`@rBAt@XfA]j@`@n@v@rBd@zBbBxE\\z@~AlCb@jBdAxHlArFjA|GJ~@DjAQjE]z@kCrCJTB|@_@fB_A~@y@f@G^IjAAlKBRL`@rClCP\\LjA`@IbFXz@WdAC\\B\\Nr@l@HTF|@Xn@F?PtCEp@d@MHBT|@fB_@PAJHVx@DnA[dA_@lB?LLLNBQL@r@KPTNBj@YbAbBdAW~@PHR?|Cg@]zAnAi@bBlFpBvEjCtFtBxDtHfMxI|MlCzEz@nBdGtQp@[RPbAnD`AnBtDjNf@~DLrCThCVx@RNd@pFLd@PdBLZDj@G\\LHFZPbKh@zFmAT@h@OdBJl@@p@^CLfCjAhNPzzBMbZJff@Cb[P@RP~GfIx_@pe@~@rAbA|BbAbDtAvDW`Bi@|Ag@pB_@t@jHtBlBb@xILChKD??ErKKTE`GK@t@~DGJx@CzFfA?",
+  "cmfvEweipYvEFU~@uAzCKh@IzBSvAPxEv@hBz@fAh@~AXpB|ArBzAnCn@lEdBhGf@zDCjAv@xBPxAlAhCh@`C^n@p@z@|@XpBlBb@j@z@hCf@fC|@nBPj@?ZvA^d@IfAa@r@El@_@P\\@ZIn@EnA]dBPvBJ^l@|@Vz@\\XLf@B`ADRVf@Jt@^p@Pv@zAvB\\Vj@NXf@ZX`DlBHZA\\Sn@d@Rd@aATkARa@CYo@eB@Gv@aAd@IbAy@HFG~@LTb@Fl@CrBjAn@`Al@XZ?hBu@rB_@t@mA@]`@iAJKLHX]ZOx@U`AML\\l@Nn@Ed@`BPI^r@PO|DdInAq@HBdBtCdCbDhDzGlE|JLLp@Th@n@iAvAQPCCTUbBrAlCxApDxC`@LzBfCNd@lArAfBdCpAbCxCnGX|@`B|Dn@jC`@hECf@GNDFc@x@r@b@rAfBbDdIh@fBTjAl@nEHtAApBEh@[~APH`@@x@VKbACdA?TFR^NpAT?jANvDHiATe@?qB`AI^TJXYnBb@jBv@bCdAs@r@d@ZjAl@zAMt@LfB\\jACpALp@RTXNfBULpDm@XDjBFFH~CFFMFAKYHl@p@Zv@`@dBHpAEpDDpAj@zBNhCd@nBXh@xA|A|ArBn@tAb@~Ax@pBA|@`@HxDBRRNf@KbABVr@\\Fz@LDVA|@g@j@KNLIh@u@|@Ob@Cd@PX`@AtExL\\dBR|CPXz@T\\RR`@n@`DCbBUnB@v@VtAbAdCBTEvAdAvENnANrDXbBRn@`@p@b@fB?XWdB@f@`@~A~@pBLz@?v@c@nHDZxA`B`@V~@Xb@Zp@x@LXj@LfInDHL@TPRf@hAvCnHQxAe@^]j@cAWgBuAK?Xd@AZFN`@h@Zv@LfA@l@|@pCKRDb@JZ|@p@N@vApCPNlAD^HVRFN`@B`Ad@\\DPMNy@JSHc@FGv@bAx@IJDNd@HbA@|BPPn@~C\\t@RPxBhAdBrBHRdARpAn@Zt@JDVCPHRd@~@H|An@Dn@EXBLGDDNt@k@NDBHAXQR]bA`BcAL@RN`@l@DTETkCxAUXE^BLPL~@a@hAU^DDHBZANGHeBFOHGVFRJHxAXPNCjA\\ZRt@HJGXYj@CVLHZK\\?Z^|@u@\\Kl@@TNFXt@|@x@`@|Af@^b@rBxA?\\zBzDn@d@r@|@fA`At@bBOVX`@]j@@XhAhBVX\\NxBrCTf@LrA]LRpAPvBGhAd@tDQ|AWtAI~Bm@zFc@dBoAtBItAm@n@S^FzCJl@Uf@m@z@I^MN@Jj@HHZFlAG^J|B_@f@`@`B?Zy@tB\\pDOd@C^s@z@NbCBtBX~Bh@fANhBHFfAdDLRbAL?Hk@LAHv@tADX|@fApApBlDfBTVb@xBIAIv@pAb@LVlAf@z@~@pAv@XZLSNm@l@b@rAFtAPrBtAz@\\fDF`@Fp@\\|AdBvBlAlAL?SXDbCbB|@\\x@?vFyARCn@FTNKRlC|BlClCDr@m@`A]x@UFHL"
+];
+let HK_ROAD=null;
 function hkPolyDec(str){
   const out=[]; let i=0,lat=0,lng=0;
   while(i<str.length){
@@ -5883,55 +5879,12 @@ function hkMakeSeg(pts){
   for(let i=1;i<pts.length;i++) cum.push(cum[i-1]+hkMeters(pts[i-1],pts[i]));
   return {pts,cum,len:cum[cum.length-1]||1};
 }
-function hkRoadFrom(list){
+(function(){
   try{
-    const segs=list.map(e=>{ const pts=hkPolyDec(e); return pts.length>1?hkMakeSeg(pts):null; });
-    return segs.every(Boolean)&&segs.length===5 ? segs : null;
-  }catch(e){ return null; }
-}
-function hkRoadLoad(){
-  if(HK_ROAD) return true;
-  hkLineCache=null;
-  try{
-    const raw=localStorage.getItem(K_HKROAD);
-    if(!raw) return false;
-    const j=JSON.parse(raw);
-    HK_ROAD=hkRoadFrom(j&&j.segs||[]);
-    return !!HK_ROAD;
-  }catch(e){ return false; }
-}
-/** 道案内のサーバーに、区ごとの道のりを聞きます（1回だけ） */
-async function hkRoadFetch(quiet){
-  if(hkRoadBusy) return;
-  hkRoadBusy=true;
-  const btn=$("#hkRoad"); if(btn){ btn.disabled=true; btn.textContent="道を調べています…"; }
-  try{
-    const segs=[];
-    for(let i=0;i<5;i++){
-      const from=HK_REL[i], to=HK_REL[i+1];
-      const way=HK_ROUTE.filter(p=>p.km>=from-1e-9&&p.km<=to+1e-9).map(p=>[p.lat,p.lng]);
-      const url="https://router.project-osrm.org/route/v1/driving/polyline("
-        +encodeURIComponent(hkPolyEnc(way))+")?overview=full&geometries=polyline";
-      const r=await fetch(url);
-      if(!r.ok) throw new Error("道案内のサーバーに つながりませんでした");
-      const j=await r.json();
-      if(j.code!=="Ok"||!j.routes||!j.routes[0]) throw new Error("道が見つかりませんでした");
-      segs.push(j.routes[0].geometry);
-    }
-    const made=hkRoadFrom(segs);
-    if(!made) throw new Error("受け取った道を読めませんでした");
-    HK_ROAD=made; hkLineCache=null;
-    localStorage.setItem(K_HKROAD,JSON.stringify({v:1,at:Date.now(),segs}));
-    hkSignLeg=""; hkBuildLine(); hkDrawMap();
-    const km=hkRoadKm();
-    if(!quiet) toast("道路にそった線に引き直しました（道のり "+km+" km）");
-  }catch(e){
-    if(!quiet) toast(String((e&&e.message)||e).slice(0,120));
-  }finally{
-    hkRoadBusy=false;
-    const b=$("#hkRoad"); if(b){ b.disabled=false; b.textContent="道なりに引き直す"; }
-  }
-}
+    const segs=HK_ROADS.map(e=>hkMakeSeg(hkPolyDec(e)));
+    if(segs.length===5&&segs.every(s=>s.pts.length>1)) HK_ROAD=segs;
+  }catch(e){ HK_ROAD=null; }
+})();
 /** 表示用のコース線。道なりがあればそれを、無ければ目印を直線でつないだものを返します */
 let hkLineCache=null;
 function hkLinePts(){
@@ -6266,7 +6219,6 @@ function hkEnter(){
   if(hkCan()&&$("#hkKey")&&!$("#hkKey").value){
     try{ $("#hkKey").value=localStorage.getItem(K_HKKEY)||""; }catch(e){}
   }
-  hkRoadLoad();
   let savedKey=""; try{ savedKey=localStorage.getItem(K_HKKEY)||""; }catch(e){}
   if(savedKey&&!hkG){
     /* キーを覚えていれば、そのまま Google マップで開きます */
@@ -6276,7 +6228,6 @@ function hkEnter(){
     hkEnsureMap(()=>setTimeout(()=>{ hkMap&&hkMap.invalidateSize(); hkDrawMap(); },80));
   }
   hkRender();
-  if(!HK_ROAD) setTimeout(()=>hkRoadFetch(true),600);   /* はじめの1回だけ道を聞きます */
   if(!HK.started) hkAskLevel(true);
   scrollTo({top:0,behavior:"smooth"});
 }
@@ -6528,7 +6479,6 @@ if($("#hkHit")) $("#hkHit").onclick=()=>{ lsHit();
   requestAnimationFrame(run); };
 if($("#hkFollow")) $("#hkFollow").onclick=e=>{ hkFollow=!hkFollow;
   e.target.textContent="追いかける："+(hkFollow?"オン":"オフ"); };
-if($("#hkRoad")) $("#hkRoad").onclick=()=>hkRoadFetch(false);
 if($("#hkSignSel")){
   $("#hkSignSel").value=hkSignKm;
   $("#hkSignSel").onchange=e=>{
@@ -10433,10 +10383,11 @@ LSやりこみのタイマーを止めても、こちらは止まりません。
 <p class="tiny">ゴールすると「もう一度走る」が出ます。押すとレベルをもう一度選んで、次の回が始まります。</p>
 
 <h3 style="margin-top:16px">コースの線と標識</h3>
-<p class="tiny">はじめて開いたとき、<b>道案内のサーバーに1度だけ聞いて</b>、
-国道15号・国道1号にそった実際の道の形をもらいます（建物の上を横切りません）。
-もらった線はこの端末に保存され、ほかの端末にも同期されるので、聞きに行くのは1回だけです。
-うまくいかなかったときは「道なりに引き直す」を押してください。</p>
+<p class="tiny">コースの線は、OpenStreetMap の道案内で作った
+<b>実際の道路の形</b>をアプリの中に入れてあります（全体で 1,743 地点）。
+建物や海の上を横切りません。外へ聞きに行かないので、いつでも同じ形で出ます。</p>
+<p class="tiny">道のりの合計は 107.18km。公式の往路 107.50km とほぼ同じで、
+中継所6か所のずれは 0〜19m です。</p>
 <p class="tiny">▲の標識は、区間の中の距離です。間かくを選べます。</p>
 <div class="scroll"><table><thead><tr><th>選ぶもの</th><th>出るもの</th></tr></thead><tbody>
 <tr><td><b>自動</b></td><td>地図を拡げるほど細かくなります（0.5km 〜 10km、引きすぎると消えます）</td></tr>
