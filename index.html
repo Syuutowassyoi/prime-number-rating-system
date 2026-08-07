@@ -192,59 +192,67 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
   border:1px solid #ffd45e;background:linear-gradient(135deg,#f7d774,#ffb340 60%,#e8a020);
   box-shadow:0 0 18px -6px #ffd45e,0 10px 30px -18px #ffd45e}
 .dxbtn:active{transform:translateY(2px)}
-#dx{position:fixed;inset:0;z-index:120;background:#07090f;overflow:auto;display:none;
+#dx{position:fixed;inset:0;z-index:120;background:var(--bg);overflow:auto;display:none;
   padding:12px 12px 100px}
 body.dxon #dx{display:block}
 body.dxon{overflow:hidden}
 .dxwrap{max-width:1500px;margin:0 auto}
-.dxhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  border-bottom:1px solid #4a3a10;padding-bottom:8px;margin-bottom:10px}
+.dxhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}
 .dxttl{font-weight:900;letter-spacing:.18em;font-size:1rem;
   background:linear-gradient(90deg,#ffe9a8,#ffd45e,#ffa93a,#ffd45e);
   -webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 8px #ffd45e66);animation:dxsh 6s linear infinite;background-size:300% 100%}
 @keyframes dxsh{to{background-position:300% 0}}
-.dxclock{font-family:ui-monospace,Menlo,monospace;color:#ffd45e;font-size:.9rem;margin-left:auto}
+.dxclock{font-family:ui-monospace,Menlo,monospace;color:var(--acc2);font-size:.86rem;margin-left:auto;
+  font-variant-numeric:tabular-nums}
 .dxgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .dxgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
 .dxgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 @media(max-width:1100px){.dxgrid{grid-template-columns:repeat(2,1fr)}
   .dxgrid3,.dxgrid2{grid-template-columns:1fr}}
-.dxc{background:linear-gradient(180deg,#12100a,#0a0c12);border:1px solid #4a3a10;
+.dxc{background:var(--card2);border:1px solid var(--line);
   border-radius:11px;padding:9px 11px;position:relative;overflow:hidden}
-.dxc::after{content:"";position:absolute;inset:0;pointer-events:none;
-  box-shadow:0 0 22px -12px #ffd45e inset}
-.dxc .t{font-size:.66rem;color:#c9a94e;letter-spacing:.06em}
+.dxc .t{font-size:.66rem;color:var(--dim);letter-spacing:.06em}
 .dxc .v{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;
-  font-size:1.5rem;font-weight:800;color:#ffe9a8;line-height:1.15;text-shadow:0 0 10px #ffd45e55}
+  font-size:1.5rem;font-weight:800;color:var(--tx);line-height:1.15}
 .dxc .v.sm{font-size:1.05rem}
-.dxc .s{font-size:.66rem;color:#8d7a45;font-family:ui-monospace,Menlo,monospace}
-.dxh{font-size:.74rem;color:#ffd45e;letter-spacing:.1em;margin:12px 0 5px;font-weight:800}
-.dxcal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.dxcal div{aspect-ratio:1;border:1px solid #2a2410;border-radius:5px;font-size:.6rem;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6d5f38}
-.dxcal div b{font-size:.72rem;color:#ffe9a8;font-family:ui-monospace,Menlo,monospace}
-.dxcal div.hot{border-color:#ffd45e;box-shadow:0 0 10px -3px #ffd45e}
-.dxcal div.today{outline:1px solid #7fe9ff}
-.dxsvg{width:100%;height:130px;display:block}
-.dxsvg .ax{stroke:#2a2410}
-.dxsvg .ln{fill:none;stroke:#ffd45e;stroke-width:1.6;filter:drop-shadow(0 0 4px #ffd45e88)}
-.dxsvg .ar{fill:#ffd45e1a}
-.dxsvg .br{fill:#ffd45e88}
-.dxsvg text{fill:#8d7a45;font-size:8px}
-.dxtab{background:#0d0f16;border:1px solid #4a3a10;border-radius:9px;padding:4px;display:grid;gap:4px}
-.dxtab button{background:transparent;border:0;color:#8d7a45;font:inherit;font-size:.76rem;
+.dxc .v .fine{font-size:.62em;color:#7fe9ff;margin-left:1px}
+.dxc .s{font-size:.66rem;color:var(--dim2);font-family:ui-monospace,Menlo,monospace}
+.dxh{font-size:.74rem;color:var(--acc2);letter-spacing:.1em;margin:12px 0 5px;font-weight:800}
+.dxcal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dxcal div{aspect-ratio:1.5;border:1px solid var(--line);border-radius:4px;font-size:.52rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim2);
+  line-height:1.05}
+.dxcal div b{font-size:.62rem;color:var(--acc2);font-family:ui-monospace,Menlo,monospace}
+.dxcal div.hot{border-color:var(--acc2)}
+.dxcal div.today{outline:1px solid var(--warn)}
+.dxsvg{width:100%;height:150px;display:block}
+.dxsvg .ax{stroke:var(--line)}
+.dxsvg .gr{stroke:#1b2740;stroke-dasharray:2 3}
+.dxsvg .ln{fill:none;stroke:#7fe9ff;stroke-width:1.6}
+.dxsvg .dt{fill:#7fe9ff}
+.dxsvg .ar{fill:#7fe9ff14}
+.dxsvg .br{fill:#4da3ffcc}
+.dxsvg text{fill:var(--dim2);font-size:8px}
+.dxsvg text.val{fill:var(--tx);font-size:8.5px;font-weight:700}
+.dxtab{background:#0d1522;border:1px solid var(--line);border-radius:9px;padding:4px;display:grid;gap:4px}
+.dxtab button{background:transparent;border:0;color:var(--dim);font:inherit;font-size:.76rem;
   padding:5px;border-radius:6px;cursor:pointer}
-.dxtab button.on{background:#3a2c08;color:#ffe9a8;font-weight:800}
+.dxtab button.on{background:#1d3a5c;color:#fff;font-weight:800}
 .dxbd{width:100%;font-size:.72rem}
-.dxbd td,.dxbd th{padding:3px 6px;border-bottom:1px solid #241f10;color:#c9a94e}
-.dxbd b{color:#ffe9a8;font-family:ui-monospace,Menlo,monospace}
-.dxsmall{padding:4px 9px;font-size:.74rem;border-radius:8px;background:#1a1608;
-  border:1px solid #4a3a10;color:#ffe9a8;cursor:pointer;font:inherit;font-size:.74rem}
-#dxHit{position:fixed;right:14px;bottom:14px;z-index:130;width:210px;height:64px;border-radius:14px;
-  font:inherit;font-size:.96rem;font-weight:800;letter-spacing:.05em;color:#3a2a00;cursor:pointer;
-  border:1px solid #ffd45e;background:linear-gradient(135deg,#f7d774,#ffb340);
-  box-shadow:0 0 20px -6px #ffd45e;display:none}
+.dxbd td,.dxbd th{padding:3px 6px;border-bottom:1px solid var(--line);color:var(--dim)}
+.dxbd .tg{color:#fff;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.dxbd .lf{color:#5ee6a8;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.dxbd .nn{color:#ffd45e;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.dxbd tr.next td{background:#132033}
+.dxsmall{padding:4px 9px;font-size:.74rem;border-radius:8px;background:var(--card2);
+  border:1px solid var(--line);color:var(--tx);cursor:pointer;font:inherit}
+.dxsmall:hover{border-color:var(--acc)}
+#dxHit{position:fixed;right:14px;bottom:14px;z-index:130;width:200px;height:58px;border-radius:14px;
+  font:inherit;font-size:.92rem;font-weight:800;letter-spacing:.05em;color:#fff;cursor:pointer;
+  border:1px solid #4da3ff;background:linear-gradient(135deg,#2f6fd0,#3f9de0);
+  box-shadow:0 10px 30px -18px #4da3ff;display:none}
 body.dxon #dxHit{display:block}
 #dxHit:disabled{opacity:.45;cursor:not-allowed}
 /* 入場の演出 */
@@ -1738,6 +1746,43 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
 </div>
 <div class="toast" id="toast"></div>
 
+<div class="hkov" id="hkOvTime">
+  <div class="hktlab">総合タイム</div>
+  <div class="hktbig" id="hkFAll" style="font-size:2.4rem">00:00:00</div>
+  <div class="hktlab" style="margin-top:8px">区間タイム</div>
+  <div class="hktmid" id="hkFKu" style="font-size:1.5rem">00:00:00</div>
+</div>
+<div class="hkov" id="hkOvPos">
+  <div><span class="hkleg out" id="hkFLeg">往路</span>
+    <span style="font-weight:800;margin-left:6px" id="hkFKuName">第1区</span></div>
+  <div class="hkpos" style="font-size:2.4rem"><span id="hkFKm">0.00</span><small> km</small></div>
+  <div class="hkmeter" style="width:240px">
+    <div class="bar"><i id="hkFBar" style="width:0%"></i></div>
+    <div class="ends"><span>0.00</span><span id="hkFMax">21.30</span></div>
+  </div>
+</div>
+<div class="hkov" id="hkOvExit">← もどる</div>
+<button id="hkHit">＋1回　クリア！<span class="cd"></span></button>
+
+<!-- ═══════ 超データ分析モード（管理者だけ） ═══════ -->
+<div id="dxBoot">
+  <div class="dxring"><i></i><i></i><i></i></div>
+  <div class="dxwel" id="dxWel">ようこそ</div>
+  <div class="dxbar"><i id="dxBar"></i></div>
+  <div class="dxlog" id="dxLog"></div>
+</div>
+<div id="dx"><div class="dxwrap">
+  <div class="dxhead">
+    <button class="dxsmall" id="dxOut">← もどる</button>
+    <span class="dxttl">超データ分析モード</span>
+    <button class="dxsmall" id="dxStart">スタート</button>
+    <button class="dxsmall" id="dxStop" hidden>終了して記録</button>
+    <button class="dxsmall" id="dxReset">リセット</button>
+    <span class="dxclock" id="dxClock">--:--:--</span>
+  </div>
+  <div id="dxBody"></div>
+</div></div>
+<button id="dxHit">＋1回　クリア！</button>
 <script>
 window.addEventListener("error",e=>{
   const b=document.getElementById("errBanner");
@@ -1762,7 +1807,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v62";
+const APP_VERSION = "v63";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -6661,7 +6706,7 @@ function lsTapLog(){
   LSTAP.taps.push({t:now,d:d});
   if(LSTAP.taps.length>200000) LSTAP.taps.splice(0,50000);
   saveLstap();
-  if(document.body.classList.contains("dxon")) dxDraw();
+  if(document.body.classList.contains("dxon")) dxDraw(true);
 }
 const dxCan=()=>(typeof isAdmin==="function")&&isAdmin();
 /* ── 集計 ── */
@@ -6681,31 +6726,66 @@ function dxStats(){
   return {byDay,byWeek,byMonth,avg:n?sum/n:0,min:n?mn:0,max:mx,laps:n,
           total:T.length, days:Object.keys(byDay).length};
 }
-/* ── 折れ線・棒グラフ ── */
+/* ── 折れ線・棒グラフ（値が重ならないように余白をとります） ── */
 function dxChart(map, kind, keys){
-  const ks=keys||Object.keys(map).sort();
-  const last=ks.slice(-40);
+  const last=keys;
   const vals=last.map(k=>map[k]||0);
-  const W=600,H=130,PB=16,PT=8;
+  const W=620,H=150,L=30,R=8,TP=14,BT=26;
   const mx=Math.max(1,...vals);
-  const x=i=>last.length<2?W/2:(i/(last.length-1))*(W-8)+4;
-  const y=v=>H-PB-(v/mx)*(H-PB-PT);
-  let g=`<line class="ax" x1="0" y1="${H-PB}" x2="${W}" y2="${H-PB}"/>`;
+  const n=last.length;
+  const x=i=>n<2?(L+(W-L-R)/2):L+(i/(n-1))*(W-L-R);
+  const y=v=>H-BT-(v/mx)*(H-BT-TP);
+  let g="";
+  for(let t=0;t<=2;t++){ const v=Math.round(mx*t/2), yy=y(v);
+    g+=`<line class="gr" x1="${L}" y1="${yy.toFixed(1)}" x2="${W-R}" y2="${yy.toFixed(1)}"/>`
+      +`<text x="2" y="${(yy+3).toFixed(1)}">${v}</text>`; }
+  g+=`<line class="ax" x1="${L}" y1="${H-BT}" x2="${W-R}" y2="${H-BT}"/>`;
+  /* 目盛りの文字は、詰まらない数だけ出します */
+  const step=Math.max(1,Math.ceil(n/7));
+  last.forEach((k,i)=>{ if(i%step&&i!==n-1) return;
+    const sh=k.length>7?k.slice(5):k;
+    g+=`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle">${esc(sh)}</text>`; });
   if(kind==="bar"){
-    const bw=Math.max(2,(W-8)/Math.max(1,last.length)-2);
-    g+=last.map((k,i)=>`<rect class="br" x="${(x(i)-bw/2).toFixed(1)}" y="${y(vals[i]).toFixed(1)}"
-      width="${bw.toFixed(1)}" height="${(H-PB-y(vals[i])).toFixed(1)}"/>`).join("");
+    const bw=Math.max(3,(W-L-R)/Math.max(1,n)-6);
+    last.forEach((k,i)=>{
+      g+=`<rect class="br" x="${(x(i)-bw/2).toFixed(1)}" y="${y(vals[i]).toFixed(1)}"
+        width="${bw.toFixed(1)}" height="${Math.max(0,H-BT-y(vals[i])).toFixed(1)}" rx="1.5"/>`;
+      if(vals[i]>0&&(i%step===0||i===n-1))
+        g+=`<text class="val" x="${x(i).toFixed(1)}" y="${(y(vals[i])-3).toFixed(1)}"
+          text-anchor="middle">${vals[i]}</text>`;
+    });
   }else{
     const pts=last.map((k,i)=>`${x(i).toFixed(1)},${y(vals[i]).toFixed(1)}`).join(" ");
-    g+=`<polygon class="ar" points="4,${H-PB} ${pts} ${(W-4)},${H-PB}"/>`;
+    g+=`<polygon class="ar" points="${L},${H-BT} ${pts} ${(W-R)},${H-BT}"/>`;
     g+=`<polyline class="ln" points="${pts}"/>`;
+    last.forEach((k,i)=>{
+      g+=`<circle class="dt" cx="${x(i).toFixed(1)}" cy="${y(vals[i]).toFixed(1)}" r="2"/>`;
+      if(i%step===0||i===n-1)
+        g+=`<text class="val" x="${x(i).toFixed(1)}" y="${(y(vals[i])-5).toFixed(1)}"
+          text-anchor="middle">${vals[i]}</text>`;
+    });
   }
-  g+=`<text x="2" y="10">最大 ${mx}</text>`;
-  if(last.length) g+=`<text x="2" y="${H-4}">${esc(last[0])}</text>`
-    +`<text x="${W-72}" y="${H-4}">${esc(last[last.length-1]||"")}</text>`;
   return `<svg class="dxsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg>`;
 }
-/* ── カレンダー ── */
+/** 直近の区切りを、値が無い日もふくめて並べます */
+function dxKeys(kind){
+  const out=[], now=jstNow();
+  const p2=x=>String(x).padStart(2,"0");
+  if(kind==="day"){
+    for(let i=13;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+      out.push(`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`); }
+  }else if(kind==="week"){
+    const w=(now.getDay()+6)%7;
+    const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-w);
+    for(let i=13;i>=0;i--){ const d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()-i*7);
+      out.push(`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`); }
+  }else{
+    for(let i=11;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      out.push(`${d.getFullYear()}-${p2(d.getMonth()+1)}`); }
+  }
+  return out;
+}
+/* ── カレンダー（小さめ） ── */
 let dxMon=null;
 function dxCalendar(byDay){
   const now=jstNow();
@@ -6714,118 +6794,180 @@ function dxCalendar(byDay){
   const first=new Date(Y,M-1,1), start=(first.getDay()+6)%7;
   const days=new Date(Y,M,0).getDate();
   const today=dxDay(Date.now());
-  let cells="";
+  let cells="", tot=0;
   for(let i=0;i<start;i++) cells+=`<div style="border:0"></div>`;
-  let tot=0;
   for(let d=1;d<=days;d++){
     const k=`${Y}-${String(M).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const n=byDay[k]||0; tot+=n;
     cells+=`<div class="${n?"hot":""} ${k===today?"today":""}">${d}${n?`<b>${jp(n)}</b>`:""}</div>`;
   }
-  return `<div class="tools" style="margin:0 0 6px">
+  return `<div class="tools" style="margin:0 0 5px;gap:5px">
       <button class="dxsmall" id="dxPrev">◀</button>
-      <b style="color:#ffe9a8;font-size:.82rem">${Y}年${M}月</b>
+      <b style="font-size:.76rem">${Y}年${M}月</b>
       <button class="dxsmall" id="dxNext">▶</button>
-      <span class="s" style="color:#8d7a45;font-size:.7rem">この月 ${jp(tot)} 回</span></div>
+      <span class="s">この月 ${jp(tot)} 回</span></div>
     <div class="dxcal">${cells}</div>`;
 }
-/* ── 達成したボーダー ── */
+/* ── ボーダー（次の1つ＋達成した3つ） ── */
 function dxBorders(kind, cur, per){
   const B=lsB()[kind]||{};
-  const rows=Object.keys(B).map(r=>({rank:+r,val:+B[r]}))
-    .filter(x=>x.val>0).sort((a,b)=>b.val-a.val);
-  const done=rows.filter(x=>cur>=x.val).slice(0,8);
-  if(!done.length) return `<p class="s" style="color:#8d7a45">まだ超えたボーダーがありません。</p>`;
-  return `<table class="dxbd"><tr><th>順位</th><th style="text-align:right">ボーダー</th>
-    <th style="text-align:right">追いつかれるまで</th><th style="text-align:right">残り回数</th></tr>`
-    +done.map(x=>{
-      const left=Math.max(0,cur-x.val);
-      const need=per>0?Math.ceil(left/per):null;
-      return `<tr><td>${x.rank}位</td><td style="text-align:right"><b>${jp(x.val)}</b></td>
-        <td style="text-align:right"><b>${jp(left)}</b></td>
-        <td style="text-align:right"><b>${need===null?"—":jp(need)+" 回"}</b></td></tr>`;
-    }).join("")+`</table>`;
+  const rows=Object.keys(B).map(r=>({rank:+r,val:+B[r]})).filter(x=>x.val>0)
+    .sort((a,b)=>b.val-a.val);
+  const next=rows.filter(x=>cur<x.val).slice(-1)[0]||null;   /* すぐ上の1つ */
+  const done=rows.filter(x=>cur>=x.val).slice(0,3);          /* 超えたばかりの3つ */
+  if(!next&&!done.length) return `<p class="s">ボーダーのデータがまだありません。</p>`;
+  const row=(x,isNext)=>{
+    const diff=isNext?(x.val-cur):(cur-x.val);
+    const need=per>0?Math.ceil(diff/per):null;
+    return `<tr class="${isNext?"next":""}"><td>${isNext?"次":""}${x.rank}位</td>
+      <td style="text-align:right"><span class="tg">${jp(x.val)}</span></td>
+      <td style="text-align:right"><span class="lf">${jp(diff)}</span></td>
+      <td style="text-align:right"><span class="nn">${need===null?"—":jp(need)+"回"}</span></td></tr>`;
+  };
+  return `<table class="dxbd"><tr><th>順位</th><th style="text-align:right">目標値</th>
+    <th style="text-align:right">差</th><th style="text-align:right">回数</th></tr>`
+    +(next?row(next,true):"")+done.map(x=>row(x,false)).join("")+`</table>
+    <p class="s" style="margin-top:3px">次の1つは「あと」、達成ぶんは「追いつかれるまで」です。</p>`;
 }
 /* ── 画面 ── */
-let dxTab="day", dxTimer=null;
-function dxDraw(){
-  const box=$("#dxBody"); if(!box||!document.body.classList.contains("dxon")) return;
-  const S=dxStats();
-  const G=lsGain(), perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
-  const totS=G.baseS+G.s, totR=G.baseR+G.r;
-  const sv=svalOf(totS), lv=lvalOf(totR);
-  const n=lsRun?lsRun.count:0;
-  const now=jstNow();
-  const map=dxTab==="day"?S.byDay:dxTab==="week"?S.byWeek:S.byMonth;
-  const lab=dxTab==="day"?"1日ごと":dxTab==="week"?"1週間ごと":"1か月ごと";
-  /* 箱根駅伝のいまの位置 */
-  let hk="";
-  if(typeof HK!=="undefined"&&HK.on&&HK.started){
-    const k=HK_KU[hkKuOf(HK.km)], inLeg=hkR2(HK.km-k.start), T=hkTotals(), t=hkElapsed();
-    hk=`<div class="dxc"><div class="t">箱根駅伝　第${HK.no}回</div>
-      <div class="v sm">${k.leg==="out"?"往路":"復路"}　${k.name}　${hkKm2(inLeg)} km地点</div>
-      <div class="s">通算 ${hkKm2(HK.km)} km ／残り ${hkKm2(HK_ALL-HK.km)} km</div>
-      <div class="s">今までの通算 ${hkKm2(T.km)} km（${jp(T.cl)}回）</div>
-      <div class="s">総合タイム ${hkHms(t)}</div>
-      <div class="s">区間タイム ${hkHms(HK.finished?0:t-HK.kuStartT)}</div></div>`;
-  }
+let dxTab="day", dxRaf=null, dxPrev={};
+/** 数字をなめらかに動かします（60fps） */
+function dxNum(id, want, fmt){
+  const el=document.getElementById(id); if(!el) return;
+  const from=(dxPrev[id]==null)?want:dxPrev[id];
+  dxPrev[id]=want;
+  if(Math.abs(want-from)<1e-9){ if(!el._on) el.innerHTML=fmt(want); return; }
+  el._t0=performance.now(); el._a=from; el._b=want; el._f=fmt;
+  if(el._on) return;
+  el._on=true;
+  const step=t=>{
+    const k=Math.min(1,(t-el._t0)/500), e=1-Math.pow(1-k,3);
+    el.innerHTML=el._f(el._a+(el._b-el._a)*e);
+    if(k<1) requestAnimationFrame(step); else { el._on=false; el.innerHTML=el._f(el._b); }
+  };
+  requestAnimationFrame(step);
+}
+const dxF=(v,d)=>(+v||0).toLocaleString("ja-JP",{minimumFractionDigits:d,maximumFractionDigits:d});
+function dxTimeStr(ms){
+  const s2=Math.max(0,ms)/1000;
+  const h=Math.floor(s2/3600), m=Math.floor(s2%3600/60), x=s2%60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:`+(x<10?"0":"")+x.toFixed(4);
+}
+/** 入れ物だけ先に作ります（毎コマ作り直さないため） */
+function dxShell(){
+  const box=$("#dxBody"); if(!box) return;
+  const C=(id,t)=>`<div class="dxc"><div class="t">${t}</div>
+    <div class="v" id="${id}">—</div><div class="s" id="${id}s"></div></div>`;
   box.innerHTML=`
   <div class="dxgrid">
-    <div class="dxc"><div class="t">合計クリア回数</div><div class="v">${jp(S.total)}</div>
-      <div class="s">記録した日数 ${jp(S.days)} 日</div></div>
-    <div class="dxc"><div class="t">やりこみ記録の回数</div><div class="v">${jp(lsLog.length)}</div>
-      <div class="s">いまの計測 ${jp(n)} 回</div></div>
-    <div class="dxc"><div class="t">1回あたりの平均</div><div class="v">${S.avg?S.avg.toFixed(1):"—"}<span class="s"> 秒</span></div>
-      <div class="s">最速 ${S.min?S.min.toFixed(1):"—"} ／ 最遅 ${S.max?S.max.toFixed(1):"—"}</div></div>
-    <div class="dxc"><div class="t">経過時間</div><div class="v">${lsFmtTime(lsElapsed())}</div>
-      <div class="s">${lsRun?"計測中":"止まっています"}</div></div>
+    ${C("dxA1","合計クリア回数")}${C("dxA2","やりこみ記録の回数")}
+    ${C("dxA3","測定開始からのクリア回数")}${C("dxA4","経過時間")}
   </div>
-  <div class="dxgrid">
-    <div class="dxc"><div class="t">S値の予測</div><div class="v">${sv===null?"—":f3(sv)}</div>
-      <div class="s">スコアの累積 ${jp(totS)}</div></div>
-    <div class="dxc"><div class="t">L値の予測</div><div class="v">${lv===null?"—":f3(lv)}</div>
-      <div class="s">生成した乱数の累積 ${jp(totR)}</div></div>
-    <div class="dxc"><div class="t">現在までのスコア増加</div><div class="v sm">+${jp(G.s)}</div>
-      <div class="s">1回 +${jp(perS)}</div></div>
-    <div class="dxc"><div class="t">現在までの乱数増加</div><div class="v sm">+${jp(G.r)}</div>
-      <div class="s">1回 +${jp(perR)}</div></div>
-  </div>
+  <div class="dxgrid2">${C("dxB1","今回のスコア増加")}${C("dxB2","今回の乱数増加")}</div>
+  <div class="dxgrid3">${C("dxC1","現在までのスコア増加")}${C("dxC2","現在までの乱数増加")}
+    ${C("dxC3","1回あたりの平均クリア時間")}</div>
+  <div class="dxgrid2">${C("dxS","S値の予測")}${C("dxL","L値の予測")}</div>
   <div class="dxgrid3">
     <div class="dxc"><div class="dxh" style="margin-top:0">達成したボーダー（スコアの累積）</div>
-      ${dxBorders("score",totS,perS)}</div>
+      <div id="dxBS"></div></div>
     <div class="dxc"><div class="dxh" style="margin-top:0">達成したボーダー（生成した乱数の累積）</div>
-      ${dxBorders("rand",totR,perR)}</div>
-    <div class="dxc"><div class="dxh" style="margin-top:0">いまの位置</div>
-      ${hk||'<p class="s" style="color:#8d7a45">箱根駅伝モードを走ると、ここに出ます。</p>'}</div>
+      <div id="dxBR"></div></div>
+    <div class="dxc"><div class="dxh" style="margin-top:0">箱根駅伝</div><div id="dxHK"></div></div>
   </div>
   <div class="dxgrid2">
     <div class="dxc">
       <div class="dxtab" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:6px">
-        <button data-dxt="day" class="${dxTab==="day"?"on":""}">1日ごと</button>
-        <button data-dxt="week" class="${dxTab==="week"?"on":""}">1週間ごと</button>
-        <button data-dxt="month" class="${dxTab==="month"?"on":""}">1か月ごと</button>
+        <button data-dxt="day" class="${dxTab==="day"?"on":""}">1日ごと（14日）</button>
+        <button data-dxt="week" class="${dxTab==="week"?"on":""}">1週間ごと（14週）</button>
+        <button data-dxt="month" class="${dxTab==="month"?"on":""}">1か月ごと（12か月）</button>
       </div>
-      <div class="t">${lab}の回数（折れ線）</div>${dxChart(map,"line")}
-      <div class="t" style="margin-top:6px">${lab}の回数（棒）</div>${dxChart(map,"bar")}
-      <div class="s">区切りの数 ${jp(Object.keys(map).length)} ／ 合計 ${jp(S.total)} 回</div>
+      <div id="dxCh"></div>
     </div>
-    <div class="dxc"><div class="t">カレンダー</div>${dxCalendar(S.byDay)}</div>
+    <div class="dxc"><div class="t">カレンダー</div><div id="dxCal"></div></div>
   </div>`;
-  box.querySelectorAll("[data-dxt]").forEach(b=>b.onclick=()=>{ dxTab=b.dataset.dxt; dxDraw(); });
-  const pv=box.querySelector("#dxPrev"), nx=box.querySelector("#dxNext");
-  const shift=(d)=>{ const now2=jstNow();
-    const cur=dxMon||`${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,"0")}`;
-    let [Y,M]=cur.split("-").map(Number); M+=d;
-    if(M<1){M=12;Y--;} if(M>12){M=1;Y++;}
-    dxMon=`${Y}-${String(M).padStart(2,"0")}`; dxDraw(); };
-  if(pv) pv.onclick=()=>shift(-1);
-  if(nx) nx.onclick=()=>shift(1);
+  box.querySelectorAll("[data-dxt]").forEach(b=>b.onclick=()=>{
+    dxTab=b.dataset.dxt; dxShell(); dxDraw(true); });
+}
+function dxDraw(heavy){
+  if(!document.body.classList.contains("dxon")) return;
+  if(!$("#dxA1")){ dxShell(); if(!$("#dxA1")) return; }
+  const S=dxStats();
+  const G=lsGain(), perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
+  const totS=G.baseS+G.s, totR=G.baseR+G.r;
+  const n=lsRun?lsRun.count:0;
+  const d0=new Date(), now=new Date(d0.toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+  dxNum("dxA1",S.total,v=>jp(v));
+  dxNum("dxA2",lsLog.length,v=>jp(v));
+  dxNum("dxA3",n,v=>jp(v));
+  dxNum("dxB1",n*perS,v=>"+"+jp(v));
+  dxNum("dxB2",n*perR,v=>"+"+jp(v));
+  dxNum("dxC1",G.s,v=>"+"+jp(v));
+  dxNum("dxC2",G.r,v=>"+"+jp(v));
+  dxNum("dxC3",S.avg,v=>dxF(v,4)+'<span class="s"> 秒</span>');
+  const a4=$("#dxA4"); if(a4) a4.textContent=dxTimeStr(lsElapsed());
+  const sv=totS>0?Math.max(logb(totS,S_BASE)-S_SUB,0):null;
+  const lv=totR>0?Math.max(logb(totR,L_BASE)-L_SUB,0):null;
+  const fine=v=>{ const s7=(Math.floor(v*1e7)/1e7).toFixed(7);
+    return `${s7.slice(0,s7.length-4)}<span class="fine">${s7.slice(-4)}</span>`; };
+  if(sv!=null) dxNum("dxS",sv,fine); else $("#dxS").innerHTML="—";
+  if(lv!=null) dxNum("dxL",lv,fine); else $("#dxL").innerHTML="—";
+  const T=(id,t)=>{ const e2=document.getElementById(id); if(e2) e2.textContent=t; };
+  T("dxA1s","記録した日数 "+jp(S.days)+" 日");
+  T("dxA2s",lsRun?"計測中":"止まっています");
+  T("dxA3s","1回 +"+jp(perS)+" ／ +"+jp(perR));
+  T("dxA4s",lsRun?(lsRun.paused?"休憩中":"計測中"):"止まっています");
+  T("dxB1s","スコアの累積 "+jp(totS));
+  T("dxB2s","生成した乱数の累積 "+jp(totR));
+  T("dxC1s","基準 "+jp(G.baseS));
+  T("dxC2s","基準 "+jp(G.baseR));
+  T("dxC3s","最速 "+dxF(S.min,4)+" ／ 最遅 "+dxF(S.max,4));
+  T("dxSs","スコアの累積 "+jp(totS));
+  T("dxLs","生成した乱数の累積 "+jp(totR));
   const c=$("#dxClock");
   if(c) c.textContent=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 `
-    +`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`
-    +`:${String(now.getSeconds()).padStart(2,"0")}`;
+    +`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:`
+    +String(now.getSeconds()).padStart(2,"0")+"."+String(d0.getMilliseconds()).padStart(3,"0");
   const sb=$("#dxStart"), tb=$("#dxStop");
   if(sb) sb.hidden=!!lsRun; if(tb) tb.hidden=!lsRun;
+  const key=[S.total,dxTab,dxMon,totS,totR,perS,perR,
+             (typeof HK!=="undefined"&&HK.started)?Math.round(HK.km*100):0].join("|");
+  if(heavy||key!==dxDraw._k){
+    dxDraw._k=key;
+    const map=dxTab==="day"?S.byDay:dxTab==="week"?S.byWeek:S.byMonth;
+    const ks=dxKeys(dxTab);
+    const lab=dxTab==="day"?"過去14日":dxTab==="week"?"過去14週":"過去12か月";
+    const ch=$("#dxCh");
+    if(ch) ch.innerHTML=`<div class="t">${lab}の回数（折れ線）</div>${dxChart(map,"line",ks)}
+      <div class="t" style="margin-top:6px">${lab}の回数（棒）</div>${dxChart(map,"bar",ks)}
+      <div class="s">この期間 ${jp(ks.reduce((a,k)=>a+(map[k]||0),0))} 回 ／ 全体 ${jp(S.total)} 回</div>`;
+    const bs=$("#dxBS"), br=$("#dxBR");
+    if(bs) bs.innerHTML=dxBorders("score",totS,perS);
+    if(br) br.innerHTML=dxBorders("rand",totR,perR);
+    const hk=$("#dxHK");
+    if(hk){
+      if(typeof HK!=="undefined"&&HK.on&&HK.started){
+        const k=HK_KU[hkKuOf(HK.km)], inLeg=hkR2(HK.km-k.start), TT=hkTotals(), t=hkElapsed();
+        hk.innerHTML=`<div class="s" style="color:var(--warn);font-size:.78rem">第${HK.no}回</div>
+          <div class="v sm">${k.leg==="out"?"往路":"復路"}　${k.name}　${hkKm2(inLeg)} km地点</div>
+          <div class="s">通算 ${hkKm2(HK.km)} km ／残り ${hkKm2(HK_ALL-HK.km)} km</div>
+          <div class="s">今までの通算 ${hkKm2(TT.km)} km（${jp(TT.cl)}回）</div>
+          <div class="s">総合タイム ${hkHms(t)}</div>
+          <div class="s">区間タイム ${hkHms(HK.finished?0:t-HK.kuStartT)}</div>`;
+      }else hk.innerHTML=`<p class="s">箱根駅伝モードを走ると、ここに出ます。</p>`;
+    }
+    const cal=$("#dxCal");
+    if(cal){
+      cal.innerHTML=dxCalendar(S.byDay);
+      const shift=dd=>{ const n2=jstNow();
+        const cu=dxMon||`${n2.getFullYear()}-${String(n2.getMonth()+1).padStart(2,"0")}`;
+        let [Y,M]=cu.split("-").map(Number); M+=dd;
+        if(M<1){M=12;Y--;} if(M>12){M=1;Y++;}
+        dxMon=`${Y}-${String(M).padStart(2,"0")}`; dxDraw(true); };
+      const pv=cal.querySelector("#dxPrev"), nx=cal.querySelector("#dxNext");
+      if(pv) pv.onclick=()=>shift(-1);
+      if(nx) nx.onclick=()=>shift(1);
+    }
+  }
 }
 /* ── 入場の演出 ── */
 function dxEnter(){
@@ -6849,25 +6991,27 @@ function dxEnter(){
     else{
       document.body.classList.remove("dxboot");
       document.body.classList.add("dxon");
-      dxDraw();
-      clearInterval(dxTimer);
-      dxTimer=setInterval(()=>{ if(document.body.classList.contains("dxon")) dxDraw(); },1000);
+      dxPrev={}; dxDraw._k=null; dxShell(); dxDraw(true);
+      cancelAnimationFrame(dxRaf);
+      const loop=()=>{ if(!document.body.classList.contains("dxon")) return;
+        dxDraw(); dxRaf=requestAnimationFrame(loop); };
+      dxRaf=requestAnimationFrame(loop);
     }
   };
   requestAnimationFrame(step);
 }
 function dxLeave(){
   document.body.classList.remove("dxon","dxboot");
-  clearInterval(dxTimer); dxTimer=null;
+  cancelAnimationFrame(dxRaf); dxRaf=null;
 }
 function dxRefreshBtn(){ const b=$("#dxGo"); if(b) b.hidden=!dxCan(); }
 if($("#dxGo")) $("#dxGo").onclick=()=>{ if(dxCan()) dxEnter(); };
 if($("#dxOut")) $("#dxOut").onclick=dxLeave;
 if($("#dxHit")) $("#dxHit").onclick=()=>{
   const b=$("#dxHit"); if(b.disabled) return;
-  lsHit(); b.disabled=true; setTimeout(()=>{ b.disabled=false; },1000); dxDraw();
+  lsHit(); b.disabled=true; setTimeout(()=>{ b.disabled=false; },1000); dxDraw(true);
 };
-if($("#dxStart")) $("#dxStart").onclick=()=>{ $("#lsStartBtn").click(); dxDraw(); };
+if($("#dxStart")) $("#dxStart").onclick=()=>{ $("#lsStartBtn").click(); dxDraw(true); };
 if($("#dxStop"))  $("#dxStop").onclick =()=>{ dxLeave(); goTab("ls"); $("#lsStopBtn").click(); };
 if($("#dxReset")) $("#dxReset").onclick=async()=>{ dxLeave(); goTab("ls"); $("#lsReset").click(); };
 
@@ -8210,6 +8354,16 @@ function renderPfeed(){
   box.querySelectorAll("[data-achgo]").forEach(b=>b.onclick=()=>achOpenByTitle(b.dataset.achgo,false));
   box.querySelectorAll("[data-achrv]").forEach(b=>b.onclick=()=>achOpenByTitle(b.dataset.achrv,true));
 }
+/** 枠を出すときは、本文からは中身を省いて1行だけ見せます（二重にしないため） */
+function neonHead(p){
+  const b=p.body||"";
+  if(/#記録更新/.test(b)&&/→|->/.test(b)) return b.split("\n")[0];
+  const c=b.match(/#(チャレンジ参加|大会参加)\s+.+?\s*に記録を出しました！?\s*合計スコア\s*[0-9,]+/);
+  if(c) return "#"+c[1]+" 記録を出しました！";
+  const a=b.match(/#(公式アチーブメント|みんなのアチーブメント)\s+.+?\s*(を達成しました！?|に挑みました！?)\s*$/);
+  if(a) return "#"+a[1]+" "+a[2];
+  return b;
+}
 /** 公式タグのついた投稿を、枠つきの見やすい形にします */
 function neonHTML(p){
   const b=p.body||"";
@@ -8359,7 +8513,7 @@ function poHTML(p,isRep,toWho){
     </div>
     ${rec}
     ${toWho?`<div class="tiny" style="margin-top:4px;color:var(--dim2)">→ ${esc(toWho)} さんへの返信</div>`:""}
-    ${p.body?`<div style="margin-top:6px;white-space:pre-wrap;font-size:.9rem">${bodyHTML(p.body)}</div>`:""}
+    ${p.body?`<div style="margin-top:6px;white-space:pre-wrap;font-size:.9rem">${bodyHTML(neonHead(p))}</div>`:""}
     ${neonHTML(p)}
     ${poLinkHTML(p.link)}
     ${(p.links||[]).map(L=>poLinkHTML(L.url,L.note)).join("")}
@@ -12195,42 +12349,5 @@ function normalize(j){
   renderHome();
 })();
 </script>
-<div class="hkov" id="hkOvTime">
-  <div class="hktlab">総合タイム</div>
-  <div class="hktbig" id="hkFAll" style="font-size:2.4rem">00:00:00</div>
-  <div class="hktlab" style="margin-top:8px">区間タイム</div>
-  <div class="hktmid" id="hkFKu" style="font-size:1.5rem">00:00:00</div>
-</div>
-<div class="hkov" id="hkOvPos">
-  <div><span class="hkleg out" id="hkFLeg">往路</span>
-    <span style="font-weight:800;margin-left:6px" id="hkFKuName">第1区</span></div>
-  <div class="hkpos" style="font-size:2.4rem"><span id="hkFKm">0.00</span><small> km</small></div>
-  <div class="hkmeter" style="width:240px">
-    <div class="bar"><i id="hkFBar" style="width:0%"></i></div>
-    <div class="ends"><span>0.00</span><span id="hkFMax">21.30</span></div>
-  </div>
-</div>
-<div class="hkov" id="hkOvExit">← もどる</div>
-<button id="hkHit">＋1回　クリア！<span class="cd"></span></button>
-
-<!-- ═══════ 超データ分析モード（管理者だけ） ═══════ -->
-<div id="dxBoot">
-  <div class="dxring"><i></i><i></i><i></i></div>
-  <div class="dxwel" id="dxWel">ようこそ</div>
-  <div class="dxbar"><i id="dxBar"></i></div>
-  <div class="dxlog" id="dxLog"></div>
-</div>
-<div id="dx"><div class="dxwrap">
-  <div class="dxhead">
-    <button class="dxsmall" id="dxOut">← もどる</button>
-    <span class="dxttl">超データ分析モード</span>
-    <button class="dxsmall" id="dxStart">スタート</button>
-    <button class="dxsmall" id="dxStop" hidden>終了して記録</button>
-    <button class="dxsmall" id="dxReset">リセット</button>
-    <span class="dxclock" id="dxClock">--:--:--</span>
-  </div>
-  <div id="dxBody"></div>
-</div></div>
-<button id="dxHit">＋1回　クリア！</button>
 </body>
 </html>
