@@ -1822,7 +1822,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v66";
+const APP_VERSION = "v67";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -11834,6 +11834,23 @@ const K_GH="sa-gh-v1";
 let gh=ls(K_GH,{owner:"",repo:"",branch:"main",path:"data.json",token:""});
 const saveGh=()=>{try{localStorage.setItem(K_GH,JSON.stringify(gh));}catch(e){}};
 const ghReady=()=>!!(gh.owner&&gh.repo&&gh.token);
+/** 失敗したときの、直しかたの案内 */
+function ghHint(m){
+  m=String(m||"");
+  if(/Bad credentials|401/i.test(m))
+    return "トークンが正しくないか、<b>期限が切れています</b>。GitHub → Settings → Developer settings → Fine-grained tokens で作り直して、設定に入れ直してください。";
+  if(/Not Found|404/i.test(m))
+    return "ユーザー名・リポジトリ名・ファイル名・ブランチを確かめてください。トークンの Repository access に、このリポジトリが入っているかも確認してください。";
+  if(/Resource not accessible|403/i.test(m))
+    return "書き込みの権限がありません。トークンの Permissions → Repository permissions → <b>Contents を Read and write</b> にしてください。";
+  if(/409|conflict|sha/i.test(m))
+    return "ほかから同時に更新されました。もう一度押してください。";
+  if(/rate limit/i.test(m))
+    return "GitHub の回数制限に当たりました。1時間ほど待ってからお試しください。";
+  if(/Failed to fetch|NetworkError/i.test(m))
+    return "通信できませんでした。ネットワークと、GitHub の障害（githubstatus.com）を確認してください。";
+  return "GitHub の設定（トークンの期限と Contents の権限）を確かめてください。";
+}
 let ghExp=null;   /* トークンの有効期限 */
 async function ghApi(path,opt){
   const r=await fetch("https://api.github.com/"+path,Object.assign({},opt,{headers:Object.assign({
@@ -11857,6 +11874,16 @@ function ghExpNote(){
   return days<=14
     ? `<br><span class="lose">${txt} — 期限が近いので、新しいトークンを作り直してください。</span>`
     : `<br><span class="tiny">${txt}</span>`;
+}
+/** GitHub にある data.json の中身を読みます（歴代のボーダーを守るため） */
+async function ghGetJson(path){
+  const base=`repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/contents/${path}`;
+  try{
+    const cur=await ghApi(`${base}?ref=${encodeURIComponent(gh.branch||"main")}`);
+    if(!cur||!cur.content) return null;
+    const txt=decodeURIComponent(escape(atob(String(cur.content).replace(/\s/g,""))));
+    return {json:JSON.parse(txt), sha:cur.sha, size:cur.size};
+  }catch(e){ if(e.status===404) return null; throw e; }
 }
 /** ファイルを1本コミットする */
 async function ghPut(path,content,message){
@@ -11937,6 +11964,7 @@ function devEditor(box,close){
   </div>
   <div class="tools" style="margin-top:0;margin-bottom:10px">
     <button class="btn pri" id="dvGh">GitHubに直接反映する（おすすめ）</button>
+    <button class="btn sm" id="dvGhCheck">いま GitHub に入っているものを見る</button>
     <button class="btn sm" id="dvGhCfg">GitHub連携の設定</button>
     <span class="tiny" id="dvGhState"></span>
   </div>
@@ -12029,19 +12057,82 @@ function devEditor(box,close){
   };
   box.querySelector("#dvGh").onclick=async()=>{
     const msg=box.querySelector("#dvGhMsg");
-    const json=JSON.stringify(build("add"),null,2);
+    if(!ghReady()){ msg.innerHTML='<span class="lose">GitHub連携が未設定です。「GitHub連携の設定」から入れてください。</span>'; return; }
+    msg.innerHTML="いま GitHub にあるものを読んでいます…";
+    let remote=null, rerr=null;
+    try{ remote=await ghGetJson(gh.path); }catch(e){ rerr=String(e.message||e); }
+    if(rerr){
+      msg.innerHTML=`<span class="lose">GitHub を読めませんでした：${esc(rerr).slice(0,220)}</span><br>`
+        +`<span class="tiny">${ghHint(rerr)}</span>`;
+      return;
+    }
+    /* ★ 歴代のボーダーを守ります。
+       GitHub にある週 ＋ この画面の週 をまぜて、日付が同じものだけ上書きします。 */
+    const mine=build("add").weeks;
+    const rw=(remote&&normalize(remote.json))||[];
+    const map={};
+    rw.forEach(x=>{ if(x&&x.date) map[x.date]=x; });
+    mine.forEach(x=>{ if(x&&x.date) map[x.date]=x; });
+    const weeks=Object.keys(map).sort().map(k=>map[k]);
+    const out={current:weeks[weeks.length-1].date,weeks};
+    const json=JSON.stringify(out,null,2);
+    const added=weeks.length-rw.length;
     if(!await askYN("GitHubに反映しますか？",
-      `${esc(gh.owner)}/${esc(gh.repo)} の <b>${esc(gh.path)}</b> を更新します。<br>`+
-      `<span class="tiny">反映後、プレイヤーの画面には次の読み込みから新しいボーダーが表示されます。</span>`,
+      `${esc(gh.owner)}/${esc(gh.repo)} の <b>${esc(gh.path)}</b> を更新します。<br><br>`+
+      `<b>いま GitHub にある週：${jp(rw.length)} 週</b>`+
+      (rw.length?`（${esc(rw[0].date)} 〜 ${esc(rw[rw.length-1].date)}）`:"（まだありません）")+`<br>`+
+      `<b>送ったあとの週：${jp(weeks.length)} 週</b>`+
+      `（${esc(weeks[0].date)} 〜 ${esc(weeks[weeks.length-1].date)}）<br>`+
+      `<span style="color:${added>0?"var(--acc2)":"var(--dim)"}">`+
+      (added>0?`${jp(added)} 週ぶん増えます`:`週の数は変わりません（同じ日付を上書きします）`)+`</span><br><br>`+
+      `<span class="tiny">過去の週は消えません。日付が同じ週だけ、いまの入力で上書きします。</span>`,
       "反映する")) return;
     msg.innerHTML="送信中…";
     try{
-      const r=await ghPut(gh.path,json,`ボーダーライン更新 ${new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date())}`);
+      const stamp=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
+      const r=await ghPut(gh.path,json,`ボーダーライン更新 ${stamp}（${weeks.length}週）`);
+      /* 書けたかどうか、もう一度読んで確かめます */
+      let ok2=null;
+      try{ const back=await ghGetJson(gh.path);
+        ok2=back&&normalize(back.json)?normalize(back.json).length:null; }catch(e){}
       msg.innerHTML=`<span class="win">反映しました。</span>`+
         (r&&r.commit&&r.commit.html_url?` <a href="${esc(r.commit.html_url)}" target="_blank" rel="noopener">コミットを見る</a>`:"")+
-        `<br><span class="tiny">GitHub Pages への反映まで1〜3分かかります。</span>`;
+        `<br><span class="tiny">`+
+        (ok2===weeks.length
+          ? `GitHub 側でも <b>${jp(ok2)} 週</b>になっているのを確認しました。`
+          : ok2===null ? `※ 確認の読み込みができませんでした。GitHub でファイルを見てください。`
+          : `<span class="lose">※ 確認したら ${jp(ok2)} 週でした。もう一度お試しください。</span>`)
+        +`</span><br><span class="tiny">GitHub Pages への反映まで1〜3分かかります。`
+        +`直らないときは、ブラウザで Ctrl+F5 を押してください。</span>`;
       toast("GitHubに反映しました");
-    }catch(e){ msg.innerHTML=`<span class="lose">失敗：${esc(String(e.message||e)).slice(0,250)}</span>`; }
+    }catch(e){
+      const m2=String(e.message||e);
+      msg.innerHTML=`<span class="lose">失敗：${esc(m2).slice(0,250)}</span><br>`
+        +`<span class="tiny">${ghHint(m2)}</span>`;
+    }
+  };
+  /* いま GitHub に何が入っているかを見るボタン */
+  const chk=box.querySelector("#dvGhCheck");
+  if(chk) chk.onclick=async()=>{
+    const msg=box.querySelector("#dvGhMsg");
+    if(!ghReady()){ msg.innerHTML='<span class="lose">GitHub連携が未設定です。</span>'; return; }
+    msg.innerHTML="読んでいます…";
+    try{
+      const g2=await ghGetJson(gh.path);
+      if(!g2){ msg.innerHTML='<span class="lose">ファイルが見つかりません。</span>'; return; }
+      const wk=normalize(g2.json)||[];
+      const last=wk[wk.length-1]||{};
+      const ls2=(last.lsBorders||{});
+      msg.innerHTML=`<span class="win">GitHub の ${esc(gh.path)}：${jp(wk.length)} 週`+
+        (wk.length?`（${esc(wk[0].date)} 〜 ${esc(last.date)}）`:"")+`</span><br>`+
+        `<span class="tiny">いちばん新しい週：素数ゲーム ${jp(Object.keys(last.borders||{}).length)} 種目 ／ `+
+        `合計スコア ${jp(Object.keys(last.totalBorders||{}).length)} 段 ／ `+
+        `LSやりこみ 乱数 ${jp(Object.keys(ls2.rand||{}).length)} 段・スコア ${jp(Object.keys(ls2.score||{}).length)} 段<br>`+
+        `この画面が見ている週：${jp(WEEKS.length)} 週（${esc(WEEKS[0]?WEEKS[0].date:"—")} 〜 ${esc(WEEKS[WEEKS.length-1]?WEEKS[WEEKS.length-1].date:"—")}）</span>`;
+    }catch(e){
+      const m2=String(e.message||e);
+      msg.innerHTML=`<span class="lose">失敗：${esc(m2).slice(0,220)}</span><br><span class="tiny">${ghHint(m2)}</span>`;
+    }
   };
   box.querySelector("#pasteLsGo").onclick=()=>{
     const R=parseRankLines(box.querySelector("#pasteRand").value);
@@ -12449,13 +12540,23 @@ function normalize(j){
   return null;
 }
 (async function boot(){
+  /* 公開されている data.json を必ず読みます。
+     この端末だけの一時データは、そのあとで「週の数が多いほう」を採用します。
+     （古い一時データのせいで、歴代のボーダーが消えてしまうのを防ぐため） */
+  let pub=null;
+  try{ const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});
+    if(r.ok) pub=normalize(await r.json()); }
+  catch(e){ /* file:// では埋め込みデータを使用 */ }
   const local=ls(K_DATA,null), lw=normalize(local);
-  if(lw){ WEEKS=lw; $("#localBanner").hidden=false; }
-  else{
-    try{ const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});
-      if(r.ok){ const w=normalize(await r.json()); if(w) WEEKS=w; } }
-    catch(e){ /* file:// では埋め込みデータを使用 */ }
-  }
+  if(pub&&lw){
+    WEEKS = (lw.length>=pub.length) ? lw : pub;
+    $("#localBanner").hidden=false;
+    if(lw.length<pub.length){
+      try{ localStorage.removeItem(K_DATA); }catch(e){}
+      $("#localBanner").hidden=true;
+    }
+  }else if(lw){ WEEKS=lw; $("#localBanner").hidden=false; }
+  else if(pub){ WEEKS=pub; }
   wIdx=WEEKS.length-1;
   const wantDev=(location.hash==="#dev");
   if(wantDev) history.replaceState(null,"",location.pathname);
