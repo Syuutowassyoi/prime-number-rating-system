@@ -221,10 +221,10 @@ body.dxon{overflow:hidden}
 .dxc .s{font-size:.66rem;color:var(--dim2);font-family:ui-monospace,Menlo,monospace}
 .dxh{font-size:.74rem;color:var(--acc2);letter-spacing:.1em;margin:12px 0 5px;font-weight:800}
 .dxcal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.dxcal div{aspect-ratio:1.5;border:1px solid var(--line);border-radius:4px;font-size:.52rem;
+.dxcal div{aspect-ratio:2.1;border:1px solid var(--line);border-radius:4px;font-size:.48rem;
   display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim2);
   line-height:1.05}
-.dxcal div b{font-size:.62rem;color:var(--acc2);font-family:ui-monospace,Menlo,monospace}
+.dxcal div b{font-size:.56rem;color:var(--acc2);font-family:ui-monospace,Menlo,monospace}
 .dxcal div.hot{border-color:var(--acc2)}
 .dxcal div.today{outline:1px solid var(--warn)}
 .dxsvg{width:100%;height:150px;display:block}
@@ -244,6 +244,8 @@ body.dxon{overflow:hidden}
 .dxbd td,.dxbd th{padding:3px 6px;border-bottom:1px solid var(--line);color:var(--dim)}
 .dxbd .tg{color:#fff;font-family:ui-monospace,Menlo,monospace;font-weight:700}
 .dxbd .lf{color:#5ee6a8;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.dxbd .df{color:#ff7b8a;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.dxbd .dp{color:#4da3ff;font-family:ui-monospace,Menlo,monospace;font-weight:700}
 .dxbd .nn{color:#ffd45e;font-family:ui-monospace,Menlo,monospace;font-weight:700}
 .dxbd tr.next td{background:#132033}
 .dxsmall{padding:4px 9px;font-size:.74rem;border-radius:8px;background:var(--card2);
@@ -1038,6 +1040,7 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="lsOpenCfg">1回あたりの増加量を登録</button>
       <button class="btn" id="lsOpenKey">カウントキーを設定</button>
+      <button class="btn" id="lsOpenSKey">スタート／ストップのキー</button>
       <button class="btn" id="lsSnd">音：オン</button>
       <button class="btn" id="lsLit">光：オン</button>
     </div>
@@ -1776,8 +1779,10 @@ tr.hknow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
     <button class="dxsmall" id="dxOut">← もどる</button>
     <span class="dxttl">超データ分析モード</span>
     <button class="dxsmall" id="dxStart">スタート</button>
+    <button class="dxsmall" id="dxPause" hidden>休憩</button>
     <button class="dxsmall" id="dxStop" hidden>終了して記録</button>
     <button class="dxsmall" id="dxReset">リセット</button>
+    <button class="dxsmall" id="dxCfg">設定</button>
     <span class="dxclock" id="dxClock">--:--:--</span>
   </div>
   <div id="dxBody"></div>
@@ -1807,7 +1812,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v63";
+const APP_VERSION = "v65";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -5333,6 +5338,14 @@ function animNum(el,from,to,fmt){
 }
 /* 休憩中は時計を止めます */
 function lsElapsed(){ return lsRun?((lsRun.paused||Date.now())-lsRun.start):0; }
+/** こまかい経過時間。Date.now() は1ミリ秒きざみ（小数第3位）までしか測れないので、
+ *  超データ分析モードでは performance.now() を使って、その先まで測ります。
+ *  ブラウザによっては 1ミリ秒きざみに丸められるので、その場合は第4位が 0 のままになります。 */
+function lsElapsedHi(){
+  if(!lsRun) return 0;
+  if(lsRun.p0==null) return lsElapsed();
+  return (lsRun.pp!=null?lsRun.pp:performance.now())-lsRun.p0;
+}
 function lsFmtTime(ms){
   if(ms<0) ms=0;
   const p=(n,w)=>String(n).padStart(w||2,"0");
@@ -5659,12 +5672,19 @@ function lsHit(){
     $("#lsHit").disabled=stop; if($("#hkHit")) $("#hkHit").disabled=stop; },1000);
   renderLs(prev);
 }
+$("#lsOpenSKey").onclick=()=>lsSetSKey();
 $("#lsSnd").onclick=()=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
   if(!lsCfg.mute) lsBeep(false,1); };
 $("#lsLit").onclick=()=>{ lsCfg.nolight=!lsCfg.nolight; saveLs(); lsFxLabels();
   if(!lsCfg.nolight) lsFlash(false); };
 lsFxLabels();
 function lsFill(){ lsCfgView(); }
+/* スタートとストップを切り替えるキー。はじめは S です */
+const SKEY_DEF={code:"KeyS",label:"S"};
+function lsToggleRun(){
+  if(!lsRun){ $("#lsStartBtn").click(); return; }
+  $("#lsPause").click();
+}
 const keyLabel=k=>{
   if(!k) return "スペース";
   if(k.code==="Space") return "スペース";
@@ -5673,18 +5693,22 @@ const keyLabel=k=>{
 document.addEventListener("keydown",e=>{
   /* LSやりこみか箱根駅伝の画面を見ているときだけ数えます */
   const onLs=$("#ls")&&!$("#ls").hidden, onHk=$("#hakone")&&!$("#hakone").hidden;
-  if(!onLs&&!onHk) return;
+  const onDx=document.body.classList.contains("dxon");
+  if(!onLs&&!onHk&&!onDx) return;
   if(document.querySelector(".mask")) return;
   const tag=(e.target.tagName||"").toLowerCase();
   if(tag==="input"||tag==="textarea"||tag==="select") return;
   const code=(lsCfg.key&&lsCfg.key.code)||"Space";
+  const sc=(lsCfg.skey&&lsCfg.skey.code)||SKEY_DEF.code;
+  if(e.code===sc&&sc!==code){ e.preventDefault(); lsToggleRun(); return; }
   if(e.code===code){ e.preventDefault(); lsHit(); }
 });
 function lsCfgView(){
   const v=$("#lsCfgView"); if(!v) return;
   v.innerHTML=`1回あたり — スコア <b>${lsCfg.perScore?jp(lsCfg.perScore):"未登録"}</b>　／　`+
     `乱数 <b>${lsCfg.perRand?jp(lsCfg.perRand):"未登録"}</b>　／　`+
-    `カウントキー <b>${esc(keyLabel(lsCfg.key))}</b>`+
+    `カウントキー <b>${esc(keyLabel(lsCfg.key))}</b>　／　`+
+    `スタート／ストップ <b>${esc(keyLabel(lsCfg.skey||SKEY_DEF))}</b>`+
     (lsCfg.goalSv||lsCfg.goalLv?`<br>次の目標 — S値 <b>${lsCfg.goalSv?f3(lsCfg.goalSv):"—"}</b>（刻み ${f3(lsCfg.stepSv||0.01)}）`+
       ` ／ L値 <b>${lsCfg.goalLv?f3(lsCfg.goalLv):"—"}</b>（刻み ${f3(lsCfg.stepLv||0.01)}）`:"")+
     (lsCfg.goalS||lsCfg.goalR?`<br>目標 — スコア ${lsCfg.goalS?jp(lsCfg.goalS):"—"} ／ 乱数 ${lsCfg.goalR?jp(lsCfg.goalR):"—"}`:"");
@@ -5800,7 +5824,7 @@ $("#lsOpenKey").onclick=()=>{
 };
 
 $("#lsStartBtn").onclick=()=>{
-  lsRun={start:Date.now(),count:0}; lsCool=0;
+  lsRun={start:Date.now(),count:0,p0:performance.now(),pp:null}; lsCool=0;
   $("#lsHit").disabled=false;
   $("#lsStartBtn").hidden=true; $("#lsStopBtn").hidden=false; $("#lsPause").hidden=false;
   $("#lsHint").textContent="カウント中。ボタンか設定したキーで数えてください（1秒間隔）。";
@@ -5882,10 +5906,11 @@ $("#lsPause").onclick=()=>{
   if(!lsRun) return;
   if(lsRun.paused){
     lsRun.start+=Date.now()-lsRun.paused; lsRun.paused=null;
+    if(lsRun.p0!=null&&lsRun.pp!=null){ lsRun.p0+=performance.now()-lsRun.pp; lsRun.pp=null; }
     $("#lsPause").textContent="ストップ（休憩）";
     $("#lsHit").disabled=false; toast("再開しました");
   }else{
-    lsRun.paused=Date.now();
+    lsRun.paused=Date.now(); lsRun.pp=performance.now();
     $("#lsPause").textContent="再開する";
     $("#lsHit").disabled=true; toast("休憩中です");
   }
@@ -6819,9 +6844,10 @@ function dxBorders(kind, cur, per){
   const row=(x,isNext)=>{
     const diff=isNext?(x.val-cur):(cur-x.val);
     const need=per>0?Math.ceil(diff/per):null;
+    /* 次のボーダーまでの差は赤、超えたボーダーとの差は青にします */
     return `<tr class="${isNext?"next":""}"><td>${isNext?"次":""}${x.rank}位</td>
       <td style="text-align:right"><span class="tg">${jp(x.val)}</span></td>
-      <td style="text-align:right"><span class="lf">${jp(diff)}</span></td>
+      <td style="text-align:right"><span class="${isNext?"df":"dp"}">${jp(diff)}</span></td>
       <td style="text-align:right"><span class="nn">${need===null?"—":jp(need)+"回"}</span></td></tr>`;
   };
   return `<table class="dxbd"><tr><th>順位</th><th style="text-align:right">目標値</th>
@@ -6863,30 +6889,73 @@ function dxShell(){
     ${C("dxA1","合計クリア回数")}${C("dxA2","やりこみ記録の回数")}
     ${C("dxA3","測定開始からのクリア回数")}${C("dxA4","経過時間")}
   </div>
-  <div class="dxgrid2">${C("dxB1","今回のスコア増加")}${C("dxB2","今回の乱数増加")}</div>
-  <div class="dxgrid3">${C("dxC1","現在までのスコア増加")}${C("dxC2","現在までの乱数増加")}
-    ${C("dxC3","1回あたりの平均クリア時間")}</div>
+  <div class="dxgrid">
+    ${C("dxB1","今回のスコア増加")}${C("dxC1","現在までのスコア増加")}
+    ${C("dxB2","今回の乱数増加")}${C("dxC2","現在までの乱数増加")}
+  </div>
   <div class="dxgrid2">${C("dxS","S値の予測")}${C("dxL","L値の予測")}</div>
-  <div class="dxgrid3">
-    <div class="dxc"><div class="dxh" style="margin-top:0">達成したボーダー（スコアの累積）</div>
-      <div id="dxBS"></div></div>
-    <div class="dxc"><div class="dxh" style="margin-top:0">達成したボーダー（生成した乱数の累積）</div>
-      <div id="dxBR"></div></div>
-    <div class="dxc"><div class="dxh" style="margin-top:0">箱根駅伝</div><div id="dxHK"></div></div>
+  <div class="dxgrid2">
+    <div class="dxc"><div class="t">目標の S値</div><div id="dxGS"></div></div>
+    <div class="dxc"><div class="t">目標の L値</div><div id="dxGL"></div></div>
   </div>
   <div class="dxgrid2">
+    <div class="dxc"><div class="dxh" style="margin-top:0">ボーダー一覧（スコアの累積）</div>
+      <div id="dxBS"></div></div>
+    <div class="dxc"><div class="dxh" style="margin-top:0">ボーダー一覧（生成した乱数の累積）</div>
+      <div id="dxBR"></div></div>
+  </div>
+  <div class="dxgrid2">
+    <div class="dxc"><div class="dxh" style="margin-top:0">箱根駅伝</div><div id="dxHK"></div></div>
     <div class="dxc">
-      <div class="dxtab" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:6px">
-        <button data-dxt="day" class="${dxTab==="day"?"on":""}">1日ごと（14日）</button>
-        <button data-dxt="week" class="${dxTab==="week"?"on":""}">1週間ごと（14週）</button>
-        <button data-dxt="month" class="${dxTab==="month"?"on":""}">1か月ごと（12か月）</button>
+      <div class="tools" style="margin:0 0 5px;gap:6px">
+        <span class="t">過去7日の回数</span>
+        <button class="dxsmall" id="dxMore" style="margin-left:auto">詳細</button>
       </div>
-      <div id="dxCh"></div>
+      <div id="dxCh7"></div>
     </div>
-    <div class="dxc"><div class="t">カレンダー</div><div id="dxCal"></div></div>
-  </div>`;
-  box.querySelectorAll("[data-dxt]").forEach(b=>b.onclick=()=>{
-    dxTab=b.dataset.dxt; dxShell(); dxDraw(true); });
+  </div>
+  <div class="dxc" style="margin-top:8px"><div class="t">カレンダー</div><div id="dxCal"></div></div>`;
+  const mb=box.querySelector("#dxMore");
+  if(mb) mb.onclick=dxChartModal;
+}
+/** 「詳細」を押したときの、大きなグラフ */
+function dxChartModal(){
+  let tab=dxTab;
+  const M=modal(`<h2>データグラフ</h2>
+    <div class="segs2" id="dcTab" style="grid-template-columns:1fr 1fr 1fr">
+      <button data-c="day" class="${tab==="day"?"on":""}">1日ごと（14日）</button>
+      <button data-c="week" class="${tab==="week"?"on":""}">1週間ごと（14週）</button>
+      <button data-c="month" class="${tab==="month"?"on":""}">1か月ごと（12か月）</button>
+    </div>
+    <div id="dcBox" style="margin-top:10px"></div>`,{w:900});
+  const draw=()=>{
+    const S=dxStats();
+    const map=tab==="day"?S.byDay:tab==="week"?S.byWeek:S.byMonth;
+    const ks=dxKeys(tab);
+    const lab=tab==="day"?"過去14日":tab==="week"?"過去14週":"過去12か月";
+    M.q("#dcBox").innerHTML=`<p class="tiny">${lab}の回数（折れ線）</p>${dxChart(map,"line",ks)}
+      <p class="tiny" style="margin-top:8px">${lab}の回数（棒）</p>${dxChart(map,"bar",ks)}
+      <p class="tiny">この期間 ${jp(ks.reduce((a,k)=>a+(map[k]||0),0))} 回 ／ 全体 ${jp(S.total)} 回</p>`;
+  };
+  draw();
+  M.qa("#dcTab button").forEach(b=>b.onclick=()=>{
+    tab=b.dataset.c; dxTab=tab;
+    M.qa("#dcTab button").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+}
+/** 目標までの 目標値・残り・残り回数 */
+function dxGoal(kind,cur,per){
+  const goal=kind==="score"?lsCfg.goalSv:lsCfg.goalLv;
+  if(!(goal>0)) return `<p class="s">目標がまだ決まっていません。</p>`;
+  const need=Math.ceil(kind==="score"?scoreForS(goal):randForL(goal));
+  const left=Math.max(0,need-cur);
+  const times=per>0?Math.ceil(left/per):null;
+  return `<div class="v sm" style="margin-top:2px">${kind==="score"?"S値":"L値"} ${f3(goal)}</div>
+    <table class="dxbd" style="margin-top:4px">
+      <tr><td>目標値</td><td style="text-align:right"><span class="tg">${jp(need)}</span></td></tr>
+      <tr><td>残り</td><td style="text-align:right"><span class="lf">${jp(left)}</span></td></tr>
+      <tr><td>残り回数</td><td style="text-align:right"><span class="nn">${
+        times===null?"—":jp(times)+" 回"}</span></td></tr>
+    </table>`;
 }
 function dxDraw(heavy){
   if(!document.body.classList.contains("dxon")) return;
@@ -6903,8 +6972,7 @@ function dxDraw(heavy){
   dxNum("dxB2",n*perR,v=>"+"+jp(v));
   dxNum("dxC1",G.s,v=>"+"+jp(v));
   dxNum("dxC2",G.r,v=>"+"+jp(v));
-  dxNum("dxC3",S.avg,v=>dxF(v,4)+'<span class="s"> 秒</span>');
-  const a4=$("#dxA4"); if(a4) a4.textContent=dxTimeStr(lsElapsed());
+  const a4=$("#dxA4"); if(a4) a4.textContent=dxTimeStr(lsElapsedHi());
   const sv=totS>0?Math.max(logb(totS,S_BASE)-S_SUB,0):null;
   const lv=totR>0?Math.max(logb(totR,L_BASE)-L_SUB,0):null;
   const fine=v=>{ const s7=(Math.floor(v*1e7)/1e7).toFixed(7);
@@ -6920,26 +6988,26 @@ function dxDraw(heavy){
   T("dxB2s","生成した乱数の累積 "+jp(totR));
   T("dxC1s","基準 "+jp(G.baseS));
   T("dxC2s","基準 "+jp(G.baseR));
-  T("dxC3s","最速 "+dxF(S.min,4)+" ／ 最遅 "+dxF(S.max,4));
   T("dxSs","スコアの累積 "+jp(totS));
   T("dxLs","生成した乱数の累積 "+jp(totR));
   const c=$("#dxClock");
   if(c) c.textContent=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 `
     +`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:`
     +String(now.getSeconds()).padStart(2,"0")+"."+String(d0.getMilliseconds()).padStart(3,"0");
-  const sb=$("#dxStart"), tb=$("#dxStop");
+  const sb=$("#dxStart"), tb=$("#dxStop"), pb=$("#dxPause");
   if(sb) sb.hidden=!!lsRun; if(tb) tb.hidden=!lsRun;
+  if(pb){ pb.hidden=!lsRun; pb.textContent=(lsRun&&lsRun.paused)?"再開":"休憩"; }
   const key=[S.total,dxTab,dxMon,totS,totR,perS,perR,
              (typeof HK!=="undefined"&&HK.started)?Math.round(HK.km*100):0].join("|");
   if(heavy||key!==dxDraw._k){
     dxDraw._k=key;
-    const map=dxTab==="day"?S.byDay:dxTab==="week"?S.byWeek:S.byMonth;
-    const ks=dxKeys(dxTab);
-    const lab=dxTab==="day"?"過去14日":dxTab==="week"?"過去14週":"過去12か月";
-    const ch=$("#dxCh");
-    if(ch) ch.innerHTML=`<div class="t">${lab}の回数（折れ線）</div>${dxChart(map,"line",ks)}
-      <div class="t" style="margin-top:6px">${lab}の回数（棒）</div>${dxChart(map,"bar",ks)}
-      <div class="s">この期間 ${jp(ks.reduce((a,k)=>a+(map[k]||0),0))} 回 ／ 全体 ${jp(S.total)} 回</div>`;
+    const ks7=dxKeys("day").slice(-7);
+    const ch=$("#dxCh7");
+    if(ch) ch.innerHTML=dxChart(S.byDay,"bar",ks7)
+      +`<div class="s">この7日 ${jp(ks7.reduce((a,k)=>a+(S.byDay[k]||0),0))} 回 ／ 全体 ${jp(S.total)} 回</div>`;
+    const gs=$("#dxGS"), gl=$("#dxGL");
+    if(gs) gs.innerHTML=dxGoal("score",totS,perS);
+    if(gl) gl.innerHTML=dxGoal("rand",totR,perR);
     const bs=$("#dxBS"), br=$("#dxBR");
     if(bs) bs.innerHTML=dxBorders("score",totS,perS);
     if(br) br.innerHTML=dxBorders("rand",totR,perR);
@@ -6968,6 +7036,62 @@ function dxDraw(heavy){
       if(nx) nx.onclick=()=>shift(1);
     }
   }
+}
+/** 超データ分析モードの設定。中身は通常の LSやりこみ と同じものを呼びます */
+function dxSettings(){
+  const M=modal(`<h2>設定</h2>
+    <p class="muted" style="margin-top:-8px">LSやりこみと同じ設定です。ここで直すと両方に効きます。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="dsCfg">1回あたりの増加量を登録</button>
+      <button class="btn" id="dsKey">カウントキーを設定</button>
+      <button class="btn" id="dsSKey">スタート／ストップのキー</button>
+    </div>
+    <div class="tools">
+      <button class="btn" id="dsSnd">音：${lsCfg.mute?"オフ":"オン"}</button>
+      <button class="btn" id="dsLit">光：${lsCfg.nolight?"オフ":"オン"}</button>
+    </div>
+    <div id="dsNow" class="tiny" style="margin-top:10px"></div>`,{w:640});
+  const info=()=>{ M.q("#dsNow").innerHTML=
+    `1回あたり — スコア <b>${lsCfg.perScore?jp(lsCfg.perScore):"未登録"}</b>　／　`
+    +`乱数 <b>${lsCfg.perRand?jp(lsCfg.perRand):"未登録"}</b><br>`
+    +`カウントキー <b>${esc(keyLabel(lsCfg.key))}</b>　／　`
+    +`スタート／ストップ <b>${esc(keyLabel(lsCfg.skey||SKEY_DEF))}</b>`; };
+  info();
+  M.q("#dsCfg").onclick =()=>{ M.close(); $("#lsOpenCfg").click(); };
+  M.q("#dsKey").onclick =()=>{ M.close(); $("#lsOpenKey").click(); };
+  M.q("#dsSKey").onclick=()=>{ M.close(); lsSetSKey(); };
+  M.q("#dsSnd").onclick =e=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
+    e.target.textContent="音："+(lsCfg.mute?"オフ":"オン"); if(!lsCfg.mute) lsBeep(false,1); };
+  M.q("#dsLit").onclick =e=>{ lsCfg.nolight=!lsCfg.nolight; saveLs(); lsFxLabels();
+    e.target.textContent="光："+(lsCfg.nolight?"オフ":"オン"); if(!lsCfg.nolight) lsFlash(false); };
+}
+/** スタート／ストップのキーを決めます（はじめは S） */
+function lsSetSKey(){
+  const M=modal(`<h2>スタート／ストップのキー</h2>
+    <p class="muted" style="margin-top:-8px">このキーを押すと、計測の
+      <b>スタート → 休憩 → 再開</b> が切り替わります。</p>
+    <div class="lsbox" style="margin:14px 0"><div class="t">現在の割り当て</div>
+      <div class="v" id="skNow">${esc(keyLabel(lsCfg.skey||SKEY_DEF))}</div></div>
+    <div class="tools"><button class="btn pri" id="skCap">キーを押して設定する</button>
+      <button class="btn" id="skDef">S に戻す</button>
+      <button class="btn" id="skX">閉じる</button></div>
+    <div id="skMsg" class="tiny"></div>`,{sticky:true});
+  let cap=false;
+  const onKey=e=>{
+    if(!cap) return;
+    e.preventDefault(); e.stopPropagation(); cap=false;
+    lsCfg.skey={code:e.code,label:(e.key===" "?"スペース":e.key.length===1?e.key.toUpperCase():e.key)};
+    saveLs(); M.q("#skNow").textContent=keyLabel(lsCfg.skey);
+    M.q("#skMsg").innerHTML=`<span class="win">「${esc(keyLabel(lsCfg.skey))}」に設定しました。</span>`;
+    M.q("#skCap").textContent="キーを押して設定する"; lsCfgView();
+  };
+  document.addEventListener("keydown",onKey,true);
+  M.q("#skCap").onclick=()=>{ cap=true; M.q("#skCap").textContent="キーを押してください…";
+    M.q("#skMsg").innerHTML=`<span class="tiny">割り当てたいキーを1回押してください。</span>`; };
+  M.q("#skDef").onclick=()=>{ lsCfg.skey=Object.assign({},SKEY_DEF); saveLs();
+    M.q("#skNow").textContent="S";
+    M.q("#skMsg").innerHTML=`<span class="win">S に戻しました。</span>`; lsCfgView(); };
+  M.q("#skX").onclick=()=>{ document.removeEventListener("keydown",onKey,true); M.close(); };
 }
 /* ── 入場の演出 ── */
 function dxEnter(){
@@ -7012,6 +7136,8 @@ if($("#dxHit")) $("#dxHit").onclick=()=>{
   lsHit(); b.disabled=true; setTimeout(()=>{ b.disabled=false; },1000); dxDraw(true);
 };
 if($("#dxStart")) $("#dxStart").onclick=()=>{ $("#lsStartBtn").click(); dxDraw(true); };
+if($("#dxPause")) $("#dxPause").onclick=()=>{ $("#lsPause").click(); dxDraw(true); };
+if($("#dxCfg"))   $("#dxCfg").onclick  =dxSettings;
 if($("#dxStop"))  $("#dxStop").onclick =()=>{ dxLeave(); goTab("ls"); $("#lsStopBtn").click(); };
 if($("#dxReset")) $("#dxReset").onclick=async()=>{ dxLeave(); goTab("ls"); $("#lsReset").click(); };
 
