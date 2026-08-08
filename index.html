@@ -1511,7 +1511,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v69";
+const APP_VERSION = "v70";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4078,6 +4078,7 @@ async function loadRanking(force){
         if(lv&&lv[0]) Object.assign(pp,lv[0]); }catch(e){}
       try{ const aw=await sb(`award_totals?select=*&handle=eq.${encodeURIComponent(r.handle)}&limit=1`);
         pp.trophies=(aw&&aw[0])?aw[0].trophies:0; pp.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
+      pp.medals=await loadMedals(r.handle);
       showPlayer(pp,rc);});
     $$("[data-rf]").forEach(b=>b.onclick=async()=>{
       const r=RANK_ROWS[+b.dataset.rf];
@@ -4922,6 +4923,28 @@ function entryForm(c,evs,dir,mine){
 }
 
 /** ランキングから開く、他プレイヤーのプロフィール */
+/* 公式アチーブメントの獲得数（ブロンズ・シルバー・ゴールド・プラチナ） */
+const MEDAL_N={bronze:"ブロンズ",silver:"シルバー",gold:"ゴールド",platinum:"プラチナ"};
+const MEDAL_C={bronze:"#c98b5a",silver:"#c9d2dd",gold:"#ffd45e",platinum:"#8fe9ff"};
+function medalHTML(p){
+  const m=p&&p.medals;
+  if(!m) return "";
+  const n=(+m.bronze||0)+(+m.silver||0)+(+m.gold||0)+(+m.platinum||0);
+  return `<div class="awbox" style="margin-top:8px">`
+    +Object.keys(MEDAL_N).map(k=>`<div><div class="awn" style="color:${MEDAL_C[k]}">`
+      +`${jp(+m[k]||0)}</div><div class="awl">${MEDAL_N[k]}</div></div>`).join("")
+    +`</div><p class="tiny" style="text-align:center;margin-top:4px">`
+    +`公式アチーブメント 合計 <b>${jp(n)}</b> 個</p>`;
+}
+/** 公式アチーブメントの獲得数を取りに行きます */
+async function loadMedals(handle){
+  if(TEST) return {bronze:2,silver:1,gold:1,platinum:0};
+  if(!sbOn()||!handle) return null;
+  try{
+    const r=await sb(`ach_medals?select=*&handle=eq.${encodeURIComponent(handle)}&limit=1`);
+    return (r&&r[0])||{bronze:0,silver:0,gold:0,platinum:0};
+  }catch(e){ return null; }
+}
 function showPlayer(p,rc){
   const c=compute(rc), rk=c.complete?rankOf(c.total):null;
   const mask=document.createElement("div");mask.className="mask";
@@ -4938,6 +4961,7 @@ function showPlayer(p,rc){
       <div><div class="awn">${jp(+p.trophies||0)}</div><div class="awl">トロフィー</div></div>
       <div><div class="awn" style="color:#ffd45e">${jp(+p.stars||0)}</div><div class="awl">スター</div></div>
     </div>
+    ${medalHTML(p)}
     ${(p.rate!=null||p.checked_n>0)?`<p class="tiny" style="margin-top:8px">
       高評価率 <b style="color:var(--acc2);font-size:1.05rem">${p.rate!=null?(+p.rate).toFixed(1)+"%":"—"}</b>
       　グッドポイント ${jp(+p.good_points||0)} / 審査件数 ${jp(+p.checked_n||0)}</p>`:""}
@@ -6613,6 +6637,7 @@ function tstRpc(name,b){
       const x=TDB.achs.find(y=>y.id===b.p_id);
       if(x){ Object.assign(x,{title:b.p_title,body:b.p_body,how:b.p_how,need:b.p_need,
         fields:b.p_fields,sheet:b.p_sheet,ranked:!!b.p_ranked,trophy:b.p_trophy,
+        ranked:b.p_no_val?false:!!b.p_ranked,no_val:!!b.p_no_val,
         auto_done:!!b.p_auto_done,keep:b.p_keep,section_id:b.p_section||x.section_id});
         if(x.kind==="official"&&x.published) x.dirty=true; }
       return b.p_id;
@@ -6620,7 +6645,8 @@ function tstRpc(name,b){
     const id="na"+Date.now();
     TDB.achs.push({id,kind:b.p_kind,section_id:b.p_section||null,title:b.p_title,trophy:b.p_trophy,
       body:b.p_body,how:b.p_how,need:b.p_need,fields:b.p_fields,sheet:b.p_sheet,
-      ranked:!!b.p_ranked,auto_done:!!b.p_auto_done,keep:b.p_keep||"best",
+      ranked:b.p_no_val?false:!!b.p_ranked,no_val:!!b.p_no_val,
+      auto_done:!!b.p_auto_done,keep:b.p_keep||"best",
       owner_handle:pro.handle,owner_name:pro.name,
       pos:TDB.achs.length,published:b.p_kind!=="official",dirty:false,can_edit:true,
       done_n:0,sub_n:0,my_done_at:null,my_pending:false});
@@ -7189,7 +7215,8 @@ async function openProfile(handle){
     const u=TST_USERS.find(x=>x.handle===handle)||{name:handle,handle,role:"user"};
     const pp=(PFEED.find(x=>x.handle===handle)||{});
     const rc={}; ORDER.forEach((n,i)=>{ if(i<12) rc[n]=LOW.has(n)?(6+i*0.4):(70000+i*1500); });
-    return showPlayer({name:u.name,handle:u.handle,role:u.role,
+    return showPlayer({medals:{bronze:2,silver:1,gold:1,platinum:0},
+      name:u.name,handle:u.handle,role:u.role,
       lv:pp.lv!=null?pp.lv:0, xp:(pp.lv||0)*250+120,
       trophies:(pp.lv||0)%3, stars:(pp.lv||0)*2},rc);
   }
@@ -7202,6 +7229,7 @@ async function openProfile(handle){
     try{ const aw=await sb(`award_totals?select=*&handle=eq.${encodeURIComponent(handle)}&limit=1`);
       pr.trophies=(aw&&aw[0])?aw[0].trophies:0; pr.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
     const rc=(await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}))||{};
+    pr.medals=await loadMedals(handle);
     showPlayer(pr,rc);
   }catch(e){ toast("プロフィールを開けませんでした"); }
 }
@@ -8310,6 +8338,10 @@ function achForm(id){
       <button class="btn sm" id="afAdd">＋ 値を増やす</button>
       <button class="btn sm" id="afSheet">表計算を用いる${sheet?"（設定ずみ）":""}</button>
     </div>
+    <h3 style="margin-top:16px">数値</h3>
+    <label class="pk" style="display:inline-flex"><input type="checkbox" id="afNoVal"
+      ${a&&a.no_val?"checked":""}> 数値は不必要（画像や動画を見れば分かるもの）</label>
+    <p class="tiny" id="afNoValM" style="margin-top:4px"></p>
     <h3 style="margin-top:16px">ランキング</h3>
     <div class="tools" style="margin-top:0">
       <label class="pk"><input type="radio" name="afR" value="1" ${a&&a.ranked?"checked":""}> ランキングを作る</label>
@@ -8355,23 +8387,40 @@ function achForm(id){
     try{ await callRpc("ach_del",{p_id:id}); M.close(); await loadAch(); renderAch(); toast("消しました"); }
     catch(e){ toast(String(e.message||e).slice(0,90)); }
   };
+  /* 「数値は不必要」を選ぶと、値の欄とランキングを使いません */
+  const noValSync=()=>{
+    const nv=!!(M.q("#afNoVal")&&M.q("#afNoVal").checked);
+    M.qa('input[name="afR"]').forEach(r=>{ r.disabled=nv; if(nv&&r.value==="1") r.checked=false;
+      if(nv&&r.value==="0") r.checked=true; });
+    const fw=M.q("#afFields"); if(fw) fw.style.opacity=nv?".35":"";
+    const ad=M.q("#afAdd"), sh=M.q("#afSheet");
+    if(ad) ad.disabled=nv; if(sh) sh.disabled=nv;
+    const m2=M.q("#afNoValM");
+    if(m2) m2.innerHTML=nv
+      ? "記入してもらう値はありません。ランキングは作れませんが、提出者と達成者は並びます。"
+      : "";
+  };
+  if(M.q("#afNoVal")) M.q("#afNoVal").onchange=noValSync;
+  noValSync();
   M.q("#afGo").onclick=async()=>{
     const t=M.q("#afT").value.trim(), b=M.q("#afB").value.trim();
+    const noVal=!!(M.q("#afNoVal")&&M.q("#afNoVal").checked);
     if(!t) return toast("名前を入れてください");
     if(!b) return toast("内容を書いてください");
-    if(!fields.length||fields.some(f=>!f.label.trim()))
+    if(!noVal&&(!fields.length||fields.some(f=>!f.label.trim())))
       return toast("記入してもらう値の名前をすべて書いてください");
     const need=(M.qa('input[name="afN"]').find(x=>x.checked)||{}).value||"either";
-    const ranked=((M.qa('input[name="afR"]').find(x=>x.checked)||{}).value==="1");
+    const ranked=noVal?false:((M.qa('input[name="afR"]').find(x=>x.checked)||{}).value==="1");
     const body={p_id:id||null,p_kind:kind,p_title:t,p_body:b,p_how:M.q("#afH").value.trim()||null,
-      p_need:need,p_fields:fields,p_sheet:sheet,p_ranked:ranked,
+      p_need:need,p_fields:noVal?[]:fields,p_sheet:noVal?null:sheet,p_ranked:ranked,
+      p_no_val:noVal,
       p_trophy:off?(M.q("#afTro")||{}).value||null:null,
       p_auto_done:off?false:!!(M.q("#afAuto")&&M.q("#afAuto").checked),
       p_keep:off?"best":((M.qa('input[name="afK"]').find(x=>x.checked)||{}).value||"best"),
       p_section:(M.q("#afSec")||{}).value||null};
     try{
-      await callRpc("ach_save",body,[["p_section"],["p_keep","p_section"],
-        ["p_auto_done","p_keep","p_section"]]);
+      await callRpc("ach_save",body,[["p_no_val"],["p_no_val","p_section"],
+        ["p_no_val","p_keep","p_section"],["p_no_val","p_auto_done","p_keep","p_section"]]);
       M.close(); await loadAch(); renderAch();
       toast(off?"作りました（まだ公開されていません）":"作りました");
       if(!id) askAchPost(kind,t);
@@ -8514,7 +8563,10 @@ function achSubmit(a){
   calc();
   M.q("#asGo").onclick=async()=>{
     const v=vals();
-    if(fs.some(f=>!(v[f.key]>0))) return toast("すべての値を記入してください");
+    /* 0 でも提出できます。空欄だけをはじきます */
+    if(fs.some(f=>{ const el=M.q(`[data-v="${CSS.escape(f.key)}"]`);
+      return !el||String(el.value).trim()===""; }))
+      return toast("すべての値を記入してください（0でもかまいません）");
     const LK=cleanLinks(links);
     if(!LK.length) return toast("証明のリンクを1つ以上入れてください");
     const c=calc();
