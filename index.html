@@ -1511,7 +1511,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v70";
+const APP_VERSION = "v71";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2093,23 +2093,48 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
 const EXT={clear:[],renderLs:[],tab:[],keys:[],hide:[],help:[]};
 const extCall=(k,a)=>{ (EXT[k]||[]).forEach(f=>{ try{ f(a); }catch(e){} }); };
 const K_EXT="sa-ext-v1";
-let extOn=false;
+let extOn=false, extState="まだ読み込んでいません", extErr="";
 /* eval はこの場所で呼ぶので、アプリの中の名前をそのまま使えます */
-function extRun(code){ try{ eval(code); return true; }catch(e){ console.error(e); return false; } }
-async function extLoad(){
-  if(extOn) return;
+function extRun(code){
+  try{ eval(code); return true; }
+  catch(e){ extErr="動かすときに失敗："+String(e&&e.message||e); console.error(e); return false; }
+}
+async function extLoad(force){
+  if(extOn&&!force) return extState;
+  extErr="";
+  /* ① この端末に控えがあれば、それで動かします */
   let keep=null;
   try{ keep=localStorage.getItem(K_EXT); }catch(e){}
-  if(keep&&extRun(keep)) extOn=true;
-  if(!(typeof isAdmin==="function"&&isAdmin())||!sess||!sbOn()) return;
+  if(keep&&!extOn){
+    if(extRun(keep)){ extOn=true; extState=`この端末の控えで動いています（${keep.length} 文字）`; }
+    else extState="控えを動かせませんでした";
+  }
+  /* ② 管理者なら、置き場から最新を取りに行きます */
+  if(!(typeof isAdmin==="function"&&isAdmin())){
+    if(!extOn) extState="管理者ではないため、何も読み込みません";
+    return extState;
+  }
+  if(!sess||!sbOn()){ if(!extOn) extState="ログインしていないため取りに行けません"; return extState; }
   try{
     const r=await callRpc("ext_get",{p_name:"m1"});
     const c=r&&r.code;
-    if(c&&c!==keep){
-      try{ localStorage.setItem(K_EXT,c); }catch(e){}
-      if(!extOn&&extRun(c)) extOn=true;
+    if(!c){
+      if(!extOn) extState="置き場に何も入っていません（register-module.sql を実行してください）";
+      return extState;
     }
-  }catch(e){}
+    if(c!==keep){ try{ localStorage.setItem(K_EXT,c); }catch(e){} }
+    if(!extOn){
+      if(extRun(c)){ extOn=true; extState=`置き場から読み込みました（${c.length} 文字）`; }
+      else extState="読み込みましたが、動かせませんでした";
+    }else if(c!==keep){
+      extState=`新しいものが届いています（${c.length} 文字）。画面を読み込み直すと入れ替わります`;
+    }
+    return extState;
+  }catch(e){
+    extErr="取りに行けませんでした："+String(e&&e.message||e);
+    if(!extOn) extState="取りに行けませんでした";
+    return extState;
+  }
 }
 const K_SYNCAT="sa-sync-at", K_SYNCSINCE="sa-sync-since";
 /* そろえるもの（ログイン情報・端末ごとの設定・大きな控えは入れません） */
@@ -10364,11 +10389,15 @@ function devEditor(box,close){
   <div class="hintbox" style="margin-bottom:8px"><span class="tiny">
     ここに入れたプログラムは <b>Supabase にだけ</b>保存され、公開しているファイルには一切入りません。
     取り出せるのは管理者だけです。</span></div>
-  <textarea id="dvExt" rows="4" placeholder="ここに貼り付けます" style="width:100%"></textarea>
-  <div class="tools" style="margin-top:6px">
-    <button class="btn pri" id="dvExtPut">登録する</button>
+  <div class="lockbox" id="dvExtState" style="margin-bottom:8px"></div>
+  <div class="tools" style="margin-top:0;margin-bottom:8px">
+    <button class="btn pri" id="dvExtLoad">いま読み込む</button>
     <button class="btn" id="dvExtGet">いま入っているものを見る</button>
     <button class="btn" id="dvExtDel">消す</button>
+  </div>
+  <textarea id="dvExt" rows="4" placeholder="ここに貼り付けます（SQLで入れたなら空のままでかまいません）" style="width:100%"></textarea>
+  <div class="tools" style="margin-top:6px">
+    <button class="btn" id="dvExtPut">この中身で登録する</button>
     <span class="tiny" id="dvExtMsg"></span>
   </div>
 
@@ -10471,6 +10500,22 @@ function devEditor(box,close){
       }};
   };
   const exMsg=t=>{ const e2=box.querySelector("#dvExtMsg"); if(e2) e2.innerHTML=t; };
+  const exState=()=>{
+    const e2=box.querySelector("#dvExtState"); if(!e2) return;
+    e2.innerHTML=`<b>いまの状態</b>：${extOn?'<span class="win">動いています</span>':'<span class="lose">動いていません</span>'}<br>`
+      +`<span class="tiny">${esc(extState)}</span>`
+      +(extErr?`<br><span class="tiny lose">${esc(extErr).slice(0,220)}</span>`:"")
+      +`<br><span class="tiny">管理者：${isAdmin()?"はい":"いいえ"}　／　`
+      +`ログイン：${sess?"はい":"いいえ"}　／　Supabase：${sbOn()?"つながっています":"未設定"}</span>`;
+  };
+  exState();
+  box.querySelector("#dvExtLoad").onclick=async()=>{
+    exMsg("読み込んでいます…");
+    await extLoad(true);
+    exState();
+    exMsg(extOn?'<span class="win">できました。画面を読み込み直すと確実です。</span>'
+               :'<span class="lose">読み込めませんでした。上の説明を見てください。</span>');
+  };
   box.querySelector("#dvExtPut").onclick=async()=>{
     const code=box.querySelector("#dvExt").value;
     if(!code.trim()) return exMsg('<span class="lose">中身が空です。</span>');
