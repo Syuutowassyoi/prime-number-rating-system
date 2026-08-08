@@ -366,6 +366,57 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
 .tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
 
+/* ═══════ PGBC（Prime Game Border Center） ═══════ */
+#pgbc .pgpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-bottom:12px}
+#pgbc .pgpick button{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+  border-radius:9px;padding:7px 6px;font:inherit;font-size:.78rem;cursor:pointer;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+#pgbc .pgpick button.on{background:#123a6b;border-color:#4da3ff;color:#fff;font-weight:800}
+#pgbc .pgboard{background:#0b2a6b;border:2px solid #16428f;border-radius:12px;padding:clamp(6px,1vw,14px)}
+#pgbc .pgrow{display:grid;gap:clamp(5px,.8vw,12px);margin-bottom:clamp(5px,.8vw,12px)}
+#pgbc .pgcell{background:#0a3282;border:1px solid #2a58a8;border-radius:9px;
+  padding:clamp(4px,.7vw,10px) clamp(6px,1vw,14px);min-width:0}
+#pgbc .pgrk{font-size:clamp(.6rem,1.1vw,1rem);color:#cfe0ff;letter-spacing:.06em}
+#pgbc .pgval{font-family:Impact,'Arial Black','Haettenschweiler',sans-serif;
+  line-height:1.06;color:#fff;letter-spacing:.02em;
+  background:#0d3fa0;border-radius:6px;padding:2px clamp(4px,.8vw,12px);display:block;
+  text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pgbc .r1 .pgval{font-size:clamp(1.3rem,4.2vw,3.4rem)}
+#pgbc .r2 .pgval{font-size:clamp(.95rem,2.9vw,2.3rem)}
+#pgbc .pgval.up{animation:pgbl 1s steps(1,end) infinite}
+@keyframes pgbl{0%,49%{background:#0d3fa0;color:#fff}50%,100%{background:#fff;color:#e33}}
+#pgbc .pgdrow{display:flex;align-items:center;gap:6px;margin-top:4px}
+#pgbc .pgdlab{color:#cfe0ff;font-size:clamp(.5rem,.95vw,.76rem);white-space:nowrap}
+#pgbc .pgd{font-family:Impact,'Arial Black',sans-serif;flex:1;
+  background:#062458;border-radius:5px;padding:1px clamp(4px,.7vw,10px);
+  text-align:right;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pgbc .r1 .pgd{font-size:clamp(.8rem,1.9vw,1.5rem)}
+#pgbc .r2 .pgd{font-size:clamp(.66rem,1.4vw,1.1rem)}
+#pgbc .pgd.p{color:#39d98a}#pgbc .pgd.m{color:#ff6b6b}#pgbc .pgd.z{color:#9fb6d9}
+#pgbc .pgnote{color:#cfe0ff;font-size:.74rem;margin:0 0 8px}
+#pgt{background:#06122a;border-top:1px solid #16428f;border-bottom:1px solid #16428f;
+  overflow:hidden;position:relative;height:clamp(56px,7.4vw,88px);margin:6px 0 10px}
+#pgt .pgtin{position:absolute;left:0;top:0;height:100%;display:flex;align-items:stretch;will-change:transform}
+#pgt .g{position:relative;display:flex;align-items:stretch;padding-top:clamp(13px,1.9vw,22px);
+  margin-right:clamp(14px,2.4vw,34px)}
+#pgt .nm{position:absolute;left:0;top:0;height:clamp(13px,1.9vw,22px);display:flex;align-items:center;
+  color:#ffd45e;font-weight:800;font-size:clamp(.56rem,1.05vw,.86rem);white-space:nowrap;
+  letter-spacing:.06em;padding-left:6px}
+#pgt .c{display:flex;flex-direction:column;justify-content:center;padding:0 clamp(6px,1.1vw,14px);
+  border-right:1px solid #14335f;white-space:nowrap;text-align:right;box-sizing:border-box}
+#pgt .c .r{color:#9fb6d9;font-size:clamp(.5rem,.95vw,.76rem);letter-spacing:.06em;text-align:right}
+#pgt .c .v{color:#ff9a2e;font-size:clamp(.86rem,1.9vw,1.5rem);line-height:1.15;text-align:right;
+  font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:800}
+#pgt .c .d{font-size:clamp(.6rem,1.2vw,.95rem);text-align:right;
+  font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:800}
+#pgt .c .d.p{color:#39d98a}#pgt .c .d.m{color:#ff6b6b}#pgt .c .d.z{color:#9fb6d9}
+#pgt .sp{width:10px}
+.hclock{margin-left:10px;font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-variant-numeric:tabular-nums;font-size:clamp(.6rem,1.3vw,.82rem);color:var(--dim);
+  white-space:nowrap}
+.hclock.cd{color:var(--acc2)}
+.hclock.cd.wait{color:var(--warn);font-weight:800}
+@media(max-width:520px){header{flex-wrap:wrap}.hclock{margin-left:0;margin-right:10px}}
 .mask{position:fixed;inset:0;background:#060a12dd;display:grid;place-items:center;padding:16px;z-index:200}
 .modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
   max-width:860px;width:100%;max-height:88vh;overflow:auto}
@@ -667,7 +718,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <h1>素数あつめ <span class="g">RATING</span></h1>
   <span class="ver" id="verBadge">—</span>
   <button class="btn sm" id="cheerBtn" style="margin-left:8px">開発者を応援する</button>
+  <span class="hclock" id="nowClock">—</span>
+  <span class="hclock cd" id="nextUp">—</span>
 </header>
+<div id="pgt"></div>
 <div class="menubar">
   <button class="mbtn" id="menuBtn" aria-label="メニュー"><span></span><span></span><span></span></button>
   <span class="mnow" id="menuNow">ホーム</span>
@@ -686,7 +740,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 </div>
 <nav class="tabs" id="tabs" hidden>
   <div class="grp" data-g="home"><div class="ghead">ホーム</div>
-    <button data-tab="profile" class="on">ホーム</button></div>
+    <button data-tab="profile" class="on">ホーム</button>
+    <button data-tab="pgbc">PGBC</button></div>
   <div class="grp" data-g="me"><div class="ghead">個人データ</div>
     <button data-tab="card">カード</button>
     <button data-tab="input">個人データ入力</button></div>
@@ -1272,6 +1327,13 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   </div>
 </section>
 
+<section id="pgbc" hidden>
+  <div class="card">
+    <h2>PGBC　<span class="tiny">Prime Game Border Center</span></h2>
+    <div id="pgbcBody"></div>
+  </div>
+</section>
+
 <section id="analysis" hidden>
   <div class="card">
     <h2>記録更新の難易度</h2>
@@ -1520,7 +1582,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v73";
+const APP_VERSION = "v75";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -1967,11 +2029,16 @@ function fromJstInput(v){ return new Date(v+"+09:00"); }
 /* 値が無いときでも落ちないようにします */
 const nice=v=>(v===null||v===undefined||v===""||!isFinite(+v))?"—"
   :(Number.isInteger(+v)?jp(+v):(+v).toLocaleString("ja-JP",{maximumFractionDigits:3}));
-/** 種目に応じた表記。タイム系は必ず小数第3位まで */
+/* 種目ごとの、小数の桁数。書いていないものは整数（または最大3桁）です */
+const DEC={"1から順にEX":2};
+LOW.forEach(n=>{ DEC[n]=3; });
+const decOf=n=>DEC[n];
+/** 種目に応じた表記。タイム系は小数第3位、1から順にEX は小数第2位まで */
 function fmtRec(n,v){
   if(v===null||v===undefined||v==="") return "—";
   const x=+v; if(!isFinite(x)) return "—";
-  if(LOW.has(n)) return x.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
+  const d=decOf(n);
+  if(d!=null) return x.toLocaleString("ja-JP",{minimumFractionDigits:d,maximumFractionDigits:d});
   return Number.isInteger(x)?jp(x):x.toLocaleString("ja-JP",{maximumFractionDigits:3});
 }
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -2090,6 +2157,184 @@ async function pbkdf2(pw,saltHex,iter){
 const b64e=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const b64d=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
 const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
+
+/* =========================================================
+   2y. 時計と「データ更新までの残り」
+   ・毎週 土曜 0時0分0秒（日本時間）が入れ替えの合図です
+   ・0になったら「データ入れ替え中」。管理者が終わりを押すと、次の土曜へ数え直します
+   ========================================================= */
+let BORDER_AT=null;              /* 管理者が「更新を終えた」と押した時刻 */
+const p02=x=>String(Math.floor(x)).padStart(2,"0");
+/** いまの日本時間 */
+const jstDate=()=>new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+/** その時刻から見て、直前に過ぎた土曜0時（日本時間） */
+function satBefore(d){
+  const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  x.setDate(x.getDate()-((x.getDay()+1)%7));     /* 土曜=6 → 0日戻す */
+  return x;
+}
+/** その時刻から見て、次に来る土曜0時（日本時間） */
+function satAfter(d){
+  const x=satBefore(d);
+  if(x.getTime()<=d.getTime()) x.setDate(x.getDate()+7);
+  return x;
+}
+/** 「n日nn時間nn分nn秒」 */
+function leftText(ms){
+  let s2=Math.max(0,Math.floor(ms/1000));
+  const d=Math.floor(s2/86400); s2-=d*86400;
+  const h=Math.floor(s2/3600);  s2-=h*3600;
+  const m=Math.floor(s2/60);    s2-=m*60;
+  return `${d}日${p02(h)}時間${p02(m)}分${p02(s2)}秒`;
+}
+function tickClock(){
+  const now=jstDate();
+  const c=document.getElementById("nowClock");
+  if(c) c.textContent=`${now.getFullYear()}/${p02(now.getMonth()+1)}/${p02(now.getDate())} `
+    +`${p02(now.getHours())}:${p02(now.getMinutes())}:${p02(now.getSeconds())}`;
+  const e2=document.getElementById("nextUp");
+  if(!e2) return;
+  const last=satBefore(now);
+  const done=BORDER_AT&&(new Date(BORDER_AT).getTime()>=last.getTime());
+  if(!done){
+    e2.textContent="データ入れ替え中";
+    e2.classList.add("wait");
+  }else{
+    e2.classList.remove("wait");
+    e2.textContent="データ更新まで "+leftText(satAfter(now)-now);
+  }
+}
+/** みんなで見る合図を読みます */
+async function loadBorderAt(){
+  if(TEST){ BORDER_AT=new Date().toISOString(); return; }
+  if(!sbOn()) { BORDER_AT=new Date().toISOString(); return; }
+  try{
+    const r=await sb("app_state?select=value&key=eq.border&limit=1");
+    BORDER_AT=(r&&r[0]&&r[0].value&&r[0].value.at)||null;
+  }catch(e){ /* 古い SQL のときは、待たせないでおきます */ BORDER_AT=new Date().toISOString(); }
+}
+setInterval(tickClock,1000);
+setInterval(()=>{ if(!document.hidden) loadBorderAt(); },120000);
+
+/* ═══════════════════════════════════════════════════════════
+   PGBC（Prime Game Border Center）— ボーダーラインの掲示板
+   ═══════════════════════════════════════════════════════════ */
+const PG_ORDER=["合計スコア"].concat(EVENTS);
+const PG_ROWS ={def:[[1,5,10],[50,100,200]], "合計スコア":[[1,5,10],[50,100,500,1000]]};
+const PG_TICK=[1,10,100];
+const K_PGSPD="sa-pgspeed-v1";
+let pgPick="合計スコア", pgSpeed=(function(){
+  try{ return +localStorage.getItem(K_PGSPD)||60; }catch(e){ return 60; } })();
+
+
+
+/* ── 数の取り出し ── */
+function pgWeek(back){
+  const i=WEEKS.length-1-(back||0);
+  return (i>=0)?WEEKS[i]:null;
+}
+function pgVal(w,name,rank){
+  if(!w) return null;
+  const b=(name==="合計スコア")?(w.totalBorders||{}):((w.borders||{})[name]||{});
+  const v=+b[rank];
+  return (v>0)?v:null;
+}
+/** 先週との差。タイムは短くなったら「よくなった」ので緑にします */
+function pgDiff(name,rank){
+  const a=pgVal(pgWeek(0),name,rank), b=pgVal(pgWeek(1),name,rank);
+  if(a==null||b==null) return {txt:"-",cls:"z",changed:false};
+  const d=a-b;
+  if(Math.abs(d)<1e-9) return {txt:"-",cls:"z",changed:false};
+  const low=LOW.has(name);
+  const good=low?(d<0):(d>0);
+  const dec=(typeof decOf==="function")?decOf(name):(low?3:null);
+  const ad=Math.abs(d);
+  const txt=(d>0?"+":"-")+(dec!=null?ad.toFixed(dec):jp(Math.round(ad*1000)/1000));
+  return {txt,cls:good?"p":"m",changed:true};
+}
+/* 表示の桁数は、アプリ本体の決まり（1から順にEXは小数第2位）に合わせます */
+const pgFmt=(name,v)=>{
+  if(v==null) return "—";
+  const dec=(typeof decOf==="function")?decOf(name):(LOW.has(name)?3:null);
+  return dec!=null?(+v).toLocaleString("ja-JP",{minimumFractionDigits:dec,maximumFractionDigits:dec})
+                  :jp(+v);
+};
+
+/* ── 掲示板 ── */
+function pgRender(){
+  const box=document.querySelector("#pgbcBody"); if(!box) return;
+  const w=pgWeek(0), pw=pgWeek(1);
+  box.innerHTML=`
+    <p class="pgnote">いまのボーダー：<b>${esc(w?w.date:"—")}</b>
+      ／ くらべている先週：<b>${esc(pw?pw.date:"（まだありません）")}</b></p>
+    <div class="pgpick">${PG_ORDER.map(n=>
+      `<button data-pg="${esc(n)}" class="${n===pgPick?"on":""}">${esc(n)}</button>`).join("")}</div>
+    <div class="pgboard">
+      <div class="pgnote" style="font-size:.9rem;font-weight:800;color:#fff;margin-bottom:8px">
+        ${esc(pgPick)}</div>
+      ${(PG_ROWS[pgPick]||PG_ROWS.def).map((row,ri)=>
+        `<div class="pgrow r${ri+1}" style="grid-template-columns:repeat(${row.length},1fr)">`
+        +row.map(r=>{
+          const v=pgVal(w,pgPick,r), d=pgDiff(pgPick,r);
+          return `<div class="pgcell">
+            <div class="pgrk">${r}位</div>
+            <span class="pgval ${d.changed?"up":""}">${pgFmt(pgPick,v)}</span>
+            <div class="pgdrow"><span class="pgdlab">先週比</span>
+              <span class="pgd ${d.cls}">${d.txt}</span></div></div>`;
+        }).join("")+`</div>`).join("")}
+    </div>
+    ${isAdmin()?`<div class="tools" style="margin-top:10px">
+      <span class="tiny">帯の速さ</span>
+      <input type="number" id="pgSpd" class="txt" style="max-width:90px" value="${pgSpeed}">
+      <span class="tiny">（1秒あたりの点。大きいほど速い。管理者だけに出ています）</span>
+      <button class="btn sm" id="pgSpdGo">変える</button>
+    </div>`:""}`;
+  box.querySelectorAll("[data-pg]").forEach(b=>b.onclick=()=>{ pgPick=b.dataset.pg; pgRender(); });
+  const sp=box.querySelector("#pgSpdGo");
+  if(sp) sp.onclick=()=>{
+    const v=+box.querySelector("#pgSpd").value;
+    if(!(v>0)) return toast("1以上の数を入れてください");
+    pgSpeed=v; try{ localStorage.setItem(K_PGSPD,String(v)); }catch(e){}
+    pgBuildTicker(); toast("速さを変えました");
+  };
+}
+
+/* ── 流れる帯 ── */
+let pgRaf=null, pgX=0, pgW=0;
+function pgBuildTicker(){
+  const band=document.querySelector("#pgt"); if(!band) return;
+  const one=()=>PG_ORDER.map(n=>
+    `<div class="g"><div class="nm">${esc(n)}</div>`
+    +PG_TICK.map(r=>{
+      const v=pgVal(pgWeek(0),n,r), d=pgDiff(n,r);
+      return `<div class="c"><div class="r">${r}位</div>`
+        +`<div class="v">${pgFmt(n,v)}</div>`
+        +`<div class="d ${d.cls}">${d.txt}</div></div>`;
+    }).join("")+`</div>`).join("")
+    +`<div class="sp" style="width:${Math.round(pgSpeed*3)}px"></div>`;
+  band.innerHTML=`<div class="pgtin" id="pgtIn">${one()}${one()}</div>`;
+  const inn=band.querySelector("#pgtIn");
+  /* いちばん広いブロックに合わせて、全部そろえます */
+  const cs=[...inn.querySelectorAll(".c")];
+  let mw=0;
+  cs.forEach(c=>{ c.style.width="auto"; const x=c.getBoundingClientRect().width; if(x>mw) mw=x; });
+  if(mw>0) cs.forEach(c=>{ c.style.width=Math.ceil(mw)+"px"; c.style.flex="0 0 auto"; });
+  /* 1周ぶんの幅を測ります */
+  const kids=[...inn.children];
+  const half=Math.floor(kids.length/2);
+  pgW=0; for(let i=0;i<half;i++) pgW+=kids[i].getBoundingClientRect().width;
+  if(!pgW) pgW=band.getBoundingClientRect().width||800;
+  pgX=0;
+  cancelAnimationFrame(pgRaf);
+  let last=performance.now();
+  const step=t=>{
+    const dt=Math.min(.2,(t-last)/1000); last=t;
+    if(!document.hidden){ pgX-=pgSpeed*dt; if(pgX<=-pgW) pgX+=pgW; }
+    inn.style.transform="translateX("+pgX.toFixed(1)+"px)";
+    pgRaf=requestAnimationFrame(step);
+  };
+  pgRaf=requestAnimationFrame(step);
+}
 
 /* =========================================================
    2z. 端末どうしの同期
@@ -3007,7 +3252,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer"]
+  ["profile","pgbc","plan","analysis","ls","card","input","sns","settings","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -3026,6 +3271,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
   if(b.dataset.tab==="sns") snsEnter();
   if(b.dataset.tab==="help") renderHelp();
+  if(b.dataset.tab==="pgbc") pgRender();
   if(b.dataset.tab==="cheer") cheerEnter();
   saveWhere();
   scrollTo({top:0,behavior:"smooth"});});
@@ -10339,6 +10585,13 @@ function devEditor(box,close){
   const today=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
   const w=DATA();
   let h=`<p class="muted">表示中の週：<b>${w.date}</b>　保存時の日付：<b>${today}</b></p>
+  <h3>データの入れ替え</h3>
+  <div class="lockbox" id="dvCdState" style="margin-bottom:8px"></div>
+  <div class="tools" style="margin-top:0;margin-bottom:14px">
+    <button class="btn pri" id="dvCdGo">更新を終えたのでカウントダウンを開始する</button>
+    <span class="tiny" id="dvCdMsg"></span>
+  </div>
+
   <h3>追加の道具</h3>
   <div class="hintbox" style="margin-bottom:8px"><span class="tiny">
     ここに入れたプログラムは <b>Supabase にだけ</b>保存され、公開しているファイルには一切入りません。
@@ -10509,6 +10762,29 @@ function devEditor(box,close){
             :/Resource not accessible|403/i.test(m)?"書き込み権限がありません。Permissions → Repository permissions → Contents を「Read and write」にしてください。"
             :"Contents の権限が Read and write になっているか確認してください。"}</span>`;
       }};
+  };
+  /* ── データ入れ替えの合図 ── */
+  const cdState=()=>{
+    const e2=box.querySelector("#dvCdState"); if(!e2) return;
+    const now=jstDate(), last=satBefore(now);
+    const done=BORDER_AT&&(new Date(BORDER_AT).getTime()>=last.getTime());
+    e2.innerHTML=`<b>いまの状態</b>：`
+      +(done?`<span class="win">カウントダウン中</span>　残り ${leftText(satAfter(now)-now)}`
+            :`<span class="lose">データ入れ替え中</span>（みんなの画面にもそう出ています）`)
+      +`<br><span class="tiny">今回の合図：${last.getFullYear()}/${p02(last.getMonth()+1)}/${p02(last.getDate())} 0:00:00`
+      +`　／　最後に「終えた」を押した時刻：${BORDER_AT?jstFull(BORDER_AT):"まだありません"}</span>`;
+  };
+  cdState();
+  box.querySelector("#dvCdGo").onclick=async()=>{
+    const m2=box.querySelector("#dvCdMsg");
+    m2.textContent="送っています…";
+    try{
+      const at=new Date().toISOString();
+      await callRpc("app_state_set",{p_key:"border",p_value:{at}});
+      BORDER_AT=at; tickClock(); cdState();
+      m2.innerHTML='<span class="win">はじめました。次の土曜0時まで数えます。</span>';
+      toast("カウントダウンをはじめました");
+    }catch(e){ m2.innerHTML='<span class="lose">失敗：'+esc(String(e.message||e)).slice(0,160)+'</span>'; }
   };
   const exMsg=t=>{ const e2=box.querySelector("#dvExtMsg"); if(e2) e2.innerHTML=t; };
   const exState=()=>{
@@ -11089,6 +11365,8 @@ function normalize(j){
   try{ applyData(); }catch(e){ console.error(e); }
   /* ★ ほかの端末との同期。記録やLSやりこみなどをそろえます */
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
+  try{ await loadBorderAt(); }catch(e){} tickClock();
+  try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
     try{ await loadFriendReq(); renderFriendReq(); }catch(e){}
