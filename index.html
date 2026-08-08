@@ -1368,6 +1368,15 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 
 
 <section id="settings" hidden>
+<div class="card" id="devCard" hidden>
+    <h2>開発者メニュー</h2>
+    <p class="muted" style="margin-top:-8px">管理者だけに出ています。
+      ボーダーの更新、GitHubへの反映、追加の道具の登録はここからです。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="devOpen">開発者メニューを開く</button>
+      <span class="tiny">ページのいちばん下にある ⚙ からも開けます</span>
+    </div>
+  </div>
 <div class="card">
     <h2>ほかの端末との同期</h2>
     <p class="muted" style="margin-top:-8px">ログインしていると、
@@ -1511,7 +1520,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v71";
+const APP_VERSION = "v73";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2090,7 +2099,7 @@ const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
    ========================================================= */
 /* 追加の道具を受け入れる口。ふだんは何も入っていません。
    中身はこのファイルには入っておらず、権限のある人だけが取り出せます。 */
-const EXT={clear:[],renderLs:[],tab:[],keys:[],hide:[],help:[]};
+const EXT={clear:[],renderLs:[],tab:[],keys:[],hide:[],help:[],keyOk:[]};
 const extCall=(k,a)=>{ (EXT[k]||[]).forEach(f=>{ try{ f(a); }catch(e){} }); };
 const K_EXT="sa-ext-v1";
 let extOn=false, extState="まだ読み込んでいません", extErr="";
@@ -4365,6 +4374,7 @@ async function syncAll(btn){
 
 /* 画面 */
 function renderSettings(){
+  if($("#devCard")) $("#devCard").hidden=!isAdmin();
   if(typeof stWhat==="function") stWhat();
   renderAcctTop();
   const a=$("#acctBox");
@@ -5463,7 +5473,8 @@ const keyLabel=k=>{
 document.addEventListener("keydown",e=>{
   /* LSやりこみの画面を見ているときだけ数えます */
   const onLs=$("#ls")&&!$("#ls").hidden;
-  const onEx=EXT.hide.some(id=>{ const e2=$("#"+id); return e2&&!e2.hidden; })
+  /* 追加の道具のうち、キーで数えてよい画面だけを見ます */
+  const onEx=EXT.keyOk.some(id=>{ const e2=$("#"+id); return e2&&!e2.hidden; })
           || document.body.classList.contains("extopen");
   if(!onLs&&!onEx) return;
   if(document.querySelector(".mask")) return;
@@ -10328,6 +10339,22 @@ function devEditor(box,close){
   const today=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
   const w=DATA();
   let h=`<p class="muted">表示中の週：<b>${w.date}</b>　保存時の日付：<b>${today}</b></p>
+  <h3>追加の道具</h3>
+  <div class="hintbox" style="margin-bottom:8px"><span class="tiny">
+    ここに入れたプログラムは <b>Supabase にだけ</b>保存され、公開しているファイルには一切入りません。
+    取り出せるのは管理者だけです。</span></div>
+  <div class="lockbox" id="dvExtState" style="margin-bottom:8px"></div>
+  <div class="tools" style="margin-top:0;margin-bottom:8px">
+    <button class="btn pri" id="dvExtLoad">いま読み込む</button>
+    <button class="btn" id="dvExtGet">いま入っているものを見る</button>
+    <button class="btn" id="dvExtDel">消す</button>
+  </div>
+  <textarea id="dvExt" rows="4" placeholder="ここに貼り付けます（SQLで入れたなら空のままでかまいません）" style="width:100%"></textarea>
+  <div class="tools" style="margin-top:6px">
+    <button class="btn" id="dvExtPut">この中身で登録する</button>
+    <span class="tiny" id="dvExtMsg"></span>
+  </div>
+
   <h3>Supabase 接続</h3>
   <div class="tools" style="margin-top:0"><button class="btn pri" id="dvSbTest">接続テスト</button></div>
   <div id="sbMsg" class="lockbox" hidden style="margin-top:10px"></div>
@@ -10385,22 +10412,6 @@ function devEditor(box,close){
       data-ls2="${r}" value="${(w.lsBorders&&w.lsBorders.score&&w.lsBorders.score[r])||""}" style="max-width:170px"></td></tr>`).join("")+
     `</tbody></table></div>
   </div>
-  <h3>追加の道具</h3>
-  <div class="hintbox" style="margin-bottom:8px"><span class="tiny">
-    ここに入れたプログラムは <b>Supabase にだけ</b>保存され、公開しているファイルには一切入りません。
-    取り出せるのは管理者だけです。</span></div>
-  <div class="lockbox" id="dvExtState" style="margin-bottom:8px"></div>
-  <div class="tools" style="margin-top:0;margin-bottom:8px">
-    <button class="btn pri" id="dvExtLoad">いま読み込む</button>
-    <button class="btn" id="dvExtGet">いま入っているものを見る</button>
-    <button class="btn" id="dvExtDel">消す</button>
-  </div>
-  <textarea id="dvExt" rows="4" placeholder="ここに貼り付けます（SQLで入れたなら空のままでかまいません）" style="width:100%"></textarea>
-  <div class="tools" style="margin-top:6px">
-    <button class="btn" id="dvExtPut">この中身で登録する</button>
-    <span class="tiny" id="dvExtMsg"></span>
-  </div>
-
   <h3>保存</h3>
   <div class="hintbox" style="margin-bottom:10px">
     <b>ここが大事です。</b>下のボタンで作った data.json を <b>GitHub に反映するまで、公開サイトは変わりません。</b><br>
@@ -10694,6 +10705,7 @@ document.addEventListener("visibilitychange",()=>{
   lastMeAt=Date.now();
   loadMe().then(()=>{ try{renderSettings();render();}catch(e){} });
 });
+if($("#devOpen")) $("#devOpen").onclick=()=>openDev();
 $("#devBtn").onclick=()=>{
   if(!isAdmin()) return toast("開発者モードは管理者のみ利用できます");
   openDev();
@@ -11083,6 +11095,7 @@ function normalize(j){
     try{ await loadMyStat(); renderRole(); }catch(e){}
     try{ await askAwards(); await loadMyAwards(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
+  if($("#devCard")) $("#devCard").hidden=!isAdmin();
   try{ await extLoad(); }catch(e){}
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
