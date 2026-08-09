@@ -411,6 +411,9 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
   font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:800}
 #pgt .c .d.p{color:#39d98a}#pgt .c .d.m{color:#ff6b6b}#pgt .c .d.z{color:#9fb6d9}
 #pgt .sp{width:10px}
+.medals{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;
+  font-size:1.5rem;font-weight:800;letter-spacing:.04em;margin:0}
+.medals .sep{color:var(--dim2);margin:0 .28em;font-weight:400}
 .hclock{margin-left:10px;font-family:ui-monospace,Menlo,Consolas,monospace;
   font-variant-numeric:tabular-nums;font-size:clamp(.6rem,1.3vw,.82rem);color:var(--dim);
   white-space:nowrap}
@@ -1582,7 +1585,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v75";
+const APP_VERSION = "v77";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -5206,16 +5209,18 @@ function entryForm(c,evs,dir,mine){
 /** ランキングから開く、他プレイヤーのプロフィール */
 /* 公式アチーブメントの獲得数（ブロンズ・シルバー・ゴールド・プラチナ） */
 const MEDAL_N={bronze:"ブロンズ",silver:"シルバー",gold:"ゴールド",platinum:"プラチナ"};
+const RULE_TXT={">=":"以上","<=":"以下","=":"と同じ値"};
 const MEDAL_C={bronze:"#c98b5a",silver:"#c9d2dd",gold:"#ffd45e",platinum:"#8fe9ff"};
-function medalHTML(p){
+function medalCount(p){
   const m=p&&p.medals;
   if(!m) return "";
-  const n=(+m.bronze||0)+(+m.silver||0)+(+m.gold||0)+(+m.platinum||0);
-  return `<div class="awbox" style="margin-top:8px">`
-    +Object.keys(MEDAL_N).map(k=>`<div><div class="awn" style="color:${MEDAL_C[k]}">`
-      +`${jp(+m[k]||0)}</div><div class="awl">${MEDAL_N[k]}</div></div>`).join("")
-    +`</div><p class="tiny" style="text-align:center;margin-top:4px">`
-    +`公式アチーブメント 合計 <b>${jp(n)}</b> 個</p>`;
+  const ks=["bronze","silver","gold","platinum"];
+  const n=ks.reduce((a,k)=>a+(+m[k]||0),0);
+  return `<p class="medals" style="text-align:center;margin-top:8px">`
+    +ks.map(k=>`<span style="color:${MEDAL_C[k]}" title="${MEDAL_N[k]}">${jp(+m[k]||0)}</span>`)
+       .join('<span class="sep">/</span>')
+    +`</p><p class="tiny" style="text-align:center;margin-top:2px;color:var(--dim2)">`
+    +`公式アチーブメント　ブロンズ / シルバー / ゴールド / プラチナ（合計 ${jp(n)}）</p>`;
 }
 /** 公式アチーブメントの獲得数を取りに行きます */
 async function loadMedals(handle){
@@ -5242,7 +5247,7 @@ function showPlayer(p,rc){
       <div><div class="awn">${jp(+p.trophies||0)}</div><div class="awl">トロフィー</div></div>
       <div><div class="awn" style="color:#ffd45e">${jp(+p.stars||0)}</div><div class="awl">スター</div></div>
     </div>
-    ${medalHTML(p)}
+    ${medalCount(p)}
     ${(p.rate!=null||p.checked_n>0)?`<p class="tiny" style="margin-top:8px">
       高評価率 <b style="color:var(--acc2);font-size:1.05rem">${p.rate!=null?(+p.rate).toFixed(1)+"%":"—"}</b>
       　グッドポイント ${jp(+p.good_points||0)} / 審査件数 ${jp(+p.checked_n||0)}</p>`:""}
@@ -6919,7 +6924,7 @@ function tstRpc(name,b){
       const x=TDB.achs.find(y=>y.id===b.p_id);
       if(x){ Object.assign(x,{title:b.p_title,body:b.p_body,how:b.p_how,need:b.p_need,
         fields:b.p_fields,sheet:b.p_sheet,ranked:!!b.p_ranked,trophy:b.p_trophy,
-        ranked:b.p_no_val?false:!!b.p_ranked,no_val:!!b.p_no_val,
+        ranked:b.p_no_val?false:!!b.p_ranked,no_val:!!b.p_no_val,rules:b.p_rules||x.rules||[],
         auto_done:!!b.p_auto_done,keep:b.p_keep,section_id:b.p_section||x.section_id});
         if(x.kind==="official"&&x.published) x.dirty=true; }
       return b.p_id;
@@ -6927,7 +6932,7 @@ function tstRpc(name,b){
     const id="na"+Date.now();
     TDB.achs.push({id,kind:b.p_kind,section_id:b.p_section||null,title:b.p_title,trophy:b.p_trophy,
       body:b.p_body,how:b.p_how,need:b.p_need,fields:b.p_fields,sheet:b.p_sheet,
-      ranked:b.p_no_val?false:!!b.p_ranked,no_val:!!b.p_no_val,
+      ranked:b.p_no_val?false:!!b.p_ranked,no_val:!!b.p_no_val,rules:b.p_rules||[],
       auto_done:!!b.p_auto_done,keep:b.p_keep||"best",
       owner_handle:pro.handle,owner_name:pro.name,
       pos:TDB.achs.length,published:b.p_kind!=="official",dirty:false,can_edit:true,
@@ -6937,7 +6942,19 @@ function tstRpc(name,b){
   if(name==="ach_del"){ TDB.achs=TDB.achs.filter(x=>x.id!==b.p_id); return null; }
   if(name==="ach_submit"){
     const a=TDB.achs.find(x=>x.id===b.p_ach)||{};
-    const ok=(a.kind==="community"&&a.auto_done);
+    const rulesOk=(a2,v,c)=>{
+      const R=(a2&&a2.rules)||[]; if(!R.length) return false;
+      return R.every(r=>{
+        let got=null;
+        if(String(r.k).startsWith("VALUE")){
+          const i2=+String(r.k).slice(5)-1, cell=((a2.sheet&&a2.sheet.picks)||[])[i2];
+          got=cell?+((c||{})[cell]):null;
+        }else got=+((v||{})[r.k]);
+        if(got==null||!isFinite(got)) return false;
+        return r.op==="<="?(got<=+r.v):r.op==="="?(got===+r.v):(got>=+r.v);
+      });
+    };
+    const ok=(a.kind==="community"&&(a.auto_done||rulesOk(a,b.p_vals,b.p_computed)));
     TDB.asubs.unshift({id:"nas"+Date.now(),ach_id:b.p_ach,kind:a.kind,user_id:"me",
       handle:pro.handle,name:pro.name||"わたし",vals:b.p_vals,computed:b.p_computed,
       main:b.p_main,links:b.p_links,note:b.p_note,
@@ -8624,6 +8641,14 @@ function achForm(id){
     <label class="pk" style="display:inline-flex"><input type="checkbox" id="afNoVal"
       ${a&&a.no_val?"checked":""}> 数値は不必要（画像や動画を見れば分かるもの）</label>
     <p class="tiny" id="afNoValM" style="margin-top:4px"></p>
+    ${off?"":`<h3 style="margin-top:16px">達成の決め方</h3>
+      <p class="tiny" style="margin-top:-4px">みんなのアチーブメントに審査はありません。
+        「提出したら達成」にするか、下で条件を決めてください。</p>
+      <div id="afRules"></div>
+      <div class="tools" style="margin-top:6px">
+        <button class="btn sm" id="afRuleAdd">＋ 条件を増やす</button>
+        <span class="tiny">すべての条件を満たしたら達成になります</span>
+      </div>`}
     <h3 style="margin-top:16px">ランキング</h3>
     <div class="tools" style="margin-top:0">
       <label class="pk"><input type="radio" name="afR" value="1" ${a&&a.ranked?"checked":""}> ランキングを作る</label>
@@ -8669,12 +8694,48 @@ function achForm(id){
     try{ await callRpc("ach_del",{p_id:id}); M.close(); await loadAch(); renderAch(); toast("消しました"); }
     catch(e){ toast(String(e.message||e).slice(0,90)); }
   };
+  /* ── 達成の決め方（条件）── */
+  let rules=(a&&Array.isArray(a.rules))?a.rules.map(x=>Object.assign({},x)):[];
+  const RULE_OP={">=":"以上","<=":"以下","=":"と同じ値"};
+  const ruleKeys=()=>{
+    const o=fields.filter(f=>f.key).map(f=>({k:f.key,n:`${f.key}：${f.label||"（名前なし）"}`}));
+    const pk=(sheet&&sheet.picks)||[];
+    pk.forEach((c,i)=>o.push({k:"VALUE"+(i+1),n:`VALUE${i+1}：表計算の ${c}`}));
+    return o;
+  };
+  const drawRules=()=>{
+    const box=M.q("#afRules"); if(!box) return;
+    const ks=ruleKeys();
+    box.innerHTML=rules.length?rules.map((r,i)=>`<div class="tools" style="margin:0 0 5px">
+        <select data-rk="${i}" class="txt" style="max-width:210px">
+          ${ks.map(x=>`<option value="${esc(x.k)}" ${r.k===x.k?"selected":""}>${esc(x.n)}</option>`).join("")}
+        </select>
+        <input type="text" inputmode="decimal" data-rv="${i}" class="txt" style="max-width:130px"
+          value="${esc(r.v==null?"":String(r.v))}" placeholder="値">
+        <select data-ro="${i}" class="txt" style="max-width:110px">
+          ${Object.keys(RULE_OP).map(o=>`<option value="${o}" ${r.op===o?"selected":""}>${RULE_OP[o]}</option>`).join("")}
+        </select>
+        <button class="btn sm" data-rx="${i}">消す</button></div>`).join("")
+      :`<p class="tiny">条件がありません。「提出したら達成にする」を選ぶか、条件を増やしてください。</p>`;
+    box.querySelectorAll("[data-rk]").forEach(e2=>e2.onchange=()=>{ rules[+e2.dataset.rk].k=e2.value; });
+    box.querySelectorAll("[data-ro]").forEach(e2=>e2.onchange=()=>{ rules[+e2.dataset.ro].op=e2.value; });
+    box.querySelectorAll("[data-rv]").forEach(e2=>e2.oninput=()=>{ rules[+e2.dataset.rv].v=num(e2.value); });
+    box.querySelectorAll("[data-rx]").forEach(e2=>e2.onclick=()=>{ rules.splice(+e2.dataset.rx,1); drawRules(); });
+  };
+  if(M.q("#afRuleAdd")) M.q("#afRuleAdd").onclick=()=>{
+    const ks=ruleKeys();
+    if(!ks.length) return toast("先に「記入してもらう値」を作ってください");
+    rules.push({k:ks[0].k,op:">=",v:0}); drawRules();
+  };
+  drawRules();
   /* 「数値は不必要」を選ぶと、値の欄とランキングを使いません */
   const noValSync=()=>{
     const nv=!!(M.q("#afNoVal")&&M.q("#afNoVal").checked);
     M.qa('input[name="afR"]').forEach(r=>{ r.disabled=nv; if(nv&&r.value==="1") r.checked=false;
       if(nv&&r.value==="0") r.checked=true; });
     const fw=M.q("#afFields"); if(fw) fw.style.opacity=nv?".35":"";
+    const rw=M.q("#afRules"); if(rw) rw.style.opacity=nv?".35":"";
+    const ra=M.q("#afRuleAdd"); if(ra) ra.disabled=nv;
     const ad=M.q("#afAdd"), sh=M.q("#afSheet");
     if(ad) ad.disabled=nv; if(sh) sh.disabled=nv;
     const m2=M.q("#afNoValM");
@@ -8696,13 +8757,15 @@ function achForm(id){
     const body={p_id:id||null,p_kind:kind,p_title:t,p_body:b,p_how:M.q("#afH").value.trim()||null,
       p_need:need,p_fields:noVal?[]:fields,p_sheet:noVal?null:sheet,p_ranked:ranked,
       p_no_val:noVal,
+      p_rules:(off||noVal)?[]:rules.filter(r=>r.k&&r.v!=null),
       p_trophy:off?(M.q("#afTro")||{}).value||null:null,
       p_auto_done:off?false:!!(M.q("#afAuto")&&M.q("#afAuto").checked),
       p_keep:off?"best":((M.qa('input[name="afK"]').find(x=>x.checked)||{}).value||"best"),
       p_section:(M.q("#afSec")||{}).value||null};
     try{
-      await callRpc("ach_save",body,[["p_no_val"],["p_no_val","p_section"],
-        ["p_no_val","p_keep","p_section"],["p_no_val","p_auto_done","p_keep","p_section"]]);
+      await callRpc("ach_save",body,[["p_rules"],["p_rules","p_no_val"],
+        ["p_rules","p_no_val","p_section"],["p_rules","p_no_val","p_keep","p_section"],
+        ["p_rules","p_no_val","p_auto_done","p_keep","p_section"]]);
       M.close(); await loadAch(); renderAch();
       toast(off?"作りました（まだ公開されていません）":"作りました");
       if(!id) askAchPost(kind,t);
@@ -8821,7 +8884,12 @@ function achSubmit(a){
       <span class="tiny" id="asM"></span></div>
     <p class="tiny">${a.kind==="official"
       ?"公式アチーブメントは、審査員の審査を通ると達成になります。それまでは「審査中」です。"
-      :(a.auto_done?"提出すると達成になります。":"作った人の決めた条件で達成が決まります。")}</p>`,
+      :(a.auto_done?"提出すると達成になります。"
+        :(a.rules&&a.rules.length
+          ?"次の条件をすべて満たすと達成になります（審査はありません）。<br>"
+            +a.rules.map(r=>`　<b>${esc(r.k)}</b> が <b>${jp(+r.v||0)}</b> `
+              +(RULE_TXT[r.op]||"以上")).join("<br>")
+          :"作った人の決めた条件で達成が決まります。"))}</p>`,
     {w:820});
   M.q("#asVals").innerHTML=fs.map(f=>`<div class="lkrow">
     <div class="tools" style="margin-top:0">
