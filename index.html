@@ -1448,9 +1448,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
       個人データ・フレンド・LSやりこみなどが、パソコンとスマホで同じになります。</p>
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="syncBtn">今すぐ同期する</button>
+      <button class="btn" id="recBk">記録を元に戻す</button>
       <span class="tiny" id="syncNow2">—</span>
     </div>
     <p class="tiny" id="syncWhat" style="margin-top:8px"></p>
+    <p class="tiny" style="margin-top:6px;color:var(--dim2)">
+      記録が消えてしまったときは「記録を元に戻す」から、前の姿に戻せます（20回ぶんまで残しています）。</p>
   </div>
 <div class="card">
     <h2>プロフィール設定</h2>
@@ -1585,7 +1588,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v77";
+const APP_VERSION = "v78";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2406,6 +2409,37 @@ const ST_KEYS=[
   "sa-autopost-v1","sa-tagwatch-v1",
 ];
 const ST_MAX=150000;
+/* 中身が消えると困るもの。空っぽで上書きされないように見張ります */
+const ST_GUARD=["sa-rec-v3","sa-pro-v3","sa-fr-v3","sa-times-v1","sa-lslog-v1"];
+/** 「中身が無い」かどうか。{} や [] や null も空っぽとみなします */
+function stEmpty(raw){
+  if(raw==null) return true;
+  const s=String(raw).trim();
+  if(s===""||s==="{}"||s==="[]"||s==="null"||s==="undefined") return true;
+  try{
+    const v=JSON.parse(s);
+    if(v==null) return true;
+    if(Array.isArray(v)) return v.length===0;
+    if(typeof v==="object"){
+      /* すべての値が空なら、中身なしとみなします */
+      const ks=Object.keys(v);
+      if(!ks.length) return true;
+      return ks.every(k=>v[k]==null||v[k]===""||
+        (typeof v[k]==="object"&&!Array.isArray(v[k])&&Object.keys(v[k]).length===0));
+    }
+  }catch(e){}
+  return false;
+}
+/** 手元に中身があるのに、空っぽを受け取ったときは書き戻しません */
+function stKeepMine(k,next){
+  if(ST_GUARD.indexOf(k)<0) return true;
+  const cur=localStorage.getItem(k);
+  if(!stEmpty(cur)&&stEmpty(next)){
+    stStamp[k]=Date.now();          /* こちらを新しい扱いにして、次に送り返します */
+    return false;
+  }
+  return true;
+}
 /** そろえるもの＝もともとの一覧＋追加の道具が足したもの */
 const ST_ALL=()=>ST_KEYS.concat(EXT.keys||[]);      /* 1つが大きすぎるものは送りません */
 let stStamp={}, stSince=0, stSnap={}, stReady=false;
@@ -2468,7 +2502,8 @@ async function stStart(){
       const e=got[k]||{}, at=+e.at||0;
       if(typeof e.v!=="string") return;
       if(at>stSince) stSince=at;
-      if(at>(stStamp[k]||0)){ localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
+      if(at>(stStamp[k]||0)&&stKeepMine(k,e.v)){
+        localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
     });
     /* この端末にしかないものは、いまの時刻をつけて送ります */
     ST_ALL().forEach(k=>{
@@ -2513,13 +2548,50 @@ function stApply(got){
     const e=got[k]||{}, at=+e.at||0;
     if(at>top) top=at;
     if(typeof e.v!=="string") return;
-    if(at>(stStamp[k]||0)){ localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
+    if(at>(stStamp[k]||0)&&stKeepMine(k,e.v)){
+      localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
   });
   stSince=Math.max(top,stSince);
   stSaveAt();
   stScan(true);                      /* 書き戻したぶんを「変更」と数えないように */
   if(changed) stReload();
 }
+/** 記録の控えを見せて、選んだものに戻します */
+async function showRecBackups(){
+  if(!(sess&&sbOn())) return toast("ログインしていると使えます");
+  let list=[];
+  try{ list=await sbAuth("rpc/records_backups",{method:"POST",body:"{}"})||[]; }
+  catch(e){ return toast("控えを取れませんでした（SQLの更新がまだかもしれません）"); }
+  const now=Object.keys(rec||{}).filter(k=>rec[k]!=null&&rec[k]!=="").length;
+  if(!list.length) return toast("控えはまだありません");
+  const M=modal(`<h2>記録を元に戻す</h2>
+    <p class="muted" style="margin-top:-8px">いまの記録は <b>${jp(now)}</b> 種目ぶんです。
+      戻したい時点をえらんでください。</p>
+    <div class="scroll" style="max-height:46vh"><table><thead><tr>
+      <th>いつの記録か</th><th>種目数</th><th>合計スコア</th><th>RATING</th><th></th>
+    </tr></thead><tbody>`
+    +list.map((b,i)=>`<tr><td>${esc(jstFull(b.saved_at))}</td><td>${jp(+b.n||0)}</td>
+      <td>${b.total==null?"—":jp(+b.total)}</td><td>${b.rating==null?"—":f3(+b.rating)}</td>
+      <td><button class="btn sm" data-bk="${i}">これに戻す</button></td></tr>`).join("")
+    +`</tbody></table></div>
+    <p class="tiny" style="margin-top:8px">戻すと、いまの記録も控えとして残ります。何度でもやり直せます。</p>`,
+    {w:700});
+  M.qa("[data-bk]").forEach(b=>b.onclick=async()=>{
+    const it=list[+b.dataset.bk];
+    b.disabled=true;
+    try{
+      const got=await sbAuth("rpc/records_restore",
+        {method:"POST",body:JSON.stringify({p_at:it.saved_at})});
+      if(!got||typeof got!=="object") throw new Error("中身が空でした");
+      rec=fixNames(got);
+      localStorage.setItem(K_REC,JSON.stringify(rec));
+      stStamp[K_REC]=Date.now(); stSaveAt();
+      fillInputs(); render(); await pushMe(true); stSync();
+      M.close(); toast("記録を戻しました");
+    }catch(e){ b.disabled=false; toast(String(e.message||e).slice(0,120)); }
+  });
+}
+
 /** 受け取ったものを画面に反映します */
 function stReload(quiet){
   try{
@@ -4349,8 +4421,18 @@ async function loadRanking(force){
       +"　／　20秒ごとに自動で見に行きます";
     /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
     const fetchRec=async h=>{
-      try{ return (await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}))||{}; }
-      catch(e){ toast("記録を取得できませんでした"); return null; }};
+      let r=null;
+      try{ r=await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}); }
+      catch(e){ r=null; }
+      /* 取れなかったときは、公開プロフィールから直接もう一度さがします */
+      if(!r||typeof r!=="object"||!Object.keys(r).length){
+        try{
+          const p=await sb(`profiles_public?select=records&handle=eq.${encodeURIComponent(h)}&limit=1`);
+          if(p&&p[0]&&p[0].records&&Object.keys(p[0].records).length) r=p[0].records;
+        }catch(e){}
+      }
+      if(!r||typeof r!=="object"){ toast("記録を取得できませんでした。通信を確かめてもう一度どうぞ"); return null; }
+      return r;};
     $$("[data-rp]").forEach(a=>a.onclick=async e=>{
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
@@ -4515,7 +4597,8 @@ async function pushMe(force){
     p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||"",
     p_rating:c.complete?Number(c.total.toFixed(3)):null,
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
-    p_total:rec["合計スコア"]||null, p_records:rec, p_public:!!pro.pub,
+    /* 記録が空っぽのときは送りません。クラウドにある記録を空で塗りつぶさないためです */
+    p_total:rec["合計スコア"]||null, p_records:stEmpty(JSON.stringify(rec))?null:rec, p_public:!!pro.pub,
     p_x:(Array.isArray(pro.proofs)&&pro.proofs.find(x=>x.url))?pro.proofs.find(x=>x.url).url:(pro.x_url||null),
     p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]),
     p_bio:pro.bio||"", p_avatar:pro.img||"", p_avatar_sm:pro.imgSm||"" });
@@ -5721,6 +5804,42 @@ const keyLabel=k=>{
   if(k.code==="Space") return "スペース";
   return k.label||k.code||"スペース";
 };
+/* スタート／ストップのキーの設定（実際に押して覚えさせます） */
+function lsSetSKey(){
+  const M=modal(`<h2>スタート／ストップのキーを設定</h2>
+    <p class="muted" style="margin-top:-8px">このキーを押すと、時計のスタートと一時停止を切り替えられます。
+      カウントキーと同じキーにはできません。</p>
+    <div class="lsbox" style="margin:14px 0"><div class="t">現在の割り当て</div>
+      <div class="v" id="mSKeyNow">${esc(keyLabel(lsCfg.skey||SKEY_DEF))}</div></div>
+    <p class="tiny">カウントキーは <b>${esc(keyLabel(lsCfg.key))}</b> です。</p>
+    <div class="tools"><button class="btn pri" id="mSKeyCap">キーを押して設定する</button>
+      <button class="btn" id="mSKeyD">Sに戻す</button>
+      <button class="btn" id="mSKeyX">閉じる</button></div>
+    <div id="mSKeyMsg" class="tiny"></div>`,{sticky:true});
+  let capturing=false;
+  const onKey=e=>{
+    if(!capturing) return;
+    e.preventDefault(); e.stopPropagation();
+    capturing=false;
+    M.q("#mSKeyCap").textContent="キーを押して設定する";
+    const ck=(lsCfg.key&&lsCfg.key.code)||"Space";
+    if(e.code===ck){
+      M.q("#mSKeyMsg").innerHTML=`<span class="ng">カウントキーと同じキーは使えません。</span>`;
+      return;
+    }
+    lsCfg.skey={code:e.code,label:(e.key===" "?"スペース":e.key.length===1?e.key.toUpperCase():e.key)};
+    saveLs(); M.q("#mSKeyNow").textContent=keyLabel(lsCfg.skey);
+    M.q("#mSKeyMsg").innerHTML=`<span class="win">「${esc(keyLabel(lsCfg.skey))}」に設定しました。</span>`;
+    lsCfgView();
+  };
+  document.addEventListener("keydown",onKey,true);
+  M.q("#mSKeyCap").onclick=()=>{ capturing=true;
+    M.q("#mSKeyCap").textContent="キーを押してください…";
+    M.q("#mSKeyMsg").innerHTML=`<span class="tiny">割り当てたいキーを1回押してください。</span>`; };
+  M.q("#mSKeyD").onclick=()=>{ lsCfg.skey=Object.assign({},SKEY_DEF); saveLs();
+    M.q("#mSKeyNow").textContent=SKEY_DEF.label; lsCfgView(); toast("Sに戻しました"); };
+  M.q("#mSKeyX").onclick=()=>{ document.removeEventListener("keydown",onKey,true); M.close(); };
+}
 document.addEventListener("keydown",e=>{
   /* LSやりこみの画面を見ているときだけ数えます */
   const onLs=$("#ls")&&!$("#ls").hidden;
@@ -7527,9 +7646,17 @@ async function openProfile(handle){
       if(lv&&lv[0]) Object.assign(pr,lv[0]); }catch(e){}
     try{ const aw=await sb(`award_totals?select=*&handle=eq.${encodeURIComponent(handle)}&limit=1`);
       pr.trophies=(aw&&aw[0])?aw[0].trophies:0; pr.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
-    const rc=(await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}))||{};
+    let rc=null;
+    try{ rc=await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}); }catch(e){}
+    /* 取れなかったときは、公開プロフィールから直接もう一度さがします */
+    if(!rc||typeof rc!=="object"||!Object.keys(rc).length){
+      try{
+        const p2=await sb(`profiles_public?select=records&handle=eq.${encodeURIComponent(handle)}&limit=1`);
+        if(p2&&p2[0]&&p2[0].records&&Object.keys(p2[0].records).length) rc=p2[0].records;
+      }catch(e){}
+    }
     pr.medals=await loadMedals(handle);
-    showPlayer(pr,rc);
+    showPlayer(pr,rc||{});
   }catch(e){ toast("プロフィールを開けませんでした"); }
 }
 /** 「・・・」を押したときのメニュー。一般ユーザーは通報だけ、審査員以上は削除も出ます */
@@ -8762,15 +8889,52 @@ function achForm(id){
       p_auto_done:off?false:!!(M.q("#afAuto")&&M.q("#afAuto").checked),
       p_keep:off?"best":((M.qa('input[name="afK"]').find(x=>x.checked)||{}).value||"best"),
       p_section:(M.q("#afSec")||{}).value||null};
+    /* 達成基準を変えたときは、必ず再審査してもらいます */
+    let rejudge=false;
+    if(id&&!off){
+      let ch=null;
+      try{ ch=await callRpc("ach_rules_changed",
+        {p_ach:id,p_rules:body.p_rules,p_auto:body.p_auto_done},[["p_auto"]]); }catch(e){}
+      if(ch&&ch.changed){
+        const ok=await askRejudge(+ch.subs||0);
+        if(!ok){ M.q("#afM").innerHTML=
+          '<span style="color:var(--warn)">再審査をしないと保存できません。'
+          +'基準を元に戻すか、再審査を選んでください。</span>'; return; }
+        rejudge=true;
+      }
+    }
     try{
       await callRpc("ach_save",body,[["p_rules"],["p_rules","p_no_val"],
         ["p_rules","p_no_val","p_section"],["p_rules","p_no_val","p_keep","p_section"],
         ["p_rules","p_no_val","p_auto_done","p_keep","p_section"]]);
+      let rep=null;
+      if(rejudge){ try{ rep=await callRpc("ach_rejudge",{p_ach:id},[]); }catch(e){} }
       M.close(); await loadAch(); renderAch();
-      toast(off?"作りました（まだ公開されていません）":"作りました");
+      if(rep) toast(`再審査しました：${jp(+rep.all||0)}件を見直して `
+        +`達成 ${jp(+rep.done||0)}件・未達成 ${jp(+rep.not||0)}件（達成した人 ${jp(+rep.people||0)}人）`);
+      else toast(off?"作りました（まだ公開されていません）":"作りました");
       if(!id) askAchPost(kind,t);
     }catch(e){ M.q("#afM").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
   };
+}
+
+/** 達成基準を変えたときの確認。再審査を選ばないと保存できません */
+function askRejudge(n){
+  return new Promise(res=>{
+    const M=modal(`<h2>達成基準が変更されています</h2>
+      <p style="margin-top:-4px">再審査を行いますか？</p>
+      <p class="tiny">これまでに提出された <b>${jp(n)}</b> 件の記録を、1件ずつ新しい基準で見直します。
+        新しい基準を満たしていれば「達成」、満たさなくなっていれば「未達成」になります。
+        同じ人が何回も出しているときは、1件でも満たしていればその人は達成のままです。</p>
+      <p class="tiny" style="color:var(--warn)">再審査を行わない場合は保存できません。</p>
+      <div class="tools" style="margin-top:12px">
+        <button class="btn pri" id="rjGo">再審査して保存する</button>
+        <button class="btn" id="rjNo">やめる</button></div>`,{sticky:true,w:560});
+    let done=false;
+    const fin=v=>{ if(done) return; done=true; M.close(); res(v); };
+    M.q("#rjGo").onclick=()=>fin(true);
+    M.q("#rjNo").onclick=()=>fin(false);
+  });
 }
 
 /* ---- 詳細と提出 ---- */
@@ -9812,24 +9976,28 @@ function xlCalc(cells,vars){
 async function xpBreakdown(){
   let d=null;
   if(TEST){
-    d={sub:12,subBonus:5,judge:8,judgeBonus:6,sv:4,svBonus:3,jm:2,chat:37,ach:[{t:"gold",n:1},{t:"bronze",n:2}],
+    d={sub:12,subBonus:5,judge:8,judgeBonus:6,sv:4,svBonus:3,jm:2,chat:37,
+       ach:{bronze:2,silver:1,gold:1,platinum:0},
        star:37,trophy:2};
   }else if(sess&&sbOn()){
     try{
-      const [a,b2,c,e,f2,g2]=await Promise.all([
+      const [a,b2,c,e,f2,g2,h2]=await Promise.all([
         sbAuth("submissions?select=judge_act,sv_act,jm_act&user_id=eq."+sess.user.id),
         sbAuth("submissions?select=sv_act&judge_id=eq."+sess.user.id),
         sbAuth("submissions?select=jm_act&sv_id=eq."+sess.user.id),
         sbAuth("submissions?select=id&jm_id=eq."+sess.user.id),
         sbAuth("posts?select=id&kind=eq.chat&user_id=eq."+sess.user.id),
-        sbAuth("my_awards?select=kind,stars,xp")
+        sbAuth("my_awards?select=kind,stars,xp"),
+        sbAuth("my_ach_xp?select=trophy,n").catch(()=>[])
       ]);
-      d={ sub:(a||[]).length,
+      const am={bronze:0,silver:0,gold:0,platinum:0};
+      (h2||[]).forEach(x=>{ if(am[x.trophy]!=null) am[x.trophy]=+x.n||0; });
+      d={ ach:am, sub:(a||[]).length,
           subBonus:(a||[]).filter(x=>x.judge_act==="approve"
             &&(x.sv_act||"accept")==="accept"&&(x.jm_act||"accept")==="accept").length,
           judge:(b2||[]).length, judgeBonus:(b2||[]).filter(x=>x.sv_act==="accept").length,
           sv:(c||[]).length,     svBonus:(c||[]).filter(x=>x.jm_act==="accept").length,
-          jm:(e||[]).length, chat:(f2||[]).length, ach:[],
+          jm:(e||[]).length, chat:(f2||[]).length,
           star:(g2||[]).filter(x=>x.kind==="star").reduce((n,x)=>n+(+x.stars||0),0),
           trophy:(g2||[]).filter(x=>x.kind==="trophy").length };
     }catch(err){}
@@ -9847,6 +10015,13 @@ async function xpBreakdown(){
     ["スター", d.star, 5, d.star*5],
     ["競技会のトロフィー", d.trophy, 50, d.trophy*50]
   ];
+  /* アチーブメントのトロフィー（ランクごと）。初めて達成した1回だけ入ります */
+  const am=d.ach||{}, AXP={bronze:5,silver:10,gold:20,platinum:40};
+  const aRows=["bronze","silver","gold","platinum"].map(k=>
+    [MEDAL_N[k], +am[k]||0, AXP[k], (+am[k]||0)*AXP[k], MEDAL_C[k]]);
+  const aSum=aRows.reduce((a2,r)=>a2+r[3],0);
+  const aCnt=aRows.reduce((a2,r)=>a2+r[1],0);
+  rows.push(["トロフィーによって獲得した総経験値", aCnt, "—", aSum]);
   const sum=rows.reduce((a2,r)=>a2+r[3],0);
   const xp=MYSTAT?(+MYSTAT.xp||0):sum;
   modal(`<h2>通算経験値の内訳</h2>
@@ -9854,12 +10029,13 @@ async function xpBreakdown(){
     <div class="scroll"><table><thead><tr>
       <th>したこと</th><th>件数</th><th>1件</th><th>合計</th></tr></thead><tbody>`
     +rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${jp(r[1])}</td>
-      <td class="tiny">${r[2]} XP</td><td><b>${jp(r[3])}</b></td></tr>`).join("")
+      <td class="tiny">${r[2]==="—"?"—":r[2]+" XP"}</td><td><b>${jp(r[3])}</b></td></tr>`).join("")
+    +aRows.map(r=>`<tr><td style="padding-left:1.6em;color:${r[4]}">${esc(r[0])}による獲得経験値</td>
+      <td>${jp(r[1])}</td><td class="tiny">${r[2]} XP</td><td><b>${jp(r[3])}</b></td></tr>`).join("")
     +`<tr><td colspan="3"><b>合計</b></td><td><b>${jp(sum)}</b></td></tr>`
     +`</tbody></table></div>
-    <p class="tiny">アチーブメントは初達成のときだけ、ランクに応じて
-      ブロンズ5／シルバー10／ゴールド20／プラチナ40 XP が入ります（上の表には含みません）。
-      合計と通算が合わない差は、そのぶんです。</p>`,{w:720});
+    <p class="tiny">「トロフィーによって獲得した総経験値」は公式アチーブメントのランクぶんです。
+      同じアチーブメントを何回出しても、初めて達成した1回だけ入ります。</p>`,{w:720});
 }
 if($("#xpBreak")) $("#xpBreak").onclick=xpBreakdown;
 
@@ -9877,6 +10053,8 @@ async function loadMyAwards(){
 /** 期間が終わったぶんのごほうびを配ってもらいます（何度呼んでも安全です） */
 async function askAwards(){
   if(TEST||!(sess&&sbOn())) return;
+  /* まず「直し込み」で呼びます。古いSQLのときは今までどおり award_all にします */
+  try{ await sbAuth("rpc/award_fix",{method:"POST",body:"{}"}); return; }catch(e){}
   try{ await sbAuth("rpc/award_all",{method:"POST",body:"{}"}); }catch(e){}
 }
 
@@ -10660,6 +10838,14 @@ function devEditor(box,close){
     <span class="tiny" id="dvCdMsg"></span>
   </div>
 
+  <h3>トロフィーの点検</h3>
+  <p class="tiny" style="margin-top:-4px">競技会の優勝者にトロフィーが渡っているかを調べて、その場で配り直します。</p>
+  <div class="tools" style="margin-top:0;margin-bottom:8px">
+    <button class="btn pri" id="dvAwGo">調べて配り直す</button>
+    <span class="tiny" id="dvAwMsg"></span>
+  </div>
+  <div class="lockbox" id="dvAwOut" hidden style="margin-bottom:14px"></div>
+
   <h3>追加の道具</h3>
   <div class="hintbox" style="margin-bottom:8px"><span class="tiny">
     ここに入れたプログラムは <b>Supabase にだけ</b>保存され、公開しているファイルには一切入りません。
@@ -10853,6 +11039,42 @@ function devEditor(box,close){
       m2.innerHTML='<span class="win">はじめました。次の土曜0時まで数えます。</span>';
       toast("カウントダウンをはじめました");
     }catch(e){ m2.innerHTML='<span class="lose">失敗：'+esc(String(e.message||e)).slice(0,160)+'</span>'; }
+  };
+  /* トロフィーの点検と配り直し */
+  const awBtn=box.querySelector("#dvAwGo");
+  if(awBtn) awBtn.onclick=async()=>{
+    const msg=box.querySelector("#dvAwMsg"), out=box.querySelector("#dvAwOut");
+    if(!(sess&&sbOn())){ msg.innerHTML='<span class="lose">ログインしてから押してください</span>'; return; }
+    awBtn.disabled=true; msg.textContent="調べています…";
+    let d=null, err="";
+    try{ d=await sbAuth("rpc/award_fix",{method:"POST",body:"{}"}); }
+    catch(e){ err=String(e.message||e);
+      try{ d=await sbAuth("rpc/award_check",{method:"POST",body:"{}"}); }catch(e2){} }
+    awBtn.disabled=false;
+    if(!d){ msg.innerHTML='<span class="lose">'+esc(err||"調べられませんでした")
+      +'（SQLの更新がまだかもしれません）</span>'; return; }
+    msg.textContent="";
+    const ch=Array.isArray(d.champions)?d.champions:[];
+    const why=[];
+    if(!d.cups_official) why.push("競技会が1つもありません。チャレンジにはトロフィーは付きません。");
+    else if(!d.cups_with_entry) why.push("競技会に記録がまだ1件も出ていません。");
+    else if(!d.trophies) why.push("競技会も記録もありますが、まだ配られていません。もう一度押してみてください。");
+    out.hidden=false;
+    out.innerHTML=`<b>点検の結果</b><br>`
+      +`<span class="tiny">大会・チャレンジの数 ${jp(+d.cups_all||0)}　／　`
+      +`そのうち競技会 <b>${jp(+d.cups_official||0)}</b>　／　`
+      +`記録が出ている競技会 <b>${jp(+d.cups_with_entry||0)}</b><br>`
+      +`配られたトロフィー <b class="win">${jp(+d.trophies||0)}</b> 個　／　`
+      +`スター ${jp(+d.stars||0)} 個`
+      +(d.added!=null?`　／　今回あらたに配った数 ${jp(+d.added||0)}`:"")
+      +(d.no_handle?`<br><span class="lose">@IDが空のごほうびが ${jp(+d.no_handle)} 件あります</span>`:"")
+      +`</span>`
+      +(why.length?`<br><span class="tiny lose">${esc(why[0])}</span>`:"")
+      +(ch.length?`<br><br><b>優勝者</b><br><span class="tiny">`
+        +ch.slice(0,40).map(x=>`${esc(x.cup||"")}：${esc(x.name||x.handle||"")}`).join("<br>")
+        +`</span>`:"");
+    if(typeof loadMyAwards==="function") await loadMyAwards();
+    if(typeof render==="function") render();
   };
   const exMsg=t=>{ const e2=box.querySelector("#dvExtMsg"); if(e2) e2.innerHTML=t; };
   const exState=()=>{
@@ -11446,6 +11668,7 @@ function normalize(j){
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
+  if($("#recBk")) $("#recBk").onclick=showRecBackups;
   stWhat();
   stMark(stState||(sess?"—":"ログインしていません"));
   /* ブラウザを更新しても、さっき見ていた場所に戻します */
