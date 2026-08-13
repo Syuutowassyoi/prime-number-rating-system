@@ -416,7 +416,7 @@ label.pk input{margin:0}
     <p class="tiny" style="letter-spacing:.3em">P R I M E &nbsp; P A R K</p>
     <div id="homeDoc" style="margin:10px 0"></div>
     <p class="muted" style="margin-top:4px">素数にまつわるゲームで遊べるアミューズメントパークです。</p>
-    <p class="tiny" style="color:var(--warn)">これは試作品です。まだ本体（index.html）には入っていません。</p>
+    <p class="tiny"><a href="index.html" style="color:var(--acc)">← 素数あつめ RATING にもどる</a></p>
   </div>
 
   <div class="card">
@@ -470,17 +470,11 @@ label.pk input{margin:0}
       <button class="btn" id="btnSeed">ランキングのお試しデータを入れる</button>
       <button class="btn" id="btnSelfTest">自己点検</button>
     </div>
-    <div class="tools">
-      <label class="pk"><input type="checkbox" id="admOn"> 管理者として見る</label>
-      <span class="tiny">はずすと、一般ユーザーの見え方になります</span>
-    </div>
+    <p class="tiny" id="admWho" style="margin-top:8px;color:var(--dim2)">—</p>
     <div id="admOut" class="tiny hidden" style="margin-top:10px;border:1px solid var(--line);
       border-radius:10px;padding:10px;background:var(--card2);white-space:pre-wrap"></div>
   </div>
-  <div class="card hidden" id="admOff">
-    <p class="tiny">管理者としてログインすると、ここに設定が出ます。
-      <button class="btn sm" id="admBack">管理者にもどる</button></p>
-  </div>
+
 </div>
 
 <!-- ═══════════ モードえらび ═══════════ -->
@@ -757,7 +751,7 @@ const LS = {
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 };
 const K_STORY="pp-story-v1", K_SEEN="pp-seen-v1", K_LOG="pp-log-v1",
-      K_DIFF="pp-diff-v1", K_ADMIN="pp-admin-v1";
+      K_DIFF="pp-diff-v1";
 
 /* ══════════════════════════════════════════════════════════════
    1) 立方体博士 と Prime Dog
@@ -1182,7 +1176,73 @@ DIFF = fixDiff(DIFF);
 /** そのモードの制限時間（秒） */
 const secOf = m => Math.max(5, +(fixDiff(DIFF).sec[m] || 60));
 const saveDiff = () => LS.set(K_DIFF, DIFF);
-let IS_ADMIN = LS.get(K_ADMIN, true) !== false;
+/* ══════════════════════════════════════════════════════════════
+   役職の確認（素数あつめ RATING と同じログインを使います）
+   ・ジャッジマン（4）と管理者（5）だけが管理者メニューを見られます
+   ・判定はサーバー（Supabase の my_level）に聞きます。画面だけの切りかえはできません
+   ══════════════════════════════════════════════════════════════ */
+const SB_URL_DEF = "https://hlhgjnhxtfcqcqvdklww.supabase.co";
+const SB_KEY_DEF = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
+const K_SESS = "sa-sess-v3", K_SB = "sa-sb-v3", K_PRO = "sa-pro-v3";
+const LV_NAME = { 0:"一般ユーザー", 1:"サポーター", 2:"審査員", 3:"スーパーバイザー",
+                  4:"ジャッジマン", 5:"管理者" };
+let IS_ADMIN = false, MY_LV = 0, ROLE_STATE = "しらべていません";
+function sbConf(){
+  const o = LS.get(K_SB, null) || {};
+  return { url:String(o.url || SB_URL_DEF).trim().replace(/\/+$/,""),
+           key:String(o.key || SB_KEY_DEF).trim() };
+}
+const mySess = () => LS.get(K_SESS, null);
+/** 期限が切れていたら、こっそり取り直します */
+async function refreshSess(){
+  const s = mySess(), c = sbConf();
+  if(!s || !s.refresh_token) return null;
+  try{
+    const r = await fetch(c.url + "/auth/v1/token?grant_type=refresh_token", { method:"POST",
+      headers:{ apikey:c.key, "Content-Type":"application/json" },
+      body: JSON.stringify({ refresh_token: s.refresh_token }) });
+    if(!r.ok) return null;
+    const j = await r.json();
+    const ns = { access_token:j.access_token, refresh_token:j.refresh_token,
+                 expires_at: Math.floor(Date.now()/1000) + (j.expires_in||3600),
+                 user: j.user || s.user };
+    LS.set(K_SESS, ns);
+    return ns;
+  }catch(e){ return null; }
+}
+/** 役職のレベルを聞きます。うまくいかなかったときは null を返します */
+async function askLevel(){
+  let s = mySess(); const c = sbConf();
+  if(!s || !c.url || !c.key){ ROLE_STATE = "ログインしていません"; return null; }
+  if(s.expires_at && Date.now()/1000 > s.expires_at - 60){ s = (await refreshSess()) || s; }
+  const call = async tok => {
+    const r = await fetch(c.url + "/rest/v1/rpc/my_level", { method:"POST",
+      headers:{ apikey:c.key, Authorization:"Bearer " + tok, "Content-Type":"application/json" },
+      body:"{}" });
+    if(!r.ok){ const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+    return +(await r.json()) || 0;
+  };
+  try{ return await call(s.access_token); }
+  catch(e){
+    if(e.status === 401 || e.status === 403){
+      const ns = await refreshSess();
+      if(ns){ try{ return await call(ns.access_token); }catch(e2){} }
+      ROLE_STATE = "ログインしなおしてください";
+      return null;
+    }
+    ROLE_STATE = "つながりませんでした";
+    return null;
+  }
+}
+/** 役職をしらべて、管理者メニューの出しわけを決めます */
+async function loadRole(){
+  const lv = await askLevel();
+  MY_LV = (lv == null) ? 0 : lv;
+  IS_ADMIN = MY_LV >= 4;                       /* ジャッジマン以上だけ */
+  if(lv != null) ROLE_STATE = (LV_NAME[MY_LV] || "レベル" + MY_LV);
+  admSync();
+  return MY_LV;
+}
 
 const MODE_NAME = { normal:"通常モード", help:"おたすけモード", rich:"素数大富豪モード" };
 const STOCK_N   = { normal:4, help:4, rich:6 };
@@ -2024,7 +2084,10 @@ function shiftKey(kind, n){
 const rkLabel = (kind, key) => kind === "day" ? key.replace(/-/g,"/")
   : kind === "week" ? key.replace("-W"," 第") + "週" : key.replace("-","年") + "月";
 
-const myName = () => LS.get(K_NAME, "あなた");
+function myName(){
+  const p = LS.get(K_PRO, null) || {};
+  return LS.get(K_NAME, null) || p.name || p.handle || "あなた";
+}
 /** 記録はぜんぶ pp-log-v1 に入っています */
 const allRuns = () => (LS.get(K_LOG, []) || []).filter(x => x && x.at != null);
 function runsIn(kind, key, mode){
@@ -2484,12 +2547,12 @@ $("#edPlayHere").onclick = () => edPreview(edSel);
    ══════════════════════════════════════════════════════════════ */
 function admOut(t){ const b=$("#admOut"); b.classList.remove("hidden"); b.textContent=t; }
 function admSync(){
-  $("#admCard").classList.toggle("hidden", !IS_ADMIN);
-  $("#admOff").classList.toggle("hidden", IS_ADMIN);
-  $("#admOn").checked = IS_ADMIN;
+  const card = $("#admCard");
+  if(card) card.classList.toggle("hidden", !IS_ADMIN);
+  const w = $("#admWho");
+  if(w) w.textContent = `いまの役職：${ROLE_STATE}`
+    + (IS_ADMIN ? "（ジャッジマン以上なので設定できます）" : "");
 }
-$("#admOn").onchange  = () => { IS_ADMIN = $("#admOn").checked; LS.set(K_ADMIN, IS_ADMIN); admSync(); };
-$("#admBack").onclick = () => { IS_ADMIN = true; LS.set(K_ADMIN, true); admSync(); };
 $("#btnEdit").onclick = edOpen;
 $("#btnDiff").onclick = openDiff;
 /** ランキングの見た目をたしかめるための、にせの記録 */
@@ -2582,6 +2645,9 @@ $("#btnSelfTest").onclick = selfTest;
 
 /* さいごに、ホームのランキング表示を出します（下で作った関数を使うため） */
 try{ homeRank(); }catch(e){}
+/* 役職をしらべるまでは、管理者メニューは出しません */
+admSync();
+loadRole().catch(()=>{ IS_ADMIN=false; admSync(); });
 
 /* テストから触れるように */
 window.PP = {
@@ -2592,12 +2658,13 @@ window.PP = {
   timeUp, showResult, newPart, partLabel, modal, drawNum, drawStock, buildStock, toStock,
   get G(){ return G; }, get ST(){ return ST; }, get DIFF(){ return DIFF; },
   set DIFF(v){ DIFF = fixDiff(v); }, fixDiff,
-  get IS_ADMIN(){ return IS_ADMIN; }, set IS_ADMIN(v){ IS_ADMIN = v; admSync(); },
+  get IS_ADMIN(){ return IS_ADMIN; }, get MY_LV(){ return MY_LV; },
+  loadRole, askLevel, admSync, sbConf, mySess,
   setupGame, secOf, periodKey, shiftKey, rankOf, allKeys, rkOpen, rkDraw, rkChampions,
   moveCard, drawHand, tutorStart, tutorHit, tutorStop, homeRank, myName,
   lowestPart, drawLaneBtns, tutorSupply, coinEarn, coinPending, drawCoin,
   get TUTOR(){ return TUTOR; },
-  KEYS:{ K_STORY, K_SEEN, K_LOG, K_DIFF, K_ADMIN, K_NAME }
+  KEYS:{ K_STORY, K_SEEN, K_LOG, K_DIFF, K_NAME, K_SESS, K_SB }
 };
 </script>
 </body>
