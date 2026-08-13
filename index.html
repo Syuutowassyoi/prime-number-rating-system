@@ -1684,7 +1684,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v80";
+const APP_VERSION = "v81";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2503,6 +2503,8 @@ const ST_KEYS=[
   "sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1",                 /* LSやりこみ */
    "sa-lsb-v1",
   "sa-autopost-v1","sa-tagwatch-v1",
+  "pp-seen-v1",       /* Prime Park：チュートリアルを見たか */
+  "pp-story-v1",      /* Prime Park：ストーリーの台本 */
 ];
 const ST_MAX=150000;
 /* 中身が消えると困るもの。空っぽで上書きされないように見張ります */
@@ -2560,10 +2562,16 @@ function stScan(baseline){
   if(moved){ stSaveAt(); stSoon(); }
   return moved;
 }
-let stT=null, stBusy=false, stState="";
-function stSoon(){
+let stT=null, stBusy=false, stState="", stFail=0, stRetryT=null, stLastOk=0;
+function stSoon(ms){
   if(!stCan()) return;
-  clearTimeout(stT); stT=setTimeout(()=>stSync(),4000);
+  clearTimeout(stT); stT=setTimeout(()=>stSync(), ms==null?2000:ms);
+}
+/** うまくいかなかったときは、少しずつ間をあけてやり直します */
+function stRetry(){
+  clearTimeout(stRetryT);
+  const wait=[5000,15000,60000,180000][Math.min(stFail,3)];
+  stRetryT=setTimeout(()=>{ if(stCan()) stSync(); }, wait);
 }
 function stCan(){
   return !(typeof TEST!=="undefined"&&TEST) && typeof sess!=="undefined" && !!sess
@@ -2628,10 +2636,15 @@ async function stSync(showToast){
     });
     const got=await callRpc("state_put",{p_data:send,p_since:stSince},[["p_since"]]);
     stApply(got);
-    stMark("そろっています　"+new Date().toLocaleTimeString("ja-JP"));
+    stFail=0; stLastOk=Date.now();
+    clearTimeout(stRetryT);
+    stMark("そろっています　"+new Date().toLocaleTimeString("ja-JP")
+      +(Object.keys(send).length?`（${Object.keys(send).length}件おくりました）`:""));
     if(showToast) toast("同期しました");
   }catch(e){
-    stMark("同期できませんでした");
+    stFail++;
+    stMark("同期できませんでした（"+stFail+"回目）。あとでやり直します");
+    stRetry();
     if(showToast) toast(String((e&&e.message)||e).slice(0,120));
   }finally{ stBusy=false; }
 }
@@ -2652,6 +2665,53 @@ function stApply(got){
   stScan(true);                      /* 書き戻したぶんを「変更」と数えないように */
   if(changed) stReload();
 }
+/* ══════════════════════════════════════════════════════════════
+   同期を取りこぼさないための見はり
+   ・3秒ごとに中身が変わっていないか見る（今までどおり）
+   ・20秒ごとに、変わっていなくても取りに行く（ほかの端末のぶんを拾う）
+   ・タブを離れる／閉じるときに、その場で送る
+   ・もどってきたとき、ネットにつながったときにも送る
+   ══════════════════════════════════════════════════════════════ */
+let stPullT=null;
+function stWatch(){
+  clearInterval(stPullT);
+  stPullT=setInterval(()=>{
+    if(document.hidden||!stCan()) return;
+    stSync();                                  /* 20秒ごとに取りに行きます */
+  }, 20000);
+  document.addEventListener("visibilitychange", ()=>{
+    if(!stCan()) return;
+    if(document.hidden) stFlush();             /* 離れるときは、その場で送る */
+    else { stFail=0; stSync(); }               /* もどったら、すぐそろえる */
+  });
+  window.addEventListener("online", ()=>{ stFail=0; if(stCan()) stSync(); });
+  window.addEventListener("pagehide", stFlush);
+  window.addEventListener("beforeunload", stFlush);
+  window.addEventListener("blur", ()=>{ if(stCan()) stSoon(600); });
+}
+/** 閉じるときでも届くように、keepalive で送ります */
+function stFlush(){
+  if(!stCan()) return;
+  try{
+    stScan(false);
+    const send={};
+    ST_ALL().forEach(k=>{
+      const at=stStamp[k]||0;
+      if(at<=stSince) return;
+      const raw=localStorage.getItem(k);
+      if(raw==null||raw.length>ST_MAX) return;
+      send[k]={v:raw,at:at};
+    });
+    if(!Object.keys(send).length) return;
+    fetch(SB_URL+"/rest/v1/rpc/state_put",{
+      method:"POST", keepalive:true,
+      headers:{apikey:SB_KEY,Authorization:"Bearer "+sess.access_token,
+               "Content-Type":"application/json"},
+      body:JSON.stringify({p_data:send,p_since:stSince})
+    }).then(()=>{}).catch(()=>{});
+  }catch(e){}
+}
+
 /** 記録の控えを見せて、選んだものに戻します */
 async function showRecBackups(){
   if(!(sess&&sbOn())) return toast("ログインしていると使えます");
@@ -12096,6 +12156,8 @@ function normalize(j){
   try{ applyData(); }catch(e){ console.error(e); }
   /* ★ ほかの端末との同期。記録やLSやりこみなどをそろえます */
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
+  /* 見はりは、あとからログインしても効くように、いつでも用意しておきます */
+  try{ stWatch(); }catch(e){}
   try{ await loadBorderAt(); }catch(e){} tickClock();
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}

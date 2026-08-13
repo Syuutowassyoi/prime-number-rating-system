@@ -307,7 +307,9 @@ td.n,th.n{text-align:right;font-family:ui-monospace,Menlo,monospace}
 .rkcal div{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;
   flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:.66rem;
   color:var(--dim2);background:#0d1522}
-.rkcal div.hit{border-color:var(--acc2);background:#0f2018;color:var(--acc2)}
+.rkcal div.hit{border-color:#2e5a6f;background:#0e1a22;color:#7fd8ff}
+.rkcal div.mine{border-color:var(--acc2);background:#0f2018;color:var(--acc2)}
+.rkcal div .mn{font-style:normal;font-size:.56rem;color:var(--acc2);font-family:ui-monospace,Menlo,monospace}
 .rkcal div.hit b{font-family:ui-monospace,Menlo,monospace;font-size:.66rem;color:var(--acc2)}
 .rkcal div.today{outline:2px solid var(--warn);outline-offset:-2px}
 .rkcal div.blank{border:0;background:transparent}
@@ -625,7 +627,8 @@ label.pk input{margin:0}
       <button class="btn sm" id="rkCalNext">▶</button>
     </div>
     <div id="rkCal"></div>
-    <p class="tiny" style="margin-top:6px">色がついている日は、はたらいた日です。数字はその日のいちばん良いスコア。</p>
+    <p class="tiny" style="margin-top:6px">数字はその日の<b>みんなのいちばん</b>。
+      緑わくは自分がはたらいた日で、下の小さい数字が自分のいちばんです。</p>
   </div>
 </div>
 
@@ -1173,6 +1176,36 @@ function fixDiff(d){
   return d;
 }
 DIFF = fixDiff(DIFF);
+/** むずかしさはサーバーに1つだけ置きます。みんな同じ設定であそびます */
+let DIFF_FROM = "この端末の設定";
+async function loadDiff(){
+  const c = sbConf();
+  if(!c.url || !c.key) return DIFF;
+  try{
+    const r = await fetch(c.url + "/rest/v1/app_state?select=value&key=eq.pp_diff&limit=1",
+      { headers: Object.assign({ apikey:c.key },
+        c.key.startsWith("eyJ") ? { Authorization:"Bearer " + c.key } : {}) });
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const v = (j && j[0] && j[0].value) || null;
+    if(v && Object.keys(v).length){
+      DIFF = fixDiff(Object.assign(JSON.parse(JSON.stringify(DIFF_DEF)), v));
+      saveDiff();
+      DIFF_FROM = "みんな共通の設定";
+    }else{
+      DIFF_FROM = "まだ決まっていません（はじめの設定）";
+    }
+  }catch(e){ DIFF_FROM = "つながらないので、この端末の設定"; }
+  return DIFF;
+}
+/** ジャッジマン以上だけが、みんなの設定を書きかえられます */
+async function saveDiffServer(){
+  const out = { laneMs:DIFF.laneMs, fallMs:DIFF.fallMs, count:DIFF.count,
+                thinkBase:DIFF.thinkBase, thinkPerDigit:DIFF.thinkPerDigit,
+                sec:{ normal:DIFF.sec.normal, help:DIFF.sec.help, rich:DIFF.sec.rich } };
+  await sbCall("rpc/pp_diff_set", { p_value: out }, true);
+  DIFF_FROM = "みんな共通の設定";
+}
 /** そのモードの制限時間（秒） */
 const secOf = m => Math.max(5, +(fixDiff(DIFF).sec[m] || 60));
 const saveDiff = () => LS.set(K_DIFF, DIFF);
@@ -1234,6 +1267,40 @@ async function askLevel(){
     return null;
   }
 }
+/** Supabase の関数を呼びます。ログインが要るものは tok を付けます */
+async function sbCall(path, body, needAuth){
+  const c = sbConf();
+  if(!c.url || !c.key) throw new Error("Supabase が未設定です");
+  let s = mySess();
+  if(needAuth){
+    if(!s) throw new Error("ログインが必要です");
+    if(s.expires_at && Date.now()/1000 > s.expires_at - 60) s = (await refreshSess()) || s;
+  }
+  const go = async tok => {
+    const h = { apikey:c.key, "Content-Type":"application/json" };
+    if(tok) h.Authorization = "Bearer " + tok;
+    else if(c.key.startsWith("eyJ")) h.Authorization = "Bearer " + c.key;
+    const ac = new AbortController(), tm = setTimeout(()=>ac.abort(), 12000);
+    try{
+      const r = await fetch(c.url + "/rest/v1/" + path,
+        { method:"POST", headers:h, body: JSON.stringify(body||{}), signal:ac.signal });
+      if(!r.ok){ const t = await r.text();
+        const e = new Error(t || ("HTTP " + r.status)); e.status = r.status; throw e; }
+      return r.status === 204 ? null : r.json();
+    } finally { clearTimeout(tm); }
+  };
+  try{ return await go(needAuth ? s.access_token : null); }
+  catch(e){
+    if(needAuth && (e.status === 401 || e.status === 403)){
+      const ns = await refreshSess();
+      if(ns) return await go(ns.access_token);
+    }
+    throw e;
+  }
+}
+const online = () => { const c = sbConf(); return !!(c.url && c.key); };
+const loggedIn = () => !!mySess();
+
 /** 役職をしらべて、管理者メニューの出しわけを決めます */
 async function loadRole(){
   const lv = await askLevel();
@@ -1895,9 +1962,11 @@ function showResult(){
 
   /* Prime Coin：1回あそび終えるごとに1枚。
      ただし「1点以上とった」か「3桁以上の数を1回でも出した」ことが条件です */
-  const big3 = G.subs.some(x => x.s.length >= 3);
+  const digits = G.subs.reduce((a,x) => Math.max(a, x.s.length), 0);
+  const big3 = digits >= 3;
   const gotCoin = (G.score >= 1) || big3;
-  if(gotCoin) coinEarn(G.mode, G.score, big3);
+  /* 記録はサーバーへ。みんなのランキングに載ります */
+  sendRun({ mode:G.mode, score:G.score, ok:okN, ng:ngN, dump:G.dumps.length, digits });
 
   const cardsHTML = cs => cs && cs.length
     ? `<div style="display:flex;gap:2px;justify-content:flex-end;margin-top:2px">${cs.map(v=>
@@ -1932,6 +2001,7 @@ function showResult(){
         : `<p class="tiny" style="margin-top:8px;color:var(--dim2)">
              Prime Coin はもらえませんでした。<br>
              1点以上とるか、3桁以上の自然数を1回でも出すともらえます。</p>`}
+      <p class="tiny" id="grSend" style="margin-top:6px;color:var(--dim2)">記録を送っています…</p>
     </div>
     <div class="card"><h2>提出したもの</h2>
       ${G.subs.length?`<div class="scroll"><table>${head}<tbody>
@@ -1950,18 +2020,99 @@ function showResult(){
         <button class="btn" id="grHome">パークにもどる</button>
       </div></div>`;
   $("#gRes").classList.add("on");
+  setTimeout(async ()=>{
+    const el = $("#grSend"); if(!el) return;
+    const left = (LS.get(K_QUEUE, []) || []).length;
+    if(!online() || !loggedIn()){
+      el.innerHTML = '<span style="color:var(--warn)">まだ送れていません。'
+        + 'ログインしてもう一度ひらくと、みんなのランキングに載ります。</span>';
+      return;
+    }
+    if(left){ await flushRuns(); }
+    const rest = (LS.get(K_QUEUE, []) || []).length;
+    el.innerHTML = rest
+      ? `<span style="color:var(--warn)">まだ ${jp(rest)} 件 送れていません。あとでまた送ります。</span>`
+      : `<span style="color:var(--acc2)">みんなのランキングに送りました`
+        + (PP_COINS!=null?`　／　いまの <span class="pcoin">P</span> ${jp(PP_COINS)} 枚`:"")
+        + `</span>`;
+  }, 60);
   $("#grAgain").onclick = () => { const m=G.mode; $("#gRes").classList.remove("on"); startGame(m); };
   $("#grMode").onclick  = () => { $("#gRes").classList.remove("on"); leaveGame(); openModes(); };
   $("#grHome").onclick  = () => { $("#gRes").classList.remove("on"); leaveGame(); };
 }
-/* ── Prime Coin（本体アプリと同じ入れものに、もらった記録をためます）── */
-const K_COIN = "sa-ppcoin-v1";
+/* ══════════════════════════════════════════════════════════════
+   スコアと Prime Coin をサーバーへ送ります。
+   ・つながらないときは、この端末にためておき、あとで自動で送りなおします
+   ══════════════════════════════════════════════════════════════ */
+const K_COIN  = "sa-ppcoin-v1";     /* 本体アプリが受け取る、もらったコインの控え */
+const K_QUEUE = "pp-queue-v1";      /* まだ送れていない記録 */
+let PP_COINS = null;                /* サーバーが教えてくれた、いまの枚数 */
+
 function coinEarn(mode, score, big3){
   const q = LS.get(K_COIN, []) || [];
   q.push({ at:Date.now(), mode, score, big3:!!big3 });
   LS.set(K_COIN, q.slice(-200));
 }
 const coinPending = () => (LS.get(K_COIN, []) || []).length;
+
+/** 1回ぶんの記録を送ります。だめなら、ためておきます */
+async function sendRun(run){
+  const q = LS.get(K_QUEUE, []) || [];
+  q.push(Object.assign({ at:Date.now() }, run));
+  LS.set(K_QUEUE, q.slice(-100));
+  await flushRuns();
+}
+let flushing = false;
+async function flushRuns(){
+  if(flushing) return 0;
+  let q = LS.get(K_QUEUE, []) || [];
+  if(!q.length) return 0;
+  if(!online() || !loggedIn()){
+    /* まだ送れないので、本体アプリで受け取れるように控えだけ残します */
+    q.forEach(r => { if((r.score>=1 || r.digits>=3) && !r.kept){ r.kept = true; coinEarn(r.mode,r.score,r.digits>=3); } });
+    LS.set(K_QUEUE, q); drawCoin();
+    return 0;
+  }
+  flushing = true;
+  let sent = 0;
+  try{
+    while(q.length){
+      const r = q[0];
+      const out = await sbCall("rpc/pp_submit", {
+        p_mode:r.mode, p_score:Math.round(r.score||0), p_ok:r.ok||0, p_ng:r.ng||0,
+        p_dump:r.dump||0, p_digits:r.digits||0, p_game:"factory" }, true);
+      if(out && out.coins != null) PP_COINS = +out.coins;
+      /* サーバーに入ったので、この端末の控えは消します */
+      if(r.kept){
+        const c = LS.get(K_COIN, []) || [];
+        c.pop(); LS.set(K_COIN, c);
+      }
+      q.shift(); LS.set(K_QUEUE, q); sent++;
+    }
+  }catch(e){
+    /* 送れなかったぶんは残したまま。あとでまた試します。
+       もらえるはずのコインは、本体アプリで受け取れるように控えておきます */
+    let moved = false;
+    q.forEach(r => {
+      if((r.score>=1 || r.digits>=3) && !r.kept){
+        r.kept = true; coinEarn(r.mode, r.score, r.digits>=3); moved = true;
+      }
+    });
+    if(moved) LS.set(K_QUEUE, q);
+  }finally{ flushing = false; }
+  drawCoin();
+  return sent;
+}
+/** いまの Prime Coin の枚数をサーバーに聞きます */
+async function askCoins(){
+  if(!online() || !loggedIn()){ PP_COINS = null; return null; }
+  try{
+    const o = await sbCall("rpc/coin_state", {}, true);
+    PP_COINS = o ? +o.coins : null;
+  }catch(e){ PP_COINS = null; }
+  drawCoin();
+  return PP_COINS;
+}
 
 function leaveGame(){
   stopGame();
@@ -2088,20 +2239,23 @@ function myName(){
   const p = LS.get(K_PRO, null) || {};
   return LS.get(K_NAME, null) || p.name || p.handle || "あなた";
 }
-/** 記録はぜんぶ pp-log-v1 に入っています */
+/* 記録はサーバー（pp_runs）に入っています。みんなのぶんが見えます。
+   つながらないときだけ、この端末に残っているぶんを出します。 */
 const allRuns = () => (LS.get(K_LOG, []) || []).filter(x => x && x.at != null);
-function runsIn(kind, key, mode){
-  return allRuns().filter(r => periodKey(kind, r.at) === key && (!mode || r.mode === mode));
-}
-/** その回のランキング。1人につき、いちばん良い記録だけで競います */
-function rankOf(kind, key, mode){
+function localRank(kind, key, mode){
   const best = {};
-  runsIn(kind, key, mode).forEach(r => {
+  allRuns().forEach(r => {
+    if(periodKey(kind, r.at) !== key) return;
+    if(mode && r.mode !== mode) return;
     const who = r.who || myName();
-    if(!best[who] || r.score > best[who].score) best[who] = { who, score:r.score, at:r.at, mode:r.mode };
-    if(best[who]) best[who].n = (best[who].n || 0) + 1;
+    if(!best[who] || r.score > best[who].score)
+      best[who] = { who, score:r.score, at:r.at, mode:r.mode, n:0 };
+    best[who].n++;
   });
-  const rows = Object.values(best).sort((a,b) => b.score - a.score);
+  return Object.values(best).sort((a,b) => b.score - a.score);
+}
+/** 順位をつけます（同点は同じ順位。うしろに T が付きます） */
+function withPos(rows){
   let pos = 0, prev = null, same = 0;
   rows.forEach(r => {
     same++;
@@ -2111,12 +2265,30 @@ function rankOf(kind, key, mode){
   rows.forEach(r => { r.tie = rows.filter(x => x.pos === r.pos).length > 1; });
   return rows;
 }
+/** その回のランキング。1人につき、いちばん良い記録だけで競います */
+async function rankOf(kind, key, mode){
+  if(online()){
+    try{
+      const r = await sbCall("rpc/pp_rank",
+        { p_kind:kind, p_key:key, p_mode: mode || null }, false);
+      return withPos((r||[]).map(x => ({
+        who: x.name || x.handle || "？", handle:x.handle,
+        score: +x.score||0, n: +x.n||1, at: x.played_at, mode: x.mode })));
+    }catch(e){ RK_ERR = String(e.message||e).slice(0,90); }
+  }
+  return withPos(localRank(kind, key, mode));
+}
 /** その種類の回を、古いほうから並べます（第n回の n を出すため） */
-function allKeys(kind, mode){
+async function allKeys(kind, mode){
+  if(online()){
+    try{ return (await sbCall("rpc/pp_keys", { p_kind:kind, p_mode: mode || null }, false)) || []; }
+    catch(e){}
+  }
   const set = new Set();
   allRuns().forEach(r => { if(!mode || r.mode === mode) set.add(periodKey(kind, r.at)); });
   return [...set].sort();
 }
+let RK_ERR = "";
 const medal = i => i===1 ? "rkgold" : i===2 ? "rksil" : i===3 ? "rkbrz" : "";
 
 function rkOpen(){
@@ -2126,22 +2298,27 @@ function rkOpen(){
   rkDraw();
 }
 function rkClose(){ $("#rank").classList.add("hidden"); $("#home").classList.remove("hidden"); }
-function rkDraw(){
+async function rkDraw(){
   $$("#rkTabs [data-rk]").forEach(b => b.classList.toggle("on", b.dataset.rk === rkTab));
   $$("#rkModes [data-rm]").forEach(b => b.classList.toggle("on", b.dataset.rm === rkMode));
   const key = shiftKey(rkTab, rkShift);
-  const keys = allKeys(rkTab, rkMode);
-  const no = keys.indexOf(key) + 1;
-  $("#rkWhen").textContent = rkLabel(rkTab, key) + (no ? `（第${no}回）` : "");
   $("#rkNext").disabled = rkShift >= 0;
   $("#rkTitle").textContent = (rkShift === 0 ? "今回" : "過去") + "のランキング　"
     + RK_NAME[rkTab] + (rkMode ? "／" + MODE_NAME[rkMode] : "");
-  $("#rkNote").innerHTML = rkTab === "day"
+  $("#rkBody").innerHTML = `<p class="muted">読み込み中…</p>`;
+  RK_ERR = "";
+  const seq = ++rkSeq;
+  const [keys, rows] = await Promise.all([allKeys(rkTab, rkMode), rankOf(rkTab, key, rkMode)]);
+  if(seq !== rkSeq) return;                    /* 新しい表示が始まっていたら、やめます */
+  const no = keys.indexOf(key) + 1;
+  $("#rkWhen").textContent = rkLabel(rkTab, key) + (no ? `（第${no}回）` : "");
+  $("#rkNote").innerHTML = (rkTab === "day"
     ? "毎日 0時（日本時間）で区切ります。"
-    : rkTab === "week" ? "毎週 月曜 0時で区切ります。" : "毎月 1日 0時で区切ります。";
-  $("#rkNote").innerHTML += "　その回に出したなかで、<b>いちばん良いスコア</b>で競います。";
-
-  const rows = rankOf(rkTab, key, rkMode);
+    : rkTab === "week" ? "毎週 月曜 0時で区切ります。" : "毎月 1日 0時で区切ります。")
+    + "　その回に出したなかで、<b>いちばん良いスコア</b>で競います。"
+    + (online() ? "　みんなの記録が出ます。" : "")
+    + (RK_ERR ? `<br><span style="color:var(--bad)">つながりませんでした：${esc(RK_ERR)}
+        （この端末の記録だけを出しています）</span>` : "");
   const me = myName();
   $("#rkBody").innerHTML = rows.length
     ? `<div class="scroll"><table><thead><tr><th class="n">順位</th><th>だれ</th>
@@ -2152,48 +2329,75 @@ function rkDraw(){
         <td class="n"><b>${jp(r.score)}</b></td>
         <td class="tiny">${esc(MODE_NAME[r.mode]||"—")}</td>
         <td class="n tiny">${jp(r.n||1)}</td>
-        <td class="tiny">${new Date(r.at).toLocaleString("ja-JP")}</td></tr>`).join("")
+        <td class="tiny">${r.at?new Date(r.at).toLocaleString("ja-JP"):"—"}</td></tr>`).join("")
       + `</tbody></table></div>`
     : `<p class="muted">この回は、まだ記録がありません。</p>`;
   rkDrawCal();
 }
-function rkDrawCal(){
+let rkSeq = 0;
+async function rkDrawCal(){
   const now = new Date();
   let [y,m] = jstYMD(now).split("-").map(Number);
   m += rkCalShift; y += Math.floor((m-1)/12); m = ((m-1)%12+12)%12+1;
+  const ym = `${y}-${String(m).padStart(2,"0")}`;
   $("#rkCalM").textContent = `${y}年${m}月`;
   const days = new Date(Date.UTC(y,m,0)).getUTCDate();
   const head = new Date(Date.UTC(y,m-1,1)).getUTCDay();
-  const best = {};
-  allRuns().forEach(r => {
-    if(rkMode && r.mode !== rkMode) return;
-    const d = jstYMD(r.at);
-    if(best[d] == null || r.score > best[d]) best[d] = r.score;
-  });
+  let best = {}, mine = {};
+  let got = false;
+  if(online()){
+    try{
+      const o = await sbCall("rpc/pp_cal", { p_month:ym, p_mode: rkMode || null }, false) || {};
+      Object.keys(o).forEach(d => { best[d] = o[d].best; if(o[d].mine != null) mine[d] = o[d].mine; });
+      got = true;
+    }catch(e){}
+  }
+  if(!got){
+    allRuns().forEach(r => {
+      if(rkMode && r.mode !== rkMode) return;
+      const d = jstYMD(r.at);
+      if(best[d] == null || r.score > best[d]) best[d] = r.score;
+    });
+    mine = best;
+  }
   const today = jstYMD(now);
   let h = `<div class="rkhead">${["日","月","火","水","木","金","土"]
     .map(d=>`<span>${d}</span>`).join("")}</div><div class="rkcal">`;
   for(let i=0;i<head;i++) h += `<div class="blank"></div>`;
   for(let d=1;d<=days;d++){
     const key = `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const v = best[key];
-    h += `<div class="${v!=null?"hit":""}${key===today?" today":""}">
-      <span>${d}</span>${v!=null?`<b>${jp(v)}</b>`:""}</div>`;
+    const v = best[key], mv = mine[key];
+    h += `<div class="${v!=null?"hit":""}${mv!=null?" mine":""}${key===today?" today":""}">
+      <span>${d}</span>${v!=null?`<b>${jp(v)}</b>`:""}
+      ${mv!=null&&mv!==v?`<i class="mn">${jp(mv)}</i>`:""}</div>`;
   }
   $("#rkCal").innerHTML = h + `</div>`;
 }
 /** 歴代チャンピオン。優勝回数と出場回数のランキングも出します */
-function rkChampions(){
-  const kind = rkTab, keys = allKeys(kind, rkMode);
-  const champs = [], winN = {}, joinN = {};
-  keys.forEach((k,i) => {
-    const rows = rankOf(kind, k, rkMode);
-    if(!rows.length) return;
-    const top = rows.filter(r => r.pos === 1);
-    champs.push({ no:i+1, key:k, top });
-    top.forEach(t => { winN[t.who] = (winN[t.who]||0) + 1; });
-    rows.forEach(r => { joinN[r.who] = (joinN[r.who]||0) + 1; });
-  });
+async function rkChampions(){
+  const kind = rkTab;
+  let champs = [], winN = {}, joinN = {};
+  let got = false;
+  if(online()){
+    try{
+      const o = await sbCall("rpc/pp_champ", { p_kind:kind, p_mode: rkMode || null }, false) || {};
+      champs = (o.champs||[]).map(c => ({ no:c.no, key:c.key,
+        top:(c.who||[]).map(w => ({ who:w, score:c.score })) }));
+      winN = o.win || {}; joinN = o["join"] || {};
+      got = true;
+    }catch(e){}
+  }
+  if(!got){
+    const keys = await allKeys(kind, rkMode);
+    for(let i=0;i<keys.length;i++){
+      const rows = await rankOf(kind, keys[i], rkMode);
+      if(!rows.length) continue;
+      const top = rows.filter(r => r.pos === 1);
+      champs.push({ no:i+1, key:keys[i], top });
+      top.forEach(t => { winN[t.who] = (winN[t.who]||0) + 1; });
+      rows.forEach(r => { joinN[r.who] = (joinN[r.who]||0) + 1; });
+    }
+  }
   const board = (obj, unit) => {
     const rows = Object.keys(obj).map(w => ({ who:w, n:obj[w] })).sort((a,b)=>b.n-a.n);
     if(!rows.length) return `<p class="muted">まだありません。</p>`;
@@ -2231,16 +2435,34 @@ $("#rkCalPrev").onclick = () => { rkCalShift--; rkDrawCal(); };
 $("#rkCalNext").onclick = () => { rkCalShift++; rkDrawCal(); };
 function drawCoin(){
   const el = $("#homeCoin"); if(!el) return;
-  el.textContent = jp(coinPending());
+  const waiting = (LS.get(K_QUEUE, []) || []).length;
+  if(PP_COINS != null){
+    el.textContent = jp(PP_COINS);
+    $("#homeCoinNote").textContent = waiting
+      ? `まだ送れていない記録が ${jp(waiting)} 件あります（つながったら自動で送ります）`
+      : "素数あつめ RATING と同じ残高です。";
+  }else{
+    el.textContent = jp(coinPending());
+    $("#homeCoinNote").textContent = loggedIn()
+      ? "サーバーにつながっていません。つながったら自動で送ります。"
+      : "ログインすると、素数あつめ RATING の残高に入ります。";
+  }
 }
-function homeRank(){
+async function homeRank(){
   drawCoin();
   const el = $("#homeRankNow"); if(!el) return;
-  const parts = ["day","week","month"].map(k=>{
-    const rows = rankOf(k, shiftKey(k,0), "");
-    const me = rows.find(r=>r.who===myName());
-    return `${RK_NAME[k]} ${me?me.pos+"位（"+jp(me.score)+"点）":"まだ"}`;
-  });
+  el.textContent = "読み込み中…";
+  const me = myName();
+  const parts = [];
+  for(const k of ["day","week","month"]){
+    let txt = "まだ";
+    try{
+      const rows = await rankOf(k, shiftKey(k,0), "");
+      const mine = rows.find(r => r.who === me);
+      txt = mine ? `${mine.pos}位／${rows.length}人（${jp(mine.score)}点）` : `まだ（${rows.length}人）`;
+    }catch(e){}
+    parts.push(`${RK_NAME[k]} ${txt}`);
+  }
   el.textContent = parts.join("　／　");
 }
 
@@ -2286,7 +2508,8 @@ const dfSet = (k,v) => { if(k.indexOf(".")<0) DIFF[k]=v; else DIFF[k.split(".")[
 function openDiff(){
   if(!IS_ADMIN) return null;
   const M = modal(`<h2>全体難易度調整</h2>
-    <p class="tiny">レーンの速さなどを決めます。管理者だけがさわれます。</p>
+    <p class="tiny">レーンの速さなどを決めます。ジャッジマン以上だけがさわれます。<br>
+      ここで保存すると、<b>全員が同じ設定であそぶ</b>ようになります（いま：${esc(DIFF_FROM)}）。</p>
     <div id="dfRows"></div>
     <h3 style="margin-top:14px">プレビュー</h3>
     <p class="tiny">いまの設定で、部品がどのくらいの速さで流れるかを見られます。</p>
@@ -2321,9 +2544,16 @@ function openDiff(){
     });
     info();
   };
-  M.q("#dfSave").onclick  = () => { saveDiff();
-    admOut("むずかしさを保存しました。\n" + DF_ROWS.map(z=>`・${z.n}：${dfGet(z.k)}${z.unit}`).join("\n"));
-    stopPreview(); M.close(); };
+  M.q("#dfSave").onclick  = async () => {
+    saveDiff();
+    const b = M.q("#dfSave"); b.disabled = true; b.textContent = "送っています…";
+    let msg = "";
+    try{ await saveDiffServer(); msg = "みんなに反映しました。"; }
+    catch(e){ msg = "みんなには反映できませんでした（この端末だけ）：" + String(e.message||e).slice(0,80); }
+    admOut("むずかしさを保存しました。" + msg + "\n"
+      + DF_ROWS.map(z=>`・${z.n}：${dfGet(z.k)}${z.unit}`).join("\n"));
+    stopPreview(); M.close();
+  };
   M.q("#dfReset").onclick = () => { DIFF = JSON.parse(JSON.stringify(DIFF_DEF)); draw(); restartPreview(M); };
   M.q("#dfClose").onclick = () => { stopPreview(); M.close(); };
   M.onClose = stopPreview;
@@ -2645,9 +2875,26 @@ $("#btnSelfTest").onclick = selfTest;
 
 /* さいごに、ホームのランキング表示を出します（下で作った関数を使うため） */
 try{ homeRank(); }catch(e){}
-/* 役職をしらべるまでは、管理者メニューは出しません */
+/* ══════════════════════════════════════════════════════════════
+   起動したときと、もどってきたときに、サーバーとそろえます
+   ══════════════════════════════════════════════════════════════ */
 admSync();
-loadRole().catch(()=>{ IS_ADMIN=false; admSync(); });
+let ppBooted = false;
+async function ppSync(){
+  try{ await loadRole(); }catch(e){ IS_ADMIN = false; admSync(); }
+  try{ await loadDiff(); }catch(e){}
+  try{ await flushRuns(); }catch(e){}
+  try{ await askCoins(); }catch(e){}
+  try{ if(!$("#rank").classList.contains("hidden")) await rkDraw(); }catch(e){}
+  try{ await homeRank(); }catch(e){}
+  ppBooted = true;
+}
+ppSync();
+/* 30秒ごと、もどってきたとき、つながったときにも、そろえなおします */
+setInterval(()=>{ if(!document.hidden) ppSync(); }, 30000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) ppSync(); });
+window.addEventListener("online", ()=>ppSync());
+window.addEventListener("pageshow", ()=>{ if(ppBooted) ppSync(); });
 
 /* テストから触れるように */
 window.PP = {
@@ -2659,7 +2906,9 @@ window.PP = {
   get G(){ return G; }, get ST(){ return ST; }, get DIFF(){ return DIFF; },
   set DIFF(v){ DIFF = fixDiff(v); }, fixDiff,
   get IS_ADMIN(){ return IS_ADMIN; }, get MY_LV(){ return MY_LV; },
-  loadRole, askLevel, admSync, sbConf, mySess,
+  loadRole, askLevel, admSync, sbConf, mySess, sbCall, online, loggedIn,
+  sendRun, flushRuns, askCoins, loadDiff, saveDiffServer, ppSync,
+  get PP_COINS(){ return PP_COINS; }, get DIFF_FROM(){ return DIFF_FROM; },
   setupGame, secOf, periodKey, shiftKey, rankOf, allKeys, rkOpen, rkDraw, rkChampions,
   moveCard, drawHand, tutorStart, tutorHit, tutorStop, homeRank, myName,
   lowestPart, drawLaneBtns, tutorSupply, coinEarn, coinPending, drawCoin,
