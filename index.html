@@ -681,6 +681,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
 .mbtn.alert{animation:mblink 1.6s ease-in-out infinite}
 @keyframes mblink{0%,100%{opacity:1}50%{opacity:.45}}
+/* Prime Park へのボタン */
+a.btn.ppbtn{margin-left:6px;text-decoration:none;display:inline-flex;align-items:center;
+  border-color:#c08bff;color:#e6d4ff;font-weight:800;letter-spacing:.04em;
+  background:linear-gradient(135deg,#3a2260,#5b3496)}
+a.btn.ppbtn:hover{border-color:#d9b6ff;filter:brightness(1.15)}
+a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 /* 開発者を応援する */
 .chpop{width:138px;height:138px;border-radius:50%;border:2px solid #ffc861;cursor:pointer;
   background:radial-gradient(circle at 36% 30%,#3a2f12,#241a08);font-size:3.6rem;line-height:1;
@@ -762,6 +768,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   <h1>素数あつめ <span class="g">RATING</span></h1>
   <span class="ver" id="verBadge">—</span>
   <button class="btn sm" id="cheerBtn" style="margin-left:8px">開発者を応援する</button>
+  <a class="btn sm ppbtn" id="ppBtn" href="prime-park.html">Prime Park</a>
   <span class="hclock" id="nowClock">—</span>
   <span class="hclock cd" id="nextUp">—</span>
 </header>
@@ -1677,7 +1684,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v79";
+const APP_VERSION = "v80";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -10432,6 +10439,22 @@ function lbWindow(gain,bonus){
   M.q("#lbOk").onclick=()=>M.close();
 }
 
+/* ── Prime Park であそんだぶんの Prime Coin を受け取ります ── */
+const K_PPCOIN = "sa-ppcoin-v1";
+async function claimParkCoins(){
+  if(TEST||!(sess&&sbOn())) return 0;
+  let q=[]; try{ q=JSON.parse(localStorage.getItem(K_PPCOIN)||"[]")||[]; }catch(e){ q=[]; }
+  if(!q.length) return 0;
+  try{
+    const r=await sbAuth("rpc/coin_add_game",{method:"POST",body:JSON.stringify({p_n:q.length})});
+    localStorage.removeItem(K_PPCOIN);
+    if(r){ PC=r; renderLoginBonus(); renderCoins(); }
+    const n=(r&&+r.gained)||q.length;
+    if(n>0) toast(`Prime Park のぶん ${jp(n)}枚を受け取りました`);
+    return n;
+  }catch(e){ return 0; }
+}
+
 /** 起動したときに1回だけ。1日1回しか出しません */
 async function loginBonusBoot(){
   if(TEST||!(sess&&sbOn())) return;
@@ -10796,6 +10819,7 @@ award:`<h3>ごほうびは3種類</h3>
 <tr><td>ログインボーナス</td><td><span class="pcoin">P</span>×1</td><td>1日1枚だけ</td></tr>
 <tr><td>7日つづけてログイン</td><td><span class="pcoin">P</span>×2</td><td>7日ごとに1回</td></tr>
 <tr><td>チャレンジ・競技会に記録を出す</td><td><span class="pcoin">P</span>×1</td><td>1日3枚まで</td></tr>
+<tr><td>Prime Park のアトラクションを1回あそぶ</td><td><span class="pcoin">P</span>×1</td><td>1点以上とるか3桁以上を出したとき</td></tr>
 </tbody></table></div>
 <p class="tiny"><b>1つのアカウントにつき、ログインボーナスは1日1枚きりです。</b>
 何回開き直しても、別の端末から入っても増えません（日本時間で数えています）。</p>
@@ -12080,7 +12104,8 @@ function normalize(j){
     try{ await loadMyStat(); renderRole(); }catch(e){}
     try{ await askAwards(); await loadMyAwards(); }catch(e){}
     /* ★ 画面を見せる前に、今日のログインボーナス */
-    try{ await loginBonusBoot(); }catch(e){} }
+    try{ await loginBonusBoot(); }catch(e){}
+    try{ await claimParkCoins(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
   if($("#devCard")) $("#devCard").hidden=!isAdmin();
   try{ await extLoad(); }catch(e){}

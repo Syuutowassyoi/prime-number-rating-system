@@ -1,0 +1,2604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prime Park ── 試作品</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   Prime Park（PP）── 試作品
+   ・index.html にはまだ入れていません。単体で動きます。
+   ═══════════════════════════════════════════════════════ */
+:root{
+  --bg:#0b1120; --card:#111a2e; --card2:#0d1524; --line:#22304d;
+  --tx:#e8eef8; --dim:#93a4c0; --dim2:#5f7490;
+  --acc:#4da3ff; --acc2:#5ee6a8; --warn:#ffd45e; --bad:#ff7b8a;
+  --pp:#c08bff; --dog:#ffb877;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  -webkit-text-size-adjust:100%}
+body{padding:14px 14px 60px}
+body.dragging{cursor:grabbing;user-select:none}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font-size:1.3rem;margin:0 0 2px;letter-spacing:.06em}
+h2{font-size:1rem;margin:0 0 10px;letter-spacing:.04em;color:var(--tx)}
+h3{font-size:.86rem;margin:0 0 6px;color:var(--acc2);letter-spacing:.04em}
+p{margin:0 0 8px;line-height:1.6}
+.muted{color:var(--dim);font-size:.85rem}
+.tiny{font-size:.74rem;color:var(--dim);line-height:1.55;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;margin-bottom:14px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.btn{padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);
+  color:var(--tx);font:inherit;font-size:.85rem;cursor:pointer}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:linear-gradient(135deg,#2f6fd0,#3f9de0);border-color:#4da3ff;color:#fff;font-weight:700}
+.btn.pp{background:linear-gradient(135deg,#7a44d0,#a06be8);border-color:var(--pp);color:#fff;font-weight:700}
+.btn.sm{padding:5px 10px;font-size:.76rem;border-radius:8px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.txt{width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--line);
+  background:#0a1020;color:var(--tx);font:inherit;font-size:.85rem}
+textarea.txt{resize:vertical;line-height:1.5}
+select.txt{cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--pp)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.hidden{display:none !important}
+
+/* ── 立方体博士・Prime Dog ── */
+.cube{display:block}
+.cube .face-t{fill:#8fd4ff}.cube .face-l{fill:#4d8fd0}.cube .face-r{fill:#2f5f96}
+.cube .hat{fill:#26314a}.cube .hatband{fill:var(--pp)}
+.cube .eye{fill:#0b1120}
+.cube .mouth{fill:none;stroke:#0b1120;stroke-width:3;stroke-linecap:round}
+.cube.think .face-t{fill:#ffe6a8}
+.cube.happy .face-t{fill:#a8ffd4}
+.cube.bad   .face-t{fill:#ffb0bc}
+.dog{display:block}
+.dog .body{fill:#e8b17a}.dog .ear{fill:#b8814e}.dog .muz{fill:#f7ddc0}
+.dog .eye{fill:#22160b}.dog .nose{fill:#3a2414}.dog .tongue{fill:#ff8fa3}
+.dog.think .body{fill:#e0c79a}
+.dog.happy .body{fill:#f2c489}
+@keyframes ppbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.cube.bob,.dog.bob{animation:ppbob 2.4s ease-in-out infinite}
+@keyframes ppshake{0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.fx-shake{animation:ppshake .45s ease-out}
+@keyframes ppjump{0%,100%{transform:translateY(0)}35%{transform:translateY(-22px)}
+  60%{transform:translateY(0)}75%{transform:translateY(-8px)}}
+.fx-jump{animation:ppjump .7s ease-out}
+@keyframes ppflash{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
+#stFlash{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0}
+#stFlash.on{animation:ppflash .5s ease-out}
+
+/* ── ストーリー画面 ── */
+#story{position:fixed;inset:0;z-index:200;background:#060a14;display:none;
+  flex-direction:column;overflow:hidden}
+#story.on{display:flex}
+#stStage{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:center;
+  padding:20px;min-height:0;transition:background .5s}
+#stStage.bg-park  {background:radial-gradient(70% 60% at 50% 20%,#1a2c52,#080d1a 70%)}
+#stStage.bg-fact  {background:radial-gradient(70% 60% at 50% 20%,#2c2237,#0d0a14 70%)}
+#stStage.bg-night {background:radial-gradient(70% 60% at 50% 20%,#101a34,#04060d 70%)}
+#stStage.bg-white {background:#e8eef8}
+#stCharWrap{transition:transform .35s,opacity .35s;opacity:1}
+#stCharWrap.pos-left{transform:translateX(-30vw)}
+#stCharWrap.pos-right{transform:translateX(30vw)}
+#stCharWrap.gone{opacity:0}
+#stCharWrap{position:relative;display:inline-block}
+#stEmote{position:absolute;left:100%;top:-6px;margin-left:-26px;font-size:2.4rem;font-weight:900;
+  color:var(--warn);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;
+  text-shadow:0 0 20px #ffd45e88}
+#stEmote.on{opacity:1;animation:ppjump .6s ease-out}
+/* すがたを出さない人のときは、セリフ枠のすぐ上に出します */
+#stCharWrap.nochar #stEmote{position:static;display:block;text-align:center;margin:0}
+#stBox{background:rgba(9,14,26,.96);border-top:2px solid var(--pp);padding:14px 18px 18px;
+  min-height:172px;position:relative;cursor:pointer}
+#stName{display:inline-block;font-weight:900;font-size:.92rem;letter-spacing:.08em;
+  padding:4px 14px;border-radius:999px;border:1px solid var(--pp);color:var(--pp);
+  background:#1a1030;margin-bottom:9px}
+#stText{font-size:1.02rem;line-height:1.85;min-height:5.5em;white-space:pre-wrap;letter-spacing:.02em}
+#stNext{position:absolute;right:18px;bottom:12px;color:var(--pp);font-size:.9rem;
+  animation:ppbob 1.2s ease-in-out infinite}
+#stBar{position:absolute;left:0;top:0;height:2px;background:var(--pp);width:0;transition:width .2s}
+#stTools{position:absolute;right:14px;top:12px;display:flex;gap:6px;z-index:2}
+#stFocus{position:fixed;border:2px solid var(--warn);border-radius:12px;pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(4,7,14,.74);z-index:199;display:none;transition:all .3s}
+#stFocus.on{display:block}
+#story.spot{background:transparent}
+#story.spot #stStage{background:transparent;pointer-events:none}
+#story.spot #stCharWrap{opacity:0}
+#story.spot #stBox{border-top-color:var(--warn)}
+
+/* ── モードえらび ── */
+#modes{position:fixed;inset:0;z-index:140;background:#070c17;display:none;overflow:auto;padding:18px}
+#modes.on{display:block}
+.modecard{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;
+  background:var(--card2);cursor:pointer;transition:border-color .15s,transform .1s}
+.modecard:hover{border-color:var(--pp)}
+.modecard:active{transform:scale(.99)}
+.modecard h3{font-size:1.05rem;margin:0 0 3px}
+.modecard .lab{font-size:.66rem;letter-spacing:.16em;color:var(--dim2)}
+
+/* ── Prime Factory ── */
+#game{position:fixed;inset:0;z-index:150;background:#070c17;display:none;flex-direction:column}
+#game.on{display:flex}
+.gtop{position:relative;height:158px;flex:none;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#101a30,#0a1120)}
+#gDoc{position:absolute;left:50%;top:6px;transform:translateX(-50%)}
+#gDog{position:absolute;left:calc(50% + 92px);top:44px;display:none}
+#game.mode-help #gDog{display:block}
+#gTime{position:absolute;left:12px;top:10px}
+#gTime .t{font-size:.62rem;color:var(--dim);letter-spacing:.14em}
+#gTime .v{font-family:ui-monospace,Menlo,monospace;font-size:2.1rem;font-weight:900;
+  line-height:1;font-variant-numeric:tabular-nums}
+#gTime .v.warn{color:var(--warn)}
+#gTime .v.bad{color:var(--bad)}
+#gMode{position:absolute;left:12px;top:56px;font-size:.66rem;color:var(--pp);letter-spacing:.1em}
+#gQueue{position:absolute;right:12px;top:10px;width:216px;text-align:right}
+#gQueue .t{font-size:.62rem;color:var(--dim);letter-spacing:.12em}
+.qrow{font-family:ui-monospace,Menlo,monospace;font-size:.68rem;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qrow.now{color:var(--warn)}
+#gSay{position:absolute;left:50%;transform:translateX(-50%);bottom:3px;
+  background:#0d1524;border:1px solid var(--line);border-radius:10px;padding:5px 14px;
+  font-size:.78rem;color:var(--acc2);max-width:min(74vw,620px);text-align:center;
+  opacity:0;transition:opacity .2s;line-height:1.45}
+#gSay.on{opacity:1}
+#gSay .fac{color:var(--dim);font-family:ui-monospace,Menlo,monospace;font-size:.72rem}
+#gDogSay{position:absolute;left:calc(50% + 152px);top:56px;background:#241a10;
+  border:1px solid var(--dog);border-radius:12px;padding:5px 11px;font-size:.76rem;color:var(--dog);
+  white-space:nowrap;display:none;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
+#game.mode-help #gDogSay{display:block}
+
+.gmid{flex:1;display:grid;grid-template-columns:1fr 200px;min-height:0}
+#gLeft{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line)}
+#gLanes{position:relative;flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  overflow:hidden;touch-action:none;min-height:0}
+/* とれる はんい の下じきり。画面の大きさが変わっても、ここが「いちばん下」です */
+#gLine{position:absolute;left:0;right:0;bottom:0;height:0;border-top:2px dashed #3c5a86;
+  pointer-events:none;z-index:3}
+#gLine span{position:absolute;right:6px;bottom:3px;font-size:.58rem;color:#3c5a86;letter-spacing:.1em}
+#gLaneBtns{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px 8px;
+  border-top:1px solid var(--line);background:#0a1120}
+#gLaneBtns button{min-height:52px;border-radius:12px;border:1px solid #3f6ea8;background:#132340;
+  color:#bcd6f5;font:inherit;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;touch-action:manipulation;line-height:1}
+#gLaneBtns button b{font-size:1.05rem;color:#7fd8ff}
+#gLaneBtns button span{font-size:.62rem;letter-spacing:.06em}
+#gLaneBtns button span i{font-style:normal;opacity:.6}
+#gLaneBtns button:active{transform:translateY(2px);background:#1b3560}
+#gLaneBtns button:disabled{opacity:.35;cursor:not-allowed}
+#gLaneBtns button.ready{border-color:var(--acc2);box-shadow:0 0 14px -6px var(--acc2)}
+.lane{position:relative;border-right:1px dashed #1a2540}
+.lane:last-child{border-right:0}
+.lanehead{position:absolute;top:4px;left:0;right:0;text-align:center;font-size:.6rem;
+  color:#3c4d6e;letter-spacing:.2em;pointer-events:none}
+.part{position:absolute;left:50%;transform:translateX(-50%);width:76px;height:54px;
+  border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:ui-monospace,Menlo,monospace;font-weight:800;cursor:grab;
+  border:1px solid;background:#101a2e;user-select:none;line-height:1.1;touch-action:none}
+.part small{font-size:.54rem;font-weight:600;opacity:.75;letter-spacing:.06em}
+.part.add {border-color:#5ee6a8;color:#5ee6a8;box-shadow:0 0 14px -6px #5ee6a8}
+.part.mul {border-color:#ffd45e;color:#ffd45e;box-shadow:0 0 14px -6px #ffd45e}
+.part.sub {border-color:#ff7b8a;color:#ff7b8a;box-shadow:0 0 14px -6px #ff7b8a}
+.part.card{border-color:#7fd8ff;color:#7fd8ff;box-shadow:0 0 14px -6px #7fd8ff}
+.part.taken{opacity:0;transition:opacity .18s}
+.part.dragging{opacity:.25}
+.gkey{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:.62rem;
+  color:#3c4d6e;letter-spacing:.1em;pointer-events:none}
+#gGhost{position:fixed;z-index:180;pointer-events:none;transform:translate(-50%,-50%) scale(1.06);
+  display:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.6))}
+#gGhost.on{display:block}
+
+#gRight{padding:10px;display:flex;flex-direction:column;gap:7px;overflow:auto}
+#gStock{display:flex;flex-direction:column;gap:6px}
+.stockbox{border:1px dashed var(--line);border-radius:11px;padding:6px;min-height:52px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  background:#0a1020;cursor:pointer;touch-action:none}
+.stockbox.empty{color:#3c4d6e;font-size:.66rem;cursor:default}
+.stockbox .p{font-family:ui-monospace,Menlo,monospace;font-weight:900;font-size:1.1rem}
+.stockbox .k{font-size:.56rem;color:var(--dim);letter-spacing:.1em}
+.stockbox.add {border-color:#5ee6a8}.stockbox.add  .p{color:#5ee6a8}
+.stockbox.mul {border-color:#ffd45e}.stockbox.mul  .p{color:#ffd45e}
+.stockbox.sub {border-color:#ff7b8a}.stockbox.sub  .p{color:#ff7b8a}
+.stockbox.card{border-color:#7fd8ff}.stockbox.card .p{color:#7fd8ff}
+.stockbox.drop{border-style:solid;border-color:var(--warn);background:#1c1a0d}
+.stockbox.dragging{opacity:.3}
+
+.gbot{flex:none;border-top:1px solid var(--line);background:#0a1120;padding:9px 12px;
+  display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:center}
+#gScore .t{font-size:.62rem;color:var(--dim);letter-spacing:.14em}
+#gScore .v{font-family:ui-monospace,Menlo,monospace;font-size:1.9rem;font-weight:900;line-height:1}
+#gScore .v.minus{color:var(--bad)}
+#gNumWrap{text-align:center;min-width:0;border:1px dashed transparent;border-radius:12px;padding:4px}
+#gNumWrap.drop{border-color:var(--warn);background:#1c1a0d}
+#gNumWrap .t{font-size:.6rem;color:var(--dim);letter-spacing:.14em}
+#gNum{font-family:ui-monospace,Menlo,monospace;font-weight:900;line-height:1.15;
+  word-break:break-all;color:#fff}
+#gDigits{font-size:.64rem;color:var(--dim);font-family:ui-monospace,Menlo,monospace}
+#gCards{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:3px}
+.pcard{width:32px;height:44px;border-radius:6px;background:#f4f7fc;color:#0b1120;
+  font-family:ui-monospace,Menlo,monospace;font-weight:900;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;border:1px solid #b9c6da;
+  box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.pcard.big{font-size:.82rem}
+#gFly{position:fixed;pointer-events:none;z-index:160;font-weight:900;
+  font-family:ui-monospace,Menlo,monospace;opacity:0}
+@keyframes ppfly{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-46px)}}
+#gFly.on{animation:ppfly .9s ease-out}
+
+/* はじまる前のカウント */
+#gCount{position:fixed;inset:0;z-index:172;background:rgba(6,10,20,.9);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#gCount.on{display:flex}
+#gCountN{font-family:ui-monospace,Menlo,monospace;font-size:7rem;font-weight:900;line-height:1;
+  color:var(--warn);text-shadow:0 0 40px #ffd45e66}
+#gCountN.go{font-size:3.4rem;color:var(--acc2);text-shadow:0 0 40px #5ee6a866}
+@keyframes ppcnt{0%{transform:scale(1.5);opacity:0}30%{transform:scale(1);opacity:1}
+  100%{transform:scale(.86);opacity:.5}}
+#gCountN.tick{animation:ppcnt .9s ease-out}
+/* 素数大富豪の手札（画面の下・かならず横1列） */
+#gHandWrap{flex:none;border-top:1px solid var(--line);background:#0a1020;padding:5px 8px 7px}
+#gHandLab{color:#3c4d6e;text-align:center;margin-bottom:3px}
+#gHand{display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-start;align-items:center;
+  overflow-x:auto;overflow-y:hidden;min-height:52px;padding:2px 4px;
+  border:1px dashed var(--line);border-radius:10px;background:#0d1524;
+  scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+#gHand .pcard{cursor:grab;touch-action:none;flex:0 0 auto}
+#gHand .pcard.dragging{opacity:.3}
+#gHand .pcard.drop{outline:2px solid var(--warn);outline-offset:1px}
+#gHand .none{font-size:.66rem;color:#3c4d6e;align-self:center;white-space:nowrap}
+/* チュートリアルの手と、やってみようの帯 */
+#tutHand{position:fixed;z-index:205;width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--warn);background:rgba(255,212,94,.28);pointer-events:none;display:none;
+  box-shadow:0 0 18px -2px var(--warn);transform:translate(-50%,-50%)}
+#tutHand.on{display:block;transition:left .9s ease-in-out,top .9s ease-in-out}
+#tutBar{position:fixed;left:50%;transform:translateX(-50%);bottom:196px;z-index:204;
+  background:#241a10;border:1px solid var(--warn);border-radius:12px;padding:7px 16px;
+  color:var(--warn);font-size:.86rem;font-weight:700;display:none;white-space:nowrap;
+  box-shadow:0 0 24px -8px var(--warn)}
+#tutBar.on{display:block}
+#tutOk{color:var(--acc2);margin-left:8px}
+/* やってみよう中は、うしろのゲームをさわれるようにします */
+#story.act{background:transparent;pointer-events:none}
+#story.act #stStage{background:transparent;pointer-events:none}
+#story.act #stCharWrap{opacity:0}
+#story.act #stBox{pointer-events:none;background:rgba(9,14,26,.92);border-top-color:var(--warn)}
+#story.act #stNext{display:none}
+#gWait{position:fixed;inset:0;z-index:168;background:rgba(6,10,20,.93);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+#gWait.on{display:flex}
+#gWait .big{font-size:1.2rem;font-weight:900;letter-spacing:.1em}
+#gWaitList{font-family:ui-monospace,Menlo,monospace;font-size:.78rem;color:var(--dim);
+  max-height:34vh;overflow:auto}
+
+#gRes{position:fixed;inset:0;z-index:170;background:rgba(6,10,20,.97);display:none;
+  overflow:auto;padding:18px}
+#gRes.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--dim);font-weight:600;font-size:.72rem}
+td.n,th.n{text-align:right;font-family:ui-monospace,Menlo,monospace}
+.ok{color:var(--acc2)}.ng{color:var(--bad)}.wa{color:var(--warn)}
+.scroll{overflow:auto;max-height:52vh;border:1px solid var(--line);border-radius:10px}
+.badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.66rem;
+  border:1px solid;letter-spacing:.06em}
+.pcoin{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;
+  border-radius:50%;background:linear-gradient(135deg,#ffe9a8,#ffd45e 55%,#e8a020);
+  color:#4a3400;font-weight:900;font-size:.72em;line-height:1;border:1px solid #ffd45e;
+  box-shadow:0 0 8px -2px #ffd45e;vertical-align:-.1em}
+
+/* ランキング */
+.segs{display:grid;gap:6px;background:#0d1522;border:1px solid var(--line);
+  border-radius:11px;padding:5px}
+.segs button{background:transparent;border:0;color:var(--dim);font:inherit;font-size:.82rem;
+  padding:7px 4px;border-radius:8px;cursor:pointer}
+.segs button.on{background:#2a1d4a;color:#fff;font-weight:800;box-shadow:0 0 0 1px var(--pp) inset}
+.gsec{font-size:.72rem;color:var(--pp);letter-spacing:.12em;margin:12px 0 5px;font-weight:800}
+.rkme{background:#17203a}
+.rkgold{color:var(--warn);font-weight:900}
+.rksil {color:#c9d2dd;font-weight:900}
+.rkbrz {color:#c98b5a;font-weight:900}
+.rkcal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.rkcal div{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:.66rem;
+  color:var(--dim2);background:#0d1522}
+.rkcal div.hit{border-color:var(--acc2);background:#0f2018;color:var(--acc2)}
+.rkcal div.hit b{font-family:ui-monospace,Menlo,monospace;font-size:.66rem;color:var(--acc2)}
+.rkcal div.today{outline:2px solid var(--warn);outline-offset:-2px}
+.rkcal div.blank{border:0;background:transparent}
+.rkhead{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:.62rem;
+  color:var(--dim2);text-align:center;margin-bottom:4px}
+/* 編集画面 */
+.edrow{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:7px;
+  background:var(--card2)}
+.edrow.sel{border-color:var(--pp);box-shadow:0 0 0 1px var(--pp) inset}
+.edrow .hd{display:flex;gap:7px;align-items:center;flex-wrap:wrap;font-size:.72rem;color:var(--dim)}
+.edrow .no{font-family:ui-monospace,Menlo,monospace;color:var(--pp);font-weight:800;min-width:2.2em}
+.edrow .pv{margin-top:5px;font-size:.8rem;color:var(--tx);white-space:pre-wrap;
+  max-height:3.4em;overflow:hidden}
+.chip{display:inline-block;padding:1px 7px;border-radius:6px;font-size:.62rem;
+  background:#1a2540;color:var(--dim);border:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.fl{display:block;font-size:.68rem;color:var(--dim);margin:8px 0 3px;letter-spacing:.06em}
+label.pk{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:var(--dim);
+  padding:3px 8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:#0a1020}
+label.pk input{margin:0}
+#dfPrev{position:relative;height:150px;border:1px solid var(--line);border-radius:10px;
+  background:#0a1020;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr)}
+#dfPrev .lane{border-right:1px dashed #1a2540}
+.pvpart{position:absolute;left:50%;transform:translateX(-50%);width:46px;height:30px;
+  border-radius:7px;border:1px solid #7fd8ff;color:#7fd8ff;background:#101a2e;
+  font-family:ui-monospace,Menlo,monospace;font-size:.66rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center}
+/* ══════ スマホ・タブレット ══════ */
+@media(max-width:900px){
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  body{padding:10px 10px 40px}
+  #game{height:100dvh}
+  .gtop{height:104px}
+  #gDoc{top:2px}
+  #gDoc svg{width:74px !important;height:82px !important}
+  #gTime .v{font-size:1.5rem}
+  #gTime .t{font-size:.56rem}
+  #gMode{top:44px;font-size:.58rem}
+  #gQueue{width:38vw;top:6px}
+  .qrow{font-size:.6rem}
+  #gDog{left:auto;right:6px;top:52px}
+  #gDog svg{width:44px !important;height:44px !important}
+  #gDogSay{left:6px;right:6px;top:auto;bottom:26px;white-space:normal;max-width:none;
+    text-align:center;font-size:.7rem}
+  #gSay{font-size:.68rem;padding:3px 8px;max-width:92vw;bottom:1px}
+  /* 右の列はやめて、たてに積みます */
+  .gmid{grid-template-columns:1fr;grid-template-rows:1fr auto;min-height:0}
+  #gLeft{border-right:0;min-height:0}
+  #gRight{flex-direction:row;align-items:center;gap:6px;padding:6px 8px;overflow:visible;
+    border-top:1px solid var(--line)}
+  #gRight>.tiny:first-child{display:none}
+  #gStHint{display:none}
+  #gStock{flex:1;flex-direction:row;gap:5px;min-width:0}
+  .stockbox{flex:1;min-width:0;min-height:46px;padding:3px}
+  .stockbox .p{font-size:.9rem}
+  .stockbox .k{display:none}
+  #gRight>div[style*="flex:1"]{display:none}
+  #gQuit{flex:none;padding:6px 8px;font-size:.68rem}
+  #gLaneBtns{gap:5px;padding:5px 6px}
+  #gLaneBtns button{min-height:58px}
+  #gLaneBtns button b{font-size:.98rem}
+  #gLaneBtns button span{font-size:.54rem}
+  .part{width:64px;height:46px;font-size:.9rem}
+  .part small{font-size:.48rem}
+  /* 下のまとまりは2段に */
+  .gbot{grid-template-columns:78px 1fr;gap:7px;padding:6px 8px}
+  #gScore .v{font-size:1.3rem}
+  #gNum{font-size:1.5rem !important}
+  #gActs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #gActs .btn{width:100%;padding:11px 6px;font-size:.8rem}
+  .pcard{width:26px;height:36px;font-size:.86rem}
+  .pcard.big{font-size:.68rem}
+  #gHand{min-height:44px}
+  #tutBar{bottom:auto;top:8px;font-size:.74rem;padding:5px 10px;max-width:94vw;white-space:normal}
+  #stBox{min-height:150px;padding:11px 13px 15px}
+  #stText{font-size:.92rem;line-height:1.7;min-height:5em}
+  #stChar svg{width:130px !important;height:143px !important}
+  #gCountN{font-size:4.6rem}
+  #gCountN.go{font-size:2.2rem}
+  .segs button{font-size:.74rem;padding:8px 2px}
+  table{font-size:.74rem}
+  th,td{padding:4px 5px}
+}
+@media(max-width:400px){
+  .part{width:56px;height:42px;font-size:.82rem}
+  #gLaneBtns button{min-height:52px}
+  #gQueue{display:none}
+  .pcard{width:23px;height:32px;font-size:.78rem}
+}
+/* 指でさわったときに、画面がひっぱられないように */
+@media(pointer:coarse){
+  #game,#story,#modes{overscroll-behavior:none}
+  .part,.stockbox,#gHand .pcard{-webkit-user-select:none;user-select:none;
+    -webkit-touch-callout:none}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="home">
+  <div class="card" style="text-align:center;border-color:var(--pp)">
+    <h1 style="color:var(--pp)">Prime Park</h1>
+    <p class="tiny" style="letter-spacing:.3em">P R I M E &nbsp; P A R K</p>
+    <div id="homeDoc" style="margin:10px 0"></div>
+    <p class="muted" style="margin-top:4px">素数にまつわるゲームで遊べるアミューズメントパークです。</p>
+    <p class="tiny" style="color:var(--warn)">これは試作品です。まだ本体（index.html）には入っていません。</p>
+  </div>
+
+  <div class="card">
+    <h2>アトラクション</h2>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card2)">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h3 style="margin:0">Prime Factory</h3>
+          <p class="tiny">レーンから流れてくる部品をくっつけて、素数を作る工場のお仕事です。</p>
+        </div>
+        <span class="badge" style="color:var(--acc2);border-color:#5ee6a866">はたらく</span>
+      </div>
+      <div class="tools">
+        <button class="btn pp" id="btnPlay">はたらきに行く</button>
+        <button class="btn" id="btnTuto">チュートリアル</button>
+      </div>
+    </div>
+    <p class="tiny" style="margin-top:10px">ほかのアトラクションは、まだ準備中です。</p>
+  </div>
+
+  <div class="card">
+    <h2>Prime Coin</h2>
+    <p class="tiny">アトラクションを1回あそび終えるごとに1枚もらえます。<br>
+      条件は「1点以上とる」か「3桁以上の自然数を1回でも出す」です。</p>
+    <p style="font-size:1.6rem;font-weight:900;margin:6px 0 0">
+      <span class="pcoin">P</span> <span id="homeCoin" class="mono">0</span> 枚</p>
+    <p class="tiny" id="homeCoinNote">素数あつめRATING を開くと、そちらの残高に入ります。</p>
+  </div>
+
+  <div class="card">
+    <h2>ランキング</h2>
+    <p class="tiny">Daily・Weekly・Monthly の3つがあり、それぞれ別々に集計します。</p>
+    <div class="tools">
+      <button class="btn pp" id="btnRank">ランキングを見る</button>
+      <span class="tiny" id="homeRankNow">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>これまでの記録</h2>
+    <div id="homeLog"><p class="muted">まだ働いていません。</p></div>
+  </div>
+
+  <div class="card" id="admCard">
+    <h2>管理者メニュー</h2>
+    <p class="tiny">ストーリーの台本や、ゲーム全体の難しさを決められます。</p>
+    <div class="tools">
+      <button class="btn" id="btnEdit">ストーリー編集</button>
+      <button class="btn" id="btnDiff">全体難易度調整</button>
+      <button class="btn" id="btnResetTuto">チュートリアルを「未読」に戻す</button>
+      <button class="btn" id="btnSeed">ランキングのお試しデータを入れる</button>
+      <button class="btn" id="btnSelfTest">自己点検</button>
+    </div>
+    <div class="tools">
+      <label class="pk"><input type="checkbox" id="admOn"> 管理者として見る</label>
+      <span class="tiny">はずすと、一般ユーザーの見え方になります</span>
+    </div>
+    <div id="admOut" class="tiny hidden" style="margin-top:10px;border:1px solid var(--line);
+      border-radius:10px;padding:10px;background:var(--card2);white-space:pre-wrap"></div>
+  </div>
+  <div class="card hidden" id="admOff">
+    <p class="tiny">管理者としてログインすると、ここに設定が出ます。
+      <button class="btn sm" id="admBack">管理者にもどる</button></p>
+  </div>
+</div>
+
+<!-- ═══════════ モードえらび ═══════════ -->
+<div id="modes"><div class="wrap">
+  <div class="card" style="text-align:center;border-color:var(--pp)">
+    <h2 style="margin:0">どのモードで はたらきますか？</h2>
+    <div id="modeDoc" style="margin:8px 0"></div>
+  </div>
+  <div class="modecard" data-mode="help">
+    <div class="lab">EASY</div>
+    <h3 style="color:var(--dog)">おたすけモード</h3>
+    <p class="tiny">Prime Dog がとなりについて、いま持っている数について
+      「それは○の倍数な気がするワン」と教えてくれます。</p>
+  </div>
+  <div class="modecard" data-mode="normal">
+    <div class="lab">NORMAL</div>
+    <h3>通常モード</h3>
+    <p class="tiny">＋n・−n・×n・カードの4種類の部品で素数をつくります。たすけはありません。</p>
+  </div>
+  <div class="modecard" data-mode="rich">
+    <div class="lab">SPECIAL</div>
+    <h3 style="color:#7fd8ff">素数大富豪モード</h3>
+    <p class="tiny">カードだけが流れてきます。A・10・J・Q・K が入り、
+      ならべた順に読んで1つの数にします（A=1／J=11／Q=12／K=13）。ストックは6枚。</p>
+  </div>
+  <div class="card" style="text-align:center">
+    <button class="btn" id="modeBack">やめる</button>
+  </div>
+</div></div>
+
+<!-- ═══════════ ストーリー画面 ═══════════ -->
+<div id="story">
+  <div id="stStage" class="bg-park">
+    <div id="stFlash"></div>
+    <div id="stCharWrap"><div id="stChar"></div><div id="stEmote">！</div></div>
+    <div id="stTools"><button class="btn sm" id="stSkip">スキップ</button></div>
+  </div>
+  <div id="stBox">
+    <div id="stBar"></div>
+    <div id="stName">立方体博士</div>
+    <div id="stText"></div>
+    <div id="stNext">▼</div>
+  </div>
+</div>
+<div id="stFocus"></div>
+
+<!-- ═══════════ Prime Factory ═══════════ -->
+<div id="game">
+  <div class="gtop">
+    <div id="gTime"><div class="t">のこり</div><div class="v" id="gTimeV">60.0</div></div>
+    <div id="gMode">通常モード</div>
+    <div id="gDoc"></div>
+    <div id="gDog"></div>
+    <div id="gDogSay"></div>
+    <div id="gQueue"><div class="t">はかせの机</div><div id="gQList"></div></div>
+    <div id="gSay"></div>
+  </div>
+  <div class="gmid">
+    <div id="gLeft">
+      <div id="gLanes">
+        <div class="lane"><div class="lanehead">LANE 1</div></div>
+        <div class="lane"><div class="lanehead">LANE 2</div></div>
+        <div class="lane"><div class="lanehead">LANE 3</div></div>
+        <div id="gLine"><span>ここまでが とれる はんい</span></div>
+      </div>
+      <div id="gLaneBtns">
+        <button data-lb="0"><b>▲</b><span>レーン1 <i>1</i></span></button>
+        <button data-lb="1"><b>▲</b><span>レーン2 <i>2</i></span></button>
+        <button data-lb="2"><b>▲</b><span>レーン3 <i>3</i></span></button>
+      </div>
+    </div>
+    <div id="gRight">
+      <div class="tiny" style="text-align:center;letter-spacing:.14em">ストック <span id="gStN"></span></div>
+      <div id="gStock"></div>
+      <div class="tiny" id="gStHint" style="text-align:center;color:#3c4d6e">押す＝出す／引っぱる＝運ぶ</div>
+      <div style="flex:1"></div>
+      <button class="btn sm" id="gQuit">やめる</button>
+    </div>
+  </div>
+  <div id="gHandWrap" hidden>
+    <div class="tiny" id="gHandLab">いま持っているカード　── 引っぱると順番を変えられます</div>
+    <div id="gHand"></div>
+  </div>
+  <div class="gbot">
+    <div id="gScore"><div class="t">スコア</div><div class="v" id="gScoreV">0</div></div>
+    <div id="gNumWrap" data-drop="num">
+      <div class="t">いま持っている自然数</div>
+      <div id="gCards"></div>
+      <div id="gNum" class="mono">—</div>
+      <div id="gDigits">—</div>
+    </div>
+    <div class="row" id="gActs">
+      <button class="btn pri" id="gSubmit">博士に提出</button>
+      <button class="btn" id="gDump">分解マシーンに捨てる</button>
+    </div>
+  </div>
+</div>
+<div id="gGhost"></div>
+<div id="gFly"></div>
+<div id="gCount"><div id="gCountN">3</div><div class="tiny" id="gCountM"></div></div>
+<div id="tutHand"></div>
+<div id="tutBar"><span id="tutTxt"></span><b id="tutOk" hidden>できた！</b>
+  <button class="btn sm" id="tutSkip" hidden>とばす</button></div>
+
+<!-- ═══════════ 時間切れ後の待ち ═══════════ -->
+<div id="gWait">
+  <div id="gWaitDoc"></div>
+  <div class="big">博士がまだ調べています…</div>
+  <p class="tiny">出した分がぜんぶ終わるまで待ちます</p>
+  <div id="gWaitList"></div>
+</div>
+
+<!-- ═══════════ 結果 ═══════════ -->
+<div id="gRes"><div class="wrap" id="gResIn"></div></div>
+
+<!-- ═══════════ ランキング ═══════════ -->
+<div class="wrap hidden" id="rank">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Prime Factory ランキング</h2>
+      <button class="btn" id="rkClose">閉じる</button>
+    </div>
+    <div class="segs" id="rkTabs" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+      <button data-rk="day" class="on">Daily</button>
+      <button data-rk="week">Weekly</button>
+      <button data-rk="month">Monthly</button>
+    </div>
+    <div class="segs" id="rkModes" style="grid-template-columns:repeat(4,1fr);margin-top:6px">
+      <button data-rm="" class="on">すべて</button>
+      <button data-rm="normal">通常</button>
+      <button data-rm="help">おたすけ</button>
+      <button data-rm="rich">大富豪</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn sm" id="rkPrev">◀ 前へ</button>
+      <b id="rkWhen" class="mono">—</b>
+      <button class="btn sm" id="rkNext">次へ ▶</button>
+      <button class="btn sm" id="rkNow">いまの回へ</button>
+      <button class="btn sm" id="rkChamp">歴代チャンピオン</button>
+    </div>
+    <p class="tiny" id="rkNote" style="margin-top:6px"></p>
+  </div>
+  <div class="card"><h2 id="rkTitle">今回のランキング</h2><div id="rkBody"></div></div>
+  <div class="card"><h2>カレンダー</h2>
+    <div class="row" style="margin-bottom:6px">
+      <button class="btn sm" id="rkCalPrev">◀</button>
+      <b id="rkCalM" class="mono">—</b>
+      <button class="btn sm" id="rkCalNext">▶</button>
+    </div>
+    <div id="rkCal"></div>
+    <p class="tiny" style="margin-top:6px">色がついている日は、はたらいた日です。数字はその日のいちばん良いスコア。</p>
+  </div>
+</div>
+
+<!-- ═══════════ ストーリー編集 ═══════════ -->
+<div class="wrap hidden" id="editor">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">ストーリー編集</h2>
+      <button class="btn" id="edClose">閉じる</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span class="tiny">台本</span>
+      <select class="txt" id="edPick" style="max-width:230px"></select>
+      <button class="btn sm" id="edNewSc">＋ 新しい台本</button>
+      <button class="btn sm" id="edDelSc">この台本を消す</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn pp sm" id="edPlayAll">最初から試し見</button>
+      <button class="btn sm" id="edPlayHere">ここから試し見</button>
+      <button class="btn sm" id="edSave">保存する</button>
+      <button class="btn sm" id="edExport">書き出す（コピー）</button>
+      <button class="btn sm" id="edImport">読みこむ（貼り付け）</button>
+      <span class="tiny" id="edMsg"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>登場する人</h2>
+    <div id="edChars"></div>
+    <div class="tools"><button class="btn sm" id="edAddChar">＋ 人を増やす</button></div>
+  </div>
+
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">セリフの並び</h2>
+        <span class="tiny" id="edCount">0 行</span>
+      </div>
+      <div class="scroll" style="max-height:56vh;border:0" id="edList"></div>
+      <div class="tools">
+        <button class="btn sm" id="edAdd">＋ 行を足す</button>
+        <button class="btn sm" id="edDup">複製</button>
+        <button class="btn sm" id="edUp">▲ 上へ</button>
+        <button class="btn sm" id="edDown">▼ 下へ</button>
+        <button class="btn sm" id="edDel">消す</button>
+      </div>
+    </div>
+    <div class="card" id="edForm">
+      <h2>この行の中身</h2>
+      <p class="muted" id="edNone">左から行をえらんでください。</p>
+      <div id="edFields" class="hidden">
+        <label class="fl">話している人</label>
+        <select class="txt" id="fWho"></select>
+        <label class="fl">名前を上書きする（空でよい）</label>
+        <input type="text" class="txt" id="fName" placeholder="例：？？？">
+        <label class="fl">セリフ</label>
+        <textarea class="txt" id="fText" rows="4" placeholder="ここにセリフを書きます"></textarea>
+        <h3 style="margin-top:14px">演出</h3>
+        <div class="row">
+          <label class="pk"><input type="checkbox" id="fShake"> ゆれる</label>
+          <label class="pk"><input type="checkbox" id="fJump"> はねる</label>
+          <label class="pk"><input type="checkbox" id="fFlash"> ひかる</label>
+        </div>
+        <div class="grid3">
+          <div><label class="fl">かお</label>
+            <select class="txt" id="fFace">
+              <option value="">そのまま</option><option value="normal">ふつう</option>
+              <option value="happy">うれしい</option><option value="think">かんがえる</option>
+              <option value="bad">こまる</option></select></div>
+          <div><label class="fl">立ち位置</label>
+            <select class="txt" id="fPos">
+              <option value="">そのまま</option><option value="center">まんなか</option>
+              <option value="left">ひだり</option><option value="right">みぎ</option>
+              <option value="gone">いなくなる</option></select></div>
+          <div><label class="fl">背景</label>
+            <select class="txt" id="fBg">
+              <option value="">そのまま</option><option value="park">パーク</option>
+              <option value="fact">工場</option><option value="night">夜</option>
+              <option value="white">まっしろ</option></select></div>
+        </div>
+        <div class="grid3">
+          <div><label class="fl">頭の上のしるし</label>
+            <select class="txt" id="fEmote">
+              <option value="">なし</option><option value="！">！</option><option value="？">？</option>
+              <option value="♪">♪</option><option value="…">…</option></select></div>
+          <div><label class="fl">文字の速さ（1字ms）</label>
+            <input type="number" class="txt" id="fSpd" min="0" max="200" step="5" placeholder="30"></div>
+          <div><label class="fl">自動で送る（ms・0で手動）</label>
+            <input type="number" class="txt" id="fWait" min="0" max="20000" step="100" placeholder="0"></div>
+        </div>
+        <label class="fl">画面のどこかに注目させる（CSSの目印・空でよい）</label>
+        <input type="text" class="txt" id="fFocus" placeholder="例：#gLanes ／ #gStock ／ #gSubmit">
+        <p class="tiny" style="margin-top:4px">
+          <span class="mono">#gLanes</span>（レーン）
+          <span class="mono">#gStock</span>（ストック）
+          <span class="mono">#gNumWrap</span>（持っている数）
+          <span class="mono">#gSubmit</span>（提出）
+          <span class="mono">#gDump</span>（分解マシーン）
+          <span class="mono">#gTime</span>（のこり時間）
+          <span class="mono">#gScore</span>（スコア）
+          <span class="mono">#gDog</span>（Prime Dog）</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════
+   0) 小さな道具
+   ══════════════════════════════════════════════════════════════ */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const jp = n => Number(n).toLocaleString("ja-JP");
+const bigJp = b => String(b).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const rnd = n => Math.floor(Math.random()*n);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+const K_STORY="pp-story-v1", K_SEEN="pp-seen-v1", K_LOG="pp-log-v1",
+      K_DIFF="pp-diff-v1", K_ADMIN="pp-admin-v1";
+
+/* ══════════════════════════════════════════════════════════════
+   1) 立方体博士 と Prime Dog
+   ══════════════════════════════════════════════════════════════ */
+function cubeSVG(size, face){
+  const f = face || "normal";
+  const mouths = {
+    normal:'M 58 78 Q 72 86 86 78', happy:'M 56 74 Q 72 92 88 74',
+    think :'M 60 82 L 84 78',       bad  :'M 58 86 Q 72 74 86 86'
+  };
+  const eyes = f==="think"
+    ? '<ellipse class="eye" cx="62" cy="62" rx="4" ry="2.5"/><ellipse class="eye" cx="84" cy="62" rx="4" ry="2.5"/>'
+    : f==="happy"
+      ? '<path class="mouth" d="M 57 63 Q 62 57 67 63"/><path class="mouth" d="M 79 63 Q 84 57 89 63"/>'
+      : '<ellipse class="eye" cx="62" cy="61" rx="4.5" ry="6"/><ellipse class="eye" cx="84" cy="61" rx="4.5" ry="6"/>';
+  return `<svg class="cube ${f} bob" width="${size}" height="${size*1.1}" viewBox="0 0 144 158"
+      xmlns="http://www.w3.org/2000/svg" aria-label="立方体博士">
+    <ellipse class="hat" cx="72" cy="30" rx="46" ry="11"/>
+    <path class="hat" d="M 46 30 L 46 6 Q 46 2 50 2 L 94 2 Q 98 2 98 6 L 98 30 Z"/>
+    <rect class="hatband" x="46" y="20" width="52" height="7" rx="2"/>
+    <path class="face-t" d="M 22 46 L 72 28 L 122 46 L 72 64 Z"/>
+    <path class="face-l" d="M 22 46 L 72 64 L 72 136 L 22 114 Z"/>
+    <path class="face-r" d="M 122 46 L 72 64 L 72 136 L 122 114 Z"/>
+    <g transform="translate(-14,4) skewY(19.5) scale(0.92,1)">${eyes}
+      <path class="mouth" d="${mouths[f]||mouths.normal}"/></g>
+  </svg>`;
+}
+/** Prime Dog。face は normal / happy / think */
+function dogSVG(size, face){
+  const f = face || "normal";
+  const mouth = f==="happy"
+    ? '<path d="M 40 62 Q 50 74 60 62" fill="none" stroke="#3a2414" stroke-width="3" stroke-linecap="round"/>'
+      + '<ellipse class="tongue" cx="50" cy="70" rx="7" ry="5"/>'
+    : f==="think"
+      ? '<path d="M 42 66 L 58 63" fill="none" stroke="#3a2414" stroke-width="3" stroke-linecap="round"/>'
+      : '<path d="M 42 64 Q 50 70 58 64" fill="none" stroke="#3a2414" stroke-width="3" stroke-linecap="round"/>';
+  return `<svg class="dog ${f} bob" width="${size}" height="${size}" viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg" aria-label="Prime Dog">
+    <ellipse class="ear" cx="20" cy="40" rx="11" ry="20" transform="rotate(-16 20 40)"/>
+    <ellipse class="ear" cx="80" cy="40" rx="11" ry="20" transform="rotate(16 80 40)"/>
+    <ellipse class="body" cx="50" cy="48" rx="33" ry="30"/>
+    <ellipse class="muz" cx="50" cy="60" rx="18" ry="13"/>
+    <ellipse class="eye" cx="39" cy="41" rx="4" ry="5"/>
+    <ellipse class="eye" cx="61" cy="41" rx="4" ry="5"/>
+    <ellipse class="nose" cx="50" cy="53" rx="6" ry="4.5"/>
+    ${mouth}
+  </svg>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2) 素数のはなし（18桁まで・BigInt）
+   ══════════════════════════════════════════════════════════════ */
+const MAX_DIGITS = 18;
+const PRIMES100 = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97];
+
+function powmod(a,e,m){ let r=1n; a%=m; while(e>0n){ if(e&1n) r=r*a%m; a=a*a%m; e>>=1n; } return r; }
+const MR_BASES = [2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n];
+function isPrime(n){
+  if(n < 2n) return false;
+  for(const p of MR_BASES){ if(n === p) return true; if(n % p === 0n) return false; }
+  let d = n - 1n, r = 0n;
+  while(d % 2n === 0n){ d /= 2n; r++; }
+  outer: for(const a of MR_BASES){
+    let x = powmod(a % n, d, n);
+    if(x === 1n || x === n-1n) continue;
+    for(let i = 1n; i < r; i++){ x = x*x % n; if(x === n-1n) continue outer; }
+    return false;
+  }
+  return true;
+}
+function gcd(a,b){ while(b){ [a,b]=[b,a%b]; } return a<0n?-a:a; }
+function pollard(n){
+  if(n % 2n === 0n) return 2n;
+  let c = 1n;
+  while(true){
+    let x = 2n, y = 2n, d = 1n;
+    const f = v => (v*v + c) % n;
+    while(d === 1n){ x = f(x); y = f(f(y)); d = gcd(x>y?x-y:y-x, n); }
+    if(d !== n) return d;
+    c++; if(c > 40n) return n;
+  }
+}
+function factorize(n){
+  const out = [];
+  const rec = m => {
+    if(m === 1n) return;
+    if(isPrime(m)){ out.push(m); return; }
+    const d = pollard(m); rec(d); rec(m/d);
+  };
+  rec(n);
+  out.sort((a,b)=> a<b?-1:a>b?1:0);
+  const g = [];
+  for(const p of out){
+    const last = g[g.length-1];
+    if(last && last.p === p) last.e++; else g.push({p, e:1});
+  }
+  return g;
+}
+const factorText = g => g.map(x => String(x.p) + (x.e>1 ? "^"+x.e : "")).join(" × ");
+/* 得点：(最高位の数 ÷ 3) × 3^(桁数)、小数点以下切り捨て */
+function primeScore(nStr){ return Math.floor((Number(nStr[0])/3) * Math.pow(3, nStr.length)); }
+const missScore = nStr => 10 * nStr.length;
+
+/** Prime Dog のセリフ。100以下の素数で割ってみます */
+function dogLine(n){
+  if(n < 2n) return { text:"1は素数じゃないワン", face:"think" };
+  let hit = 0;
+  for(const p of PRIMES100){ if(n % BigInt(p) === 0n){ hit = p; break; } }
+  if(hit && BigInt(hit) === n) return { text:"これは素数だワン！", face:"happy" };
+  if(hit) return { text:`それは${hit}の倍数な気がするワン`, face:"normal" };
+  /* 100以下の素数で割り切れない。9999以下ならそれで素数が確定します */
+  if(n <= 9999n) return { text:"これは素数だワン！", face:"happy" };
+  return { text:"素数かもしれないワン…？", face:"think" };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3) ストーリー
+   ══════════════════════════════════════════════════════════════ */
+function defaultStories(){
+  return {
+    tutorial: {
+      id:"tutorial", title:"はじめての Prime Factory",
+      chars:{ hakase:{name:"立方体博士",color:"#c08bff",kind:"cube"},
+              dog:{name:"Prime Dog",color:"#ffb877",kind:"dog"},
+              you:{name:"あなた",color:"#5ee6a8",kind:"none"} },
+      lines:[
+        { who:"hakase", text:"ようこそ、Prime Park へ！\nわしが立方体博士じゃ。見てのとおり、立方体で、帽子をかぶっておる。",
+          face:"happy", pos:"center", bg:"park", jump:true },
+        { who:"hakase", text:"ここは素数で遊べるアミューズメントパーク。\nまずは「Prime Factory」で働いてもらおうかの。", face:"normal" },
+        { who:"hakase", text:"えっ、いきなり労働かって？\n……そうじゃ。ここは、そういうパークじゃ。", face:"think", emote:"…" },
+        { who:"hakase", text:"仕事は簡単。素数を作って、わしに持ってくるだけじゃ。", face:"happy", bg:"fact" },
+        { who:"hakase", text:"まず、キミには 99 以下の自然数をひとつ渡す。\nこれが素数の「たね」になる。", focus:"#gNumWrap", face:"normal" },
+        { who:"hakase", text:"レーンには部品が流れてくる。まずは「＋n」から教えよう。\nこれは、いま持っている数に n を足す部品じゃ。", focus:"#gLanes" },
+        { who:"hakase", text:"部品は、押すと右のストックに入る。\nさあ、やってみるのじゃ。",
+          face:"happy", act:{ type:"grab", part:{kind:"add",n:7}, lane:1, num:20,
+            hint:"レーンの「＋7」を押して、ストックに入れてみよう" } },
+        { who:"hakase", text:"よし！ ストックに入ったな。\nストックの部品は、押すと数にくっつく。",
+          focus:"#gStock", face:"happy",
+          act:{ type:"use", hint:"ストックの「＋7」を押して、数にくっつけてみよう" } },
+        { who:"hakase", text:"20 に 7 を足して 27 になったはずじゃ。\nつぎは「×n」。かけ算の部品じゃ。", face:"normal" },
+        { who:"hakase", text:"こんどは、押さずに「引っぱって」みよ。\nそのまま数のところへ落とせば、すぐにくっつく。",
+          act:{ type:"drag", part:{kind:"mul",n:3}, lane:1, num:20,
+            hint:"レーンの「×3」を引っぱって、下の数のところへ落としてみよう" } },
+        { who:"hakase", text:"それでよい！ 引っぱるほうが速いぞ。\n「−n」は引き算。1より小さくはできんから気をつけよ。",
+          face:"happy" },
+        { who:"hakase", text:"最後は「n」カード。これは足すのでも掛けるのでもない。\n数の前か後ろにくっつけて、まるごと新しい数にするのじゃ。",
+          face:"think", focus:"#gLanes" },
+        { who:"hakase", text:"たとえば 500 を持っていて「1」カードなら、\n1500 か 5001 になる、という具合じゃな。", face:"happy", emote:"♪" },
+        { who:"hakase", text:"やってみよ。前と後ろ、どちらかを選ぶ画面が出るぞ。",
+          act:{ type:"grab", part:{kind:"card",n:3}, lane:1, num:50,
+            hint:"レーンの「3」カードを押して、ストックに入れてみよう" } },
+        { who:"hakase", text:"押して使うと、前か後ろかを聞かれる。好きなほうを選ぶのじゃ。",
+          act:{ type:"use", hint:"ストックの「3」を押して、前か後ろをえらんでみよう" } },
+        { who:"hakase", text:"「これは素数じゃ！」と思ったら、わしに提出せい。\nわしは18桁まで素因数分解できる。……時間はかかるがの。", focus:"#gSubmit", face:"normal" },
+        { who:"hakase", text:"では、いま持っている数を出してみよ。",
+          act:{ type:"submit", num:97, hint:"「博士に提出」を押してみよう" } },
+        { who:"hakase", text:"提出した順に調べて、その場で素因数分解の結果を教える。\n混んでいても、どんどん出してよいぞ。", focus:"#gSubmit" },
+        { who:"hakase", text:"自信がないときは、自然数分解マシーンに捨ててもよい。\n捨てた数も、あとで正体を教えてやろう。", focus:"#gDump", face:"think" },
+        { who:"hakase", text:"ためしに、いまの数を捨ててみるのじゃ。",
+          act:{ type:"dump", hint:"「分解マシーンに捨てる」を押してみよう" } },
+        { who:"hakase", text:"素数だったときの点は\n（最高位の数 ÷ 3）×（3の桁数乗）。\n9973 なら 243点じゃ。", focus:"#gScore", face:"happy" },
+        { who:"hakase", text:"素数でなかったら、10×桁数 だけ引かれる。\n大きな数ほど、はずしたときが痛いぞ。", focus:"#gScore", face:"bad", shake:true },
+        { who:"dog",    text:"おたすけモードでは、ボクがとなりにいるワン。\n「それは7の倍数な気がするワン」って教えるワン！", face:"happy", focus:"#gDog" },
+        { who:"hakase", text:"時間は左上に出ておる。はじまる前に3つ数えるから、心の準備をな。", focus:"#gTime", face:"normal" },
+        { who:"hakase", text:"素数大富豪モードでは、取ったカードが右がわに並ぶ。\nカードを引っぱれば、順番を入れかえられるぞ。", face:"think" },
+        { who:"hakase", text:"それでは……よい素数を！", face:"happy", flash:true, jump:true, emote:"！" }
+      ]
+    }
+  };
+}
+let STORIES = LS.get(K_STORY, null) || defaultStories();
+const saveStories = () => LS.set(K_STORY, STORIES);
+
+let ST = null;
+function stChar(kind, face){
+  const box = $("#stChar");
+  if(kind === "none"){ box.innerHTML = ""; return; }
+  box.innerHTML = kind === "dog" ? dogSVG(170, face==="bad"?"think":face) : cubeSVG(190, face||"normal");
+}
+function stFocusAt(sel){
+  const box = $("#stFocus");
+  if(!sel){ box.classList.remove("on"); return; }
+  const el = document.querySelector(sel);
+  if(!el){ box.classList.remove("on"); return; }
+  const r = el.getBoundingClientRect(), pad = 7;
+  if(!r.width || !r.height){ box.classList.remove("on"); return; }
+  box.style.left=(r.left-pad)+"px"; box.style.top=(r.top-pad)+"px";
+  box.style.width=(r.width+pad*2)+"px"; box.style.height=(r.height+pad*2)+"px";
+  box.classList.add("on");
+}
+function playStory(story, from){
+  return new Promise(resolve => {
+    const lines = (story.lines||[]).slice(from||0);
+    if(!lines.length){ resolve(); return; }
+    ST = { story, lines, i:-1, typing:false, resolve, face:"normal" };
+    $("#story").classList.add("on");
+    $("#stStage").className = "bg-park";
+    $("#stCharWrap").className = "";
+    stNext();
+  });
+}
+function stEnd(){
+  tutorStop();
+  $("#story").classList.remove("on","spot","act");
+  $("#stFocus").classList.remove("on");
+  const r = ST && ST.resolve; ST = null;
+  if(r) r();
+}
+async function stNext(){
+  if(!ST) return;
+  if(ST.typing){ ST.skip = true; return; }
+  ST.i++;
+  if(ST.i >= ST.lines.length){ stEnd(); return; }
+  const L = ST.lines[ST.i];
+  const ch = (ST.story.chars||{})[L.who] || { name:L.who||"？？？", color:"#c08bff", kind:"cube" };
+  const nm = $("#stName");
+  nm.textContent = L.name || ch.name || "？？？";
+  nm.style.color = ch.color || "#c08bff";
+  nm.style.borderColor = ch.color || "#c08bff";
+  if(L.bg) $("#stStage").className = "bg-" + L.bg;
+  const cw = $("#stCharWrap");
+  cw.className = "";
+  if(L.pos === "left")  cw.classList.add("pos-left");
+  if(L.pos === "right") cw.classList.add("pos-right");
+  if(L.pos === "gone")  cw.classList.add("gone");
+  if((ch.kind||"cube") === "none") cw.classList.add("nochar");
+  if(L.face) ST.face = L.face;
+  stChar(ch.kind || "cube", ST.face);
+  const svg = $("#stChar").querySelector("svg");
+  if(svg){
+    if(L.shake){ svg.classList.remove("fx-shake"); void svg.offsetWidth; svg.classList.add("fx-shake"); }
+    if(L.jump){  svg.classList.remove("fx-jump");  void svg.offsetWidth; svg.classList.add("fx-jump"); }
+  }
+  if(L.flash){ const f=$("#stFlash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
+  const em = $("#stEmote");
+  if(L.emote){ em.textContent=L.emote; em.classList.remove("on"); void em.offsetWidth; em.classList.add("on"); }
+  else em.classList.remove("on");
+  $("#story").classList.toggle("spot", !!L.focus);
+  stFocusAt(L.focus || "");
+  $("#stBar").style.width = ((ST.i+1)/ST.lines.length*100).toFixed(1) + "%";
+
+  const box = $("#stText"), full = String(L.text||"");
+  const spd = (L.spd==null || L.spd==="") ? 30 : Math.max(0, +L.spd);
+  box.textContent = "";
+  ST.typing = true; ST.skip = false;
+  $("#stNext").style.visibility = "hidden";
+  for(let k=0;k<full.length;k++){
+    if(!ST) return;
+    if(ST.skip){ box.textContent = full; break; }
+    box.textContent += full[k];
+    if(spd>0) await sleep(spd);
+  }
+  if(!ST) return;
+  box.textContent = full;
+  ST.typing = false; ST.skip = false;
+  $("#stNext").style.visibility = "visible";
+  if(L.act && L.act.type){ tutorStart(L.act); return; }
+  if(+L.wait > 0){
+    const at = ST.i;
+    setTimeout(()=>{ if(ST && ST.i===at && !ST.typing) stNext(); }, +L.wait);
+  }
+}
+/* ══════════ やってみよう（チュートリアルの練習）══════════ */
+let TUTOR = null;          /* {type, done} */
+const ACT_NAME = {
+  grab  : "レーンの部品を押して、ストックに入れてみよう",
+  drag  : "レーンの部品を引っぱって、下の数のところへ落としてみよう",
+  use   : "ストックの部品を押して、数にくっつけてみよう",
+  submit: "「博士に提出」を押してみよう",
+  dump  : "「分解マシーンに捨てる」を押してみよう",
+  reorder:"手札のカードを引っぱって、順番を入れかえてみよう"
+};
+/** 練習をはじめます。できるまで次の行へ進みません */
+function tutorStart(act){
+  TUTOR = { type: act.type, done:false, act };
+  $("#story").classList.add("act");
+  $("#tutBar").classList.add("on");
+  $("#tutTxt").textContent = act.hint || ACT_NAME[act.type] || "やってみよう";
+  $("#tutOk").hidden = true;
+  $("#tutSkip").hidden = false;
+  if(act.num != null && G){ G.num = BigInt(act.num); drawNum(); }
+  if(act.cards && G){ G.cards = act.cards.slice(); drawNum(); }
+  if(act.stock && G){ G.stock[0] = Object.assign({}, act.stock); drawStock(); }
+  /* 練習に使う部品を、こちらで用意します */
+  tutorSupply();
+  setTimeout(()=>tutorHand(act), 80);
+  /* 部品がなくなってしまっても、こまらないように見張ります */
+  clearInterval(TUTOR.watch);
+  TUTOR.watch = setInterval(tutorSupply, 900);
+}
+/** 練習に必要な部品が無くなっていたら、そっと出しなおします */
+function tutorSupply(){
+  if(!TUTOR || TUTOR.done || !G) return;
+  const a = TUTOR.act || {};
+  if(!a.part) return;
+  const li = (a.lane == null) ? 1 : a.lane;
+  const sameLane = G.lanes[li] && G.lanes[li].length;
+  const inStock  = G.stock.some(x => x && x.kind === a.part.kind && x.n === a.part.n);
+  if(TUTOR.type === "grab"){
+    if(!sameLane && !inStock) spawnPart(a.part, li);
+    return;
+  }
+  if(TUTOR.type === "drag"){
+    /* 引っぱる練習：レーンにも無く、ストックにも無いなら出しなおします */
+    if(!sameLane && !inStock) spawnPart(a.part, li);
+    return;
+  }
+  if(TUTOR.type === "use"){
+    if(!G.stock.some(Boolean)){
+      const room = G.stock.findIndex(x => !x);
+      if(room >= 0){ G.stock[room] = { kind:a.part.kind, n:a.part.n, rich:a.part.rich }; drawStock(); }
+    }
+  }
+}
+/** どこからどこへ動かすかを、丸い印で見せます */
+function tutorHand(act){
+  const h = $("#tutHand");
+  const from = { grab:"lanepart", drag:"lanepart", use:"#gSt0",
+                 submit:"#gSubmit", dump:"#gDump", reorder:"#gHand [data-hi]" }[act.type];
+  const to   = { grab:"#gSt0", drag:"#gNumWrap", use:"#gNumWrap",
+                 submit:"#gSubmit", dump:"#gDump", reorder:"#gHand" }[act.type];
+  const pick = sel => {
+    if(sel === "lanepart"){
+      const el = document.querySelector("#gLanes .part");
+      return el ? el.getBoundingClientRect() : null;
+    }
+    const el = document.querySelector(sel);
+    return el ? el.getBoundingClientRect() : null;
+  };
+  const a = pick(from), b = pick(to);
+  if(!a){ h.classList.remove("on"); return; }
+  const put = r => { h.style.left = (r.left + r.width/2) + "px";
+                     h.style.top  = (r.top + r.height/2) + "px"; };
+  h.classList.add("on");
+  put(a);
+  clearInterval(tutorHand._t);
+  let on = false;
+  tutorHand._t = setInterval(()=>{
+    if(!TUTOR){ clearInterval(tutorHand._t); h.classList.remove("on"); return; }
+    const a2 = pick(from), b2 = pick(to);
+    if(!a2) return;
+    on = !on;
+    put(on && b2 ? b2 : a2);
+  }, 1100);
+}
+/* どの操作でも「やりたいこと」ができていれば合格にします。
+   （引っぱるつもりが押してしまった、なども先に進めるようにするため） */
+const ACT_OK = {
+  grab:["grab"], use:["use","drag"], drag:["drag","use"],
+  submit:["submit"], dump:["dump"], reorder:["reorder"]
+};
+/** ゲームの中から呼ばれます。合っていれば次へ進みます */
+function tutorHit(type){
+  if(!TUTOR || TUTOR.done) return;
+  const ok = ACT_OK[TUTOR.type] || [TUTOR.type];
+  if(ok.indexOf(type) < 0) return;
+  TUTOR.done = true;
+  clearInterval(TUTOR.watch);
+  $("#tutOk").hidden = false;
+  $("#tutSkip").hidden = true;
+  clearInterval(tutorHand._t);
+  $("#tutHand").classList.remove("on");
+  setTimeout(()=>{
+    TUTOR = null;
+    $("#tutBar").classList.remove("on");
+    $("#story").classList.remove("act");
+    stNext();
+  }, 700);
+}
+function tutorStop(){
+  if(TUTOR) clearInterval(TUTOR.watch);
+  TUTOR = null;
+  clearInterval(tutorHand._t);
+  $("#tutHand").classList.remove("on");
+  $("#tutBar").classList.remove("on");
+  $("#story").classList.remove("act");
+}
+
+$("#stBox").onclick = () => { if(!TUTOR) stNext(); };
+$("#tutSkip").onclick = e => {
+  e.stopPropagation();
+  if(!TUTOR) return;
+  TUTOR.done = true; clearInterval(TUTOR.watch);
+  tutorStop(); stNext();
+};
+$("#stSkip").onclick = e => { e.stopPropagation(); if(ST) stEnd(); };
+document.addEventListener("keydown", e => {
+  if(!ST) return;
+  if(TUTOR){ if(e.code==="Escape"){ e.preventDefault(); stEnd(); } return; }
+  if(e.code==="Space"||e.code==="Enter"||e.code==="ArrowRight"){ e.preventDefault(); stNext(); }
+  if(e.code==="Escape"){ e.preventDefault(); stEnd(); }
+}, true);
+
+/* ══════════════════════════════════════════════════════════════
+   4) むずかしさの設定（管理者だけ）
+   ══════════════════════════════════════════════════════════════ */
+const DIFF_DEF = { laneMs:1000, fallMs:4200, thinkBase:500, thinkPerDigit:240,
+                   sec:{ normal:60, help:60, rich:60 }, count:3 };
+let DIFF = (function(){
+  const d = JSON.parse(JSON.stringify(DIFF_DEF));
+  const j = LS.get(K_DIFF, {}) || {};
+  Object.keys(d).forEach(k => { if(k !== "sec" && j[k] != null) d[k] = j[k]; });
+  if(j.sec) Object.assign(d.sec, j.sec);
+  if(j.seconds) { d.sec.normal = d.sec.help = d.sec.rich = j.seconds; }  /* 古い設定から引きつぐ */
+  return d;
+})();
+/** 足りない項目をおぎないます（古い設定でも安全に動くように） */
+function fixDiff(d){
+  d = d || {};
+  const def = DIFF_DEF;
+  Object.keys(def).forEach(k => {
+    if(k === "sec") return;
+    if(d[k] == null || isNaN(+d[k])) d[k] = def[k];
+  });
+  if(!d.sec || typeof d.sec !== "object") d.sec = {};
+  ["normal","help","rich"].forEach(m => {
+    if(!(+d.sec[m] > 0)) d.sec[m] = (+d.seconds > 0) ? +d.seconds : def.sec[m];
+  });
+  return d;
+}
+DIFF = fixDiff(DIFF);
+/** そのモードの制限時間（秒） */
+const secOf = m => Math.max(5, +(fixDiff(DIFF).sec[m] || 60));
+const saveDiff = () => LS.set(K_DIFF, DIFF);
+let IS_ADMIN = LS.get(K_ADMIN, true) !== false;
+
+const MODE_NAME = { normal:"通常モード", help:"おたすけモード", rich:"素数大富豪モード" };
+const STOCK_N   = { normal:4, help:4, rich:6 };
+
+/* ══════════════════════════════════════════════════════════════
+   5) Prime Factory
+   ══════════════════════════════════════════════════════════════ */
+const PART_MARK = { add:"＋", mul:"×", sub:"−", card:"" };
+const PART_NAME = { add:"たす", mul:"かける", sub:"ひく", card:"カード" };
+/* 素数大富豪のカード：A=1 J=11 Q=12 K=13 */
+const RICH_VALUES = [0,1,2,3,4,5,6,7,8,9,10,11,12,13];
+const cardLabel = v => v===1?"A" : v===11?"J" : v===12?"Q" : v===13?"K" : String(v);
+
+let G = null;
+
+function newPart(mode){
+  if(mode === "rich"){
+    const v = RICH_VALUES[rnd(RICH_VALUES.length)];
+    return { kind:"card", n:v, rich:true, id:"p"+(Math.random()*1e9|0) };
+  }
+  const kinds = ["add","mul","sub","card"];
+  const kind = kinds[rnd(kinds.length)];
+  const n = kind === "card" ? rnd(10) : (1 + rnd(100));
+  return { kind, n, id:"p"+(Math.random()*1e9|0) };
+}
+const partLabel = p => p.kind === "card"
+  ? (p.rich ? cardLabel(p.n) : String(p.n))
+  : PART_MARK[p.kind] + p.n;
+const partSub = p => p.kind === "card"
+  ? (p.rich ? "＝" + p.n : "カード")
+  : PART_NAME[p.kind];
+
+/* ── 素数大富豪の「持ち方」 ── */
+const richStr = cards => cards.map(c => String(c)).join("");
+const richBig = cards => cards.length ? BigInt(richStr(cards)) : null;
+/** 見た目の桁数は、ならべた文字の長さで数えます */
+const richLen = cards => richStr(cards).length;
+
+function curBig(){
+  if(!G) return null;
+  return G.mode === "rich" ? richBig(G.cards) : G.num;
+}
+function newHand(){
+  if(G.mode === "rich"){
+    G.cards = [ RICH_VALUES[rnd(RICH_VALUES.length)], RICH_VALUES[rnd(RICH_VALUES.length)] ];
+    if(G.cards[0] === 0) G.cards[0] = 1 + rnd(13);     /* 先頭が0だけにならないように */
+  }else{
+    G.num = BigInt(2 + rnd(98));                        /* 2〜99 */
+  }
+}
+
+/** 画面をつくるところ。tutor=true なら時間も部品も止めたままにします */
+function setupGame(mode, tutor){
+  $("#home").classList.add("hidden");
+  $("#editor").classList.add("hidden");
+  $("#rank").classList.add("hidden");
+  $("#modes").classList.remove("on");
+  $("#game").classList.add("on");
+  $("#gRes").classList.remove("on");
+  $("#gWait").classList.remove("on");
+  $("#gCount").classList.remove("on");
+  const m = mode || (G && G.mode) || "normal";
+  $("#game").className = "on mode-" + m;
+  $("#gMode").textContent = MODE_NAME[m];
+  $("#gDoc").innerHTML = cubeSVG(112, "normal");
+  $("#gDog").innerHTML = dogSVG(64, "normal");
+  $("#gHandWrap").hidden = (m !== "rich");
+  $("#gStHint").textContent = (m === "rich")
+    ? "押す＝出す／引っぱる＝運ぶ" : "押す＝出す／引っぱる＝運ぶ";
+  G = {
+    mode:m, t0:performance.now(), sec:secOf(m), left:secOf(m)*1000, score:0,
+    num:0n, cards:[], stockN:STOCK_N[m]||4,
+    stock:new Array(STOCK_N[m]||4).fill(null),
+    lanes:[[],[],[]], queue:[], busy:null, subs:[], dumps:[], used:0,
+    phase: tutor ? "play" : "ready", tutor: !!tutor, raf:0, spawn:0
+  };
+  newHand();
+  buildStock(); drawNum(); drawStock(); drawScore(); drawQueue(); drawTime();
+  $("#gLanes").querySelectorAll(".part").forEach(e => e.remove());
+  const loop = () => {
+    if(!G) return;
+    const now = performance.now();
+    if(G.phase === "play" && !G.tutor){
+      G.left = G.sec*1000 - (now - G.t0);
+      if(G.left <= 0){ G.left = 0; drawTime(); timeUp(); }
+      else { drawTime(); moveParts(now); }
+    }else if(G.phase === "play" && G.tutor){
+      moveParts(now);                      /* 練習中は下で止まります */
+    }
+    if(G.phase === "play") drawLaneBtns();
+    tickDoc(now);
+    if(G.phase === "wait"){
+      drawWaitList();
+      if(!G.queue.length && !G.busy){ showResult(); return; }
+    }
+    if(G.phase !== "done") G.raf = requestAnimationFrame(loop);
+  };
+  G.raf = requestAnimationFrame(loop);
+  return G;
+}
+/** 3秒かぞえてから、はじめます */
+function startGame(mode, noCount){
+  setupGame(mode, false);
+  const go = () => {
+    if(!G) return;
+    G.phase = "play";
+    G.t0 = performance.now();
+    G.left = G.sec*1000;
+    drawTime();
+    clearInterval(G.spawn);
+    G.spawn = setInterval(spawnPart, DIFF.laneMs);
+    spawnPart();
+  };
+  if(noCount || !(+DIFF.count > 0)){ go(); return G; }
+  const box = $("#gCount"), num = $("#gCountN"), msg = $("#gCountM");
+  box.classList.add("on");
+  msg.textContent = "";
+  let c = +DIFF.count;
+  const tick = () => {
+    if(!G || G.phase === "done"){ box.classList.remove("on"); return; }
+    if(c > 0){
+      num.className = ""; num.textContent = String(c);
+      void num.offsetWidth; num.classList.add("tick");
+      c--;
+      G.countT = setTimeout(tick, 1000);
+      return;
+    }
+    num.className = "go"; num.textContent = "スタート！";
+    void num.offsetWidth; num.classList.add("tick");
+    G.countT = setTimeout(()=>{ box.classList.remove("on"); go(); }, 700);
+  };
+  tick();
+  return G;
+}
+function stopGame(){
+  if(!G) return;
+  G.phase = "done";
+  cancelAnimationFrame(G.raf);
+  clearInterval(G.spawn);
+  clearTimeout(G.countT);
+  $("#gCount").classList.remove("on");
+}
+
+/* ── レーン ── */
+function spawnPart(want, wantLane){
+  if(!G || G.phase !== "play") return null;
+  const li = (wantLane == null) ? rnd(3) : wantLane;
+  const p = want ? Object.assign({ id:"p"+(Math.random()*1e9|0) }, want) : newPart(G.mode);
+  p.born = performance.now();
+  const el = document.createElement("div");
+  el.className = "part " + p.kind;
+  el.innerHTML = `<span>${esc(partLabel(p))}</span><small>${esc(partSub(p))}</small>`;
+  el.style.top = "-56px";
+  el.dataset.pid = p.id;
+  el.dataset.lane = li;
+  el.addEventListener("pointerdown", ev => dragStart(ev, {src:"lane", li, id:p.id, part:p, el}));
+  p.el = el;
+  $("#gLanes").children[li].appendChild(el);
+  G.lanes[li].push(p);
+  return p;
+}
+function moveParts(now){
+  const h = $("#gLanes").clientHeight || 400;
+  for(let li=0; li<3; li++){
+    const arr = G.lanes[li];
+    for(let k=arr.length-1; k>=0; k--){
+      const p = arr[k];
+      let r = (now - p.born) / DIFF.fallMs;
+      if(G.tutor) r = Math.min(r, 0.45);          /* 練習中はまん中で止めます */
+      if(r >= 1){ p.el.remove(); arr.splice(k,1); continue; }
+      p.el.style.top = (r * (h + 56) - 56) + "px";
+    }
+  }
+}
+function takeFromLane(li, id){
+  const arr = G.lanes[li];
+  const k = arr.findIndex(x => x.id === id);
+  if(k < 0) return null;
+  const p = arr[k];
+  p.el.classList.add("taken");
+  setTimeout(()=>{ if(p.el.parentNode) p.el.remove(); }, 200);
+  arr.splice(k,1);
+  return { kind:p.kind, n:p.n, rich:p.rich };
+}
+/** ストックへ入れる。空きがなければ false */
+function toStock(part){
+  const slot = G.stock.findIndex(x => !x);
+  if(slot < 0){ say("ストックがいっぱいじゃ"); return false; }
+  G.stock[slot] = part;
+  drawStock();
+  tutorHit("grab");
+  return true;
+}
+/** そのレーンで「いちばん下にある部品」。
+ *  真ん中が とれる はんい（レーンの上端〜下端）に入っているものだけが対象です。
+ *  画面の大きさが変わっても、実際に測った位置で決めるのでズレません。 */
+function lowestPart(li){
+  if(!G) return null;
+  const lanes = $("#gLanes");
+  const H = lanes ? lanes.clientHeight : 0;
+  const arr = G.lanes[li] || [];
+  let best = null, bestY = -Infinity;
+  for(const p of arr){
+    const el = p.el;
+    if(!el || !el.parentNode) continue;
+    const top = parseFloat(el.style.top || "0");
+    const h = el.offsetHeight || 54;
+    const cy = top + h/2;                 /* 部品の真ん中の高さ */
+    if(cy < 0 || cy > H) continue;        /* まだ出ていない／もう通りすぎた */
+    if(cy > bestY){ bestY = cy; best = p; }
+  }
+  return best;
+}
+function grabLowest(li){
+  if(!G || G.phase !== "play") return false;
+  const best = lowestPart(li);
+  if(!best){ say("そのレーンには、いま とれる部品がない"); return false; }
+  const part = takeFromLane(li, best.id);
+  if(part) return toStock(part);
+  return false;
+}
+/** レーンの下のボタンの見た目を、いまの様子に合わせます */
+function drawLaneBtns(){
+  for(let i=0;i<3;i++){
+    const b = document.querySelector(`#gLaneBtns [data-lb="${i}"]`);
+    if(!b) continue;
+    const p = lowestPart(i);
+    b.disabled = !p || !G || G.phase !== "play";
+    b.classList.toggle("ready", !!p);
+    const lab = b.querySelector("b");
+    if(lab) lab.textContent = p ? partLabel(p) : "▲";
+  }
+}
+
+/* ── ストック ── */
+function buildStock(){
+  $("#gStN").textContent = "（" + G.stockN + "枠）";
+  $("#gStock").innerHTML = G.stock.map((_,i) =>
+    `<div class="stockbox empty" id="gSt${i}" data-drop="stock" data-slot="${i}">からっぽ</div>`).join("");
+  G.stock.forEach((_,i) => {
+    const box = $("#gSt"+i);
+    box.addEventListener("pointerdown", ev => {
+      if(!G || !G.stock[i]) return;
+      dragStart(ev, {src:"stock", slot:i, part:G.stock[i], el:box});
+    });
+  });
+}
+function drawStock(){
+  for(let i=0;i<G.stockN;i++){
+    const box = $("#gSt"+i), p = G.stock[i];
+    if(!box) continue;
+    box.dataset.drop = "stock"; box.dataset.slot = i;
+    if(!p){ box.className = "stockbox empty"; box.innerHTML = "からっぽ"; }
+    else{ box.className = "stockbox " + p.kind;
+      box.innerHTML = `<div class="p">${esc(partLabel(p))}</div><div class="k">${esc(partSub(p))}</div>`; }
+  }
+}
+/** 部品を使ったら、いまの自然数はどうなるか（通常・おたすけ） */
+function applyPart(num, p, side){
+  if(p.kind === "add") return num + BigInt(p.n);
+  if(p.kind === "mul") return num * BigInt(p.n);
+  if(p.kind === "sub") return num - BigInt(p.n);
+  return side === "front" ? BigInt(String(p.n)+String(num)) : BigInt(String(num)+String(p.n));
+}
+/** 部品を使います。slot を渡すとストックから消します */
+function usePart(part, side, slot){
+  if(!G || G.phase !== "play") return false;
+  if(part.kind === "card" && !side){ askSide(part, slot); return false; }
+  if(G.mode === "rich"){
+    const next = side === "front" ? [part.n, ...G.cards] : [...G.cards, part.n];
+    if(richLen(next) > MAX_DIGITS){ say(MAX_DIGITS + "桁を超えるので使えん"); return false; }
+    G.cards = next;
+  }else{
+    const next = applyPart(G.num, part, side);
+    if(next < 1n){ say("1より小さくなってしまう"); return false; }
+    if(String(next).length > MAX_DIGITS){ say(MAX_DIGITS + "桁を超えるので使えん"); return false; }
+    G.num = next;
+  }
+  if(slot != null){ G.stock[slot] = null; drawStock(); }
+  G.used++;
+  drawNum();
+  tutorHit(slot == null ? "drag" : "use");
+  return true;
+}
+function useStock(i, side){
+  if(!G) return;
+  const p = G.stock[i];
+  if(!p) return;
+  usePart(p, side, i);
+}
+/* カードは前か後ろかを選びます */
+let SIDE_UI = null;
+function askSide(part, slot){
+  if(SIDE_UI) SIDE_UI.remove();
+  let front, back, okF, okB;
+  if(G.mode === "rich"){
+    const fs = richStr([part.n, ...G.cards]), bs = richStr([...G.cards, part.n]);
+    okF = fs.length <= MAX_DIGITS; okB = bs.length <= MAX_DIGITS;
+    front = String(BigInt(fs||"0")); back = String(BigInt(bs||"0"));
+  }else{
+    front = String(applyPart(G.num, part, "front")); back = String(applyPart(G.num, part, "back"));
+    okF = front.length <= MAX_DIGITS; okB = back.length <= MAX_DIGITS;
+  }
+  const box = document.createElement("div");
+  box.id = "sideUI";
+  box.style.cssText = "position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:165;"
+    + "background:#0d1524;border:1px solid #7fd8ff;border-radius:12px;padding:10px 12px;text-align:center";
+  box.innerHTML = `<div class="tiny" style="margin-bottom:6px">
+      「${esc(partLabel(part))}」をどちらにつけますか？</div>
+    <div class="row" style="justify-content:center">
+      <button class="btn sm" id="sdF" ${okF?"":"disabled"}>前 → ${esc(bigJp(front))}</button>
+      <button class="btn sm" id="sdB" ${okB?"":"disabled"}>後ろ → ${esc(bigJp(back))}</button>
+      <button class="btn sm" id="sdX">やめる</button></div>
+    ${(okF&&okB)?"":`<p class="tiny" style="color:var(--warn);margin:5px 0 0">${MAX_DIGITS}桁を超えるほうは選べません</p>`}`;
+  document.body.appendChild(box);
+  SIDE_UI = box;
+  const close = () => { box.remove(); SIDE_UI = null; };
+  box.querySelector("#sdF").onclick = () => { close(); usePart(part,"front",slot); };
+  box.querySelector("#sdB").onclick = () => { close(); usePart(part,"back",slot); };
+  box.querySelector("#sdX").onclick = close;
+}
+
+/* ── 引っぱって運ぶ（ドラッグ）── */
+let DRAG = null;
+function dragStart(ev, info){
+  if(!G || G.phase !== "play") return;
+  if(SIDE_UI) return;
+  if(ev.preventDefault) ev.preventDefault();
+  DRAG = Object.assign({ x0:ev.clientX, y0:ev.clientY, moved:false }, info);
+  window.addEventListener("pointermove", dragMove);
+  window.addEventListener("pointerup", dragUp);
+  window.addEventListener("pointercancel", dragUp);
+}
+function dragMove(ev){
+  if(!DRAG) return;
+  const dx = ev.clientX - DRAG.x0, dy = ev.clientY - DRAG.y0;
+  if(!DRAG.moved){
+    if(Math.hypot(dx,dy) < 8) return;
+    DRAG.moved = true;
+    document.body.classList.add("dragging");
+    if(DRAG.el) DRAG.el.classList.add("dragging");
+    const g = $("#gGhost");
+    g.innerHTML = `<div class="part ${DRAG.part.kind}" style="position:static;transform:none">
+      <span>${esc(partLabel(DRAG.part))}</span><small>${esc(partSub(DRAG.part))}</small></div>`;
+    g.classList.add("on");
+  }
+  const g = $("#gGhost");
+  g.style.left = ev.clientX + "px";
+  g.style.top  = ev.clientY + "px";
+  markDrop(dropAt(ev.clientX, ev.clientY));
+}
+function dragUp(ev){
+  if(!DRAG) return;
+  window.removeEventListener("pointermove", dragMove);
+  window.removeEventListener("pointerup", dragUp);
+  window.removeEventListener("pointercancel", dragUp);
+  const d = DRAG; DRAG = null;
+  document.body.classList.remove("dragging");
+  if(d.el) d.el.classList.remove("dragging");
+  $("#gGhost").classList.remove("on");
+  markDrop(null);
+  if(!d.moved){                       /* 動かさなかった＝押しただけ */
+    if(d.src === "lane"){ const p = takeFromLane(d.li, d.id); if(p) toStock(p); }
+    else useStock(d.slot);
+    return;
+  }
+  finishDrag(dropAt(ev.clientX, ev.clientY), d);
+}
+/** どこに落としたか。num ／ stock:n ／ null */
+function dropAt(x,y){
+  const hit = el => {
+    if(!el) return false;
+    const r = el.getBoundingClientRect();
+    return r.width>0 && x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+  };
+  if(G && G.mode === "rich"){
+    const cards = document.querySelectorAll("#gHand [data-hi]");
+    for(const c of cards) if(hit(c)) return "hand:" + c.dataset.hi;
+    if(hit($("#gHand"))) return "hand:end";
+  }
+  if(hit($("#gNumWrap"))) return "num";
+  for(let i=0;i<(G?G.stockN:0);i++) if(hit($("#gSt"+i))) return "stock:"+i;
+  return null;
+}
+function markDrop(t){
+  $("#gNumWrap").classList.toggle("drop", t === "num");
+  for(let i=0;i<(G?G.stockN:0);i++){
+    const b = $("#gSt"+i);
+    if(b) b.classList.toggle("drop", t === "stock:"+i);
+  }
+  document.querySelectorAll("#gHand [data-hi]").forEach(c =>
+    c.classList.toggle("drop", t === "hand:"+c.dataset.hi));
+}
+/** 落とした先で実行します（テストからも呼べます） */
+function finishDrag(target, d){
+  if(!d) return;
+  /* 手札の並べかえ */
+  if(d.src === "hand"){
+    if(target && target.indexOf("hand:") === 0){
+      const t = target.split(":")[1];
+      const to = (t === "end") ? G.cards.length - 1 : +t;
+      if(moveCard(d.hi, to)) tutorHit("reorder");
+    }
+    return;
+  }
+  if(target && target.indexOf("hand:") === 0){
+    /* レーンやストックから手札へ落としたら、その場所に差しこみます */
+    const t = target.split(":")[1];
+    const at = (t === "end") ? G.cards.length : +t;
+    const part = d.src === "lane" ? takeFromLane(d.li, d.id) : G.stock[d.slot];
+    if(!part) return;
+    const next = G.cards.slice(); next.splice(at, 0, part.n);
+    if(richLen(next) > MAX_DIGITS){ say(MAX_DIGITS + "桁を超えるので使えん");
+      if(d.src === "lane") toStock(part); return; }
+    G.cards = next;
+    if(d.src === "stock"){ G.stock[d.slot] = null; drawStock(); }
+    G.used++; drawNum(); tutorHit("drag");
+    return;
+  }
+  if(target === "num"){
+    if(d.src === "lane"){
+      const p = takeFromLane(d.li, d.id);
+      if(p) usePart(p, null, null);
+    }else useStock(d.slot);
+    return;
+  }
+  if(target && target.indexOf("stock:") === 0){
+    const to = +target.split(":")[1];
+    if(d.src === "lane"){
+      if(G.stock[to]){ say("そこは埋まっている"); return; }
+      const p = takeFromLane(d.li, d.id);
+      if(p){ G.stock[to] = p; drawStock(); }
+    }else{
+      const from = d.slot;
+      if(from === to) return;
+      const tmp = G.stock[to]; G.stock[to] = G.stock[from]; G.stock[from] = tmp;
+      drawStock();
+    }
+    return;
+  }
+  /* どこでもないところに落としたら、ストックへしまいます */
+  if(d.src === "lane"){ const p = takeFromLane(d.li, d.id); if(p) toStock(p); }
+}
+
+/* ── 画面 ── */
+function drawNum(){
+  const b = curBig();
+  const s = b == null ? "" : String(b);
+  $("#gCards").innerHTML = "";
+  if(G.mode === "rich") drawHand();
+  const el = $("#gNum");
+  el.textContent = s ? bigJp(s) : "—";
+  const L = s.length;
+  el.style.fontSize = L<=6 ? "2.1rem" : L<=10 ? "1.6rem" : L<=14 ? "1.25rem" : "1rem";
+  const shown = G.mode === "rich" ? richLen(G.cards) : L;
+  $("#gDigits").textContent = (s ? shown + " 桁" : "—")
+    + (shown >= MAX_DIGITS ? "（これ以上は大きくできません）" : "");
+  dogTalk();
+}
+/** 素数大富豪の手札。引っぱると順番を変えられます */
+function drawHand(){
+  const box = $("#gHand");
+  if(!box) return;
+  if(!G.cards.length){ box.innerHTML = '<span class="none">カードがありません</span>'; return; }
+  box.innerHTML = G.cards.map((v,i) =>
+    `<span class="pcard ${String(v).length>1?"big":""}" data-hand="${i}"
+      data-drop="hand" data-hi="${i}">${esc(cardLabel(v))}</span>`).join("");
+  box.querySelectorAll("[data-hand]").forEach(el => {
+    const i = +el.dataset.hand;
+    el.addEventListener("pointerdown", ev => dragStart(ev, {src:"hand", hi:i, el,
+      part:{ kind:"card", n:G.cards[i], rich:true }}));
+  });
+}
+/** i 番目のカードを j 番目へ動かします */
+function moveCard(i, j){
+  if(i === j || i < 0 || j < 0 || i >= G.cards.length) return false;
+  const v = G.cards.splice(i,1)[0];
+  G.cards.splice(Math.min(j, G.cards.length), 0, v);
+  drawNum();
+  return true;
+}
+function dogTalk(){
+  if(!G || G.mode !== "help") return;
+  const b = curBig();
+  const box = $("#gDogSay");
+  if(b == null){ box.textContent = "数がないワン"; return; }
+  const r = dogLine(b);
+  box.textContent = r.text;
+  $("#gDog").innerHTML = dogSVG(64, r.face);
+}
+function drawScore(){
+  const v = $("#gScoreV");
+  v.textContent = jp(G.score);
+  v.classList.toggle("minus", G.score < 0);
+}
+function drawTime(){
+  const s = G.left/1000, v = $("#gTimeV");
+  v.textContent = s.toFixed(1);
+  v.classList.toggle("warn", s<=20 && s>10);
+  v.classList.toggle("bad",  s<=10);
+}
+function say(t, sub){
+  const el = $("#gSay");
+  el.innerHTML = esc(t) + (sub ? `<br><span class="fac">${esc(sub)}</span>` : "");
+  el.classList.add("on");
+  clearTimeout(say._t);
+  say._t = setTimeout(()=>el.classList.remove("on"), sub ? 3200 : 1700);
+}
+function fly(text, color){
+  const el = $("#gFly"), r = $("#gScore").getBoundingClientRect();
+  el.style.left = (r.left+8)+"px"; el.style.top = (r.top-6)+"px";
+  el.style.color = color; el.style.fontSize = "1.5rem";
+  el.textContent = text;
+  el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+}
+
+/* ── 提出と行列 ── */
+function submitNum(){
+  if(!G || G.phase !== "play") return;
+  const b = curBig();
+  if(b == null || b < 1n){ say("出すものがない"); return; }
+  const s = String(b);
+  G.queue.push({ s, digits:s.length, at:performance.now(), done:false,
+                 cards: G.mode==="rich" ? G.cards.slice() : null });
+  G.subs.push(G.queue[G.queue.length-1]);
+  say("うけとった。順番に調べるぞ");
+  newHand(); drawNum(); drawQueue();
+  tutorHit("submit");
+}
+function dumpNum(){
+  if(!G || G.phase !== "play") return;
+  const b = curBig();
+  if(b == null){ say("捨てるものがない"); return; }
+  const s = String(b);
+  G.dumps.push({ s, digits:s.length, cards: G.mode==="rich" ? G.cards.slice() : null });
+  say("分解マシーンへ入れた");
+  newHand(); drawNum();
+  tutorHit("dump");
+}
+function tickDoc(now){
+  if(!G) return;
+  if(!G.busy && G.queue.length){
+    const it = G.queue[0];
+    it.startAt = now;
+    it.needMs  = DIFF.thinkBase + DIFF.thinkPerDigit * it.digits;
+    G.busy = it;
+    $("#gDoc").innerHTML = cubeSVG(112, "think");
+  }
+  if(G.busy && now - G.busy.startAt >= G.busy.needMs){
+    finishOne(G.busy);
+    G.queue.shift();
+    G.busy = null;
+  }
+  drawQueue();
+}
+/** 調べ終わったら、その場で素因数分解の結果を教えます */
+function finishOne(it){
+  const n = BigInt(it.s);
+  it.prime = isPrime(n);
+  it.done = true;
+  it.fac = it.prime ? [{p:n,e:1}] : factorize(n);
+  if(it.prime){
+    it.point = primeScore(it.s);
+    G.score += it.point;
+    fly("+"+jp(it.point), "#5ee6a8");
+    say(`${bigJp(it.s)} は素数じゃ！ ＋${jp(it.point)}点`,
+        `素因数分解 ＝ ${it.s}（それ以上は割れん）`);
+    $("#gDoc").innerHTML = cubeSVG(112, "happy");
+  }else{
+    it.point = -missScore(it.s);
+    G.score += it.point;
+    fly(jp(it.point), "#ff7b8a");
+    say(`${bigJp(it.s)} は素数ではないのう… ${jp(it.point)}点`,
+        `素因数分解 ＝ ${factorText(it.fac)}`);
+    $("#gDoc").innerHTML = cubeSVG(112, "bad");
+  }
+  drawScore();
+  setTimeout(()=>{ if(G && G.phase!=="done" && !G.busy) $("#gDoc").innerHTML = cubeSVG(112,"normal"); }, 1200);
+}
+function drawQueue(){
+  const box = $("#gQList");
+  if(!G.queue.length){ box.innerHTML = '<div class="qrow">（からっぽ）</div>'; return; }
+  box.innerHTML = G.queue.slice(0,4).map((it,i)=>{
+    const cut = it.s.length>9 ? it.s.slice(0,9)+"…" : it.s;
+    if(i===0 && G.busy===it){
+      const r = clamp((performance.now()-it.startAt)/it.needMs, 0, 1);
+      return `<div class="qrow now">調べ中 ${esc(cut)} ${Math.round(r*100)}%</div>`;
+    }
+    return `<div class="qrow">まち ${esc(cut)}</div>`;
+  }).join("") + (G.queue.length>4 ? `<div class="qrow">ほか ${G.queue.length-4} 件</div>` : "");
+}
+
+/* ── 時間切れ → 調べ終わるまで待つ → 結果 ── */
+function timeUp(){
+  if(!G || G.phase !== "play") return;
+  G.phase = "wait";
+  clearInterval(G.spawn);
+  $("#gLanes").querySelectorAll(".part").forEach(e => e.remove());
+  G.lanes = [[],[],[]];
+  if(SIDE_UI){ SIDE_UI.remove(); SIDE_UI = null; }
+  if(G.queue.length || G.busy){
+    $("#gWaitDoc").innerHTML = cubeSVG(110, "think");
+    $("#gWait").classList.add("on");
+    drawWaitList();
+  }
+}
+function drawWaitList(){
+  const list = G.queue;
+  $("#gWaitList").innerHTML = list.slice(0,8).map((it,i)=>{
+    if(i===0 && G.busy===it){
+      const r = clamp((performance.now()-it.startAt)/it.needMs, 0, 1);
+      return `<div class="wa">調べ中 ${esc(bigJp(it.s))} … ${Math.round(r*100)}%</div>`;
+    }
+    return `<div>まち ${esc(bigJp(it.s))}</div>`;
+  }).join("") + (list.length>8 ? `<div>ほか ${list.length-8} 件</div>` : "");
+}
+function showResult(){
+  if(!G || G.phase === "done") return;
+  G.phase = "done";
+  cancelAnimationFrame(G.raf);
+  clearInterval(G.spawn);
+  $("#gWait").classList.remove("on");
+
+  /* まだ調べ終わっていないものが残っていたら、ここで最後まで調べます */
+  if(G.busy && !G.busy.done){ finishOne(G.busy); G.busy = null; }
+  for(const it of G.queue) if(!it.done) finishOne(it);
+  G.queue = [];
+
+  for(const d of G.dumps){
+    const n = BigInt(d.s);
+    d.prime = isPrime(n);
+    d.fac = d.prime ? [{p:n,e:1}] : factorize(n);
+  }
+  const hb = curBig();
+  let hold = null;
+  if(hb != null && hb >= 1n){
+    hold = { s:String(hb), cards: G.mode==="rich" ? G.cards.slice() : null };
+    const n = BigInt(hold.s);
+    hold.prime = isPrime(n);
+    hold.fac = hold.prime ? [{p:n,e:1}] : factorize(n);
+  }
+  const okN = G.subs.filter(x=>x.prime).length;
+  const ngN = G.subs.length - okN;
+  const missed = G.dumps.filter(d=>d.prime).length;
+
+  const log = LS.get(K_LOG, []);
+  log.unshift({ at:Date.now(), who:myName(), mode:G.mode, score:G.score,
+                ok:okN, ng:ngN, dump:G.dumps.length });
+  LS.set(K_LOG, log.slice(0,500));
+
+  /* Prime Coin：1回あそび終えるごとに1枚。
+     ただし「1点以上とった」か「3桁以上の数を1回でも出した」ことが条件です */
+  const big3 = G.subs.some(x => x.s.length >= 3);
+  const gotCoin = (G.score >= 1) || big3;
+  if(gotCoin) coinEarn(G.mode, G.score, big3);
+
+  const cardsHTML = cs => cs && cs.length
+    ? `<div style="display:flex;gap:2px;justify-content:flex-end;margin-top:2px">${cs.map(v=>
+        `<span class="pcard" style="width:19px;height:25px;font-size:.62rem">${esc(cardLabel(v))}</span>`).join("")}</div>`
+    : "";
+  const row = (x, showPt) =>
+    `<tr><td class="n">${esc(bigJp(x.s))}${cardsHTML(x.cards)}</td><td class="n">${x.s.length}</td>
+      <td>${x.prime?'<span class="ok">素数</span>':'<span class="ng">素数でない</span>'}</td>
+      <td class="tiny mono">${esc(factorText(x.fac||[]))}</td>
+      <td class="n">${!showPt||x.point==null ? "—"
+        : (x.point>0?'<span class="ok">+'+jp(x.point)+'</span>':'<span class="ng">'+jp(x.point)+'</span>')}</td></tr>`;
+  const head = `<thead><tr><th class="n">数</th><th class="n">桁</th><th>結果</th>
+    <th>素因数分解</th><th class="n">点</th></tr></thead>`;
+
+  $("#gResIn").innerHTML = `
+    <div class="card" style="text-align:center;border-color:var(--pp)">
+      <h2 style="margin:0">おつかれさま</h2>
+      <p class="tiny" style="color:var(--pp)">${esc(MODE_NAME[G.mode])}</p>
+      <div style="margin:8px 0">${cubeSVG(110, G.score>0?"happy":"normal")}</div>
+      <div class="mono" style="font-size:3rem;font-weight:900;
+        color:${G.score<0?"var(--bad)":"var(--acc2)"}">${jp(G.score)}</div>
+      <p class="tiny">点</p>
+      <p class="muted" style="margin-top:6px">
+        提出 ${jp(G.subs.length)} 件（素数 ${jp(okN)} ／ はずれ ${jp(ngN)}）
+        捨てた ${jp(G.dumps.length)} 件　部品を使った回数 ${jp(G.used)}</p>
+      ${missed?`<p class="tiny" style="color:var(--warn)">
+        捨てたなかに素数が ${jp(missed)} 件ありました。もったいない！</p>`:""}
+      ${gotCoin
+        ? `<p style="margin-top:8px;font-weight:800;color:var(--warn)">
+             <span class="pcoin">P</span> Prime Coin を1枚もらいました！</p>
+           <p class="tiny">${G.score>=1?"1点以上とったから":"3桁以上の数を出したから"}です。</p>`
+        : `<p class="tiny" style="margin-top:8px;color:var(--dim2)">
+             Prime Coin はもらえませんでした。<br>
+             1点以上とるか、3桁以上の自然数を1回でも出すともらえます。</p>`}
+    </div>
+    <div class="card"><h2>提出したもの</h2>
+      ${G.subs.length?`<div class="scroll"><table>${head}<tbody>
+        ${G.subs.map(x=>row(x,true)).join("")}</tbody></table></div>`
+        :`<p class="muted">1つも出しませんでした。</p>`}</div>
+    <div class="card"><h2>分解マシーンに捨てたもの</h2>
+      ${G.dumps.length?`<div class="scroll"><table>${head}<tbody>
+        ${G.dumps.map(x=>row(x,false)).join("")}</tbody></table></div>`
+        :`<p class="muted">1つも捨てませんでした。</p>`}</div>
+    ${hold?`<div class="card"><h2>最後まで持っていた数</h2>
+      <div class="scroll"><table>${head}<tbody>${row(hold,false)}</tbody></table></div></div>`:""}
+    <div class="card" style="text-align:center">
+      <div class="tools" style="justify-content:center">
+        <button class="btn pp" id="grAgain">もう一度はたらく</button>
+        <button class="btn" id="grMode">モードをえらぶ</button>
+        <button class="btn" id="grHome">パークにもどる</button>
+      </div></div>`;
+  $("#gRes").classList.add("on");
+  $("#grAgain").onclick = () => { const m=G.mode; $("#gRes").classList.remove("on"); startGame(m); };
+  $("#grMode").onclick  = () => { $("#gRes").classList.remove("on"); leaveGame(); openModes(); };
+  $("#grHome").onclick  = () => { $("#gRes").classList.remove("on"); leaveGame(); };
+}
+/* ── Prime Coin（本体アプリと同じ入れものに、もらった記録をためます）── */
+const K_COIN = "sa-ppcoin-v1";
+function coinEarn(mode, score, big3){
+  const q = LS.get(K_COIN, []) || [];
+  q.push({ at:Date.now(), mode, score, big3:!!big3 });
+  LS.set(K_COIN, q.slice(-200));
+}
+const coinPending = () => (LS.get(K_COIN, []) || []).length;
+
+function leaveGame(){
+  stopGame();
+  if(SIDE_UI){ SIDE_UI.remove(); SIDE_UI = null; }
+  $("#game").classList.remove("on");
+  $("#gWait").classList.remove("on");
+  $("#home").classList.remove("hidden");
+  G = null;
+  drawHomeLog(); homeRank();
+}
+$$("#gLaneBtns [data-lb]").forEach(b => {
+  b.addEventListener("click", e => { e.preventDefault(); grabLowest(+b.dataset.lb); drawLaneBtns(); });
+});
+$("#gSubmit").onclick = submitNum;
+$("#gDump").onclick   = dumpNum;
+$("#gQuit").onclick   = () => { if(confirm("やめますか？")) leaveGame(); };
+document.addEventListener("keydown", e => {
+  if(!G || G.phase !== "play" || ST) return;
+  if(document.querySelector("input:focus, textarea:focus")) return;
+  const k = e.code;
+  if(k==="Digit1"){ e.preventDefault(); grabLowest(0); }
+  if(k==="Digit2"){ e.preventDefault(); grabLowest(1); }
+  if(k==="Digit3"){ e.preventDefault(); grabLowest(2); }
+  const useKeys = { KeyQ:0, KeyW:1, KeyE:2, KeyR:3, KeyT:4, KeyY:5 };
+  if(useKeys[k] != null && useKeys[k] < G.stockN){ e.preventDefault(); useStock(useKeys[k]); }
+  if(k==="Enter"){ e.preventDefault(); submitNum(); }
+  if(k==="Delete"||k==="Backspace"){ e.preventDefault(); dumpNum(); }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   6) モードえらび
+   ══════════════════════════════════════════════════════════════ */
+function openModes(){
+  $("#home").classList.add("hidden");
+  $("#editor").classList.add("hidden");
+  $("#modeDoc").innerHTML = cubeSVG(96, "normal");
+  $("#modes").classList.add("on");
+}
+function closeModes(){
+  $("#modes").classList.remove("on");
+  $("#home").classList.remove("hidden");
+}
+$$("#modes [data-mode]").forEach(c => c.onclick = () => goPlay(c.dataset.mode));
+$("#modeBack").onclick = closeModes;
+
+/* ══════════════════════════════════════════════════════════════
+   7) ホーム
+   ══════════════════════════════════════════════════════════════ */
+$("#homeDoc").innerHTML = cubeSVG(120, "happy");
+function drawHomeLog(){
+  const log = LS.get(K_LOG, []);
+  const box = $("#homeLog");
+  if(!log.length){ box.innerHTML = '<p class="muted">まだ働いていません。</p>'; return; }
+  box.innerHTML = `<div class="scroll" style="max-height:32vh"><table><thead><tr>
+    <th>いつ</th><th>モード</th><th class="n">スコア</th><th class="n">素数</th>
+    <th class="n">はずれ</th><th class="n">捨てた</th></tr></thead><tbody>`
+    + log.slice(0,30).map(l=>`<tr>
+      <td class="tiny">${new Date(l.at).toLocaleString("ja-JP")}</td>
+      <td class="tiny">${esc(MODE_NAME[l.mode]||"—")}</td>
+      <td class="n" style="color:${l.score<0?"var(--bad)":"var(--acc2)"}"><b>${jp(l.score)}</b></td>
+      <td class="n">${jp(l.ok)}</td><td class="n">${jp(l.ng)}</td><td class="n">${jp(l.dump)}</td>
+    </tr>`).join("") + `</tbody></table></div>`;
+}
+drawHomeLog();
+
+async function goPlay(mode){
+  const seen = LS.get(K_SEEN, {});
+  if(!seen.tutorial){
+    setupGame(mode, true);                 /* 練習用：時間は止めたまま */
+    await playStory(STORIES.tutorial, 0);
+    seen.tutorial = true; LS.set(K_SEEN, seen);
+    startGame(mode);                       /* 本番は3つ数えてから */
+  }else startGame(mode);
+}
+$("#btnPlay").onclick = openModes;
+$("#btnTuto").onclick = async () => {
+  setupGame("help", true);
+  await playStory(STORIES.tutorial, 0);
+  leaveGame();
+};
+
+/* ══════════════════════════════════════════════════════════════
+   7b) ランキング（Daily / Weekly / Monthly）
+   　　素数あつめRATING のチャレンジと同じ考え方です。
+   　　・期間ごとに別々に集計します
+   　　・その期間に出したなかで、いちばん良い記録で競います
+   　　・過去の回もさかのぼって見られます
+   　　・歴代チャンピオン（優勝回数・出場回数）も出します
+   ══════════════════════════════════════════════════════════════ */
+const K_NAME = "pp-name-v1";
+const RK_NAME = { day:"Daily", week:"Weekly", month:"Monthly" };
+const RK_UNIT = { day:"日", week:"週", month:"月" };
+let rkTab = "day", rkMode = "", rkShift = 0, rkCalShift = 0;
+
+const jstYMD = d => new Intl.DateTimeFormat("sv-SE",
+  { timeZone:"Asia/Tokyo", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date(d));
+/** 日本時間で、その時刻がどの回に入るかの合い言葉 */
+function periodKey(kind, when){
+  const ymd = jstYMD(when);
+  if(kind === "day")   return ymd;
+  if(kind === "month") return ymd.slice(0,7);
+  const [y,m,dd] = ymd.split("-").map(Number);
+  const u = Date.UTC(y, m-1, dd);
+  const dow = (new Date(u).getUTCDay() + 6) % 7;          /* 月曜=0 */
+  const th = new Date(u - dow*86400000 + 3*86400000);     /* その週の木曜 */
+  const yy = th.getUTCFullYear();
+  const jan1 = Date.UTC(yy, 0, 1);
+  const wk = Math.floor((th.getTime() - jan1) / 86400000 / 7) + 1;
+  return `${yy}-W${String(wk).padStart(2,"0")}`;
+}
+/** n 回ぶんずらした合い言葉（0 でいまの回、-1 でひとつ前） */
+function shiftKey(kind, n){
+  const now = Date.now();
+  if(kind === "day")   return periodKey("day",   now + n*86400000);
+  if(kind === "week")  return periodKey("week",  now + n*7*86400000);
+  const ymd = jstYMD(now); let [y,m] = ymd.split("-").map(Number);
+  m += n; y += Math.floor((m-1)/12); m = ((m-1)%12+12)%12+1;
+  return `${y}-${String(m).padStart(2,"0")}`;
+}
+const rkLabel = (kind, key) => kind === "day" ? key.replace(/-/g,"/")
+  : kind === "week" ? key.replace("-W"," 第") + "週" : key.replace("-","年") + "月";
+
+const myName = () => LS.get(K_NAME, "あなた");
+/** 記録はぜんぶ pp-log-v1 に入っています */
+const allRuns = () => (LS.get(K_LOG, []) || []).filter(x => x && x.at != null);
+function runsIn(kind, key, mode){
+  return allRuns().filter(r => periodKey(kind, r.at) === key && (!mode || r.mode === mode));
+}
+/** その回のランキング。1人につき、いちばん良い記録だけで競います */
+function rankOf(kind, key, mode){
+  const best = {};
+  runsIn(kind, key, mode).forEach(r => {
+    const who = r.who || myName();
+    if(!best[who] || r.score > best[who].score) best[who] = { who, score:r.score, at:r.at, mode:r.mode };
+    if(best[who]) best[who].n = (best[who].n || 0) + 1;
+  });
+  const rows = Object.values(best).sort((a,b) => b.score - a.score);
+  let pos = 0, prev = null, same = 0;
+  rows.forEach(r => {
+    same++;
+    if(prev === null || r.score !== prev){ pos = same; prev = r.score; }
+    r.pos = pos;
+  });
+  rows.forEach(r => { r.tie = rows.filter(x => x.pos === r.pos).length > 1; });
+  return rows;
+}
+/** その種類の回を、古いほうから並べます（第n回の n を出すため） */
+function allKeys(kind, mode){
+  const set = new Set();
+  allRuns().forEach(r => { if(!mode || r.mode === mode) set.add(periodKey(kind, r.at)); });
+  return [...set].sort();
+}
+const medal = i => i===1 ? "rkgold" : i===2 ? "rksil" : i===3 ? "rkbrz" : "";
+
+function rkOpen(){
+  $("#home").classList.add("hidden");
+  $("#editor").classList.add("hidden");
+  $("#rank").classList.remove("hidden");
+  rkDraw();
+}
+function rkClose(){ $("#rank").classList.add("hidden"); $("#home").classList.remove("hidden"); }
+function rkDraw(){
+  $$("#rkTabs [data-rk]").forEach(b => b.classList.toggle("on", b.dataset.rk === rkTab));
+  $$("#rkModes [data-rm]").forEach(b => b.classList.toggle("on", b.dataset.rm === rkMode));
+  const key = shiftKey(rkTab, rkShift);
+  const keys = allKeys(rkTab, rkMode);
+  const no = keys.indexOf(key) + 1;
+  $("#rkWhen").textContent = rkLabel(rkTab, key) + (no ? `（第${no}回）` : "");
+  $("#rkNext").disabled = rkShift >= 0;
+  $("#rkTitle").textContent = (rkShift === 0 ? "今回" : "過去") + "のランキング　"
+    + RK_NAME[rkTab] + (rkMode ? "／" + MODE_NAME[rkMode] : "");
+  $("#rkNote").innerHTML = rkTab === "day"
+    ? "毎日 0時（日本時間）で区切ります。"
+    : rkTab === "week" ? "毎週 月曜 0時で区切ります。" : "毎月 1日 0時で区切ります。";
+  $("#rkNote").innerHTML += "　その回に出したなかで、<b>いちばん良いスコア</b>で競います。";
+
+  const rows = rankOf(rkTab, key, rkMode);
+  const me = myName();
+  $("#rkBody").innerHTML = rows.length
+    ? `<div class="scroll"><table><thead><tr><th class="n">順位</th><th>だれ</th>
+        <th class="n">スコア</th><th>モード</th><th class="n">回数</th><th>いつ</th>
+      </tr></thead><tbody>` + rows.map(r => `<tr class="${r.who===me?"rkme":""}">
+        <td class="n ${medal(r.pos)}">${r.pos}${r.tie?"T":""}</td>
+        <td>${esc(r.who)}${r.who===me?' <span class="tiny">(あなた)</span>':""}</td>
+        <td class="n"><b>${jp(r.score)}</b></td>
+        <td class="tiny">${esc(MODE_NAME[r.mode]||"—")}</td>
+        <td class="n tiny">${jp(r.n||1)}</td>
+        <td class="tiny">${new Date(r.at).toLocaleString("ja-JP")}</td></tr>`).join("")
+      + `</tbody></table></div>`
+    : `<p class="muted">この回は、まだ記録がありません。</p>`;
+  rkDrawCal();
+}
+function rkDrawCal(){
+  const now = new Date();
+  let [y,m] = jstYMD(now).split("-").map(Number);
+  m += rkCalShift; y += Math.floor((m-1)/12); m = ((m-1)%12+12)%12+1;
+  $("#rkCalM").textContent = `${y}年${m}月`;
+  const days = new Date(Date.UTC(y,m,0)).getUTCDate();
+  const head = new Date(Date.UTC(y,m-1,1)).getUTCDay();
+  const best = {};
+  allRuns().forEach(r => {
+    if(rkMode && r.mode !== rkMode) return;
+    const d = jstYMD(r.at);
+    if(best[d] == null || r.score > best[d]) best[d] = r.score;
+  });
+  const today = jstYMD(now);
+  let h = `<div class="rkhead">${["日","月","火","水","木","金","土"]
+    .map(d=>`<span>${d}</span>`).join("")}</div><div class="rkcal">`;
+  for(let i=0;i<head;i++) h += `<div class="blank"></div>`;
+  for(let d=1;d<=days;d++){
+    const key = `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const v = best[key];
+    h += `<div class="${v!=null?"hit":""}${key===today?" today":""}">
+      <span>${d}</span>${v!=null?`<b>${jp(v)}</b>`:""}</div>`;
+  }
+  $("#rkCal").innerHTML = h + `</div>`;
+}
+/** 歴代チャンピオン。優勝回数と出場回数のランキングも出します */
+function rkChampions(){
+  const kind = rkTab, keys = allKeys(kind, rkMode);
+  const champs = [], winN = {}, joinN = {};
+  keys.forEach((k,i) => {
+    const rows = rankOf(kind, k, rkMode);
+    if(!rows.length) return;
+    const top = rows.filter(r => r.pos === 1);
+    champs.push({ no:i+1, key:k, top });
+    top.forEach(t => { winN[t.who] = (winN[t.who]||0) + 1; });
+    rows.forEach(r => { joinN[r.who] = (joinN[r.who]||0) + 1; });
+  });
+  const board = (obj, unit) => {
+    const rows = Object.keys(obj).map(w => ({ who:w, n:obj[w] })).sort((a,b)=>b.n-a.n);
+    if(!rows.length) return `<p class="muted">まだありません。</p>`;
+    let pos=0, prev=null, same=0;
+    rows.forEach(r => { same++; if(prev===null||r.n!==prev){ pos=same; prev=r.n; } r.pos=pos; });
+    return `<div class="scroll" style="max-height:30vh"><table><thead><tr>
+      <th class="n">順位</th><th>だれ</th><th class="n">${unit}</th></tr></thead><tbody>`
+      + rows.map(r=>`<tr><td class="n ${medal(r.pos)}">${r.pos}</td>
+        <td>${esc(r.who)}</td><td class="n"><b>${jp(r.n)}</b></td></tr>`).join("")
+      + `</tbody></table></div>`;
+  };
+  modal(`<h2>歴代チャンピオン　${RK_NAME[kind]}${rkMode?"／"+MODE_NAME[rkMode]:""}</h2>
+    <p class="tiny">これまでに終わった回の、1位だった人の一覧です。</p>
+    <div class="scroll" style="max-height:38vh"><table><thead><tr>
+      <th class="n">回</th><th>いつ</th><th>チャンピオン</th><th class="n">スコア</th>
+    </tr></thead><tbody>${
+      champs.length ? champs.slice().reverse().map(c=>`<tr>
+        <td class="n rkgold">第${c.no}回</td><td class="tiny">${esc(rkLabel(kind,c.key))}</td>
+        <td>${c.top.map(t=>esc(t.who)).join("、")}</td>
+        <td class="n"><b>${jp(c.top[0].score)}</b></td></tr>`).join("")
+      : `<tr><td colspan="4" class="muted">まだ1回も終わっていません。</td></tr>`
+    }</tbody></table></div>
+    <div class="gsec">優勝回数ランキング</div>${board(winN,"優勝")}
+    <div class="gsec">出場回数ランキング</div>${board(joinN,"出場")}`, 640);
+}
+$("#btnRank").onclick = rkOpen;
+$("#rkClose").onclick = rkClose;
+$$("#rkTabs [data-rk]").forEach(b => b.onclick = () => { rkTab=b.dataset.rk; rkShift=0; rkDraw(); });
+$$("#rkModes [data-rm]").forEach(b => b.onclick = () => { rkMode=b.dataset.rm; rkDraw(); });
+$("#rkPrev").onclick = () => { rkShift--; rkDraw(); };
+$("#rkNext").onclick = () => { if(rkShift<0){ rkShift++; rkDraw(); } };
+$("#rkNow").onclick  = () => { rkShift=0; rkDraw(); };
+$("#rkChamp").onclick = rkChampions;
+$("#rkCalPrev").onclick = () => { rkCalShift--; rkDrawCal(); };
+$("#rkCalNext").onclick = () => { rkCalShift++; rkDrawCal(); };
+function drawCoin(){
+  const el = $("#homeCoin"); if(!el) return;
+  el.textContent = jp(coinPending());
+}
+function homeRank(){
+  drawCoin();
+  const el = $("#homeRankNow"); if(!el) return;
+  const parts = ["day","week","month"].map(k=>{
+    const rows = rankOf(k, shiftKey(k,0), "");
+    const me = rows.find(r=>r.who===myName());
+    return `${RK_NAME[k]} ${me?me.pos+"位（"+jp(me.score)+"点）":"まだ"}`;
+  });
+  el.textContent = parts.join("　／　");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8) かんたんなモーダル
+   ══════════════════════════════════════════════════════════════ */
+function modal(html, w){
+  const mask = document.createElement("div");
+  mask.className = "ppmask";
+  mask.style.cssText = "position:fixed;inset:0;z-index:210;background:rgba(4,7,14,.86);"
+    + "display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 14px";
+  const box = document.createElement("div");
+  box.className = "card";
+  box.style.cssText = `max-width:${w||560}px;width:100%;margin:0`;
+  box.innerHTML = html;
+  mask.appendChild(box);
+  document.body.appendChild(mask);
+  const api = {
+    q:s=>box.querySelector(s), qa:s=>[...box.querySelectorAll(s)],
+    close(){ if(api.onClose) api.onClose(); mask.remove(); }, onClose:null, box, mask
+  };
+  mask.addEventListener("click", e => { if(e.target === mask) api.close(); });
+  return api;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   9) 全体難易度調整（管理者だけ）
+   ══════════════════════════════════════════════════════════════ */
+let PV = null;
+const DF_ROWS = [
+  { k:"laneMs",  n:"部品が流れてくる間かく", min:200,  max:2500, step:50,  unit:"ms" },
+  { k:"fallMs",  n:"上から下まで流れる時間", min:1200, max:9000, step:100, unit:"ms" },
+  { k:"count",   n:"はじまる前にかぞえる数", min:0,    max:10,   step:1,   unit:"つ" },
+  { k:"sec.normal", n:"制限時間：通常モード",     min:15, max:300, step:5, unit:"秒" },
+  { k:"sec.help",   n:"制限時間：おたすけモード", min:15, max:300, step:5, unit:"秒" },
+  { k:"sec.rich",   n:"制限時間：素数大富豪モード", min:15, max:300, step:5, unit:"秒" },
+  { k:"thinkBase",     n:"博士が考える基本の時間",   min:0, max:3000, step:50, unit:"ms" },
+  { k:"thinkPerDigit", n:"博士が1桁ごとに増える時間", min:0, max:1200, step:20, unit:"ms" }
+];
+const dfGet = k => { DIFF = fixDiff(DIFF);
+  return k.indexOf(".")<0 ? DIFF[k] : DIFF[k.split(".")[0]][k.split(".")[1]]; };
+const dfSet = (k,v) => { if(k.indexOf(".")<0) DIFF[k]=v; else DIFF[k.split(".")[0]][k.split(".")[1]]=v; };
+function openDiff(){
+  if(!IS_ADMIN) return null;
+  const M = modal(`<h2>全体難易度調整</h2>
+    <p class="tiny">レーンの速さなどを決めます。管理者だけがさわれます。</p>
+    <div id="dfRows"></div>
+    <h3 style="margin-top:14px">プレビュー</h3>
+    <p class="tiny">いまの設定で、部品がどのくらいの速さで流れるかを見られます。</p>
+    <div id="dfPrev"><div class="lane"></div><div class="lane"></div><div class="lane"></div></div>
+    <p class="tiny" id="dfInfo" style="margin-top:6px"></p>
+    <div class="tools">
+      <button class="btn pp" id="dfSave">この設定で保存する</button>
+      <button class="btn" id="dfReset">はじめに戻す</button>
+      <button class="btn" id="dfClose">閉じる</button>
+    </div>`, 620);
+  const info = () => {
+    const per = 1000/DIFF.laneMs, alive = DIFF.fallMs/DIFF.laneMs;
+    M.q("#dfInfo").innerHTML =
+      `1秒あたり <b>${per.toFixed(1)}</b> 個　／　画面に出ている部品は だいたい <b>${alive.toFixed(1)}</b> 個　／　`
+      + `通常モード（${DIFF.sec.normal}秒）なら <b>${Math.round(DIFF.sec.normal*per)}</b> 個ながれます<br>`
+      + `18桁の数を調べる時間 <b>${((DIFF.thinkBase+DIFF.thinkPerDigit*18)/1000).toFixed(1)}</b> 秒`;
+  };
+  const draw = () => {
+    M.q("#dfRows").innerHTML = DF_ROWS.map(z=>`
+      <div style="margin-bottom:8px">
+        <div class="row" style="justify-content:space-between">
+          <span class="tiny">${esc(z.n)}</span>
+          <b class="tiny mono" data-dv="${z.k}">${dfGet(z.k)}${z.unit}</b></div>
+        <input type="range" data-df="${z.k}" min="${z.min}" max="${z.max}" step="${z.step}"
+          value="${dfGet(z.k)}"></div>`).join("");
+    M.qa("[data-df]").forEach(r => r.oninput = () => {
+      dfSet(r.dataset.df, +r.value);
+      const z = DF_ROWS.find(x=>x.k===r.dataset.df);
+      const lab = M.q(`[data-dv="${r.dataset.df}"]`);
+      if(lab) lab.textContent = r.value + z.unit;
+      info(); restartPreview(M);
+    });
+    info();
+  };
+  M.q("#dfSave").onclick  = () => { saveDiff();
+    admOut("むずかしさを保存しました。\n" + DF_ROWS.map(z=>`・${z.n}：${dfGet(z.k)}${z.unit}`).join("\n"));
+    stopPreview(); M.close(); };
+  M.q("#dfReset").onclick = () => { DIFF = JSON.parse(JSON.stringify(DIFF_DEF)); draw(); restartPreview(M); };
+  M.q("#dfClose").onclick = () => { stopPreview(); M.close(); };
+  M.onClose = stopPreview;
+  draw();
+  restartPreview(M);
+  return M;
+}
+function stopPreview(){
+  if(!PV) return;
+  clearInterval(PV.t); cancelAnimationFrame(PV.raf); PV = null;
+}
+function restartPreview(M){
+  stopPreview();
+  const box = M.q("#dfPrev");
+  if(!box) return;
+  box.querySelectorAll(".pvpart").forEach(e=>e.remove());
+  PV = { parts:[], raf:0, t:0, box };
+  const add = () => {
+    if(!PV) return;
+    const li = rnd(3);
+    const el = document.createElement("div");
+    el.className = "pvpart";
+    el.textContent = partLabel(newPart("normal"));
+    el.style.top = "-32px";
+    box.children[li].appendChild(el);
+    PV.parts.push({ el, born:performance.now() });
+  };
+  PV.t = setInterval(add, DIFF.laneMs);
+  add();
+  const loop = () => {
+    if(!PV) return;
+    const now = performance.now(), h = box.clientHeight || 150;
+    for(let i=PV.parts.length-1;i>=0;i--){
+      const p = PV.parts[i];
+      const r = (now - p.born)/DIFF.fallMs;
+      if(r>=1){ p.el.remove(); PV.parts.splice(i,1); continue; }
+      p.el.style.top = (r*(h+32)-32) + "px";
+    }
+    PV.raf = requestAnimationFrame(loop);
+  };
+  PV.raf = requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10) ストーリー編集（管理者）
+   ══════════════════════════════════════════════════════════════ */
+let edId="tutorial", edSel=0;
+const edStory = () => STORIES[edId];
+function edOpen(){
+  if(!IS_ADMIN) return;
+  $("#home").classList.add("hidden");
+  $("#editor").classList.remove("hidden");
+  edDrawPick(); edDrawChars(); edDrawList(); edDrawForm();
+}
+function edClose(){ $("#editor").classList.add("hidden"); $("#home").classList.remove("hidden"); }
+function edMsg(t, ok){
+  const e = $("#edMsg");
+  e.textContent = t; e.style.color = ok===false ? "var(--bad)" : "var(--acc2)";
+  clearTimeout(edMsg._t); edMsg._t = setTimeout(()=>{ e.textContent=""; }, 2600);
+}
+function edDrawPick(){
+  $("#edPick").innerHTML = Object.keys(STORIES).map(k =>
+    `<option value="${esc(k)}" ${k===edId?"selected":""}>${esc(STORIES[k].title||k)}（${esc(k)}）</option>`).join("");
+}
+function edDrawChars(){
+  const ch = edStory().chars || {};
+  $("#edChars").innerHTML = Object.keys(ch).map(k => `
+    <div class="row" style="margin-bottom:6px">
+      <span class="chip mono">${esc(k)}</span>
+      <input type="text" class="txt" data-cn="${esc(k)}" value="${esc(ch[k].name||"")}"
+        placeholder="名前" style="max-width:180px">
+      <input type="color" data-cc="${esc(k)}" value="${esc(ch[k].color||"#c08bff")}"
+        style="width:44px;height:32px;border:1px solid var(--line);border-radius:8px;background:#0a1020">
+      <select class="txt" data-ck="${esc(k)}" style="max-width:160px">
+        <option value="cube" ${(ch[k].kind||"cube")==="cube"?"selected":""}>立方体で出す</option>
+        <option value="dog"  ${ch[k].kind==="dog"?"selected":""}>Prime Dog で出す</option>
+        <option value="none" ${ch[k].kind==="none"?"selected":""}>すがたは出さない</option>
+      </select>
+      ${k==="hakase"?"":`<button class="btn sm" data-cd="${esc(k)}">消す</button>`}
+    </div>`).join("");
+  $$("#edChars [data-cn]").forEach(i => i.oninput  = () => { ch[i.dataset.cn].name = i.value; });
+  $$("#edChars [data-cc]").forEach(i => i.oninput  = () => { ch[i.dataset.cc].color = i.value; });
+  $$("#edChars [data-ck]").forEach(i => i.onchange = () => { ch[i.dataset.ck].kind = i.value; });
+  $$("#edChars [data-cd]").forEach(b => b.onclick  = () => { delete ch[b.dataset.cd]; edDrawChars(); edDrawForm(); });
+}
+function edDrawList(){
+  const st = edStory(), lines = st.lines || [];
+  $("#edCount").textContent = lines.length + " 行";
+  $("#edList").innerHTML = lines.map((L,i)=>{
+    const ch = (st.chars||{})[L.who] || {};
+    const tags = [];
+    if(L.face) tags.push("かお:"+L.face);
+    if(L.pos)  tags.push("位置:"+L.pos);
+    if(L.bg)   tags.push("背景:"+L.bg);
+    if(L.shake)tags.push("ゆれる");
+    if(L.jump) tags.push("はねる");
+    if(L.flash)tags.push("ひかる");
+    if(L.emote)tags.push("しるし:"+L.emote);
+    if(L.focus)tags.push("注目:"+L.focus);
+    if(+L.wait)tags.push("自動:"+L.wait+"ms");
+    return `<div class="edrow ${i===edSel?"sel":""}" data-ed="${i}">
+      <div class="hd"><span class="no">${i+1}</span>
+        <b style="color:${esc(ch.color||"#c08bff")}">${esc(L.name||ch.name||L.who||"？")}</b>
+        ${tags.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>
+      <div class="pv">${esc(L.text||"")}</div></div>`;
+  }).join("") || '<p class="muted">まだ1行もありません。</p>';
+  $$("#edList [data-ed]").forEach(d => d.onclick = () => { edSel=+d.dataset.ed; edDrawList(); edDrawForm(); });
+}
+function edDrawForm(){
+  const st = edStory(), L = (st.lines||[])[edSel];
+  $("#edNone").classList.toggle("hidden", !!L);
+  $("#edFields").classList.toggle("hidden", !L);
+  if(!L) return;
+  $("#fWho").innerHTML = Object.keys(st.chars||{}).map(k =>
+    `<option value="${esc(k)}" ${k===L.who?"selected":""}>${esc(st.chars[k].name||k)}</option>`).join("");
+  $("#fName").value=L.name||""; $("#fText").value=L.text||"";
+  $("#fShake").checked=!!L.shake; $("#fJump").checked=!!L.jump; $("#fFlash").checked=!!L.flash;
+  $("#fFace").value=L.face||""; $("#fPos").value=L.pos||""; $("#fBg").value=L.bg||"";
+  $("#fEmote").value=L.emote||"";
+  $("#fSpd").value=(L.spd==null?"":L.spd); $("#fWait").value=(L.wait==null?"":L.wait);
+  $("#fFocus").value=L.focus||"";
+}
+function edPull(){
+  const L = (edStory().lines||[])[edSel];
+  if(!L) return;
+  L.who=$("#fWho").value;
+  L.name=$("#fName").value.trim()||undefined;
+  L.text=$("#fText").value;
+  L.shake=$("#fShake").checked||undefined;
+  L.jump=$("#fJump").checked||undefined;
+  L.flash=$("#fFlash").checked||undefined;
+  L.face=$("#fFace").value||undefined;
+  L.pos=$("#fPos").value||undefined;
+  L.bg=$("#fBg").value||undefined;
+  L.emote=$("#fEmote").value||undefined;
+  L.spd=$("#fSpd").value===""?undefined:+$("#fSpd").value;
+  L.wait=$("#fWait").value===""?undefined:+$("#fWait").value;
+  L.focus=$("#fFocus").value.trim()||undefined;
+  edDrawList();
+}
+["fWho","fName","fText","fShake","fJump","fFlash","fFace","fPos","fBg","fEmote","fSpd","fWait","fFocus"]
+  .forEach(id => { const e=$("#"+id); e.addEventListener("input",edPull); e.addEventListener("change",edPull); });
+$("#edPick").onchange = () => { edId=$("#edPick").value; edSel=0; edDrawChars(); edDrawList(); edDrawForm(); };
+$("#edClose").onclick = edClose;
+$("#edAdd").onclick = () => {
+  const st=edStory(); st.lines=st.lines||[];
+  st.lines.splice(edSel+1,0,{ who:Object.keys(st.chars||{})[0]||"hakase", text:"" });
+  edSel=Math.min(edSel+1, st.lines.length-1); edDrawList(); edDrawForm();
+};
+$("#edDup").onclick = () => {
+  const st=edStory(), L=(st.lines||[])[edSel];
+  if(!L) return;
+  st.lines.splice(edSel+1,0,JSON.parse(JSON.stringify(L))); edSel++; edDrawList(); edDrawForm();
+};
+$("#edDel").onclick = () => {
+  const st=edStory();
+  if(!(st.lines||[]).length) return;
+  st.lines.splice(edSel,1); edSel=clamp(edSel,0,Math.max(0,st.lines.length-1));
+  edDrawList(); edDrawForm();
+};
+$("#edUp").onclick = () => {
+  const st=edStory(); if(edSel<=0) return;
+  [st.lines[edSel-1],st.lines[edSel]]=[st.lines[edSel],st.lines[edSel-1]]; edSel--; edDrawList(); edDrawForm();
+};
+$("#edDown").onclick = () => {
+  const st=edStory(); if(edSel>=st.lines.length-1) return;
+  [st.lines[edSel+1],st.lines[edSel]]=[st.lines[edSel],st.lines[edSel+1]]; edSel++; edDrawList(); edDrawForm();
+};
+$("#edAddChar").onclick = () => {
+  const key = prompt("目印を英数字で（例：staff）","staff");
+  if(!key) return;
+  const st=edStory(); st.chars=st.chars||{};
+  if(st.chars[key]) return edMsg("その目印はもう使われています", false);
+  st.chars[key]={name:key,color:"#5ee6a8",kind:"cube"}; edDrawChars(); edDrawForm();
+};
+$("#edNewSc").onclick = () => {
+  const key = prompt("台本の目印を英数字で（例：ending）","story2");
+  if(!key) return;
+  if(STORIES[key]) return edMsg("その目印はもう使われています", false);
+  STORIES[key]={id:key,title:key,chars:{hakase:{name:"立方体博士",color:"#c08bff",kind:"cube"}},lines:[]};
+  edId=key; edSel=0; edDrawPick(); edDrawChars(); edDrawList(); edDrawForm();
+};
+$("#edDelSc").onclick = () => {
+  if(edId==="tutorial") return edMsg("チュートリアルは消せません", false);
+  if(!confirm("この台本を消しますか？")) return;
+  delete STORIES[edId]; edId="tutorial"; edSel=0;
+  edDrawPick(); edDrawChars(); edDrawList(); edDrawForm();
+};
+$("#edSave").onclick = () => { saveStories(); edMsg("保存しました"); };
+$("#edExport").onclick = async () => {
+  const t = JSON.stringify(STORIES,null,2);
+  try{ await navigator.clipboard.writeText(t); edMsg("コピーしました（"+t.length+"文字）"); }
+  catch(e){ prompt("この中身をコピーしてください", t); }
+};
+$("#edImport").onclick = () => {
+  const t = prompt("書き出した中身を貼り付けてください");
+  if(!t) return;
+  try{
+    const o = JSON.parse(t);
+    if(!o || typeof o !== "object") throw new Error("形がちがいます");
+    STORIES = o; saveStories();
+    edId = STORIES.tutorial ? "tutorial" : Object.keys(STORIES)[0];
+    edSel = 0; edDrawPick(); edDrawChars(); edDrawList(); edDrawForm(); edMsg("読みこみました");
+  }catch(e){ edMsg("読みこめませんでした："+e.message, false); }
+};
+async function edPreview(from){
+  const st = edStory();
+  if(!(st.lines||[]).length) return edMsg("行がありません", false);
+  $("#editor").classList.add("hidden");
+  setupGame("help", true);
+  await playStory(st, from);
+  leaveGame();
+  $("#home").classList.add("hidden");
+  $("#editor").classList.remove("hidden");
+}
+$("#edPlayAll").onclick  = () => edPreview(0);
+$("#edPlayHere").onclick = () => edPreview(edSel);
+
+/* ══════════════════════════════════════════════════════════════
+   11) 管理者メニュー
+   ══════════════════════════════════════════════════════════════ */
+function admOut(t){ const b=$("#admOut"); b.classList.remove("hidden"); b.textContent=t; }
+function admSync(){
+  $("#admCard").classList.toggle("hidden", !IS_ADMIN);
+  $("#admOff").classList.toggle("hidden", IS_ADMIN);
+  $("#admOn").checked = IS_ADMIN;
+}
+$("#admOn").onchange  = () => { IS_ADMIN = $("#admOn").checked; LS.set(K_ADMIN, IS_ADMIN); admSync(); };
+$("#admBack").onclick = () => { IS_ADMIN = true; LS.set(K_ADMIN, true); admSync(); };
+$("#btnEdit").onclick = edOpen;
+$("#btnDiff").onclick = openDiff;
+/** ランキングの見た目をたしかめるための、にせの記録 */
+$("#btnSeed").onclick = () => {
+  const who = ["みかん","りんご","素数博士","ぶどう","syuuto"];
+  const modes = ["normal","help","rich"];
+  const log = LS.get(K_LOG, []);
+  const now = Date.now();
+  for(let d=0; d<70; d++){
+    const n = 1 + rnd(4);
+    for(let i=0;i<n;i++){
+      log.push({ at: now - d*86400000 - rnd(20)*3600000,
+        who: who[rnd(who.length)], mode: modes[rnd(modes.length)],
+        score: rnd(3000) - 200, ok: rnd(6), ng: rnd(4), dump: rnd(5), fake:true });
+    }
+  }
+  log.sort((a,b)=>b.at-a.at);
+  LS.set(K_LOG, log.slice(0,500));
+  drawHomeLog(); homeRank();
+  admOut("お試しの記録を入れました。ランキングを見てみてください。\n"
+    + "（「お試しデータを消す」で元に戻せます）");
+  $("#btnSeed").textContent = "お試しデータを消す";
+  $("#btnSeed").onclick = () => {
+    LS.set(K_LOG, (LS.get(K_LOG,[])||[]).filter(x=>!x.fake));
+    drawHomeLog(); homeRank(); admOut("お試しの記録を消しました。");
+    location.reload();
+  };
+};
+$("#btnResetTuto").onclick = () => {
+  const seen = LS.get(K_SEEN,{}); delete seen.tutorial; LS.set(K_SEEN,seen);
+  admOut("チュートリアルを「未読」に戻しました。");
+};
+admSync();
+
+/* ══════════════════════════════════════════════════════════════
+   12) 自己点検
+   ══════════════════════════════════════════════════════════════ */
+function selfTest(){
+  const out=[], ng=[];
+  const eq=(name,got,want)=>{
+    const ok = String(got)===String(want);
+    out.push(`${ok?"○":"×"} ${name}　→ ${got}${ok?"":"（ほしかったのは "+want+"）"}`);
+    if(!ok) ng.push(name);
+  };
+  eq("1729 の点", primeScore("1729"), 27);
+  eq("9973 の点", primeScore("9973"), 243);
+  eq("2 の点",    primeScore("2"),    2);
+  eq("減点（4桁）", missScore("1729"), 40);
+  eq("2 は素数",   isPrime(2n), true);
+  eq("1 は素数でない", isPrime(1n), false);
+  eq("1729 は素数でない", isPrime(1729n), false);
+  eq("9973 は素数", isPrime(9973n), true);
+  eq("999999999999999989 は素数", isPrime(999999999999999989n), true);
+  eq("1729 の正体", factorText(factorize(1729n)), "7 × 13 × 19");
+  eq("360 の正体",  factorText(factorize(360n)),  "2^3 × 3^2 × 5");
+  eq("500 に ＋37", applyPart(500n,{kind:"add",n:37}), 537n);
+  eq("500 に ×7",   applyPart(500n,{kind:"mul",n:7}),  3500n);
+  eq("500 の前に 1", applyPart(500n,{kind:"card",n:1},"front"), 1500n);
+  eq("500 の後ろに 1", applyPart(500n,{kind:"card",n:1},"back"),  5001n);
+  /* 素数大富豪 */
+  eq("A Q → 112",        richStr([1,12]),      "112");
+  eq("5 K 2 J → 513211", richStr([5,13,2,11]), "513211");
+  eq("A のしるし",  cardLabel(1),  "A");
+  eq("J のしるし",  cardLabel(11), "J");
+  eq("Q のしるし",  cardLabel(12), "Q");
+  eq("K のしるし",  cardLabel(13), "K");
+  eq("10 のしるし", cardLabel(10), "10");
+  eq("大富豪で1のカードは出ない", RICH_VALUES.filter(v=>v===1).map(cardLabel).join(""), "A");
+  /* Prime Dog */
+  eq("21 は3の倍数",       dogLine(21n).text,    "それは3の倍数な気がするワン");
+  eq("1729 は7の倍数",     dogLine(1729n).text,  "それは7の倍数な気がするワン");
+  eq("9973 は素数（4桁）", dogLine(9973n).text,  "これは素数だワン！");
+  eq("97 は素数",          dogLine(97n).text,    "これは素数だワン！");
+  eq("10007 は分からない", dogLine(10007n).text, "素数かもしれないワン…？");
+  eq("1 は素数じゃない",   dogLine(1n).text,     "1は素数じゃないワン");
+  /* ストック */
+  eq("通常のストック",   STOCK_N.normal, 4);
+  eq("おたすけのストック", STOCK_N.help,   4);
+  eq("大富豪のストック",  STOCK_N.rich,   6);
+  /* 台本 */
+  const st = STORIES.tutorial;
+  eq("チュートリアルの行数が1以上", (st.lines||[]).length>0, true);
+  eq("いない人が話していない", (st.lines||[]).filter(L=>!st.chars[L.who]).length, 0);
+  eq("注目させる場所がすべて実在する",
+     (st.lines||[]).filter(L=>L.focus&&!document.querySelector(L.focus)).length, 0);
+  admOut((ng.length ? "× "+ng.length+" 件おかしいところがあります\n\n" : "○ ぜんぶ合っています\n\n")+out.join("\n"));
+  return ng;
+}
+$("#btnSelfTest").onclick = selfTest;
+
+/* さいごに、ホームのランキング表示を出します（下で作った関数を使うため） */
+try{ homeRank(); }catch(e){}
+
+/* テストから触れるように */
+window.PP = {
+  isPrime, factorize, factorText, primeScore, missScore, applyPart, dogLine,
+  richStr, richBig, richLen, cardLabel, cubeSVG, dogSVG, MAX_DIGITS, STOCK_N, MODE_NAME,
+  RICH_VALUES, playStory, STORIES, selfTest, startGame, stopGame, leaveGame, openModes, openDiff,
+  submitNum, dumpNum, useStock, usePart, finishDrag, dropAt, dragStart, spawnPart, grabLowest,
+  timeUp, showResult, newPart, partLabel, modal, drawNum, drawStock, buildStock, toStock,
+  get G(){ return G; }, get ST(){ return ST; }, get DIFF(){ return DIFF; },
+  set DIFF(v){ DIFF = fixDiff(v); }, fixDiff,
+  get IS_ADMIN(){ return IS_ADMIN; }, set IS_ADMIN(v){ IS_ADMIN = v; admSync(); },
+  setupGame, secOf, periodKey, shiftKey, rankOf, allKeys, rkOpen, rkDraw, rkChampions,
+  moveCard, drawHand, tutorStart, tutorHit, tutorStop, homeRank, myName,
+  lowestPart, drawLaneBtns, tutorSupply, coinEarn, coinPending, drawCoin,
+  get TUTOR(){ return TUTOR; },
+  KEYS:{ K_STORY, K_SEEN, K_LOG, K_DIFF, K_ADMIN, K_NAME }
+};
+</script>
+</body>
+</html>
