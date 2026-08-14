@@ -681,6 +681,32 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
 .mbtn.alert{animation:mblink 1.6s ease-in-out infinite}
 @keyframes mblink{0%,100%{opacity:1}50%{opacity:.45}}
+/* あなたの軌跡 */
+#hsLock{position:fixed;inset:0;z-index:9999;background:rgba(6,10,20,.97);display:none;
+  align-items:center;justify-content:center}
+#hsLock.on{display:flex}
+.hslockin{text-align:center}
+.hsbig{font-size:1.25rem;font-weight:900;letter-spacing:.1em;margin-top:16px;color:var(--acc2)}
+.hsring{width:96px;height:96px;border-radius:50%;position:relative;margin:0 auto}
+.hsring span{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+.hsring span:nth-child(1){border-top-color:var(--acc2);animation:hsr 1s linear infinite}
+.hsring span:nth-child(2){inset:12px;border-right-color:var(--acc);animation:hsr 1.6s linear infinite reverse}
+.hsring span:nth-child(3){inset:24px;border-bottom-color:var(--warn);animation:hsr 2.2s linear infinite}
+@keyframes hsr{to{transform:rotate(360deg)}}
+.hschart{width:100%;display:block;overflow:visible}
+.hschart .ax{stroke:var(--line);stroke-width:1}
+.hschart .gr{stroke:#1b2740;stroke-dasharray:2 3}
+.hschart .ln{fill:none;stroke:var(--acc2);stroke-width:2;stroke-linejoin:round}
+.hschart .ln2{fill:none;stroke:var(--warn);stroke-width:2;stroke-dasharray:5 4}
+.hschart .ar{fill:#5ee6a814}
+.hschart .dt{fill:var(--acc2)}
+.hschart .dt.fill{fill:#2c5f8a}
+.hschart text{fill:var(--dim2);font-size:9px;font-family:ui-monospace,Menlo,monospace}
+.hschart text.v{fill:var(--tx);font-size:9.5px}
+.hslegend{display:flex;gap:14px;flex-wrap:wrap;font-size:.7rem;color:var(--dim);margin-top:6px}
+.hslegend i{display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:4px;
+  vertical-align:middle}
+.hsnone{color:var(--dim2)}
 /* Prime Park へのボタン */
 a.btn.ppbtn{margin-left:6px;text-decoration:none;display:inline-flex;align-items:center;
   border-color:#c08bff;color:#e6d4ff;font-weight:800;letter-spacing:.04em;
@@ -799,6 +825,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   <div class="grp" data-g="tool"><div class="ghead">ツール</div>
     <button data-tab="plan">プラン</button>
     <button data-tab="analysis">分析</button>
+    <button data-tab="hist">あなたの軌跡</button>
     <button data-tab="ls">LSやりこみ</button></div>
   <div class="grp" data-g="sns"><div class="ghead">Prime SNS</div>
     <button data-tab="sns">Prime SNS</button></div>
@@ -806,6 +833,14 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <button data-tab="settings">設定</button>
     <button data-tab="help">ヘルプ</button></div>
 </nav>
+
+<div id="hsLock">
+  <div class="hslockin">
+    <div class="hsring"><span></span><span></span><span></span></div>
+    <div class="hsbig">データを書き込んでいます。</div>
+    <div class="tiny" id="hsLockSub">日付が変わったので、きょうまでの記録を残しています…</div>
+  </div>
+</div>
 
 <div id="updBanner" class="banner" hidden style="background:#12351f;border-color:#2c7a4b">
   <span id="updMsg"></span>
@@ -1455,6 +1490,49 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 </section>
 
+<section id="hist" hidden>
+  <div class="card">
+    <h2>あなたの軌跡</h2>
+    <p class="muted" style="margin-top:-8px">毎日のデータを残して、伸びかたを見られるようにしています。</p>
+    <div id="histTop"></div>
+    <div class="tools">
+      <button class="btn sm" id="hsSave">いまのデータを今日ぶんとして残す</button>
+      <button class="btn sm" id="hsSync">クラウドとそろえる</button>
+      <span class="tiny" id="hsMsg"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>グラフ</h2>
+    <div class="frow">
+      <div><label class="fl" for="hsPick">なにを見るか</label>
+        <select id="hsPick" class="txt"></select></div>
+      <div><label class="fl" for="hsMon">月</label>
+        <select id="hsMon" class="txt"></select></div>
+    </div>
+    <div class="tools" style="margin-top:6px">
+      <button class="btn sm" id="hsPrevM">◀ 前の月</button>
+      <button class="btn sm" id="hsNextM">次の月 ▶</button>
+      <label class="pk"><input type="checkbox" id="hsFill" checked> 入力のない日をおぎなう</label>
+      <label class="pk"><input type="checkbox" id="hsPred"> 予測を出す</label>
+    </div>
+    <div id="hsChart" style="margin-top:12px"></div>
+    <div id="hsList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2>予測</h2>
+    <p class="muted" style="margin-top:-8px">「スコアの累積」と「生成した乱数の累積」だけ、
+      これまでの伸びかたから先を見積もります。</p>
+    <div id="hsPredBox"></div>
+  </div>
+
+  <div class="card">
+    <h2>ぜんぶの記録</h2>
+    <div id="hsAll"></div>
+  </div>
+</section>
+
 <section id="card" hidden>
   <div class="card">
     <h2>プロフィールカード</h2>
@@ -1545,6 +1623,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="syncBtn">今すぐ同期する</button>
       <button class="btn" id="recBk">記録を元に戻す</button>
+      <button class="btn" id="undoBk">同期で入れかわったデータを戻す</button>
       <span class="tiny" id="syncNow2">—</span>
     </div>
     <p class="tiny" id="syncWhat" style="margin-top:8px"></p>
@@ -1684,7 +1763,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v81";
+const APP_VERSION = "v82";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2505,6 +2584,7 @@ const ST_KEYS=[
   "sa-autopost-v1","sa-tagwatch-v1",
   "pp-seen-v1",       /* Prime Park：チュートリアルを見たか */
   "pp-story-v1",      /* Prime Park：ストーリーの台本 */
+  "sa-hist-v1",       /* あなたの軌跡（毎日のデータ） */
 ];
 const ST_MAX=150000;
 /* 中身が消えると困るもの。空っぽで上書きされないように見張ります */
@@ -2537,6 +2617,130 @@ function stKeepMine(k,next){
     return false;
   }
   return true;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ★ データを絶対に消さないための、3つのまもり
+   ① 書きかわる前の中身を、この端末に必ず控えます（sa-undo-v1）
+   ② まだ送れていない変更があるのに、ちがう中身が届いたときは
+      勝手に入れかえず、「どちらを残すか」を聞きます
+   ③ サーバー側にも入れかわる前の中身が30個ぶん残ります
+   ══════════════════════════════════════════════════════════════ */
+const K_UNDO="sa-undo-v1";
+/** 書きかわる前の中身を控えます（同期はしません。この端末だけのものです） */
+function stKeep(k, before){
+  if(before==null) return;
+  try{
+    const q=JSON.parse(localStorage.getItem(K_UNDO)||"[]")||[];
+    const last=q.find(x=>x.k===k);
+    if(last && last.v===before) return;          /* 同じものは重ねません */
+    q.unshift({ k, v:before, at:Date.now() });
+    /* 1つのキーにつき5個まで、ぜんぶで60個まで */
+    const cnt={}; const keep=[];
+    for(const x of q){
+      cnt[x.k]=(cnt[x.k]||0)+1;
+      if(cnt[x.k]<=5) keep.push(x);
+      if(keep.length>=60) break;
+    }
+    localStorage.setItem(K_UNDO, JSON.stringify(keep));
+  }catch(e){}
+}
+const stUndoList=()=>{ try{ return JSON.parse(localStorage.getItem(K_UNDO)||"[]")||[]; }catch(e){ return []; } };
+
+/** まだ送れていない変更があるキーで、ちがう中身が届いたときの「食いちがい」 */
+let ST_CONFLICT=[];
+function stConflict(k, mine, theirs, at){
+  if(ST_CONFLICT.some(c=>c.k===k)) return;
+  ST_CONFLICT.push({ k, mine, theirs, at });
+  stConflictBanner();
+}
+const ST_LABEL={
+  "sa-rec-v3":"個人データ（記録）", "sa-pro-v3":"プロフィール", "sa-fr-v3":"フレンド",
+  "sa-times-v1":"種目ごとの時刻", "sa-baseline-v1":"はじめの記録",
+  "sa-mymax-v1":"自己ベスト", "sa-claim-v1":"世界記録の申請",
+  "sa-ls-v1":"LSやりこみの設定", "sa-lslog-v1":"やりこみ記録",
+  "sa-lsall-v1":"やりこみの通算", "sa-lsbase-v1":"やりこみの基準",
+  "sa-lsb-v1":"やりこみの基準B", "sa-autopost-v1":"自動投稿の設定",
+  "sa-tagwatch-v1":"タグの見はり",
+  "sa-hakone-v1":"箱根駅伝の進みぐあい", "sa-hakonelog-v1":"箱根駅伝の軌跡",
+  "pp-seen-v1":"Prime Park のチュートリアル", "pp-story-v1":"Prime Park の台本",
+  "sa-hist-v1":"あなたの軌跡"
+};
+const stName=k=>ST_LABEL[k]||k;
+function stConflictBanner(){
+  let b=document.getElementById("stConf");
+  if(!ST_CONFLICT.length){ if(b) b.remove(); return; }
+  if(!b){
+    b=document.createElement("div");
+    b.id="stConf"; b.className="banner";
+    b.style.cssText="background:#3a2a10;border-color:var(--warn);color:var(--warn)";
+    const top=document.querySelector(".wrap");
+    if(top) top.insertBefore(b, top.firstChild); else document.body.appendChild(b);
+  }
+  b.innerHTML=`<b>データの食いちがいがあります</b>　`
+    +`ほかの端末のデータが、この端末のものと違います。`
+    +`かってに入れかえていません。<br>`
+    +`<span class="tiny">${ST_CONFLICT.map(c=>esc(stName(c.k))).join("・")}</span>　`
+    +`<button class="btn sm" id="stConfGo">どちらを残すか選ぶ</button>`;
+  const g=document.getElementById("stConfGo");
+  if(g) g.onclick=stConflictPick;
+}
+/** どちらを残すかを、1つずつ選んでもらいます */
+function stConflictPick(){
+  if(!ST_CONFLICT.length) return;
+  const rows=ST_CONFLICT.map((c,i)=>{
+    const mi=stSize(c.mine), th=stSize(c.theirs);
+    return `<div class="lockbox" style="margin-bottom:8px">
+      <b>${esc(stName(c.k))}</b>
+      <div class="scroll" style="max-height:none;border:0"><table><tbody>
+        <tr><td>この端末</td><td class="tiny">${esc(mi)}</td>
+          <td><button class="btn sm pri" data-cm="${i}">こちらを残す</button></td></tr>
+        <tr><td>ほかの端末</td><td class="tiny">${esc(th)}
+          <br><span style="color:var(--dim2)">${esc(jstFull(new Date(c.at).toISOString()))}</span></td>
+          <td><button class="btn sm" data-ct="${i}">こちらを残す</button></td></tr>
+      </tbody></table></div></div>`;
+  }).join("");
+  const M=modal(`<h2>どちらのデータを残しますか？</h2>
+    <p class="tiny">別々の端末で、同じところを直したときに出ます。
+      えらばなかったほうは「同期の控え」に残るので、あとから戻せます。</p>
+    ${rows}
+    <div class="tools"><button class="btn" id="cfAllMine">ぜんぶこの端末を残す</button>
+      <button class="btn" id="cfX">あとで決める</button></div>`,{w:640});
+  const take=(i,which)=>{
+    const c=ST_CONFLICT[i]; if(!c) return;
+    stKeep(c.k, which==="mine" ? c.theirs : c.mine);
+    if(which==="theirs"){
+      localStorage.setItem(c.k, c.theirs);
+      stStamp[c.k]=c.at;
+    }else{
+      stStamp[c.k]=Date.now();          /* この端末のものを、新しいものとして送ります */
+    }
+    ST_CONFLICT.splice(i,1);
+    stSaveAt(); stScan(true); stReload(true); stConflictBanner();
+    M.close();
+    if(ST_CONFLICT.length) setTimeout(stConflictPick,150);
+    else { toast("えらんだほうを残しました"); stSync(); }
+  };
+  M.qa("[data-cm]").forEach(b=>b.onclick=()=>take(+b.dataset.cm,"mine"));
+  M.qa("[data-ct]").forEach(b=>b.onclick=()=>take(+b.dataset.ct,"theirs"));
+  M.q("#cfAllMine").onclick=()=>{
+    ST_CONFLICT.forEach(c=>{ stKeep(c.k,c.theirs); stStamp[c.k]=Date.now(); });
+    ST_CONFLICT=[]; stSaveAt(); stConflictBanner(); M.close(); toast("この端末のものを残しました"); stSync();
+  };
+  M.q("#cfX").onclick=()=>M.close();
+}
+/** 中身のあらましを、みじかい言葉にします */
+function stSize(raw){
+  if(raw==null) return "（なし）";
+  try{
+    const v=JSON.parse(raw);
+    if(Array.isArray(v)) return `${v.length} 件`;
+    if(v&&typeof v==="object"){
+      const ks=Object.keys(v).filter(k=>v[k]!=null&&v[k]!==""&&v[k]!==0);
+      return `${ks.length} 項目　${ks.slice(0,4).join("・")}${ks.length>4?"…":""}`;
+    }
+    return String(v).slice(0,40);
+  }catch(e){ return String(raw).slice(0,40); }
 }
 /** そろえるもの＝もともとの一覧＋追加の道具が足したもの */
 const ST_ALL=()=>ST_KEYS.concat(EXT.keys||[]);      /* 1つが大きすぎるものは送りません */
@@ -2598,6 +2802,7 @@ function stMark(t){
 async function stStart(){
   if(!stCan()||stReady) return;
   stMark("同期中…");
+  const stSince0=stSince;         /* いままでに送れているところ */
   try{
     const got=await callRpc("state_get",{p_since:0},[["p_since"]]);
     let changed=false;
@@ -2606,8 +2811,15 @@ async function stStart(){
       const e=got[k]||{}, at=+e.at||0;
       if(typeof e.v!=="string") return;
       if(at>stSince) stSince=at;
-      if(at>(stStamp[k]||0)&&stKeepMine(k,e.v)){
-        localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
+      if(at<=(stStamp[k]||0)) return;
+      if(!stKeepMine(k,e.v)) return;
+      const mine=localStorage.getItem(k);
+      /* この端末にしかない中身があるのに、ちがうものが届いたら、勝手に入れかえません */
+      if(mine!=null && mine!==e.v && !stEmpty(mine) && (stStamp[k]||0)>stSince0){
+        stConflict(k, mine, e.v, at); return;
+      }
+      stKeep(k, mine);
+      localStorage.setItem(k,e.v); stStamp[k]=at; changed=true;
     });
     /* この端末にしかないものは、いまの時刻をつけて送ります */
     ST_ALL().forEach(k=>{
@@ -2652,13 +2864,21 @@ async function stSync(showToast){
 function stApply(got){
   if(!got||typeof got!=="object") return;
   let changed=false, top=stSince;
+  const since0=stSince;
   Object.keys(got).forEach(k=>{
     if(ST_ALL().indexOf(k)<0) return;
     const e=got[k]||{}, at=+e.at||0;
     if(at>top) top=at;
     if(typeof e.v!=="string") return;
-    if(at>(stStamp[k]||0)&&stKeepMine(k,e.v)){
-      localStorage.setItem(k,e.v); stStamp[k]=at; changed=true; }
+    if(at<=(stStamp[k]||0)) return;
+    if(!stKeepMine(k,e.v)) return;
+    const mine=localStorage.getItem(k);
+    /* まだ送れていない変更があるのに、ちがうものが届いたら、勝手に入れかえません */
+    if(mine!=null && mine!==e.v && !stEmpty(mine) && (stStamp[k]||0)>since0){
+      stConflict(k, mine, e.v, at); return;
+    }
+    stKeep(k, mine);
+    localStorage.setItem(k,e.v); stStamp[k]=at; changed=true;
   });
   stSince=Math.max(top,stSince);
   stSaveAt();
@@ -2745,6 +2965,51 @@ async function showRecBackups(){
       fillInputs(); render(); await pushMe(true); stSync();
       M.close(); toast("記録を戻しました");
     }catch(e){ b.disabled=false; toast(String(e.message||e).slice(0,120)); }
+  });
+}
+
+/** 同期で入れかわったデータを、あとから戻せるようにします */
+async function showUndo(){
+  const local=stUndoList();
+  let cloud=[];
+  if(sess&&sbOn()){
+    try{ cloud=await sbAuth("rpc/state_history",{method:"POST",body:"{}"})||[]; }catch(e){}
+  }
+  if(!local.length&&!cloud.length) return toast("入れかわった記録はありません");
+  const rowL=(x,i)=>`<tr><td>${esc(stName(x.k))}</td>
+    <td class="tiny">${esc(jstFull(new Date(x.at).toISOString()))}</td>
+    <td class="tiny">${esc(stSize(x.v))}</td>
+    <td><button class="btn sm" data-ul="${i}">これに戻す</button></td></tr>`;
+  const rowC=(x,i)=>`<tr><td>${esc(stName(x.key))}</td>
+    <td class="tiny">${esc(jstFull(x.saved_at))}</td>
+    <td class="tiny">${jp(+x.size||0)} 文字</td>
+    <td><button class="btn sm" data-uc="${i}">これに戻す</button></td></tr>`;
+  const M=modal(`<h2>同期で入れかわったデータを戻す</h2>
+    <p class="tiny">ほかの端末のデータで書きかわる前の中身が残っています。
+      戻すと、いまの中身のほうが控えになります。</p>
+    ${local.length?`<h3>この端末の控え</h3>
+      <div class="scroll" style="max-height:32vh"><table><thead><tr>
+        <th>なに</th><th>いつ</th><th>中身</th><th></th></tr></thead>
+        <tbody>${local.map(rowL).join("")}</tbody></table></div>`:""}
+    ${cloud.length?`<h3 style="margin-top:14px">クラウドの控え</h3>
+      <div class="scroll" style="max-height:32vh"><table><thead><tr>
+        <th>なに</th><th>いつ</th><th>大きさ</th><th></th></tr></thead>
+        <tbody>${cloud.map(rowC).join("")}</tbody></table></div>`:""}`,{w:700});
+  const put=(k,v)=>{
+    stKeep(k, localStorage.getItem(k));
+    localStorage.setItem(k,v);
+    stStamp[k]=Date.now(); stSaveAt(); stScan(true); stReload(true);
+    M.close(); toast("戻しました"); stSync();
+  };
+  M.qa("[data-ul]").forEach(b=>b.onclick=()=>{ const x=local[+b.dataset.ul]; put(x.k,x.v); });
+  M.qa("[data-uc]").forEach(b=>b.onclick=async()=>{
+    const x=cloud[+b.dataset.uc];
+    b.disabled=true;
+    try{
+      const r=await sbAuth("rpc/state_restore",{method:"POST",
+        body:JSON.stringify({p_key:x.key,p_saved:x.saved_at})});
+      if(r&&r.value!=null) put(x.key,r.value); else throw new Error("中身がありません");
+    }catch(e){ b.disabled=false; toast(String(e.message||e).slice(0,90)); }
   });
 }
 
@@ -3483,7 +3748,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","plan","analysis","ls","card","input","sns","settings","help","cheer"]
+  ["profile","pgbc","plan","analysis","hist","ls","card","input","sns","settings","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -3497,6 +3762,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
 
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
+  if(b.dataset.tab==="hist"){ histEnter(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
@@ -10192,21 +10458,29 @@ async function xpBreakdown(){
   if(TEST){
     d={sub:12,subBonus:5,judge:8,judgeBonus:6,sv:4,svBonus:3,jm:2,chat:37,
        ach:{bronze:2,silver:1,gold:1,platinum:0},
+       aJudge:5,aJudgeB:4,aSv:3,aSvB:2,aJm:1,
        star:37,trophy:2};
   }else if(sess&&sbOn()){
     try{
-      const [a,b2,c,e,f2,g2,h2]=await Promise.all([
+      const [a,b2,c,e,f2,g2,h2,i2,j2,k2]=await Promise.all([
         sbAuth("submissions?select=judge_act,sv_act,jm_act&user_id=eq."+sess.user.id),
         sbAuth("submissions?select=sv_act&judge_id=eq."+sess.user.id),
         sbAuth("submissions?select=jm_act&sv_id=eq."+sess.user.id),
         sbAuth("submissions?select=id&jm_id=eq."+sess.user.id),
         sbAuth("posts?select=id&kind=eq.chat&user_id=eq."+sess.user.id),
         sbAuth("my_awards?select=kind,stars,xp"),
-        sbAuth("my_ach_xp?select=trophy,n").catch(()=>[])
+        sbAuth("my_ach_xp?select=trophy,n").catch(()=>[]),
+        sbAuth("ach_subs?select=sv_act&judge_id=eq."+sess.user.id).catch(()=>[]),
+        sbAuth("ach_subs?select=jm_act&sv_id=eq."+sess.user.id).catch(()=>[]),
+        sbAuth("ach_subs?select=id&jm_id=eq."+sess.user.id).catch(()=>[])
       ]);
       const am={bronze:0,silver:0,gold:0,platinum:0};
       (h2||[]).forEach(x=>{ if(am[x.trophy]!=null) am[x.trophy]=+x.n||0; });
-      d={ ach:am, sub:(a||[]).length,
+      d={ ach:am,
+          aJudge:(i2||[]).length, aJudgeB:(i2||[]).filter(x=>x.sv_act==="accept").length,
+          aSv:(j2||[]).length,    aSvB:(j2||[]).filter(x=>x.jm_act==="accept").length,
+          aJm:(k2||[]).length,
+          sub:(a||[]).length,
           subBonus:(a||[]).filter(x=>x.judge_act==="approve"
             &&(x.sv_act||"accept")==="accept"&&(x.jm_act||"accept")==="accept").length,
           judge:(b2||[]).length, judgeBonus:(b2||[]).filter(x=>x.sv_act==="accept").length,
@@ -10225,6 +10499,11 @@ async function xpBreakdown(){
     ["審査員審査した", d.sv, 20, d.sv*20],
     ["　スーパーバイザー審査で認定された", d.svBonus, 20, d.svBonus*20],
     ["スーパーバイザー審査した", d.jm, 30, d.jm*30],
+    ["アチーブメントを審査した", d.aJudge||0, 10, (d.aJudge||0)*10],
+    ["　審査員審査で認定された", d.aJudgeB||0, 10, (d.aJudgeB||0)*10],
+    ["アチーブメントを審査員審査した", d.aSv||0, 20, (d.aSv||0)*20],
+    ["　スーパーバイザー審査で認定された", d.aSvB||0, 20, (d.aSvB||0)*20],
+    ["アチーブメントをスーパーバイザー審査した", d.aJm||0, 30, (d.aJm||0)*30],
     ["タイムラインへのつぶやき", d.chat, 1, d.chat*1],
     ["スター", d.star, 5, d.star*5],
     ["競技会のトロフィー", d.trophy, 50, d.trophy*50]
@@ -10235,7 +10514,7 @@ async function xpBreakdown(){
     [MEDAL_N[k], +am[k]||0, AXP[k], (+am[k]||0)*AXP[k], MEDAL_C[k]]);
   const aSum=aRows.reduce((a2,r)=>a2+r[3],0);
   const aCnt=aRows.reduce((a2,r)=>a2+r[1],0);
-  rows.push(["トロフィーによって獲得した総経験値", aCnt, "—", aSum]);
+  rows.push(["アチーブメントによって獲得した経験値", aCnt, "—", aSum]);
   const sum=rows.reduce((a2,r)=>a2+r[3],0);
   const xp=MYSTAT?(+MYSTAT.xp||0):sum;
   modal(`<h2>通算経験値の内訳</h2>
@@ -10248,7 +10527,7 @@ async function xpBreakdown(){
       <td>${jp(r[1])}</td><td class="tiny">${r[2]} XP</td><td><b>${jp(r[3])}</b></td></tr>`).join("")
     +`<tr><td colspan="3"><b>合計</b></td><td><b>${jp(sum)}</b></td></tr>`
     +`</tbody></table></div>
-    <p class="tiny">「トロフィーによって獲得した総経験値」は公式アチーブメントのランクぶんです。
+    <p class="tiny">「アチーブメントによって獲得した経験値」は公式アチーブメントのランクぶんです。
       同じアチーブメントを何回出しても、初めて達成した1回だけ入ります。</p>`,{w:720});
 }
 if($("#xpBreak")) $("#xpBreak").onclick=xpBreakdown;
@@ -10274,13 +10553,415 @@ async function askAwards(){
   try{ await sbAuth("rpc/award_all",{method:"POST",body:"{}"}); }catch(e){}
 }
 
+/* ══════════════════════════════════════════════════════════════
+   12b) あなたの軌跡
+   ・毎日のデータを1日1行で残します（ログインしていなくても残ります）
+   ・同じ日に何回変えても、いちばん新しい中身だけを残します
+   ・入力のない日は「無い」ままにします（0 は入れません）
+   ・累積のもの（スコアの累積・生成した乱数の累積）は、あいだを直線でおぎないます
+   ══════════════════════════════════════════════════════════════ */
+const K_HIST="sa-hist-v1", K_HISTDAY="sa-histday-v1";
+let HIST=ls(K_HIST,{});
+const saveHist=()=>{try{ localStorage.setItem(K_HIST,JSON.stringify(HIST)); }catch(e){}};
+/** 日本時間のきょう（YYYY-MM-DD） */
+const hsDay=(d)=>new Intl.DateTimeFormat("sv-SE",
+  {timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).format(d||new Date());
+/** 見るもの。cum=true は「積み上がっていく数」なので、あいだをおぎないます */
+const HS_ITEMS=[
+  {k:"score_cum", n:"スコアの累積",           cum:true,  from:r=>r["スコアの累積"]},
+  {k:"rand_cum",  n:"生成した乱数の累積",     cum:true,  from:r=>r["生成した乱数の累積"]},
+  {k:"total",     n:"十種競技総合スコア",     cum:false, from:r=>r["合計スコア"]},
+  {k:"rating",    n:"RATING",                cum:false, from:null},
+  {k:"xp",        n:"通算経験値",             cum:true,  from:null},
+  {k:"lv",        n:"レベル",                 cum:true,  from:null}
+];
+EVENTS.forEach(n=>HS_ITEMS.push({k:"ev:"+n, n:n, cum:false, from:r=>r[n]}));
+const hsItem=k=>HS_ITEMS.find(x=>x.k===k)||HS_ITEMS[0];
+
+/** きょうのぶんの中身を作ります。入っていないものは入れません（0にしません） */
+function histSnap(){
+  const c=compute(rec);
+  const o={};
+  const put=(k,v)=>{ if(v!=null&&v!==""&&!isNaN(+v)&&+v>0) o[k]=+v; };
+  put("score_cum", rec["スコアの累積"]);
+  put("rand_cum",  rec["生成した乱数の累積"]);
+  put("total",     rec["合計スコア"]);
+  if(c.complete) o.rating=Number(c.total.toFixed(3));
+  if(MYSTAT){ put("xp",+MYSTAT.xp); if(+MYSTAT.lv>=0&&+MYSTAT.xp>0) o.lv=+MYSTAT.lv; }
+  const ev={};
+  EVENTS.forEach(n=>{ const v=rec[n]; if(v!=null&&v!==""&&+v>0) ev[n]=+v; });
+  if(Object.keys(ev).length) o.ev=ev;
+  o.at=Date.now();
+  return o;
+}
+/** きょうのぶんとして残します（同じ日は上書き＝いちばん新しいものが残ります） */
+function histWrite(day){
+  const d=day||hsDay();
+  const o=histSnap();
+  if(Object.keys(o).length<=1) return false;      /* at だけなら書きません */
+  HIST[d]=o; saveHist();
+  histPush();                                      /* クラウドにも送ります */
+  return true;
+}
+/** ためている日ぶんを、クラウドへ送ります */
+let histPushT=null;
+function histPush(){
+  if(TEST||!(sess&&sbOn())) return;
+  clearTimeout(histPushT);
+  histPushT=setTimeout(async()=>{
+    try{
+      const days={};
+      Object.keys(HIST).forEach(d=>{ days[d]=HIST[d]; });
+      await sbAuth("rpc/hist_put_many",{method:"POST",body:JSON.stringify({p_days:days})});
+    }catch(e){}
+  },1500);
+}
+/** クラウドのぶんを取り込みます（あとから書いたほうが残ります） */
+async function histPull(){
+  if(TEST||!(sess&&sbOn())) return 0;
+  try{
+    const o=await sbAuth("rpc/hist_get",{method:"POST",body:"{}"})||{};
+    let n=0;
+    Object.keys(o).forEach(d=>{
+      const a=HIST[d], b=o[d];
+      if(!a||(+b.at||0)>(+a.at||0)){ HIST[d]=b; n++; }
+    });
+    if(n){ saveHist(); }
+    return n;
+  }catch(e){ return 0; }
+}
+/** 日付が変わったら、きのうまでのぶんを確定させます */
+let histTick=null;
+function histWatch(){
+  clearInterval(histTick);
+  histTick=setInterval(()=>{
+    const today=hsDay();
+    const last=ls(K_HISTDAY,"");
+    if(last&&last!==today) histCloseDay(last,today);
+  },20000);
+  /* はじめて使うときは、いまの値をすぐ残します（00:00 を待ちません） */
+  const today=hsDay();
+  const last=ls(K_HISTDAY,"");
+  if(!last){ histWrite(today); try{ localStorage.setItem(K_HISTDAY,JSON.stringify(today)); }catch(e){} }
+  else if(last!==today) histCloseDay(last,today);
+}
+/** 「データを書き込んでいます。」を出して、書き終わるまで待ちます */
+async function histCloseDay(last,today){
+  const box=$("#hsLock");
+  if(box) box.classList.add("on");
+  try{
+    $("#hsLockSub").textContent=`${last} までの記録を残しています…`;
+    /* きのうのぶんを確定（その日の最後の姿）→ きょうのぶんも作っておきます */
+    histWrite(last);
+    histWrite(today);
+    try{ localStorage.setItem(K_HISTDAY,JSON.stringify(today)); }catch(e){}
+    if(sess&&sbOn()){
+      try{
+        const days={}; Object.keys(HIST).forEach(d=>{ days[d]=HIST[d]; });
+        await sbAuth("rpc/hist_put_many",{method:"POST",body:JSON.stringify({p_days:days})});
+      }catch(e){}
+      try{ await stSync(); }catch(e){}
+    }
+    await sleepMs(700);
+  }catch(e){}
+  if(box) box.classList.remove("on");
+  try{ if($("#hist")&&!$("#hist").hidden) histEnter(); }catch(e){}
+}
+const sleepMs=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ── データの取り出しと、おぎない ── */
+/** その項目の、日付→値 のならび（入っている日だけ） */
+function hsRaw(key){
+  const it=hsItem(key), out=[];
+  Object.keys(HIST).sort().forEach(d=>{
+    const o=HIST[d]||{};
+    let v=null;
+    if(key.indexOf("ev:")===0) v=(o.ev||{})[key.slice(3)];
+    else v=o[key];
+    if(v!=null&&!isNaN(+v)) out.push({d, v:+v, real:true});
+  });
+  return out;
+}
+/** あいだをおぎないます。
+ *  積み上がる数（累積）は直線で、そうでない数は「そのまま横ばい」にします */
+function hsFill(key, from, to){
+  const it=hsItem(key), raw=hsRaw(key);
+  if(!raw.length) return [];
+  const days=[]; const d0=new Date(from+"T00:00:00Z"), d1=new Date(to+"T00:00:00Z");
+  for(let t=d0.getTime(); t<=d1.getTime(); t+=86400000)
+    days.push(new Date(t).toISOString().slice(0,10));
+  const map={}; raw.forEach(x=>map[x.d]=x.v);
+  const out=[];
+  days.forEach(d=>{
+    if(map[d]!=null){ out.push({d, v:map[d], real:true}); return; }
+    const prev=raw.filter(x=>x.d<d).slice(-1)[0];
+    const next=raw.filter(x=>x.d>d)[0];
+    if(!prev){ out.push({d, v:null, real:false}); return; }
+    if(!next){ out.push({d, v: it.cum ? null : prev.v, real:false, hold:!it.cum}); return; }
+    if(it.cum){
+      /* 直線でおぎないます */
+      const t0=Date.parse(prev.d), t1=Date.parse(next.d), t=Date.parse(d);
+      const v=prev.v+(next.v-prev.v)*((t-t0)/(t1-t0));
+      out.push({d, v, real:false, lerp:true});
+    }else{
+      out.push({d, v:prev.v, real:false, hold:true});   /* 更新がないので、そのまま */
+    }
+  });
+  return out;
+}
+/* ── グラフ ── */
+function hsChart(rows, opt){
+  const o=opt||{};
+  const pts=rows.filter(r=>r.v!=null);
+  if(pts.length<1) return `<p class="muted">この月には、まだ記録がありません。</p>`;
+  const W=760, H=260, L=64, R=14, T=14, B=42;
+  const xs=(i)=>L+(rows.length<=1?0:(W-L-R)*i/(rows.length-1));
+  let lo=Math.min(...pts.map(p=>p.v)), hi=Math.max(...pts.map(p=>p.v));
+  if(o.pred&&o.pred.length){ lo=Math.min(lo,...o.pred.map(p=>p.v)); hi=Math.max(hi,...o.pred.map(p=>p.v)); }
+  if(lo===hi){ lo=lo-1; hi=hi+1; }
+  const pad=(hi-lo)*0.08; lo-=pad; hi+=pad;
+  const ys=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  /* 目もり（重ならないように、4本だけ） */
+  let g="";
+  for(let i=0;i<=4;i++){
+    const v=lo+(hi-lo)*i/4, y=ys(v);
+    g+=`<line class="gr" x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}"/>`
+      +`<text x="${L-6}" y="${(y+3).toFixed(1)}" text-anchor="end">${esc(hsShort(v))}</text>`;
+  }
+  /* 日付は、重ならない数だけ出します */
+  const step=Math.max(1,Math.ceil(rows.length/8));
+  let xl="";
+  rows.forEach((r,i)=>{
+    if(i%step!==0 && i!==rows.length-1) return;
+    xl+=`<text x="${xs(i).toFixed(1)}" y="${H-B+16}" text-anchor="middle">${esc(r.d.slice(5))}</text>`;
+  });
+  /* 線 */
+  let dline="", first=true;
+  rows.forEach((r,i)=>{
+    if(r.v==null){ first=true; return; }
+    dline+=(first?"M":"L")+xs(i).toFixed(1)+" "+ys(r.v).toFixed(1)+" ";
+    first=false;
+  });
+  /* 点（実際に入力した日だけ大きく） */
+  let dots="";
+  rows.forEach((r,i)=>{
+    if(r.v==null) return;
+    dots+=`<circle class="dt${r.real?"":" fill"}" cx="${xs(i).toFixed(1)}" cy="${ys(r.v).toFixed(1)}"
+      r="${r.real?3.2:2}"><title>${esc(r.d)}　${esc(jp(Math.round(r.v)))}${r.real?"":"（おぎない）"}</title></circle>`;
+  });
+  /* 予測 */
+  let pl="";
+  if(o.pred&&o.pred.length){
+    const all=rows.concat(o.pred);
+    const xs2=i=>L+(all.length<=1?0:(W-L-R)*i/(all.length-1));
+    /* 予測を足したぶん、全体を引きなおします */
+    let d2="", f2=true;
+    all.forEach((r,i)=>{
+      if(r.v==null){ f2=true; return; }
+      d2+=(f2?"M":"L")+xs2(i).toFixed(1)+" "+ys(r.v).toFixed(1)+" ";
+      f2=false;
+    });
+    return `<svg class="hschart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      ${g}<line class="ax" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>
+      <path class="ln" d="${d2}"/>
+      <path class="ln2" d="${o.pred.map((p,j)=>{
+        const i=rows.length-1+j;
+        return (j===0?"M"+xs2(rows.length-1).toFixed(1)+" "+ys(rows[rows.length-1]&&rows[rows.length-1].v!=null?rows[rows.length-1].v:p.v).toFixed(1)+" L":"L")
+          +xs2(i+1).toFixed(1)+" "+ys(p.v).toFixed(1)+" ";}).join("")}"/>
+      ${dots}${xl}</svg>`;
+  }
+  return `<svg class="hschart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    ${g}<line class="ax" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>
+    <path class="ln" d="${dline}"/>${dots}${xl}</svg>`;
+}
+const hsShort=v=>{
+  const a=Math.abs(v);
+  if(a>=1e8) return (v/1e8).toFixed(1)+"億";
+  if(a>=1e4) return (v/1e4).toFixed(1)+"万";
+  if(a>=1000) return Math.round(v).toLocaleString("ja-JP");
+  return (Math.round(v*100)/100).toString();
+};
+/* ── 予測（最小二乗法）── */
+const HS_PRED_MIN=7;      /* この日数ぶん入力がないと出しません */
+function hsPredict(key, days){
+  const it=hsItem(key);
+  if(!it.cum) return null;
+  const raw=hsRaw(key);
+  if(raw.length<HS_PRED_MIN) return {ng:`データが ${raw.length} 日ぶんしかありません（${HS_PRED_MIN} 日ぶん必要です）`};
+  const t0=Date.parse(raw[0].d);
+  const xs=raw.map(r=>(Date.parse(r.d)-t0)/86400000), ys=raw.map(r=>r.v);
+  const n=xs.length;
+  const mx=xs.reduce((a,b)=>a+b,0)/n, my=ys.reduce((a,b)=>a+b,0)/n;
+  let sxy=0, sxx=0, syy=0;
+  for(let i=0;i<n;i++){ sxy+=(xs[i]-mx)*(ys[i]-my); sxx+=(xs[i]-mx)**2; syy+=(ys[i]-my)**2; }
+  if(sxx===0) return {ng:"日付がばらけていないので、予測できません"};
+  const a=sxy/sxx, b=my-a*mx;
+  const r2=syy===0?1:Math.max(0,Math.min(1,(sxy*sxy)/(sxx*syy)));
+  const last=raw[raw.length-1];
+  const out=[];
+  for(let i=1;i<=(days||14);i++){
+    const d=new Date(Date.parse(last.d)+i*86400000).toISOString().slice(0,10);
+    out.push({d, v:a*((Date.parse(d)-t0)/86400000)+b, pred:true});
+  }
+  return { a, b, r2, n, from:raw[0].d, to:last.d, last:last.v, list:out };
+}
+
+/* ── 画面 ── */
+let hsMonth=null, hsKey="score_cum";
+function hsMonths(){
+  const set=new Set(Object.keys(HIST).map(d=>d.slice(0,7)));
+  set.add(hsDay().slice(0,7));
+  return [...set].sort();
+}
+function histEnter(){
+  histWatch();
+  const ms=hsMonths();
+  if(!hsMonth||ms.indexOf(hsMonth)<0) hsMonth=ms[ms.length-1];
+  const pk=$("#hsPick");
+  if(pk&&!pk.options.length){
+    pk.innerHTML=HS_ITEMS.map(x=>`<option value="${esc(x.k)}">${esc(x.n)}</option>`).join("");
+    pk.value=hsKey;
+    pk.onchange=()=>{ hsKey=pk.value; hsDraw(); };
+  }
+  const mn=$("#hsMon");
+  if(mn){
+    mn.innerHTML=ms.map(m=>`<option value="${esc(m)}">${esc(m.replace("-","年"))}月</option>`).join("");
+    mn.value=hsMonth;
+    mn.onchange=()=>{ hsMonth=mn.value; hsDraw(); };
+  }
+  hsDraw();
+  (async()=>{ const n=await histPull(); if(n){ histEnter(); } })();
+}
+function hsDraw(){
+  const days=Object.keys(HIST).sort();
+  $("#histTop").innerHTML=`<div class="lsgrid">
+    <div class="lsbox"><div class="t">残っている日数</div>
+      <div class="v" style="font-size:1.6rem">${jp(days.length)}</div>
+      <div class="s">${days.length?esc(days[0])+" 〜 "+esc(days[days.length-1]):"—"}</div></div>
+    <div class="lsbox"><div class="t">きょうのぶん</div>
+      <div class="v" style="font-size:1.6rem">${HIST[hsDay()]?"残っています":"まだです"}</div>
+      <div class="s">${HIST[hsDay()]?esc(jstFull(new Date(HIST[hsDay()].at||Date.now()).toISOString())):"—"}</div></div>
+    <div class="lsbox"><div class="t">クラウド</div>
+      <div class="v" style="font-size:1.6rem">${(sess&&sbOn())?"つながっています":"この端末だけ"}</div>
+      <div class="s">${(sess&&sbOn())?"ログインしていない端末でも、この端末には残ります":"ログインすると、ほかの端末とそろいます"}</div></div>
+  </div>`;
+
+  const it=hsItem(hsKey);
+  const from=hsMonth+"-01";
+  const [y,m]=hsMonth.split("-").map(Number);
+  const to=`${hsMonth}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,"0")}`;
+  const doFill=$("#hsFill").checked;
+  const rows=doFill?hsFill(hsKey,from,to)
+    :hsRaw(hsKey).filter(r=>r.d>=from&&r.d<=to);
+  let pred=null;
+  if($("#hsPred").checked&&it.cum){
+    const p=hsPredict(hsKey,14);
+    if(p&&p.list) pred=p.list;
+  }
+  $("#hsChart").innerHTML=hsChart(rows,{pred})
+    +`<div class="hslegend">
+      <span><i style="border-color:var(--acc2)"></i>じっさいの記録</span>
+      <span><span class="dt" style="display:inline-block;width:8px;height:8px;border-radius:50%;
+        background:#2c5f8a;margin-right:4px"></span>おぎなった日</span>
+      ${pred?`<span><i style="border-color:var(--warn);border-top-style:dashed"></i>予測</span>`:""}
+    </div>`;
+
+  const show=rows.filter(r=>r.v!=null);
+  $("#hsList").innerHTML=show.length
+    ? `<div class="scroll" style="max-height:38vh"><table><thead><tr>
+        <th>日付</th><th class="n" style="text-align:right">値</th><th>どこから</th>
+        <th class="n" style="text-align:right">前の日との差</th></tr></thead><tbody>`
+      +show.map((r,i)=>{
+        const prev=i>0?show[i-1].v:null;
+        const dv=prev==null?null:r.v-prev;
+        return `<tr><td class="tiny">${esc(r.d)}</td>
+          <td style="text-align:right"><b class="mono">${esc(jp(Math.round(r.v)))}</b></td>
+          <td class="tiny">${r.real?'<span style="color:var(--acc2)">入力した日</span>'
+            :(r.lerp?'<span style="color:var(--dim2)">あいだをおぎない</span>'
+                    :'<span style="color:var(--dim2)">前の日のまま</span>')}</td>
+          <td style="text-align:right" class="tiny">${dv==null?"—":(dv>0?"+":"")+jp(Math.round(dv))}</td></tr>`;
+      }).join("")+`</tbody></table></div>`
+    : `<p class="muted">この月には記録がありません。</p>`;
+
+  hsDrawPred();
+  hsDrawAll();
+}
+function hsDrawPred(){
+  const box=$("#hsPredBox"); if(!box) return;
+  const items=HS_ITEMS.filter(x=>x.cum&&(x.k==="score_cum"||x.k==="rand_cum"));
+  box.innerHTML=items.map(it=>{
+    const p=hsPredict(it.k,30);
+    if(!p) return "";
+    if(p.ng) return `<div class="lockbox" style="margin-bottom:8px"><b>${esc(it.n)}</b><br>
+      <span class="tiny" style="color:var(--warn)">${esc(p.ng)}</span></div>`;
+    const days=[7,14,30];
+    return `<div class="lockbox" style="margin-bottom:10px">
+      <b>${esc(it.n)}</b>
+      <p class="tiny" style="margin:4px 0">${esc(p.from)} 〜 ${esc(p.to)} の
+        <b>${jp(p.n)}</b> 日ぶんから計算しました。<br>
+        1日あたり <b class="mono">${jp(Math.round(p.a))}</b> ずつ増えています。
+        あてはまり具合 <b>${(p.r2*100).toFixed(1)}%</b>
+        ${p.r2<0.8?'<span style="color:var(--warn)">（ばらつきが大きいので、目安です）</span>':""}</p>
+      <div class="scroll" style="max-height:none"><table><thead><tr>
+        <th>いつ</th><th class="n" style="text-align:right">予測</th>
+        <th class="n" style="text-align:right">いまから</th></tr></thead><tbody>
+        ${days.map(d=>{
+          const v=p.list[d-1]?p.list[d-1].v:null;
+          if(v==null) return "";
+          return `<tr><td>${d}日後（${esc(p.list[d-1].d)}）</td>
+            <td style="text-align:right"><b class="mono">${jp(Math.round(v))}</b></td>
+            <td style="text-align:right" class="tiny">+${jp(Math.round(v-p.last))}</td></tr>`;
+        }).join("")}
+      </tbody></table></div></div>`;
+  }).join("")||`<p class="muted">まだ予測できるデータがありません。</p>`;
+}
+function hsDrawAll(){
+  const days=Object.keys(HIST).sort().reverse();
+  $("#hsAll").innerHTML=days.length
+    ? `<div class="scroll" style="max-height:40vh"><table><thead><tr>
+        <th>日付</th><th class="n">スコアの累積</th><th class="n">乱数の累積</th>
+        <th class="n">十種</th><th class="n">RATING</th><th class="n">経験値</th>
+        <th class="n">種目</th></tr></thead><tbody>`
+      +days.map(d=>{
+        const o=HIST[d]||{};
+        const q=v=>v==null?'<span class="hsnone">—</span>':jp(Math.round(v));
+        return `<tr><td class="tiny">${esc(d)}</td>
+          <td class="n">${q(o.score_cum)}</td><td class="n">${q(o.rand_cum)}</td>
+          <td class="n">${q(o.total)}</td>
+          <td class="n">${o.rating==null?'<span class="hsnone">—</span>':f3(o.rating)}</td>
+          <td class="n">${q(o.xp)}</td>
+          <td class="n tiny">${o.ev?Object.keys(o.ev).length+" 種目":'<span class="hsnone">—</span>'}</td></tr>`;
+      }).join("")+`</tbody></table></div>`
+    : `<p class="muted">まだ記録がありません。</p>`;
+}
+if($("#hsPrevM")) $("#hsPrevM").onclick=()=>{ const ms=hsMonths(); const i=ms.indexOf(hsMonth);
+  if(i>0){ hsMonth=ms[i-1]; $("#hsMon").value=hsMonth; hsDraw(); } };
+if($("#hsNextM")) $("#hsNextM").onclick=()=>{ const ms=hsMonths(); const i=ms.indexOf(hsMonth);
+  if(i>=0&&i<ms.length-1){ hsMonth=ms[i+1]; $("#hsMon").value=hsMonth; hsDraw(); } };
+if($("#hsFill")) $("#hsFill").onchange=hsDraw;
+if($("#hsPred")) $("#hsPred").onchange=hsDraw;
+if($("#hsSave")) $("#hsSave").onclick=()=>{
+  const ok=histWrite();
+  $("#hsMsg").innerHTML=ok?'<span style="color:var(--acc2)">きょうのぶんを残しました</span>'
+    :'<span style="color:var(--warn)">残すデータがありません（記録を入力してください）</span>';
+  histEnter();
+};
+if($("#hsSync")) $("#hsSync").onclick=async()=>{
+  if(!(sess&&sbOn())) return toast("ログインするとクラウドとそろえられます");
+  $("#hsMsg").textContent="そろえています…";
+  const n=await histPull();
+  histPush();
+  $("#hsMsg").innerHTML=`<span style="color:var(--acc2)">そろえました（${jp(n)} 日ぶん取り込み）</span>`;
+  histEnter();
+};
+
 /* ---- 13) 開発者を応援する ---- */
 let CH={total:0,today:0,this_week:0,this_month:0,this_year:0}, CHB=[], chTab="total";
 let chLeft=null, chHalf="";
 let chMonth=null, chCal={};
 /* 上のメニューには出さず、ヘッダーのボタンからだけ開きます */
 $("#cheerBtn").onclick=()=>{
-  ["profile","plan","analysis","ls","card","input","sns","settings","help","cheer"]
+  ["profile","plan","analysis","hist","ls","card","input","sns","settings","help","cheer"]
     .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!=="cheer"); });
   $$("#tabs button").forEach(x=>x.classList.remove("on"));
   $("#menuNow").textContent="開発者を応援する";
@@ -12158,6 +12839,9 @@ function normalize(j){
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
   /* 見はりは、あとからログインしても効くように、いつでも用意しておきます */
   try{ stWatch(); }catch(e){}
+  /* あなたの軌跡：きょうのぶんを残して、日付が変わるのを見はります */
+  try{ histWatch(); }catch(e){}
+  try{ await histPull(); histWrite(); }catch(e){}
   try{ await loadBorderAt(); }catch(e){} tickClock();
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
@@ -12175,6 +12859,7 @@ function normalize(j){
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
   if($("#recBk")) $("#recBk").onclick=showRecBackups;
+  if($("#undoBk")) $("#undoBk").onclick=showUndo;
   stWhat();
   stMark(stState||(sess?"—":"ログインしていません"));
   /* ブラウザを更新しても、さっき見ていた場所に戻します */
