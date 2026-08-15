@@ -681,6 +681,18 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
 .mbtn.alert{animation:mblink 1.6s ease-in-out infinite}
 @keyframes mblink{0%,100%{opacity:1}50%{opacity:.45}}
+/* 一時停止の画面 */
+#pauseWall{position:fixed;inset:0;z-index:99999;background:#0b1120;display:none;
+  align-items:center;justify-content:center;padding:24px;text-align:center}
+#pauseWall.on{display:flex}
+body.paused{overflow:hidden}
+.pwin{max-width:520px}
+.pwttl{font-size:1.15rem;letter-spacing:.06em;margin:0 0 22px;color:var(--dim)}
+.pwbig{font-size:1.7rem;font-weight:900;letter-spacing:.1em;color:var(--warn);
+  margin-bottom:14px;line-height:1.5}
+.pwmsg{font-size:.95rem;color:var(--tx);line-height:1.9;white-space:pre-wrap;margin:0 0 14px}
+.pwtiny{font-size:.76rem;color:var(--dim2);line-height:1.7;margin:0}
+.pwtools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0 10px}
 /* あなたの軌跡 */
 #hsLock{position:fixed;inset:0;z-index:9999;background:rgba(6,10,20,.97);display:none;
   align-items:center;justify-content:center}
@@ -834,6 +846,20 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <button data-tab="help">ヘルプ</button></div>
 </nav>
 
+<div id="pauseWall">
+  <div class="pwin">
+    <h1 class="pwttl">素数あつめ <span class="g">RATING</span></h1>
+    <div class="pwbig">いま お休みしています</div>
+    <p class="pwmsg" id="pwMsg">しばらくお待ちください。</p>
+    <p class="pwtiny">みなさんの記録はすべて残っています。消えていません。</p>
+    <div class="pwtools">
+      <button class="btn sm" id="pwLogin">管理者の方はこちら</button>
+      <button class="btn sm" id="pwRetry">もう一度たしかめる</button>
+    </div>
+    <p class="pwtiny" id="pwWho"></p>
+  </div>
+</div>
+
 <div id="hsLock">
   <div class="hslockin">
     <div class="hsring"><span></span><span></span><span></span></div>
@@ -841,6 +867,9 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div class="tiny" id="hsLockSub">日付が変わったので、きょうまでの記録を残しています…</div>
   </div>
 </div>
+
+<div id="pauseBanner" class="banner" hidden
+     style="background:#3a2a10;border-color:var(--warn);color:var(--warn)"></div>
 
 <div id="updBanner" class="banner" hidden style="background:#12351f;border-color:#2c7a4b">
   <span id="updMsg"></span>
@@ -1763,7 +1792,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v82";
+const APP_VERSION = "v83";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -11196,6 +11225,76 @@ async function claimParkCoins(){
   }catch(e){ return 0; }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   一時停止のスイッチ
+   ・管理者が止めると、みんなの画面は「いまお休みしています」だけになります
+   ・データは何も消えません。もどせばすぐ元どおりです
+   ・管理者（ジャッジマン以上）は、止まっていても中に入れます
+   ══════════════════════════════════════════════════════════════ */
+const K_PAUSE="sa-pause-v1";
+let PAUSE=ls(K_PAUSE,{on:false});
+/** サーバーの合図を見に行きます。つながらないときは、前に見た合図を使います */
+async function loadPause(){
+  if(!sbOn()) return PAUSE;
+  try{
+    const r=await sb("app_state?select=value,updated_at&key=eq.paused&limit=1");
+    const v=(r&&r[0]&&r[0].value)||null;
+    if(v){ PAUSE={on:!!v.on, msg:v.msg||"", at:v.at||""}; LS_set(K_PAUSE,PAUSE); }
+  }catch(e){}
+  return PAUSE;
+}
+const LS_set=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+/** 止まっているあいだ、中に入れるのはジャッジマン以上だけです */
+const pauseCanEnter=()=>myLv()>=4;
+function applyPause(){
+  const w=$("#pauseWall");
+  if(!w) return false;
+  const stop=!!(PAUSE&&PAUSE.on)&&!pauseCanEnter();
+  w.classList.toggle("on",stop);
+  document.body.classList.toggle("paused",stop);
+  if(stop){
+    $("#pwMsg").textContent=(PAUSE.msg||"しばらくお待ちください。");
+    $("#pwWho").textContent=sess
+      ? `${(me&&me.name)||(pro&&pro.name)||"ログイン中"} さんとしてログインしています（管理者ではありません）`
+      : "";
+    $("#pwLogin").textContent=sess?"役職をたしかめる":"管理者の方はこちら";
+  }else if(PAUSE&&PAUSE.on){
+    /* 管理者には、止まっていることを知らせます */
+    const b=$("#pauseBanner");
+    if(b){ b.hidden=false;
+      b.innerHTML=`<b>いま公開を止めています</b>　`
+        +`ほかの人には「お休み中」の画面だけが出ています。`
+        +`<span class="tiny">（${esc(PAUSE.at||"")}）</span>　`
+        +`<button class="btn sm" id="pbGo">開発者メニューでもどす</button>`;
+      const g=$("#pbGo"); if(g) g.onclick=()=>{ try{ openDev(); }catch(e){} };
+    }
+  }
+  return stop;
+}
+if($("#pwLogin")) $("#pwLogin").onclick=async()=>{
+  if(!sess){ signIn(); return; }
+  $("#pwLogin").disabled=true;
+  try{ await loadMe(); await loadMyStat(); }catch(e){}
+  $("#pwLogin").disabled=false;
+  if(!applyPause()) location.reload();
+  else $("#pwWho").textContent="この account は管理者ではありません。";
+};
+if($("#pwRetry")) $("#pwRetry").onclick=async()=>{
+  $("#pwRetry").disabled=true;
+  await loadPause();
+  $("#pwRetry").disabled=false;
+  if(!applyPause()) location.reload();
+};
+/** 止まっているあいだも、30秒ごとに「もどったか」を見に行きます */
+setInterval(async()=>{
+  if(!(PAUSE&&PAUSE.on)) return;
+  if(document.hidden) return;
+  const before=PAUSE.on;
+  await loadPause();
+  if(before&&!PAUSE.on) location.reload();
+  else applyPause();
+},30000);
+
 /** 起動したときに1回だけ。1日1回しか出しません */
 async function loginBonusBoot(){
   if(TEST||!(sess&&sbOn())) return;
@@ -12016,6 +12115,20 @@ function devEditor(box,close){
     <span class="tiny" id="dvCdMsg"></span>
   </div>
 
+  <h3>公開を止める・もどす</h3>
+  <p class="tiny" style="margin-top:-4px">止めると、ほかの人には「いまお休みしています」だけが出ます。
+    <b>データは何も消えません。</b>もどせばすぐ元どおりです。管理者は止めていても中に入れます。</p>
+  <div class="lockbox" id="dvPwState" style="margin-bottom:8px"></div>
+  <label class="fl">お休み中に出す文（空でもかまいません）</label>
+  <textarea id="dvPwMsg" class="txt" rows="2"
+    placeholder="例：確認のため、しばらくお休みします。記録は残っていますのでご安心ください。"
+    style="max-width:none"></textarea>
+  <div class="tools" style="margin-top:6px;margin-bottom:14px">
+    <button class="btn" id="dvPwOn" style="border-color:var(--bad);color:var(--bad)">公開を止める</button>
+    <button class="btn pri" id="dvPwOff">公開をもどす</button>
+    <span class="tiny" id="dvPwOut"></span>
+  </div>
+
   <h3>トロフィーの点検</h3>
   <p class="tiny" style="margin-top:-4px">競技会の優勝者にトロフィーが渡っているかを調べて、その場で配り直します。</p>
   <div class="tools" style="margin-top:0;margin-bottom:8px">
@@ -12218,6 +12331,40 @@ function devEditor(box,close){
       toast("カウントダウンをはじめました");
     }catch(e){ m2.innerHTML='<span class="lose">失敗：'+esc(String(e.message||e)).slice(0,160)+'</span>'; }
   };
+  /* 公開を止める・もどす */
+  const pwState=()=>{
+    const e2=box.querySelector("#dvPwState"); if(!e2) return;
+    e2.innerHTML=(PAUSE&&PAUSE.on)
+      ? `<b class="lose">いま止まっています</b>　<span class="tiny">（${esc(PAUSE.at||"")}）</span>`
+        +`<br><span class="tiny">出している文：${esc(PAUSE.msg||"（なし）")}</span>`
+      : `<b class="win">いま公開しています</b>`;
+    const m=box.querySelector("#dvPwMsg");
+    if(m&&!m.value&&PAUSE&&PAUSE.msg) m.value=PAUSE.msg;
+  };
+  pwState();
+  const pwGo=async(on)=>{
+    const out=box.querySelector("#dvPwOut");
+    if(!(sess&&sbOn())){ out.innerHTML='<span class="lose">ログインしてから押してください</span>'; return; }
+    if(on && !await askYN("公開を止めますか？",
+      "ほかの人には「いまお休みしています」だけが出ます。データは何も消えません。"
+      +"あなた（管理者）は今までどおり使えます。","止める")) return;
+    out.textContent="送っています…";
+    try{
+      const msg=(box.querySelector("#dvPwMsg").value||"").trim();
+      const v=await sbAuth("rpc/pause_set",{method:"POST",
+        body:JSON.stringify({p_on:!!on,p_msg:msg||null})});
+      PAUSE={on:!!(v&&v.on), msg:(v&&v.msg)||"", at:(v&&v.at)||""};
+      LS_set(K_PAUSE,PAUSE);
+      pwState(); applyPause();
+      out.innerHTML=on
+        ? '<span class="win">止めました。ほかの人には見えなくなりました。</span>'
+        : '<span class="win">もどしました。またみんなが使えます。</span>';
+      const b=$("#pauseBanner"); if(b&&!on) b.hidden=true;
+    }catch(e){ out.innerHTML='<span class="lose">'+esc(String(e.message||e).slice(0,90))+'</span>'; }
+  };
+  if(box.querySelector("#dvPwOn"))  box.querySelector("#dvPwOn").onclick =()=>pwGo(true);
+  if(box.querySelector("#dvPwOff")) box.querySelector("#dvPwOff").onclick=()=>pwGo(false);
+
   /* トロフィーの点検と配り直し */
   const awBtn=box.querySelector("#dvAwGo");
   if(awBtn) awBtn.onclick=async()=>{
@@ -12834,6 +12981,16 @@ function normalize(j){
     }
   }
   fillInputs(); lsFxLabels();
+  /* ★ いちばん先に「止まっていないか」を見ます。
+        止まっているときは、先に役職を調べてから決めます（管理者は入れます） */
+  try{
+    applyPause();                                  /* 前に見た合図で、すぐ出します */
+    await loadPause();
+    if(PAUSE&&PAUSE.on&&sess&&sbOn()){
+      try{ await loadMe(); }catch(e){}             /* 役職を知るため */
+    }
+    if(applyPause()) return;
+  }catch(e){}
   try{ applyData(); }catch(e){ console.error(e); }
   /* ★ ほかの端末との同期。記録やLSやりこみなどをそろえます */
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }

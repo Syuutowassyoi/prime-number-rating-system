@@ -47,6 +47,19 @@ input[type=range]{width:100%;accent-color:var(--pp)}
 .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 .hidden{display:none !important}
 
+/* 一時停止の画面 */
+#pauseWall{position:fixed;inset:0;z-index:99999;background:var(--bg);display:none;
+  align-items:center;justify-content:center;padding:24px;text-align:center}
+#pauseWall.on{display:flex}
+body.paused{overflow:hidden}
+.pwin{max-width:520px}
+.pwttl{font-size:1.15rem;letter-spacing:.06em;margin:0 0 22px}
+.pwbig{font-size:1.7rem;font-weight:900;letter-spacing:.1em;color:var(--warn);
+  margin-bottom:14px;line-height:1.5}
+.pwmsg{font-size:.95rem;color:var(--tx);line-height:1.9;white-space:pre-wrap;margin:0 0 14px}
+.pwtiny{font-size:.76rem;color:var(--dim2);line-height:1.7;margin:0}
+.pwtools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0 10px}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
 /* ── 立方体博士・Prime Dog ── */
 .cube{display:block}
 .cube .face-t{fill:#8fd4ff}.cube .face-l{fill:#4d8fd0}.cube .face-r{fill:#2f5f96}
@@ -411,6 +424,19 @@ label.pk input{margin:0}
 </style>
 </head>
 <body>
+
+<div id="pauseWall">
+  <div class="pwin">
+    <h1 class="pwttl" style="color:var(--pp)">Prime Park</h1>
+    <div class="pwbig">いま お休みしています</div>
+    <p class="pwmsg" id="pwMsg">しばらくお待ちください。</p>
+    <p class="pwtiny">みなさんの記録はすべて残っています。消えていません。</p>
+    <div class="pwtools">
+      <a class="btn sm" href="index.html">素数あつめ RATING へ</a>
+      <button class="btn sm" id="pwRetry">もう一度たしかめる</button>
+    </div>
+  </div>
+</div>
 
 <div class="wrap" id="home">
   <div class="card" style="text-align:center;border-color:var(--pp)">
@@ -2878,14 +2904,55 @@ try{ homeRank(); }catch(e){}
 /* ══════════════════════════════════════════════════════════════
    起動したときと、もどってきたときに、サーバーとそろえます
    ══════════════════════════════════════════════════════════════ */
+/* ── 一時停止：素数あつめ RATING と同じ合図を見ます ── */
+const K_PAUSE = "pp-pause-v1";
+let PAUSE = LS.get(K_PAUSE, { on:false });
+async function loadPause(){
+  const c = sbConf();
+  if(!c.url || !c.key) return PAUSE;
+  try{
+    const r = await fetch(c.url + "/rest/v1/app_state?select=value&key=eq.paused&limit=1",
+      { headers: Object.assign({ apikey:c.key },
+        c.key.startsWith("eyJ") ? { Authorization:"Bearer " + c.key } : {}) });
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const v = (j && j[0] && j[0].value) || null;
+    if(v){ PAUSE = { on:!!v.on, msg:v.msg||"", at:v.at||"" }; LS.set(K_PAUSE, PAUSE); }
+  }catch(e){}
+  return PAUSE;
+}
+/** 止まっているあいだ、中に入れるのはジャッジマン以上だけです */
+function applyPause(){
+  const w = $("#pauseWall"); if(!w) return false;
+  const stop = !!(PAUSE && PAUSE.on) && !(MY_LV >= 4);
+  w.classList.toggle("on", stop);
+  document.body.classList.toggle("paused", stop);
+  if(stop){
+    $("#pwMsg").textContent = PAUSE.msg || "しばらくお待ちください。";
+    try{ stopGame(); }catch(e){}
+    try{ if(ST) stEnd(); }catch(e){}
+  }
+  return stop;
+}
+if($("#pwRetry")) $("#pwRetry").onclick = async () => {
+  $("#pwRetry").disabled = true;
+  await loadPause(); await loadRole();
+  $("#pwRetry").disabled = false;
+  if(!applyPause()) location.reload();
+};
+
 admSync();
 let ppBooted = false;
 async function ppSync(){
+  try{ await loadPause(); }catch(e){}
   try{ await loadRole(); }catch(e){ IS_ADMIN = false; admSync(); }
+  try{ if(applyPause() && MY_LV < 4){ ppBooted = true; return; } }catch(e){}
   try{ await loadDiff(); }catch(e){}
   try{ await flushRuns(); }catch(e){}
   try{ await askCoins(); }catch(e){}
   try{ if(!$("#rank").classList.contains("hidden")) await rkDraw(); }catch(e){}
+  try{ applyPause(); }catch(e){}
+  if(PAUSE && PAUSE.on && MY_LV < 4){ ppBooted = true; return; }
   try{ await homeRank(); }catch(e){}
   ppBooted = true;
 }
@@ -2907,6 +2974,7 @@ window.PP = {
   set DIFF(v){ DIFF = fixDiff(v); }, fixDiff,
   get IS_ADMIN(){ return IS_ADMIN; }, get MY_LV(){ return MY_LV; },
   loadRole, askLevel, admSync, sbConf, mySess, sbCall, online, loggedIn,
+  loadPause, applyPause, get PAUSE(){ return PAUSE; },
   sendRun, flushRuns, askCoins, loadDiff, saveDiffServer, ppSync,
   get PP_COINS(){ return PP_COINS; }, get DIFF_FROM(){ return DIFF_FROM; },
   setupGame, secOf, periodKey, shiftKey, rankOf, allKeys, rkOpen, rkDraw, rkChampions,
