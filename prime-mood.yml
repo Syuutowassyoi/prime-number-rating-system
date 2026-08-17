@@ -1,0 +1,128 @@
+# ═══════════════════════════════════════════════════════════════
+#  Prime Mood ── X（Twitter）の #素数あつめ の投稿数を毎日数えます
+#
+#  置く場所： .github/workflows/prime-mood.yml
+#
+#  GitHub の Settings → Secrets and variables → Actions に
+#  つぎの4つを入れてください（値は画面に出ません）
+#    X_BEARER    … X Developer Console で作った Bearer Token
+#    SB_URL      … https://xxxxxxxx.supabase.co
+#    SB_ANON     … sb_publishable_… （公開してよいキー）
+#    MOOD_TOKEN  … Prime Mood タブで決めた「合いことば」
+# ═══════════════════════════════════════════════════════════════
+name: Prime Mood
+
+on:
+  schedule:
+    # 日本時間の 0:10 と 12:10（UTC は 15:10 と 3:10）＝ 1日2回
+    # 1本だけ残せば「1日1回」になります（下の料金表を見てください）
+    - cron: "10 15 * * *"
+    - cron: "10 3 * * *"
+  workflow_dispatch:        # Actions タブから手で動かせます
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: X の投稿数を数えて Supabase に入れる
+        env:
+          X_BEARER:   ${{ secrets.X_BEARER }}
+          SB_URL:     ${{ secrets.SB_URL }}
+          SB_ANON:    ${{ secrets.SB_ANON }}
+          MOOD_TOKEN: ${{ secrets.MOOD_TOKEN }}
+          QUERY:      '#素数あつめ -is:retweet'
+        run: |
+          set -euo pipefail
+
+          # 入れ忘れがないか、先に確かめます
+          for v in X_BEARER SB_URL SB_ANON MOOD_TOKEN; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Secrets に $v が入っていません"
+              exit 1
+            fi
+          done
+
+          # ── 1) X に聞きます（counts/recent は 1リクエスト $0.005）──
+          #     granularity=day で「1日ごとの件数」だけが返ります。
+          #     投稿の本文は取らないので、これ以上お金はかかりません。
+          ENC=$(python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["QUERY"]))')
+          URL="https://api.x.com/2/tweets/counts/recent?query=${ENC}&granularity=day"
+
+          echo "X に聞きます…"
+          HTTP=$(curl -sS -o /tmp/x.json -w '%{http_code}' \
+                   -H "Authorization: Bearer ${X_BEARER}" "$URL" || true)
+          echo "こたえ: HTTP $HTTP"
+          head -c 600 /tmp/x.json; echo
+
+          if [ "$HTTP" != "200" ]; then
+            echo "::error::X から 200 が返りませんでした（HTTP $HTTP）"
+            echo "  401 → Bearer Token がちがう／期限切れ"
+            echo "  403 → 権限が足りない（アプリの設定を確認）"
+            echo "  402 → クレジットが足りない"
+            echo "  429 → 呼びすぎ（しばらく待つ）"
+            exit 1
+          fi
+
+          # ── 2) 日本時間の日付ごとにまとめます ──
+          python3 > /tmp/days.json <<'PY'
+          import json, datetime, sys
+          res = json.load(open("/tmp/x.json"))
+          if "errors" in res and "data" not in res:
+              print("{}"); sys.stderr.write("Xがエラーを返しました\n"); sys.exit(0)
+          out = {}
+          for b in res.get("data", []):
+              # start は UTC。9時間足して日本時間の日付にします
+              t = datetime.datetime.fromisoformat(b["start"].replace("Z", "+00:00"))
+              t = t + datetime.timedelta(hours=9)
+              d = t.strftime("%Y-%m-%d")
+              out[d] = out.get(d, 0) + int(b.get("tweet_count", 0))
+          print(json.dumps(out, ensure_ascii=False))
+          PY
+
+          DAYS=$(cat /tmp/days.json)
+          echo "日ごとの件数: $DAYS"
+
+          if [ "$DAYS" = "{}" ]; then
+            echo "::warning::数えられませんでした（投稿が0件かもしれません）"
+            exit 0
+          fi
+
+          # ── 3) Supabase に入れます ──
+          python3 - "$DAYS" > /tmp/body.json <<'PY'
+          import json, sys, os
+          json.dump({"p_days": json.loads(sys.argv[1]),
+                     "p_token": os.environ["MOOD_TOKEN"]},
+                    sys.stdout, ensure_ascii=False)
+          PY
+
+          SB=$(curl -sS -o /tmp/sb.json -w '%{http_code}' \
+                 -X POST "${SB_URL}/rest/v1/rpc/mood_set_x_many" \
+                 -H "apikey: ${SB_ANON}" \
+                 -H "Content-Type: application/json" \
+                 --data-binary @/tmp/body.json || true)
+          echo "Supabase: HTTP $SB"
+          cat /tmp/sb.json; echo
+
+          if [ "$SB" != "200" ]; then
+            echo "::error::Supabase に入れられませんでした（HTTP $SB）"
+            echo "  合いことば（MOOD_TOKEN）がちがう／SQLが古い、などが考えられます"
+            exit 1
+          fi
+          echo "入れました"
+
+# ═══════════════════════════════════════════════════════════════
+#  料金のめやす（counts/recent は 1リクエスト $0.005）
+#
+#   更新のかんかく   1日の回数   1か月     1年       $5 で
+#   ───────────────────────────────────────────────────────────
+#   1日1回              1回     $0.15     $1.83     約2年8か月
+#   12時間おき          2回     $0.30     $3.65     約1年4か月   ← この設定
+#   6時間おき           4回     $0.60     $7.30     約8か月
+#   3時間おき           8回     $1.20    $14.60     約4か月
+#   1時間おき          24回     $3.65    $43.80     約1か月半
+#
+#  ※ counts/recent は「直近7日ぶん」を1回でまとめて返します。
+#     1日1回でも取りこぼしません。回数を増やして分かるのは
+#     「今日の途中までの数」だけです。
+#  ※ cron を1本だけにすれば「1日1回」＝ $5 で約2年8か月もちます。
+# ═══════════════════════════════════════════════════════════════
