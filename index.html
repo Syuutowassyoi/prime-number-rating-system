@@ -711,6 +711,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .mdchart .dt{fill:var(--mood)}
 .mdchart .gr{stroke:#1b2740;stroke-dasharray:2 3}
 .mdchart .ax{stroke:var(--line)}
+.mapane{margin-top:12px}
+.mdrow{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.mdrow .lb{font-size:.72rem;color:var(--dim);min-width:9.5em}
+.mdrow input[type=color]{width:42px;height:32px;border:1px solid var(--line);
+  border-radius:8px;background:#0a1020;padding:1px}
+.mdrow .del{flex:none}
 .mdchart text{fill:var(--dim2);font-size:9px;font-family:ui-monospace,Menlo,monospace}
 /* 一時停止の画面 */
 #pauseWall{position:fixed;inset:0;z-index:99999;background:#0b1120;display:none;
@@ -1632,32 +1638,92 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 
   <div class="card" id="mdAdmCard" hidden>
     <h2>管理者メニュー</h2>
-    <p class="tiny">Xの投稿数はここから入れます。数えなおしは誰でもできます（何度押しても同じ結果です）。</p>
-    <div class="tools" style="margin-top:0">
-      <button class="btn pri" id="mdSnap">いますぐ数えなおす</button>
-      <span class="tiny" id="mdMsg"></span>
+    <div class="segs" id="mdAdmTabs" style="grid-template-columns:repeat(4,1fr)">
+      <button data-ma="run" class="on">更新する</button>
+      <button data-ma="tag">ハッシュタグ</button>
+      <button data-ma="score">配点とことば</button>
+      <button data-ma="key">つなぎこみ</button>
     </div>
-    <label class="fl">X（Twitter）の #素数あつめ の投稿数</label>
-    <div class="tools" style="margin-top:0">
-      <input type="date" class="txt" id="mdXDay" style="max-width:170px">
-      <input type="number" class="txt" id="mdXN" min="0" step="1" placeholder="件数" style="max-width:120px">
-      <button class="btn" id="mdXGo">この日の件数を入れる</button>
+
+    <div class="mapane" data-mp="run">
+      <p class="tiny">数えなおしはお金がかかりません（何度押しても同じ結果です）。</p>
+      <div class="tools" style="margin-top:0">
+        <button class="btn pri" id="mdSnap">いますぐ数えなおす</button>
+        <button class="btn" id="mdRecount">配点を変えたので、過去のぶんも数えなおす</button>
+        <span class="tiny" id="mdMsg"></span>
+      </div>
+      <label class="fl">X（Twitter）の投稿数を手で入れる</label>
+      <div class="tools" style="margin-top:0">
+        <input type="date" class="txt" id="mdXDay" style="max-width:170px">
+        <input type="number" class="txt" id="mdXN" min="0" step="1" placeholder="件数" style="max-width:120px">
+        <button class="btn" id="mdXGo">この日の件数を入れる</button>
+      </div>
+      <label class="fl" style="margin-top:12px">今週の目標</label>
+      <div class="tools" style="margin-top:0">
+        <input type="number" class="txt" id="mdTgt" min="1" step="10" style="max-width:130px">
+        <span class="tiny">点で達成　／　ごほうび</span>
+        <input type="number" class="txt" id="mdRw" min="1" max="20" step="1" style="max-width:90px">
+        <span class="tiny">枚</span>
+        <button class="btn" id="mdGoalGo">この目標にする</button>
+      </div>
     </div>
-    <label class="fl" style="margin-top:12px">今週の目標</label>
-    <div class="tools" style="margin-top:0">
-      <input type="number" class="txt" id="mdTgt" min="1" step="10" style="max-width:130px">
-      <span class="tiny">点で達成　／　ごほうび</span>
-      <input type="number" class="txt" id="mdRw" min="1" max="20" step="1" style="max-width:90px">
-      <span class="tiny">枚</span>
-      <button class="btn" id="mdGoalGo">この目標にする</button>
+
+    <div class="mapane" data-mp="tag" hidden>
+      <p class="tiny">Xで数えるハッシュタグです。増やしても<b>料金は変わりません</b>（1回のお願いで数えます）。<br>
+        ここを変えると、GitHub Actions も自動でこの通りに数えます。ymlを直す必要はありません。</p>
+      <div id="mdTagList"></div>
+      <div class="tools" style="margin-top:6px">
+        <button class="btn sm" id="mdTagAdd">＋ タグを増やす</button>
+      </div>
+      <label class="fl">除きたいもの（上級者向け・空でよい）</label>
+      <input type="text" class="txt" id="mdExtra" placeholder="-is:retweet" style="max-width:340px">
+      <p class="tiny" style="margin-top:4px"><span class="mono">-is:retweet</span> はリポスト（拡散）を除きます。
+        <span class="mono">-is:reply</span> で返信も除けます。</p>
+      <label class="fl" style="margin-top:12px">Xに送るお願いの文（できあがり）</label>
+      <div class="lockbox mono" id="mdQPrev" style="word-break:break-all"></div>
+      <p class="tiny" id="mdQLen"></p>
     </div>
-    <label class="fl" style="margin-top:12px">GitHub Actions からXの数を入れるための合いことば</label>
-    <div class="tools" style="margin-top:0">
-      <input type="text" class="txt" id="mdSec" placeholder="長めの文字列（例：pm-9f2a-…）" style="max-width:300px">
-      <button class="btn" id="mdSecGo">合いことばを決める</button>
+
+    <div class="mapane" data-mp="score" hidden>
+      <label class="fl">配点（1つあたり何点にするか）</label>
+      <div id="mdWeights"></div>
+      <label class="fl" style="margin-top:14px">メーターの満タン（この点で満タンになります）</label>
+      <div class="tools" style="margin-top:0">
+        <input type="number" class="txt" id="mdMax" min="10" step="10" style="max-width:140px">
+        <span class="tiny">点</span>
+      </div>
+      <label class="fl" style="margin-top:14px">点による ことば</label>
+      <p class="tiny" style="margin-top:-2px">「この点から」を小さい順に並べます。色も選べます。</p>
+      <div id="mdWords"></div>
+      <div class="tools" style="margin-top:6px">
+        <button class="btn sm" id="mdWordAdd">＋ ことばを増やす</button>
+        <button class="btn sm" id="mdWordDef">はじめに戻す</button>
+      </div>
+      <label class="fl" style="margin-top:14px">点の文字の形</label>
+      <select class="txt" id="mdFont" style="max-width:280px"></select>
+      <div class="lockbox" style="text-align:center;margin-top:8px">
+        <div class="mdlab">見本</div>
+        <div id="mdFontPrev" class="mdnum">1,234</div>
+        <div id="mdWordPrev" class="mdword">—</div>
+      </div>
     </div>
-    <p class="tiny" style="margin-top:6px">これを GitHub の Secrets に <b>MOOD_TOKEN</b> として入れます。
-      手順はヘルプの「Prime Mood」に書いてあります。</p>
+
+    <div class="mapane" data-mp="key" hidden>
+      <label class="fl">GitHub Actions からXの数を入れるための合いことば</label>
+      <div class="tools" style="margin-top:0">
+        <input type="text" class="txt" id="mdSec" placeholder="長めの文字列（例：pm-9f2a-…）" style="max-width:300px">
+        <button class="btn" id="mdSecGo">合いことばを決める</button>
+      </div>
+      <p class="tiny" style="margin-top:6px">これを GitHub の Secrets に <b>MOOD_TOKEN</b> として入れます。
+        入れるのは <b>X_BEARER</b> と <b>MOOD_TOKEN</b> の2つだけです。<br>
+        手順はヘルプの「Prime Mood」に書いてあります。</p>
+    </div>
+
+    <div class="tools" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <button class="btn pri" id="mdCfgSave">この設定を保存する（全員に反映）</button>
+      <button class="btn" id="mdCfgReload">保存せずに読みなおす</button>
+      <span class="tiny" id="mdCfgMsg"></span>
+    </div>
   </div>
 </section>
 
@@ -1897,7 +1963,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v85";
+const APP_VERSION = "v86";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -11355,26 +11421,72 @@ if($("#hsSync")) $("#hsSync").onclick=async()=>{
    ・今週の目標に届くと、その週にきた人みんなに Prime Coin
    ══════════════════════════════════════════════════════════════ */
 let MOOD=[], MOODW=null, mdKind="day", mdBusy=false;
-/* 何がどれだけ効くか（SQL の mood_score と同じです） */
-const MOOD_W=[
-  {k:"x_posts", n:"X の #素数あつめ", w:3, s:"投稿1件で3点"},
-  {k:"achs",    n:"アチーブメント達成", w:3, s:"1件で3点"},
-  {k:"subs",    n:"記録の提出",     w:2, s:"1件で2点"},
-  {k:"cup_subs",n:"大会への提出",   w:2, s:"1件で2点"},
-  {k:"players", n:"きた人の数",     w:2, s:"1人で2点"},
-  {k:"chats",   n:"つぶやき",       w:1, s:"1件で1点"},
-  {k:"plays",   n:"Prime Park",     w:1, s:"1回で1点"}
+/* 数えるものの並び（名前は決まっています。配点は管理者が変えられます） */
+const MOOD_ITEMS=[
+  {k:"x_posts", n:"X の投稿（ハッシュタグ）"},
+  {k:"achs",    n:"アチーブメント達成"},
+  {k:"subs",    n:"記録の提出"},
+  {k:"cup_subs",n:"大会への提出"},
+  {k:"players", n:"きた人の数"},
+  {k:"chats",   n:"つぶやき"},
+  {k:"plays",   n:"Prime Park であそぶ"}
 ];
-/* 盛り上がりの言葉。数が大きいほど熱い言葉になります */
-const MOOD_WORD=[
-  [0,   "しずかな日","#5f7490"],
-  [20,  "ぽつぽつ","#93a4c0"],
-  [60,  "あたたかい","#5ee6a8"],
-  [140, "にぎわっている","#ffd45e"],
-  [260, "もりあがり！","#ff8fb3"],
-  [450, "お祭りだ！！","#ff6b5e"]
+/* 点の文字の形。えらべるものは、どの端末にもある字だけにしています */
+const MOOD_FONTS=[
+  {k:"mono",   n:"等幅（既定）",     f:'ui-monospace,Menlo,Consolas,"Courier New",monospace'},
+  {k:"gothic", n:"ゴシック体",       f:'-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif'},
+  {k:"mincho", n:"明朝体",           f:'"Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif'},
+  {k:"maru",   n:"丸ゴシック",       f:'"Hiragino Maru Gothic ProN","Yu Gothic UI","Meiryo UI",sans-serif'},
+  {k:"impact", n:"インパクト（太）", f:'Impact,"Haettenschweiler","Arial Narrow Bold",sans-serif'},
+  {k:"hgp",    n:"HGPゴシックE",     f:'"HGPｺﾞｼｯｸE","HGPGothicE","Yu Gothic",sans-serif'},
+  {k:"georgia",n:"セリフ（英字風）", f:'Georgia,"Times New Roman",serif'},
+  {k:"tab",    n:"等幅（数字そろえ）",f:'"SF Mono","Roboto Mono","Noto Sans Mono",ui-monospace,monospace'}
 ];
-const mdWord=v=>{ let r=MOOD_WORD[0]; MOOD_WORD.forEach(x=>{ if(v>=x[0]) r=x; }); return r; };
+const moodFont=k=>(MOOD_FONTS.find(x=>x.k===k)||MOOD_FONTS[0]).f;
+
+/* 設定。サーバーから読みます（管理者だけが変えられます） */
+const MOOD_DEF={
+  tags:["素数あつめ"], extra:"-is:retweet",
+  weights:{x_posts:3,achs:3,subs:2,cup_subs:2,players:2,chats:1,plays:1},
+  words:[{min:0,text:"しずかな日",color:"#5f7490"},
+         {min:20,text:"ぽつぽつ",color:"#93a4c0"},
+         {min:60,text:"あたたかい",color:"#5ee6a8"},
+         {min:140,text:"にぎわっている",color:"#ffd45e"},
+         {min:260,text:"もりあがり！",color:"#ff8fb3"},
+         {min:450,text:"お祭りだ！！",color:"#ff6b5e"}],
+  max:500, font:"mono"
+};
+let MCFG=JSON.parse(JSON.stringify(MOOD_DEF));   /* いま使っている設定 */
+let MEDIT=null;                                   /* 管理者が編集中のもの */
+const mcW=k=>+((MCFG.weights||{})[k])||0;
+/** その点にあてはまる ことば */
+function mdWord(v){
+  const ws=(MCFG.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
+  if(!ws.length) return [0,"—","#93a4c0"];
+  let r=ws[0];
+  ws.forEach(x=>{ if(v>=(+x.min||0)) r=x; });
+  return [+r.min||0, r.text||"—", r.color||"#93a4c0"];
+}
+/** タグから、Xに送るお願いの文を作ります（yml と同じ作りかた） */
+function moodQuery(cfg){
+  const c=cfg||MCFG;
+  const tags=(c.tags||[]).map(t=>String(t).trim().replace(/^#/,"")).filter(Boolean);
+  if(!tags.length) return "";
+  const inner=tags.map(t=>"#"+t).join(" OR ");
+  let q=tags.length>1?("("+inner+")"):("#"+tags[0]);
+  const ex=String(c.extra||"").trim();
+  if(ex) q+=" "+ex;
+  return q;
+}
+async function moodCfgLoad(){
+  if(TEST){ MCFG=JSON.parse(JSON.stringify(MOOD_DEF)); return MCFG; }
+  if(!sbOn()) return MCFG;
+  try{
+    const r=await sb("rpc/mood_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object") MCFG=Object.assign(JSON.parse(JSON.stringify(MOOD_DEF)),r);
+  }catch(e){}
+  return MCFG;
+}
 
 async function moodLoad(){
   if(TEST){
@@ -11403,6 +11515,8 @@ async function moodLoad(){
 }
 async function moodEnter(){
   $("#mdAdmCard").hidden=!(myLv()>=5);
+  await moodCfgLoad();
+  if(myLv()>=5){ MEDIT=JSON.parse(JSON.stringify(MCFG)); mdCfgDraw(); }
   $("#mdGauge").innerHTML=`<p class="muted">読み込み中…</p>`;
   await moodLoad();
   moodDraw();
@@ -11423,7 +11537,7 @@ function moodDraw(){
   const w=mdWord(v);
   const prev=(mdKind==="day"&&MOOD.length>1)?+MOOD[MOOD.length-2].score||0:null;
   const dv=prev==null?null:v-prev;
-  const pct=Math.min(1, v/500);
+  const pct=Math.min(1, v/Math.max(10,+MCFG.max||500));
   const R=110, C=Math.PI*R;         /* 半円の長さ */
   $("#mdGauge").innerHTML=`<div class="mdgauge"><svg viewBox="0 0 260 150">
     <defs><linearGradient id="mdg" x1="0" y1="0" x2="1" y2="0">
@@ -11433,7 +11547,7 @@ function moodDraw(){
     <path class="fg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"
       stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>
     <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-size:34px;font-weight:900;
-      font-family:ui-monospace,Menlo,monospace">${jp(v)}</text>
+      font-family:${moodFont(MCFG.font)}">${jp(v)}</text>
   </svg></div>
   <div class="mdlab">きょうの もりあがり ど</div>
   <div class="mdword" style="color:${w[2]}">${esc(w[1])}</div>
@@ -11490,10 +11604,11 @@ function moodDraw(){
       <th>なに</th><th class="n" style="text-align:right">1つあたり</th>
       <th class="n" style="text-align:right">この7日</th>
       <th class="n" style="text-align:right">点</th></tr></thead><tbody>`
-    +MOOD_W.map(x=>`<tr><td>${esc(x.n)}</td>
-      <td style="text-align:right" class="tiny">${x.w} 点</td>
+    +MOOD_ITEMS.map(x=>`<tr><td>${esc(x.n)}${x.k==="x_posts"&&(MCFG.tags||[]).length
+        ?`<br><span class="tiny mono">${esc((MCFG.tags||[]).map(t=>"#"+t).join("　"))}</span>`:""}</td>
+      <td style="text-align:right" class="tiny">${jp(mcW(x.k))} 点</td>
       <td style="text-align:right"><b class="mono">${jp(sum(x.k))}</b></td>
-      <td style="text-align:right" class="mono">${jp(sum(x.k)*x.w)}</td></tr>`).join("")
+      <td style="text-align:right" class="mono">${jp(sum(x.k)*mcW(x.k))}</td></tr>`).join("")
     +`<tr><td colspan="3"><b>合計</b></td>
       <td style="text-align:right"><b class="mono" style="color:var(--mood)">${jp(week7)}</b></td></tr>`
     +`</tbody></table></div>
@@ -11555,9 +11670,154 @@ $$("#mdTabs [data-md]").forEach(b=>b.onclick=async()=>{
   if(mdKind!=="day"&&!MOOD_TODAY) MOOD_TODAY=MOOD.length?MOOD[MOOD.length-1]:null;
   await moodLoad(); moodDraw();
 });
+/* ══════════ 管理者：設定の編集 ══════════ */
+let mdAdmTab="run";
+function mdCfgDraw(){
+  if(!MEDIT) return;
+  $$("#mdAdmTabs [data-ma]").forEach(b=>b.classList.toggle("on",b.dataset.ma===mdAdmTab));
+  $$("#mdAdmCard .mapane").forEach(p=>p.hidden=(p.dataset.mp!==mdAdmTab));
+
+  /* ── ハッシュタグ ── */
+  const tags=MEDIT.tags||[];
+  $("#mdTagList").innerHTML=tags.length?tags.map((t,i)=>`
+    <div class="mdrow"><span class="lb">${i+1}つめ</span>
+      <span class="mono" style="color:var(--mood)">#</span>
+      <input type="text" class="txt" data-tg="${i}" value="${esc(t)}"
+        placeholder="素数あつめ" style="max-width:220px">
+      <button class="btn sm del" data-tx="${i}">消す</button></div>`).join("")
+    : `<p class="tiny" style="color:var(--warn)">タグがありません。1つ以上入れてください。</p>`;
+  $$("#mdTagList [data-tg]").forEach(e=>e.oninput=()=>{
+    MEDIT.tags[+e.dataset.tg]=e.value.replace(/^#/,"").trim();
+    mdQPrev();
+  });
+  $$("#mdTagList [data-tx]").forEach(b=>b.onclick=()=>{
+    MEDIT.tags.splice(+b.dataset.tx,1); mdCfgDraw();
+  });
+  $("#mdExtra").value=MEDIT.extra||"";
+  $("#mdExtra").oninput=()=>{ MEDIT.extra=$("#mdExtra").value; mdQPrev(); };
+  mdQPrev();
+
+  /* ── 配点 ── */
+  $("#mdWeights").innerHTML=MOOD_ITEMS.map(x=>`
+    <div class="mdrow"><span class="lb">${esc(x.n)}</span>
+      <input type="number" class="txt" data-wt="${x.k}" min="0" max="99" step="1"
+        value="${+((MEDIT.weights||{})[x.k])||0}" style="max-width:90px">
+      <span class="tiny">点</span></div>`).join("");
+  $$("#mdWeights [data-wt]").forEach(e=>e.oninput=()=>{
+    MEDIT.weights=MEDIT.weights||{};
+    MEDIT.weights[e.dataset.wt]=Math.max(0,Math.min(99,+e.value||0));
+  });
+  $("#mdMax").value=+MEDIT.max||500;
+  $("#mdMax").oninput=()=>{ MEDIT.max=Math.max(10,+$("#mdMax").value||500); };
+
+  /* ── ことば ── */
+  const ws=MEDIT.words||[];
+  $("#mdWords").innerHTML=ws.length?ws.map((w,i)=>`
+    <div class="mdrow"><span class="lb">この点から</span>
+      <input type="number" class="txt" data-wm="${i}" min="0" step="10"
+        value="${+w.min||0}" style="max-width:100px">
+      <input type="text" class="txt" data-wd="${i}" value="${esc(w.text||"")}"
+        placeholder="ことば" style="max-width:190px">
+      <input type="color" data-wc="${i}" value="${esc(w.color||"#93a4c0")}">
+      <button class="btn sm del" data-wx="${i}">消す</button></div>`).join("")
+    : `<p class="tiny" style="color:var(--warn)">ことばがありません。1つ以上入れてください。</p>`;
+  $$("#mdWords [data-wm]").forEach(e=>e.oninput=()=>{
+    MEDIT.words[+e.dataset.wm].min=Math.max(0,+e.value||0); mdWordPrev(); });
+  $$("#mdWords [data-wd]").forEach(e=>e.oninput=()=>{
+    MEDIT.words[+e.dataset.wd].text=e.value; mdWordPrev(); });
+  $$("#mdWords [data-wc]").forEach(e=>e.oninput=()=>{
+    MEDIT.words[+e.dataset.wc].color=e.value; mdWordPrev(); });
+  $$("#mdWords [data-wx]").forEach(b=>b.onclick=()=>{
+    MEDIT.words.splice(+b.dataset.wx,1); mdCfgDraw(); });
+
+  /* ── 文字の形 ── */
+  $("#mdFont").innerHTML=MOOD_FONTS.map(f=>
+    `<option value="${f.k}"${(MEDIT.font||"mono")===f.k?" selected":""}>${esc(f.n)}</option>`).join("");
+  $("#mdFont").onchange=()=>{ MEDIT.font=$("#mdFont").value; mdWordPrev(); };
+  mdWordPrev();
+}
+function mdQPrev(){
+  const q=moodQuery(MEDIT);
+  $("#mdQPrev").textContent=q||"（タグがありません）";
+  const n=q.length;
+  $("#mdQLen").innerHTML=`${jp(n)} 文字 ／ 512文字までです。`
+    +(n>500?`<span style="color:var(--bad)"> 長すぎます。タグを減らしてください</span>`:"")
+    +`　<span style="color:var(--dim2)">タグを増やしても料金は増えません（1回のお願いで数えます）</span>`;
+}
+function mdWordPrev(){
+  const f=moodFont(MEDIT.font);
+  $("#mdFontPrev").style.fontFamily=f;
+  const mx=Math.max(10,+MEDIT.max||500);
+  $("#mdFontPrev").textContent=jp(mx);
+  const ws=(MEDIT.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
+  const w=ws.length?ws[ws.length-1]:{text:"—",color:"#93a4c0"};
+  $("#mdWordPrev").textContent=w.text||"—";
+  $("#mdWordPrev").style.color=w.color||"#93a4c0";
+  $("#mdFontPrev").style.color=w.color||"var(--mood)";
+}
+$$("#mdAdmTabs [data-ma]").forEach(b=>b.onclick=()=>{ mdAdmTab=b.dataset.ma; mdCfgDraw(); });
+if($("#mdTagAdd")) $("#mdTagAdd").onclick=()=>{
+  MEDIT.tags=MEDIT.tags||[]; MEDIT.tags.push(""); mdCfgDraw();
+  const l=$$("#mdTagList [data-tg]"); if(l.length) l[l.length-1].focus();
+};
+if($("#mdWordAdd")) $("#mdWordAdd").onclick=()=>{
+  MEDIT.words=MEDIT.words||[];
+  const mx=MEDIT.words.reduce((a,w)=>Math.max(a,+w.min||0),0);
+  MEDIT.words.push({min:mx+100,text:"",color:"#ff8fb3"}); mdCfgDraw();
+};
+if($("#mdWordDef")) $("#mdWordDef").onclick=()=>{
+  MEDIT.words=JSON.parse(JSON.stringify(MOOD_DEF.words)); mdCfgDraw();
+};
+const mdCfgMsg=(t,ok)=>{ const e=$("#mdCfgMsg"); if(e) e.innerHTML=
+  `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; };
+if($("#mdCfgSave")) $("#mdCfgSave").onclick=async()=>{
+  if(!MEDIT) return;
+  /* 入れまちがいを直してから送ります */
+  const cfg=JSON.parse(JSON.stringify(MEDIT));
+  cfg.tags=(cfg.tags||[]).map(t=>String(t).replace(/^#/,"").trim()).filter(Boolean);
+  if(!cfg.tags.length) return mdCfgMsg("ハッシュタグを1つ以上入れてください", false);
+  if(moodQuery(cfg).length>500) return mdCfgMsg("お願いの文が長すぎます。タグを減らしてください", false);
+  cfg.words=(cfg.words||[]).filter(w=>String(w.text||"").trim())
+    .map(w=>({min:Math.max(0,+w.min||0),text:String(w.text).trim(),color:w.color||"#93a4c0"}))
+    .sort((a,b)=>a.min-b.min);
+  if(!cfg.words.length) return mdCfgMsg("ことばを1つ以上入れてください", false);
+  if(cfg.words[0].min!==0) cfg.words[0].min=0;   /* いちばん下は0点から */
+  cfg.weights=cfg.weights||{};
+  MOOD_ITEMS.forEach(x=>{ cfg.weights[x.k]=Math.max(0,Math.min(99,+cfg.weights[x.k]||0)); });
+  cfg.max=Math.max(10,+cfg.max||500);
+  cfg.font=(MOOD_FONTS.find(f=>f.k===cfg.font)?cfg.font:"mono");
+  cfg.extra=String(cfg.extra||"").trim();
+  const b=$("#mdCfgSave"); b.disabled=true; mdCfgMsg("送っています…");
+  try{
+    const r=await sbAuth("rpc/mood_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
+    MCFG=Object.assign(JSON.parse(JSON.stringify(MOOD_DEF)), r||cfg);
+    MEDIT=JSON.parse(JSON.stringify(MCFG));
+    mdCfgMsg("保存しました。全員に反映されます");
+    await moodLoad(); moodDraw(); mdCfgDraw();
+  }catch(e){ mdCfgMsg(String(e.message||e).slice(0,90), false); }
+  b.disabled=false;
+};
+if($("#mdCfgReload")) $("#mdCfgReload").onclick=async()=>{
+  await moodCfgLoad();
+  MEDIT=JSON.parse(JSON.stringify(MCFG));
+  mdCfgDraw(); moodDraw(); mdCfgMsg("読みなおしました");
+};
+
 /* ── 管理者のボタン ── */
 const mdMsg=(t,ok)=>{ const e=$("#mdMsg"); if(e){ e.innerHTML=
   `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; } };
+if($("#mdRecount")) $("#mdRecount").onclick=async()=>{
+  if(mdBusy) return;
+  if(!await askYN("過去のぶんも数えなおしますか？",
+    "いまの配点で、これまでの毎日の点をぜんぶ計算しなおします。"
+    +"Xの投稿数や提出の数は変わりません。","数えなおす")) return;
+  mdBusy=true; mdMsg("数えなおしています…");
+  try{
+    const r=await sbAuth("rpc/mood_recount",{method:"POST",body:JSON.stringify({p_days:400})});
+    await moodEnter(); mdMsg(`${jp((r&&r.days)||0)} 日ぶんを数えなおしました`);
+  }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
+  mdBusy=false;
+};
 if($("#mdSnap")) $("#mdSnap").onclick=async()=>{
   if(mdBusy) return; mdBusy=true; mdMsg("数えています…");
   try{ await sb("rpc/mood_snap",{method:"POST",body:"{}"}); await moodEnter(); mdMsg("数えなおしました"); }
@@ -12359,29 +12619,147 @@ tool:`<h3>画面の地図</h3>
 </pre>
 <p class="tiny">チャレンジ・競技会の「終了する」「消す」は、この手順を通ります。うっかり押しても消えません。</p>`,
 
+moodAdmin:`<h3 style="margin-top:16px">── ここから下は管理者向けの手順です ──</h3>
+
+<h3 style="margin-top:12px">① X の Bearer Token を作る</h3>
+<div class="scroll"><table><thead><tr><th>手順</th><th>すること</th></tr></thead><tbody>
+<tr><td><b>1</b></td><td><b>developer.x.com</b> を開いて、X のアカウントでログインします</td></tr>
+<tr><td><b>2</b></td><td>「Sign up for Free Account」から開発者登録をします（用途を英語で150文字ほど書きます）</td></tr>
+<tr><td><b>3</b></td><td>Developer Portal で <b>Project</b> と <b>App</b> を作ります</td></tr>
+<tr><td><b>4</b></td><td>App の「Keys and tokens」→ <b>Bearer Token</b> を生成してコピーします</td></tr>
+<tr><td><b>5</b></td><td>Console でクレジットを買います（$10 で数年もちます）。<b>支出上限</b>も $1 などに設定してください</td></tr>
+</tbody></table></div>
+<p class="tiny" style="color:var(--warn)">2026年2月から無料枠はなくなり、使った分だけ払う形になりました。
+クレジットは Developer Console で買います。<b>支出上限（Spending limit）を必ず設定してください。</b></p>
+
+<h3 style="margin-top:16px">② 料金と更新のかんかく</h3>
+<p class="tiny">使うのは <b>counts/recent</b>（件数だけを返すもの）で、<b>1回 $0.005</b> です。
+投稿の本文は取らないので、これだけで済みます。</p>
+<p class="tiny">1時間ごとの件数でもらって、<b>日本時間の 0:00〜24:00 で区切りなおして</b>います。
+UTC のまま日別でもらうと9時間ずれるためです。細かくもらっても料金は同じ（1リクエスト $0.005）です。<br>
+いちばん古い日は「途中から」しか取れないので、その日は送りません
+（前に正しく入れた数を、少ない数で上書きしないためです）。</p>
+<div class="scroll"><table><thead><tr><th>かんかく</th><th class="n">1日</th><th class="n">1か月</th>
+<th class="n">1年</th><th>$5 で</th></tr></thead><tbody>
+<tr><td>1日1回</td><td class="n">1回</td><td class="n">$0.15</td><td class="n">$1.83</td><td>約2年8か月</td></tr>
+<tr><td><b>12時間おき</b></td><td class="n">2回</td><td class="n">$0.30</td><td class="n">$3.65</td><td>約1年4か月</td></tr>
+<tr><td>6時間おき</td><td class="n">4回</td><td class="n">$0.60</td><td class="n">$7.30</td><td>約8か月</td></tr>
+<tr><td>3時間おき</td><td class="n">8回</td><td class="n">$1.20</td><td class="n">$14.60</td><td>約4か月</td></tr>
+<tr><td>1時間おき</td><td class="n">24回</td><td class="n">$3.65</td><td class="n">$43.80</td><td>約1か月半</td></tr>
+</tbody></table></div>
+<p class="tiny"><b>1日1回で十分です。</b>counts/recent は「直近7日ぶん」をまとめて返すので、
+1日1回でも取りこぼしません。回数を増やして分かるのは「今日の途中までの数」だけです。<br>
+<b>prime-mood.yml は 1日1回（日本時間 0:10）になっています。</b>
+12時間おきにしたいときは、yml の中の
+<span class="mono"># - cron: "10 3 * * *"</span> の <span class="mono">#</span> を外してください。<br>
+ハッシュタグを何個に増やしても、<b>1回のお願いでまとめて数える</b>ので料金は増えません。</p>
+
+<h3 style="margin-top:16px">③ 合いことばを決める</h3>
+<p class="tiny">Prime Mood タブのいちばん下（管理者だけに出ます）で、
+<b>合いことば</b>を決めて「合いことばを決める」を押します。8文字以上にしてください。</p>
+
+<h3 style="margin-top:16px">④ GitHub に入れる</h3>
+<p class="tiny">リポジトリの <b>Settings → Secrets and variables → Actions</b> で、
+「New repository secret」から <b>2つだけ</b>入れます。</p>
+<div class="scroll"><table><thead><tr><th>名前</th><th>中身</th></tr></thead><tbody>
+<tr><td class="mono">X_BEARER</td><td>①でコピーした Bearer Token</td></tr>
+<tr><td class="mono">MOOD_TOKEN</td><td>③で決めた合いことば</td></tr>
+</tbody></table></div>
+<p class="tiny">Supabase の URL と公開キーは、もともと index.html に書いてあって
+<b>隠す必要のない値</b>なので、yml の中に直接書いてあります。秘密にするのはこの2つだけです。</p>
+<p class="tiny">つぎに、<b>prime-mood.yml</b> というファイルを
+<span class="mono">.github/workflows/prime-mood.yml</span> に置きます。
+<b>置くだけで、毎日ひとりで動きます。</b>Actions タブの「Run workflow」で手動でも動かせます。<br>
+<span style="color:var(--dim2)">※ yml の中身は公開されても大丈夫です。ほんとうの秘密は
+<span class="mono">\${{ secrets.… }}</span> という書き方で外から読み込むので、ファイルには入りません。</span></p>
+<p class="tiny" style="color:var(--warn)">※ GitHub の決まりで、<b>60日間そのリポジトリに何も変更がないと自動実行が止まります。</b>
+止まるとメールが来るので、Actions タブから「Enable workflow」を押せば戻ります。<br>
+※ 決まった時刻ぴったりには動かず、数分〜十数分おくれることがあります（GitHub の混み具合によります）。</p>
+
+<h3 style="margin-top:16px">⑤ 管理者メニューのボタン</h3>
+<p class="tiny">Prime Mood タブのいちばん下（管理者だけに出ます）に、4つのタブがあります。</p>
+<div class="scroll"><table><thead><tr><th>タブ</th><th>できること</th><th>お金</th></tr></thead><tbody>
+<tr><td><b>更新する</b></td><td>いますぐ数えなおす／過去のぶんも数えなおす／X の件数を手で入れる／今週の目標を決める</td><td>かかりません</td></tr>
+<tr><td><b>ハッシュタグ</b></td><td>数えるタグを増やす・変える・消す。おまけの条件も足せます</td><td>かかりません</td></tr>
+<tr><td><b>配点とことば</b></td><td>何を何点にするか、満点、点ごとのことばと色、点の文字の形</td><td>かかりません</td></tr>
+<tr><td><b>つなぎこみ</b></td><td>合いことば（MOOD_TOKEN）を決めます</td><td>かかりません</td></tr>
+</tbody></table></div>
+<p class="tiny"><b>X に聞きにいくのは GitHub Actions だけ</b>です。
+アプリのボタンからは X を呼びません（勝手に課金されないようにするためです）。
+X の数を今すぐ知りたいときは、GitHub の Actions タブから手で動かしてください。</p>
+
+<h3 style="margin-top:16px">⑥ ハッシュタグを増やす・変える</h3>
+<p class="tiny">「ハッシュタグ」タブで <b>＋ タグを増やす</b> を押して、名前を入れるだけです。
+<span class="mono">#</span> は付けても付けなくてもよいです（勝手に整えます）。</p>
+<p class="tiny">下の「お願いの文」に、実際に X に送る文がそのまま出ます。</p>
+<div class="scroll"><table><tbody>
+<tr><td>1つのとき</td><td class="mono">#素数あつめ -is:retweet</td></tr>
+<tr><td>2つ以上</td><td class="mono">(#素数あつめ OR #素数大富豪) -is:retweet</td></tr>
+</tbody></table></div>
+<p class="tiny">「おまけの条件」はそのまま後ろに付きます。よく使うもの：</p>
+<div class="scroll"><table><thead><tr><th>書きかた</th><th>意味</th></tr></thead><tbody>
+<tr><td class="mono">-is:retweet</td><td>リポストを数えない（おすすめ）</td></tr>
+<tr><td class="mono">-is:reply</td><td>返信を数えない</td></tr>
+<tr><td class="mono">lang:ja</td><td>日本語の投稿だけ数える</td></tr>
+<tr><td class="mono">has:images</td><td>画像つきだけ数える</td></tr>
+</tbody></table></div>
+<p class="tiny" style="color:var(--warn)">全部で <b>512文字</b>までです。画面に文字数が出るので、
+赤くなったらタグを減らしてください。<br>
+タグを変えたら「この設定を保存する」を押してください。
+<b>GitHub の yml は触らなくてよいです。</b>yml は毎回この設定を読んでから X に聞きにいきます。</p>
+<p class="tiny">タグを増やした日より前の日は、<b>前のタグで数えた数のまま</b>です
+（X は過去7日ぶんしか数えられないので、それより前はさかのぼれません）。</p>
+
+<h3 style="margin-top:16px">⑦ 配点・満点を変える</h3>
+<p class="tiny">「配点とことば」タブで、7つの行動それぞれに <b>0〜99点</b>を付けられます。
+<b>0点</b>にすると、その行動は点になりません（ヘルプの表にも「数えません」と出ます）。</p>
+<p class="tiny"><b>満点</b>は、メーターがいっぱいになる点です。ふだんの1日の点の
+2〜3倍くらいにしておくと、針の動きが分かりやすくなります。</p>
+<p class="tiny" style="color:var(--warn)"><b>配点を変えたら「過去のぶんも数えなおす」を押してください。</b>
+押さないと、前の日は古い配点の点のままで、グラフが途中で段になります。
+（X の投稿数や提出の数そのものは変わりません。点だけ計算しなおします。）</p>
+
+<h3 style="margin-top:16px">⑧ 点ごとのことばを変える</h3>
+<p class="tiny">「この点から」に区切りの点、その右にことば、いちばん右に色を入れます。
+<b>いちばん下の行は必ず 0点から</b>になります（並び順は保存するとき自動で直します）。</p>
+<div class="scroll"><table><thead><tr><th class="n">この点から</th><th>ことば</th><th>出る範囲</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>しずかな日</td><td>0〜19点</td></tr>
+<tr><td class="n">20</td><td>ぽつぽつ</td><td>20〜59点</td></tr>
+<tr><td class="n">60</td><td>あたたかい</td><td>60点〜つぎの区切りまで</td></tr>
+</tbody></table></div>
+<p class="tiny">ことばを空にした行は、保存のときに消えます。行ごと消したいときは「消す」を押してください。
+「はじめに戻す」で最初の6段階に戻ります。</p>
+
+<h3 style="margin-top:16px">⑨ 点の文字の形を変える</h3>
+<p class="tiny">「文字のかたち」で選べます。すぐ下に見本が出ます。</p>
+<div class="scroll"><table><thead><tr><th>名前</th><th>見え方</th></tr></thead><tbody>
+<tr><td>等幅（既定）</td><td>数字の幅がそろうので、増えても位置がずれません</td></tr>
+<tr><td>ゴシック</td><td>ふつうの太めの字</td></tr>
+<tr><td>明朝</td><td>すこし上品な字</td></tr>
+<tr><td>丸ゴシック</td><td>やわらかい字</td></tr>
+<tr><td>インパクト</td><td>とても太い字（お祭り向け）</td></tr>
+<tr><td>HGPゴシックE</td><td>その端末に入っていれば使われます。無ければゴシックになります</td></tr>
+<tr><td>Georgia</td><td>欧文の数字がきれい</td></tr>
+<tr><td>数字そろえ</td><td>数字の幅だけそろえた形</td></tr>
+</tbody></table></div>
+<p class="tiny">端末に入っていない字は、自動でにたものに置きかわります（画面がこわれることはありません）。</p>
+
+<h3 style="margin-top:16px">⑩ 保存と取り消し</h3>
+<div class="scroll"><table><tbody>
+<tr><td><b>この設定を保存する</b></td><td>全員に反映されます。ヘルプの表も自動で書きかわります</td></tr>
+<tr><td><b>保存せずに読みなおす</b></td><td>いま画面でいじった分を捨てて、保存済みの中身に戻します</td></tr>
+</tbody></table></div>
+<p class="tiny">設定は Supabase の <span class="mono">app_state</span> に入ります。
+変えられるのは<b>管理者だけ</b>で、読むのは誰でもできます（表示に必要なので）。</p>`,
+
 mood:`<h3>Prime Mood とは</h3>
 <p class="tiny">素数あつめ界隈が、いまどれくらい盛り上がっているかを1つの数字にしたものです。<br>
 <b>誰かと競うものではありません。</b>みんなの行動がぜんぶ、同じ1つの数字に積み上がります。</p>
 
 <h3 style="margin-top:16px">なにが点になるか</h3>
-<div class="scroll"><table><thead><tr><th>したこと</th><th class="n">点</th><th>だれの行動でも</th></tr></thead><tbody>
-<tr><td>X に <b>#素数あつめ</b> で投稿する</td><td class="n">3</td><td>入ります</td></tr>
-<tr><td>アチーブメントを達成する</td><td class="n">3</td><td>入ります</td></tr>
-<tr><td>記録を提出する</td><td class="n">2</td><td>入ります</td></tr>
-<tr><td>大会・チャレンジに出す</td><td class="n">2</td><td>入ります</td></tr>
-<tr><td>その日アプリに来る（1人ぶん）</td><td class="n">2</td><td>入ります</td></tr>
-<tr><td>タイムラインにつぶやく</td><td class="n">1</td><td>入ります</td></tr>
-<tr><td>Prime Park であそぶ</td><td class="n">1</td><td>入ります</td></tr>
-</tbody></table></div>
+{{MOODPTS}}
 <p class="tiny">1日の合計が「きょうのもりあがり度」です。数が大きいほど熱い言葉に変わります。</p>
-<div class="scroll"><table><thead><tr><th class="n">点</th><th>ことば</th></tr></thead><tbody>
-<tr><td class="n">0〜19</td><td>しずかな日</td></tr>
-<tr><td class="n">20〜59</td><td>ぽつぽつ</td></tr>
-<tr><td class="n">60〜139</td><td>あたたかい</td></tr>
-<tr><td class="n">140〜259</td><td>にぎわっている</td></tr>
-<tr><td class="n">260〜449</td><td>もりあがり！</td></tr>
-<tr><td class="n">450〜</td><td>お祭りだ！！</td></tr>
-</tbody></table></div>
+{{MOODWORDS}}
 
 <h3 style="margin-top:16px">今週の目標</h3>
 <p class="tiny">1週間（月曜〜日曜）の合計が目標に届くと、<b>その週に来た人みんな</b>に
@@ -12396,63 +12774,9 @@ Prime Coin が入ります。<br>
 
 <h3 style="margin-top:16px">X の投稿数について</h3>
 <p class="tiny">X の投稿数だけは、アプリの中では数えられないので、外から入れています。
-入っていない日は 0 になります。<b>管理者が「更新する」を押すと、その場で数えなおします。</b></p>
-
-<h3 style="margin-top:16px">── ここから下は管理者向けの手順です ──</h3>
-
-<h3 style="margin-top:12px">① X の Bearer Token を作る</h3>
-<div class="scroll"><table><thead><tr><th>手順</th><th>すること</th></tr></thead><tbody>
-<tr><td><b>1</b></td><td><b>developer.x.com</b> を開いて、X のアカウントでログインします</td></tr>
-<tr><td><b>2</b></td><td>「Sign up for Free Account」から開発者登録をします（用途を英語で150文字ほど書きます）</td></tr>
-<tr><td><b>3</b></td><td>Developer Portal で <b>Project</b> と <b>App</b> を作ります</td></tr>
-<tr><td><b>4</b></td><td>App の「Keys and tokens」→ <b>Bearer Token</b> を生成してコピーします</td></tr>
-<tr><td><b>5</b></td><td>Console でクレジットを買います（$10 で数年もちます）。<b>支出上限</b>も $1 などに設定してください</td></tr>
-</tbody></table></div>
-<p class="tiny" style="color:var(--warn)">2026年2月から無料枠はなくなり、使った分だけ払う形になりました。
-クレジットは Developer Console で買います。<b>支出上限（Spending limit）を必ず設定してください。</b></p>
-
-<h3 style="margin-top:16px">② 料金と更新のかんかく</h3>
-<p class="tiny">使うのは <b>counts/recent</b>（日別の件数だけを返すもの）で、<b>1回 $0.005</b> です。
-投稿の本文は取らないので、これだけで済みます。</p>
-<div class="scroll"><table><thead><tr><th>かんかく</th><th class="n">1日</th><th class="n">1か月</th>
-<th class="n">1年</th><th>$5 で</th></tr></thead><tbody>
-<tr><td>1日1回</td><td class="n">1回</td><td class="n">$0.15</td><td class="n">$1.83</td><td>約2年8か月</td></tr>
-<tr><td><b>12時間おき</b></td><td class="n">2回</td><td class="n">$0.30</td><td class="n">$3.65</td><td>約1年4か月</td></tr>
-<tr><td>6時間おき</td><td class="n">4回</td><td class="n">$0.60</td><td class="n">$7.30</td><td>約8か月</td></tr>
-<tr><td>3時間おき</td><td class="n">8回</td><td class="n">$1.20</td><td class="n">$14.60</td><td>約4か月</td></tr>
-<tr><td>1時間おき</td><td class="n">24回</td><td class="n">$3.65</td><td class="n">$43.80</td><td>約1か月半</td></tr>
-</tbody></table></div>
-<p class="tiny"><b>1日1回で十分です。</b>counts/recent は「直近7日ぶん」をまとめて返すので、
-1日1回でも取りこぼしません。回数を増やして分かるのは「今日の途中までの数」だけです。<br>
-おすすめは <b>12時間おき</b>（0:10 と 12:10）です。$10 のクーポンで2年半以上もちます。</p>
-
-<h3 style="margin-top:16px">③ 合いことばを決める</h3>
-<p class="tiny">Prime Mood タブのいちばん下（管理者だけに出ます）で、
-<b>合いことば</b>を決めて「合いことばを決める」を押します。8文字以上にしてください。</p>
-
-<h3 style="margin-top:16px">④ GitHub に入れる</h3>
-<p class="tiny">リポジトリの <b>Settings → Secrets and variables → Actions</b> で、
-「New repository secret」から4つ入れます。</p>
-<div class="scroll"><table><thead><tr><th>名前</th><th>中身</th></tr></thead><tbody>
-<tr><td class="mono">X_BEARER</td><td>①でコピーした Bearer Token</td></tr>
-<tr><td class="mono">SB_URL</td><td class="mono">https://…….supabase.co</td></tr>
-<tr><td class="mono">SB_ANON</td><td class="mono">sb_publishable_…（公開してよいキー）</td></tr>
-<tr><td class="mono">MOOD_TOKEN</td><td>③で決めた合いことば</td></tr>
-</tbody></table></div>
-<p class="tiny">つぎに、<b>prime-mood.yml</b> というファイルを
-<span class="mono">.github/workflows/prime-mood.yml</span> に置きます。
-これで毎日ひとりで動きます。Actions タブの「Run workflow」で手動でも動かせます。</p>
-
-<h3 style="margin-top:16px">⑤ 管理者の「更新する」ボタン</h3>
-<p class="tiny">Prime Mood タブの管理者メニューに3つあります。</p>
-<div class="scroll"><table><thead><tr><th>ボタン</th><th>すること</th><th>お金</th></tr></thead><tbody>
-<tr><td>いますぐ数えなおす</td><td>提出・つぶやき・人数などを数えなおします</td><td>かかりません</td></tr>
-<tr><td>この日の件数を入れる</td><td>X の投稿数を手で入れます（自分で数えた数でもOK）</td><td>かかりません</td></tr>
-<tr><td>この目標にする</td><td>今週の目標の点とごほうびの枚数を決めます</td><td>かかりません</td></tr>
-</tbody></table></div>
-<p class="tiny"><b>X に聞きにいくのは GitHub Actions だけ</b>です。
-アプリのボタンからは X を呼びません（勝手に課金されないようにするためです）。
-X の数を今すぐ知りたいときは、GitHub の Actions タブから手で動かしてください。</p>`,
+入っていない日は 0 になります。<b>管理者が「更新する」を押すと、その場で数えなおします。</b><br>
+数える言葉（ハッシュタグ）・配点・ことばは、管理者が決めています。
+上の表は、いま決まっている中身をそのまま出しています。</p>`,
 
 rule:`<h3>利用規約</h3>
 <p class="tiny">素数あつめ RATING（以下「本サイト」）は、個人が無償で運営している趣味のサイトです。
@@ -12586,12 +12910,35 @@ Prime SNS からも見えなくなります。ただし、正しく却下した�
 </tbody></table></div>`
 };
 let helpTab="role";
+/* ヘルプの表は、管理者が決めた設定から作ります（ずれないように） */
+function moodHelpPts(){
+  const tg=(MCFG.tags||[]).map(t=>"#"+t).join("・")||"#素数あつめ";
+  const rows=MOOD_ITEMS.slice().map(x=>({n:x.k==="x_posts"?`X に <b>${esc(tg)}</b> で投稿する`:esc(x.n),w:mcW(x.k)}))
+    .sort((a,b)=>b.w-a.w);
+  return `<div class="scroll"><table><thead><tr><th>したこと</th><th class="n">点</th><th>だれの行動でも</th></tr></thead><tbody>`
+    +rows.map(r=>`<tr><td>${r.n}</td><td class="n">${jp(r.w)}</td><td>${r.w?"入ります":"数えません"}</td></tr>`).join("")
+    +`</tbody></table></div>`;
+}
+function moodHelpWords(){
+  const ws=(MCFG.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
+  return `<div class="scroll"><table><thead><tr><th class="n">点</th><th>ことば</th></tr></thead><tbody>`
+    +ws.map((w,i)=>{ const nx=ws[i+1];
+      const rg=nx?`${jp(+w.min||0)}〜${jp((+nx.min||0)-1)}`:`${jp(+w.min||0)}〜`;
+      return `<tr><td class="n">${rg}</td><td style="color:${esc(w.color||"#93a4c0")}">${esc(w.text||"")}</td></tr>`;
+    }).join("")+`</tbody></table></div>`;
+}
 function renderHelp(){
   const b=$("#helpBox"); if(!b) return;
   extCall("help");
-  if(!HELP[helpTab]) helpTab="role";
+  if(!HELP[helpTab]||helpTab==="moodAdmin") helpTab="role";
   $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
-  b.innerHTML=HELP[helpTab]||"";
+  let h=HELP[helpTab]||"";
+  if(helpTab==="mood"){
+    h=h.replace("{{MOODPTS}}",moodHelpPts()).replace("{{MOODWORDS}}",moodHelpWords());
+    /* 管理者だけに出す手順（一般ユーザーには出しません） */
+    if(isAdmin()) h+=HELP.moodAdmin||"";
+  }
+  b.innerHTML=h;
 }
 $$("#helpTabs button").forEach(b=>b.onclick=()=>{ helpTab=b.dataset.hp; renderHelp(); });
 
