@@ -681,6 +681,37 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .mbtn.alert span{background:#ff5470;box-shadow:0 0 8px #ff547099}
 .mbtn.alert{animation:mblink 1.6s ease-in-out infinite}
 @keyframes mblink{0%,100%{opacity:1}50%{opacity:.45}}
+/* Prime Mood */
+:root{--mood:#ff8fb3}
+.mdgauge{position:relative;width:100%;max-width:420px;margin:6px auto 0}
+.mdgauge svg{width:100%;display:block;overflow:visible}
+.mdgauge .bg{fill:none;stroke:#1b2740;stroke-width:16;stroke-linecap:round}
+.mdgauge .fg{fill:none;stroke:url(#mdg);stroke-width:16;stroke-linecap:round;
+  transition:stroke-dasharray .8s ease-out}
+.mdnum{font-family:ui-monospace,Menlo,monospace;font-size:2.8rem;font-weight:900;line-height:1;
+  color:var(--mood)}
+.mdlab{font-size:.68rem;color:var(--dim);letter-spacing:.16em;margin-top:2px}
+.mdword{font-size:1.05rem;font-weight:800;margin-top:8px}
+.mddelta{font-size:.8rem;font-family:ui-monospace,Menlo,monospace}
+.mddelta.up{color:var(--acc2)}.mddelta.down{color:var(--bad)}
+.mdbar{height:22px;border-radius:11px;background:#16223a;border:1px solid var(--line);
+  overflow:hidden;position:relative;margin:8px 0 4px}
+.mdbar i{display:block;height:100%;background:linear-gradient(90deg,#7a44d0,var(--mood));
+  transition:width .8s ease-out}
+.mdbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:800;text-shadow:0 1px 3px #000}
+.mdbar.done i{background:linear-gradient(90deg,#2c7a4b,var(--acc2))}
+.mdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:4px}
+.mdcell{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:9px 11px}
+.mdcell .t{font-size:.64rem;color:var(--dim);letter-spacing:.06em}
+.mdcell .v{font-family:ui-monospace,Menlo,monospace;font-size:1.5rem;font-weight:900;line-height:1.2}
+.mdcell .s{font-size:.62rem;color:var(--dim2)}
+.mdchart .ln{fill:none;stroke:var(--mood);stroke-width:2}
+.mdchart .ar{fill:#ff8fb31a}
+.mdchart .dt{fill:var(--mood)}
+.mdchart .gr{stroke:#1b2740;stroke-dasharray:2 3}
+.mdchart .ax{stroke:var(--line)}
+.mdchart text{fill:var(--dim2);font-size:9px;font-family:ui-monospace,Menlo,monospace}
 /* 一時停止の画面 */
 #pauseWall{position:fixed;inset:0;z-index:99999;background:#0b1120;display:none;
   align-items:center;justify-content:center;padding:24px;text-align:center}
@@ -838,6 +869,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <button data-tab="plan">プラン</button>
     <button data-tab="analysis">分析</button>
     <button data-tab="hist">あなたの軌跡</button>
+    <button data-tab="mood">Prime Mood</button>
     <button data-tab="ls">LSやりこみ</button></div>
   <div class="grp" data-g="sns"><div class="ghead">Prime SNS</div>
     <button data-tab="sns">Prime SNS</button></div>
@@ -1485,6 +1517,9 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <button data-hp="award">ごほうび</button>
       <button data-hp="tool">道具の使い方</button>
       <button data-hp="etc">そのほか</button>
+      <button data-hp="mood">Prime Mood</button>
+      <button data-hp="rule">利用規約</button>
+      <button data-hp="privacy">プライバシー</button>
     </div>
     <div id="helpBox"></div>
   </div>
@@ -1559,6 +1594,70 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   <div class="card">
     <h2>ぜんぶの記録</h2>
     <div id="hsAll"></div>
+  </div>
+</section>
+
+<section id="mood" hidden>
+  <div class="card" style="text-align:center;border-color:var(--mood)">
+    <h2 style="text-align:left">Prime Mood</h2>
+    <p class="muted" style="margin-top:-8px;text-align:left">
+      素数あつめ界隈が、いまどれくらい盛り上がっているかを数字で見ます。<br>
+      <span class="tiny">誰かと競うものではありません。みんなの行動がぜんぶ、この1つの数字に積み上がります。</span></p>
+    <div id="mdGauge"></div>
+    <div id="mdNow"></div>
+  </div>
+
+  <div class="card">
+    <h2>今週の目標</h2>
+    <p class="muted" style="margin-top:-8px">みんなの合計で届きます。届いたら、その週にきた人みんなに
+      <span class="pcoin">P</span> Prime Coin が入ります。</p>
+    <div id="mdGoal"></div>
+  </div>
+
+  <div class="card">
+    <h2>なにが盛り上がり度になるか</h2>
+    <div id="mdBreak"></div>
+  </div>
+
+  <div class="card">
+    <h2>記録</h2>
+    <div class="segs" id="mdTabs" style="grid-template-columns:repeat(3,1fr)">
+      <button data-md="day" class="on">1日ごと</button>
+      <button data-md="week">1週間ごと</button>
+      <button data-md="month">1か月ごと</button>
+    </div>
+    <div id="mdChart" style="margin-top:12px"></div>
+    <div id="mdList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card" id="mdAdmCard" hidden>
+    <h2>管理者メニュー</h2>
+    <p class="tiny">Xの投稿数はここから入れます。数えなおしは誰でもできます（何度押しても同じ結果です）。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="mdSnap">いますぐ数えなおす</button>
+      <span class="tiny" id="mdMsg"></span>
+    </div>
+    <label class="fl">X（Twitter）の #素数あつめ の投稿数</label>
+    <div class="tools" style="margin-top:0">
+      <input type="date" class="txt" id="mdXDay" style="max-width:170px">
+      <input type="number" class="txt" id="mdXN" min="0" step="1" placeholder="件数" style="max-width:120px">
+      <button class="btn" id="mdXGo">この日の件数を入れる</button>
+    </div>
+    <label class="fl" style="margin-top:12px">今週の目標</label>
+    <div class="tools" style="margin-top:0">
+      <input type="number" class="txt" id="mdTgt" min="1" step="10" style="max-width:130px">
+      <span class="tiny">点で達成　／　ごほうび</span>
+      <input type="number" class="txt" id="mdRw" min="1" max="20" step="1" style="max-width:90px">
+      <span class="tiny">枚</span>
+      <button class="btn" id="mdGoalGo">この目標にする</button>
+    </div>
+    <label class="fl" style="margin-top:12px">GitHub Actions からXの数を入れるための合いことば</label>
+    <div class="tools" style="margin-top:0">
+      <input type="text" class="txt" id="mdSec" placeholder="長めの文字列（例：pm-9f2a-…）" style="max-width:300px">
+      <button class="btn" id="mdSecGo">合いことばを決める</button>
+    </div>
+    <p class="tiny" style="margin-top:6px">これを GitHub の Secrets に <b>MOOD_TOKEN</b> として入れます。
+      手順はヘルプの「Prime Mood」に書いてあります。</p>
   </div>
 </section>
 
@@ -1653,6 +1752,12 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <button class="btn pri" id="syncBtn">今すぐ同期する</button>
       <button class="btn" id="recBk">記録を元に戻す</button>
       <button class="btn" id="undoBk">同期で入れかわったデータを戻す</button>
+    </div>
+    <div class="tools" style="margin-top:6px">
+      <span class="tiny" style="min-width:8em">LSやりこみ</span>
+      <button class="btn sm" id="lsSyncBtn">いますぐそろえる</button>
+      <button class="btn sm" id="lsBk">LSやりこみを元に戻す</button>
+      <span class="tiny" id="lsSyncNow">—</span>
       <span class="tiny" id="syncNow2">—</span>
     </div>
     <p class="tiny" id="syncWhat" style="margin-top:8px"></p>
@@ -1792,7 +1897,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v83";
+const APP_VERSION = "v85";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2554,7 +2659,7 @@ function pgBuildTicker(){
    ========================================================= */
 /* 追加の道具を受け入れる口。ふだんは何も入っていません。
    中身はこのファイルには入っておらず、権限のある人だけが取り出せます。 */
-const EXT={clear:[],renderLs:[],tab:[],keys:[],hide:[],help:[],keyOk:[]};
+const EXT={clear:[],renderLs:[],tab:[],keys:[],hide:[],help:[],keyOk:[],reload:[],merge:{},labels:{}};
 const extCall=(k,a)=>{ (EXT[k]||[]).forEach(f=>{ try{ f(a); }catch(e){} }); };
 const K_EXT="sa-ext-v1";
 let extOn=false, extState="まだ読み込んでいません", extErr="";
@@ -2608,8 +2713,8 @@ const ST_KEYS=[
   "sa-fr-v3",         /* フレンド */
   "sa-times-v1","sa-baseline-v1",
   "sa-mymax-v1","sa-claim-v1",
-  "sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1",                 /* LSやりこみ */
-   "sa-lsb-v1",
+  /* LSやりこみと追加の道具は、専用の入れもの（ls_state）で持ちます。
+     版（rev）で食いちがいを見つけて必ず混ぜるので、こちらでは扱いません */
   "sa-autopost-v1","sa-tagwatch-v1",
   "pp-seen-v1",       /* Prime Park：チュートリアルを見たか */
   "pp-story-v1",      /* Prime Park：ストーリーの台本 */
@@ -2691,11 +2796,11 @@ const ST_LABEL={
   "sa-lsall-v1":"やりこみの通算", "sa-lsbase-v1":"やりこみの基準",
   "sa-lsb-v1":"やりこみの基準B", "sa-autopost-v1":"自動投稿の設定",
   "sa-tagwatch-v1":"タグの見はり",
-  "sa-hakone-v1":"箱根駅伝の進みぐあい", "sa-hakonelog-v1":"箱根駅伝の軌跡",
   "pp-seen-v1":"Prime Park のチュートリアル", "pp-story-v1":"Prime Park の台本",
   "sa-hist-v1":"あなたの軌跡"
 };
-const stName=k=>ST_LABEL[k]||k;
+/* 追加の道具が足したものは、そちらが名前を教えてくれます */
+const stName=k=>ST_LABEL[k]||(EXT.labels||{})[k]||k;
 function stConflictBanner(){
   let b=document.getElementById("stConf");
   if(!ST_CONFLICT.length){ if(b) b.remove(); return; }
@@ -2772,7 +2877,7 @@ function stSize(raw){
   }catch(e){ return String(raw).slice(0,40); }
 }
 /** そろえるもの＝もともとの一覧＋追加の道具が足したもの */
-const ST_ALL=()=>ST_KEYS.concat(EXT.keys||[]);      /* 1つが大きすぎるものは送りません */
+const ST_ALL=()=>ST_KEYS.slice();                   /* 1つが大きすぎるものは送りません */
 let stStamp={}, stSince=0, stSnap={}, stReady=false;
 try{ stStamp=JSON.parse(localStorage.getItem(K_SYNCAT)||"{}")||{}; }catch(e){ stStamp={}; }
 try{ stSince=+localStorage.getItem(K_SYNCSINCE)||0; }catch(e){ stSince=0; }
@@ -2959,6 +3064,214 @@ function stFlush(){
       body:JSON.stringify({p_data:send,p_since:stSince})
     }).then(()=>{}).catch(()=>{});
   }catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ★ LSやりこみ専用の同期（アカウントがデータを持ちます）
+   ・5分おきに自動で送ります
+   ・「版（rev）」で食いちがいを見つけ、必ず混ぜてから書きます
+   ・混ぜ方は「多いほうを残す」なので、進みぐあいが減ることはありません
+   ══════════════════════════════════════════════════════════════ */
+const K_LSREV="sa-lsrev-v1";
+/* このまとまりを、ひとつの入れものとして扱います */
+const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1"];
+/** 追加の道具が足したものも、いっしょに持ちます */
+const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
+/* 設定のように「新しいほうが正しい」もの */
+const LS_NEW=["sa-ls-v1"];
+let lsRev=+ls(K_LSREV,0)||0, lsBusy=false, lsT=null, lsTick=null, lsState="";
+const lsSaveRev=()=>{ try{ localStorage.setItem(K_LSREV,JSON.stringify(lsRev)); }catch(e){} };
+function lsMark(t){
+  lsState=t;
+  const e=document.getElementById("lsSyncNow");
+  if(e) e.textContent=t;
+}
+/** 2つの中身を、へらさないように混ぜます。
+ *  数は大きいほう、配列は足し合わせ、○×は「どちらかが○なら○」にします */
+function keepMost(a, b){
+  if(a===undefined||a===null) return b;
+  if(b===undefined||b===null) return a;
+  if(typeof a==="number"&&typeof b==="number") return Math.max(a,b);
+  if(typeof a==="boolean"&&typeof b==="boolean") return a||b;
+  if(Array.isArray(a)&&Array.isArray(b)){
+    const out=a.slice(), seen=new Set(a.map(x=>lsId(x)));
+    b.forEach(x=>{ const k=lsId(x); if(!seen.has(k)){ seen.add(k); out.push(x); } });
+    /* 時刻がついているものは、古い順にならべます */
+    if(out.every(x=>x&&typeof x==="object"&&(x.start!=null||x.at!=null)))
+      out.sort((x,y)=>(+(x.start||x.at||0))-(+(y.start||y.at||0)));
+    return out;
+  }
+  if(typeof a==="object"&&typeof b==="object"&&!Array.isArray(a)&&!Array.isArray(b)){
+    const out={};
+    new Set(Object.keys(a).concat(Object.keys(b))).forEach(k=>{ out[k]=keepMost(a[k],b[k]); });
+    return out;
+  }
+  return a;                        /* 文字などは、こちらのものを残します */
+}
+/** 配列の中身を見分けるための目じるし */
+function lsId(x){
+  if(x&&typeof x==="object"){
+    if(x.start!=null) return "s"+x.start;
+    if(x.at!=null)    return "a"+x.at;
+    if(x.id!=null)    return "i"+x.id;
+  }
+  try{ return JSON.stringify(x); }catch(e){ return String(x); }
+}
+/** この端末の中身を、ひとつのかたまりにします */
+function lsPack(){
+  const o={};
+  LS_ALL().forEach(k=>{
+    const raw=localStorage.getItem(k);
+    if(raw==null) return;
+    try{ o[k]=JSON.parse(raw); }catch(e){ o[k]=raw; }
+  });
+  return o;
+}
+/** かたまりを、この端末に書きもどします */
+function lsUnpack(o, changedOut){
+  let n=0;
+  Object.keys(o||{}).forEach(k=>{
+    if(LS_ALL().indexOf(k)<0) return;
+    const next=(typeof o[k]==="string")?o[k]:JSON.stringify(o[k]);
+    if(localStorage.getItem(k)===next) return;
+    stKeep(k, localStorage.getItem(k));       /* 念のため控えます */
+    localStorage.setItem(k,next); n++;
+    if(changedOut) changedOut.push(k);
+  });
+  return n;
+}
+/** 2つのかたまりを混ぜます */
+function lsMerge(mine, theirs){
+  const out={};
+  new Set(Object.keys(mine||{}).concat(Object.keys(theirs||{}))).forEach(k=>{
+    const a=(mine||{})[k], b=(theirs||{})[k];
+    if(a===undefined){ out[k]=b; return; }
+    if(b===undefined){ out[k]=a; return; }
+    if(LS_NEW.indexOf(k)>=0){ out[k]=a; return; }   /* 設定はこの端末のものを */
+    const fn=(EXT.merge||{})[k];
+    out[k]=fn?fn(a,b):keepMost(a,b);
+  });
+  return out;
+}
+/** サーバーとそろえます。何度呼んでも安全です */
+async function lsSync(showToast){
+  if(lsBusy||!stCan()) return false;
+  lsBusy=true; lsMark("そろえています…");
+  try{
+    let mine=lsPack();
+    for(let tryN=0; tryN<3; tryN++){
+      const r=await sbAuth("rpc/ls_put",{method:"POST",
+        body:JSON.stringify({p_data:mine,p_rev:(lsRev||null)})});
+      if(r&&r.ok){
+        lsRev=+r.rev||0; lsSaveRev();
+        const changed=[];
+        lsUnpack(r.data,changed);
+        lsMark("そろっています　"+new Date().toLocaleTimeString("ja-JP"));
+        if(changed.length) lsReload();
+        if(showToast) toast("LSやりこみをそろえました");
+        lsBusy=false; return true;
+      }
+      if(r&&r.conflict){
+        /* ほかの端末が先に書いていた → 混ぜて、もう一度 */
+        mine=lsMerge(mine, r.data||{});
+        lsRev=+r.rev||0; lsSaveRev();
+        continue;
+      }
+      break;
+    }
+    lsMark("そろえられませんでした");
+  }catch(e){
+    lsMark("そろえられませんでした（"+String(e.message||e).slice(0,40)+"）");
+    if(showToast) toast(String(e.message||e).slice(0,120));
+  }
+  lsBusy=false; return false;
+}
+/** はじめてつないだとき。サーバーのぶんと混ぜてから、そろえます */
+async function lsStart(){
+  if(!stCan()) return;
+  try{
+    const g=await sbAuth("rpc/ls_get",{method:"POST",body:"{}"});
+    if(g){
+      const mine=lsPack(), theirs=g.data||{};
+      const merged=lsMerge(mine, theirs);
+      const changed=[];
+      lsUnpack(merged,changed);
+      lsRev=+g.rev||0; lsSaveRev();
+      if(changed.length) lsReload();
+    }
+  }catch(e){}
+  await lsSync();
+}
+/** 受け取ったぶんを画面に出しなおします */
+function lsReload(){
+  try{
+    if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
+    if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
+    if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
+    if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null});
+    if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0});
+    extCall("reload");
+    if(typeof renderLs==="function"&&$("#ls")&&!$("#ls").hidden) renderLs();
+    extCall("renderLs");
+  }catch(e){}
+}
+/** 5分おきに自動で送ります。変えたときは30秒後にも送ります */
+function lsWatch(){
+  clearInterval(lsTick);
+  lsTick=setInterval(()=>{ if(!document.hidden&&stCan()) lsSync(); }, 5*60*1000);
+  document.addEventListener("visibilitychange",()=>{
+    if(!stCan()) return;
+    if(document.hidden) lsFlush(); else lsSync();
+  });
+  window.addEventListener("online",()=>{ if(stCan()) lsSync(); });
+  window.addEventListener("pagehide",lsFlush);
+  window.addEventListener("beforeunload",lsFlush);
+}
+/** 変えたときに呼びます（少しまとめてから送ります） */
+function lsSoon(){
+  if(!stCan()) return;
+  clearTimeout(lsT); lsT=setTimeout(()=>lsSync(),30000);
+}
+/** 閉じるときでも届くように送ります */
+function lsFlush(){
+  if(!stCan()) return;
+  try{
+    fetch(SB_URL+"/rest/v1/rpc/ls_put",{
+      method:"POST", keepalive:true,
+      headers:{apikey:SB_KEY,Authorization:"Bearer "+sess.access_token,
+               "Content-Type":"application/json"},
+      body:JSON.stringify({p_data:lsPack(),p_rev:(lsRev||null)})
+    }).then(()=>{}).catch(()=>{});
+  }catch(e){}
+}
+/** LSやりこみの控えを見せて、選んだものに戻します */
+async function showLsBackups(){
+  if(!(sess&&sbOn())) return toast("ログインしていると使えます");
+  let list=[];
+  try{ list=await sbAuth("rpc/ls_history",{method:"POST",body:"{}"})||[]; }
+  catch(e){ return toast("控えを取れませんでした"); }
+  if(!list.length) return toast("控えはまだありません");
+  const M=modal(`<h2>LSやりこみを元に戻す</h2>
+    <p class="tiny">サーバーに残っている、書きかわる前の中身です。
+      戻すと、いまの中身も控えになります。</p>
+    <div class="scroll" style="max-height:44vh"><table><thead><tr>
+      <th>いつ</th><th class="n">版</th><th class="n">大きさ</th><th></th>
+    </tr></thead><tbody>`
+    +list.map((x,i)=>`<tr><td class="tiny">${esc(jstFull(x.saved_at))}</td>
+      <td class="n">${jp(+x.rev||0)}</td><td class="n tiny">${jp(+x.size||0)} 文字</td>
+      <td><button class="btn sm" data-lb="${i}">これに戻す</button></td></tr>`).join("")
+    +`</tbody></table></div>`,{w:640});
+  M.qa("[data-lb]").forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    try{
+      const d=await sbAuth("rpc/ls_restore",{method:"POST",
+        body:JSON.stringify({p_saved:list[+b.dataset.lb].saved_at})});
+      if(!d) throw new Error("中身がありません");
+      /* 戻すときも「へらさない」ように混ぜます */
+      lsUnpack(lsMerge(d, lsPack()));
+      lsReload(); await lsSync(true); M.close(); toast("戻しました");
+    }catch(e){ b.disabled=false; toast(String(e.message||e).slice(0,90)); }
+  });
 }
 
 /** 記録の控えを見せて、選んだものに戻します */
@@ -3777,7 +4090,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","plan","analysis","hist","ls","card","input","sns","settings","help","cheer"]
+  ["profile","pgbc","plan","analysis","hist","mood","ls","card","input","sns","settings","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -3792,6 +4105,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
   if(b.dataset.tab==="hist"){ histEnter(); }
+  if(b.dataset.tab==="mood"){ moodEnter(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
     const t=$("#decaTgt"); if(t&&!t.value){ const cur=DECA.reduce((a,n)=>a+(rec[n]||0),0);
       if(cur>0) t.value=commaFmt(String(Math.min(MAXSCORE*9,Math.round(cur*1.1)))); } }
@@ -5867,12 +6181,14 @@ let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0,goalSv:0,goalLv:0,stepSv
 /* リセットするまで足し続けるクリア回数。累積の見込みはこちらを使います */
 const K_LSALL="sa-lsall-v1";
 let lsAll=ls(K_LSALL,0);
-const saveLsAll=()=>{try{localStorage.setItem(K_LSALL,JSON.stringify(lsAll));}catch(e){}};
+const saveLsAll=()=>{try{localStorage.setItem(K_LSALL,JSON.stringify(lsAll));}catch(e){}
+  try{ lsSoon(); }catch(e){}};
 let lsLog=ls(K_LSLOG,[]);
 let lsRun=null;      /* {start, count} */
 let lsTimer=null, lsCool=0;
 const saveLs=()=>{try{localStorage.setItem(K_LS,JSON.stringify(lsCfg));
-  localStorage.setItem(K_LSLOG,JSON.stringify(lsLog));}catch(e){}};
+  localStorage.setItem(K_LSLOG,JSON.stringify(lsLog));}catch(e){}
+  try{ lsSoon(); }catch(e){}};
 const lsB=()=>{const w=DATA(); return (w&&w.lsBorders)||{rand:{},score:{}};};
 
 /** 現在値の次のボーダー（上位方向）を返す */
@@ -5925,7 +6241,8 @@ const K_LSBASE="sa-lsbase-v1";
    見込み（基準値C）＝ 基準値B ＋ クリア回数 × 1回あたりの増加量 */
 const K_LSB="sa-lsb-v1";
 let lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0});
-const saveLsCB=()=>{try{localStorage.setItem(K_LSB,JSON.stringify(lsCB));}catch(e){}};
+const saveLsCB=()=>{try{localStorage.setItem(K_LSB,JSON.stringify(lsCB));}catch(e){}
+  try{ lsSoon(); }catch(e){}};
 /** 「累積」の欄が手で書き換えられていたら、そこを新しい基準値Bにします */
 function lsSyncB(){
   const S=rec[SCORE]||0, R=rec[RAND]||0;
@@ -5937,7 +6254,8 @@ function lsSyncB(){
 /** クリア1回ぶんを基準値Cに足します */
 function lsAddB(){ lsCB.nS=(lsCB.nS||0)+1; lsCB.nR=(lsCB.nR||0)+1; saveLsCB(); }
 let lsBase=ls(K_LSBASE,{score:null,rand:null});
-const saveLsBase=()=>{try{localStorage.setItem(K_LSBASE,JSON.stringify(lsBase));}catch(e){}};
+const saveLsBase=()=>{try{localStorage.setItem(K_LSBASE,JSON.stringify(lsBase));}catch(e){}
+  try{ lsSoon(); }catch(e){}};
 /** リセット直後は、いまの累積を基準として覚えます */
 function lsSyncBase(){
   const S=rec[SCORE]||0, R=rec[RAND]||0;
@@ -8233,7 +8551,7 @@ function poReply(id){
 /* ---- 2〜6) 部屋 ---- */
 let ROOMS=[], curRoom=null;
 const DEFAULT_ROOM="00000000-0000-0000-0000-000000000001";
-const ACC_N={all:"だれでも",invite:"呼ばれた人だけ",judge:"審査員以上",supervisor:"スーパーバイザー以上"};
+const ACC_N={all:"だれでも",invite:"呼ばれた人だけ（読み返しのみ）",judge:"審査員以上",supervisor:"スーパーバイザー以上"};
 async function loadRooms(){
   if(TEST){ ROOMS=TDB.rooms.filter(r=>tstCanSee(r)); return; }
   if(!(sess&&sbOn())){ ROOMS=[]; return; }
@@ -8291,7 +8609,22 @@ function renderRooms(){
 async function enterRoom(id){
   curRoom=ROOMS.find(r=>r.id===id)||{id:id,title:"部屋"};
   roomSwitched();          /* 検索とタグは部屋ごとに別々にします */
-  $("#roomPick").hidden=true; $("#roomIn").hidden=false; $("#composer").hidden=false;
+  $("#roomPick").hidden=true; $("#roomIn").hidden=false;
+  /* 招待制の部屋は、読み返しだけになりました */
+  const readOnly=(curRoom.access==="invite");
+  $("#composer").hidden=readOnly;
+  let ro=$("#roomRO");
+  if(!ro){
+    ro=document.createElement("p");
+    ro.id="roomRO"; ro.className="tiny";
+    ro.style.cssText="color:var(--warn);border:1px solid var(--warn);border-radius:10px;"
+      +"padding:8px 10px;margin:8px 0;background:#2a2010";
+    const box=$("#roomIn"); if(box) box.appendChild(ro);
+  }
+  ro.hidden=!readOnly;
+  ro.innerHTML="この部屋は<b>読み返しだけ</b>になりました。新しく書きこむことはできません。"
+    +"<br>特定の人だけへのやりとりは、法律（電気通信事業法）で決まりが増えるためです。"
+    +"続きは公開の部屋でお願いします。";
   $("#roomTitle").textContent=curRoom.title||"";
   $("#roomWho").textContent=(curRoom.access&&curRoom.access!=="all")
     ? "（"+(ACC_N[curRoom.access]||"")+"）" : "";
@@ -8327,14 +8660,18 @@ function roomForm(r){
       value="${r?esc(r.title):""}" placeholder="例：暗算のコツを話す部屋">
     <label class="fl">入れる人</label>
     <select id="rmA" style="max-width:none">
-      ${Object.keys(ACC_N).map(k=>`<option value="${k}"${r&&r.access===k?" selected":""}>${ACC_N[k]}</option>`).join("")}
+      ${Object.keys(ACC_N).filter(k=>k!=="invite"||(r&&r.access==="invite"))
+        .map(k=>`<option value="${k}"${r&&r.access===k?" selected":""}>${ACC_N[k]}</option>`).join("")}
     </select>
     <div id="rmInv" hidden>
       <label class="fl">呼ぶ人の @ID（カンマか改行で区切る）</label>
       <textarea id="rmM" rows="3" placeholder="例：mikan, hakase"></textarea>
     </div>
-    <p class="tiny">「呼ばれた人だけ」「審査員以上」「スーパーバイザー以上」にすると、
+    <p class="tiny">「審査員以上」「スーパーバイザー以上」にすると、
       条件に合わない人には<b>部屋があること自体が見えません</b>。</p>
+    <p class="tiny" style="color:var(--warn)">「呼ばれた人だけ」の部屋は、いまは新しく作れません。
+      特定の人だけへのやりとりは、法律（電気通信事業法）で決まりが増えるためです。
+      すでにある部屋は、入っている人が読み返せます（書きこみはできません）。</p>
     <div class="tools"><button class="btn pri" id="rmGo">${r?"保存する":"作る"}</button>
       <span class="tiny" id="rmM2"></span></div>`,{w:640});
   const sync=()=>{ M.q("#rmInv").hidden=(M.q("#rmA").value!=="invite"); };
@@ -10601,8 +10938,7 @@ const HS_ITEMS=[
   {k:"rand_cum",  n:"生成した乱数の累積",     cum:true,  from:r=>r["生成した乱数の累積"]},
   {k:"total",     n:"十種競技総合スコア",     cum:false, from:r=>r["合計スコア"]},
   {k:"rating",    n:"RATING",                cum:false, from:null},
-  {k:"xp",        n:"通算経験値",             cum:true,  from:null},
-  {k:"lv",        n:"レベル",                 cum:true,  from:null}
+  {k:"xp",        n:"通算経験値",             cum:true,  from:null}
 ];
 EVENTS.forEach(n=>HS_ITEMS.push({k:"ev:"+n, n:n, cum:false, from:r=>r[n]}));
 const hsItem=k=>HS_ITEMS.find(x=>x.k===k)||HS_ITEMS[0];
@@ -10628,9 +10964,34 @@ function histWrite(day){
   const d=day||hsDay();
   const o=histSnap();
   if(Object.keys(o).length<=1) return false;      /* at だけなら書きません */
+  /* 前に残したものと混ぜて、あとから減らないようにします
+     （経験値がまだ取れていない時に上書きして消さないため） */
+  const before=HIST[d];
+  if(before){
+    Object.keys(before).forEach(k=>{
+      if(k==="at") return;
+      if(o[k]==null) o[k]=before[k];
+      else if(k==="ev"){ o.ev=Object.assign({},before.ev||{},o.ev||{}); }
+    });
+  }
   HIST[d]=o; saveHist();
   histPush();                                      /* クラウドにも送ります */
   return true;
+}
+/** 経験値やアチーブメントを取りに行ってから残します。
+ *  画面を見ていなくても、ちゃんとそろいます */
+let histFullT=null;
+async function histWriteFull(day){
+  try{ if(sess&&sbOn()){ await loadMyStat(); await loadMyAwards(); } }catch(e){}
+  return histWrite(day);
+}
+/** 30分おきに、経験値を取り直して残します */
+function histAuto(){
+  clearInterval(histFullT);
+  histFullT=setInterval(()=>{
+    if(document.hidden) return;
+    histWriteFull().catch(()=>{});
+  }, 30*60*1000);
 }
 /** ためている日ぶんを、クラウドへ送ります */
 let histPushT=null;
@@ -10680,6 +11041,8 @@ async function histCloseDay(last,today){
   if(box) box.classList.add("on");
   try{
     $("#hsLockSub").textContent=`${last} までの記録を残しています…`;
+    /* ★ 経験値・トロフィーもここで取りに行きます（画面を見ていなくてもそろいます） */
+    try{ if(sess&&sbOn()){ await loadMyStat(); await loadMyAwards(); } }catch(e){}
     /* きのうのぶんを確定（その日の最後の姿）→ きょうのぶんも作っておきます */
     histWrite(last);
     histWrite(today);
@@ -10969,8 +11332,9 @@ if($("#hsNextM")) $("#hsNextM").onclick=()=>{ const ms=hsMonths(); const i=ms.in
   if(i>=0&&i<ms.length-1){ hsMonth=ms[i+1]; $("#hsMon").value=hsMonth; hsDraw(); } };
 if($("#hsFill")) $("#hsFill").onchange=hsDraw;
 if($("#hsPred")) $("#hsPred").onchange=hsDraw;
-if($("#hsSave")) $("#hsSave").onclick=()=>{
-  const ok=histWrite();
+if($("#hsSave")) $("#hsSave").onclick=async()=>{
+  $("#hsMsg").textContent="集めています…";
+  const ok=await histWriteFull();
   $("#hsMsg").innerHTML=ok?'<span style="color:var(--acc2)">きょうのぶんを残しました</span>'
     :'<span style="color:var(--warn)">残すデータがありません（記録を入力してください）</span>';
   histEnter();
@@ -10984,13 +11348,255 @@ if($("#hsSync")) $("#hsSync").onclick=async()=>{
   histEnter();
 };
 
+/* ══════════════════════════════════════════════════════════════
+   12c) Prime Mood ── 素数あつめ界隈の盛り上がり
+   ・みんなの行動がぜんぶ1つの数字になります（競争ではありません）
+   ・1日ごと／1週間ごと／1か月ごとにまとめて見られます
+   ・今週の目標に届くと、その週にきた人みんなに Prime Coin
+   ══════════════════════════════════════════════════════════════ */
+let MOOD=[], MOODW=null, mdKind="day", mdBusy=false;
+/* 何がどれだけ効くか（SQL の mood_score と同じです） */
+const MOOD_W=[
+  {k:"x_posts", n:"X の #素数あつめ", w:3, s:"投稿1件で3点"},
+  {k:"achs",    n:"アチーブメント達成", w:3, s:"1件で3点"},
+  {k:"subs",    n:"記録の提出",     w:2, s:"1件で2点"},
+  {k:"cup_subs",n:"大会への提出",   w:2, s:"1件で2点"},
+  {k:"players", n:"きた人の数",     w:2, s:"1人で2点"},
+  {k:"chats",   n:"つぶやき",       w:1, s:"1件で1点"},
+  {k:"plays",   n:"Prime Park",     w:1, s:"1回で1点"}
+];
+/* 盛り上がりの言葉。数が大きいほど熱い言葉になります */
+const MOOD_WORD=[
+  [0,   "しずかな日","#5f7490"],
+  [20,  "ぽつぽつ","#93a4c0"],
+  [60,  "あたたかい","#5ee6a8"],
+  [140, "にぎわっている","#ffd45e"],
+  [260, "もりあがり！","#ff8fb3"],
+  [450, "お祭りだ！！","#ff6b5e"]
+];
+const mdWord=v=>{ let r=MOOD_WORD[0]; MOOD_WORD.forEach(x=>{ if(v>=x[0]) r=x; }); return r; };
+
+async function moodLoad(){
+  if(TEST){
+    const today=hsDay();
+    MOOD=[]; 
+    for(let i=27;i>=0;i--){
+      const d=new Date(Date.parse(today)-i*86400000).toISOString().slice(0,10);
+      const x=2+((i*7)%9), sb=1+((i*3)%5), ch=(i*5)%7, pl=(i*2)%4, pe=1+((i)%4), ac=(i%5===0)?1:0;
+      MOOD.push({k:d,x_posts:x,subs:sb,cup_subs:i%4===0?1:0,chats:ch,plays:pl,players:pe,achs:ac,
+        score:x*3+sb*2+(i%4===0?2:0)+ch+pl+pe*2+ac*3, days:1});
+    }
+    MOODW={week:"2026-W34",score:MOOD.slice(-7).reduce((a,b)=>a+b.score,0),target:300,reward:3,
+         done:false,joined:true,got:false,pct:60};
+    return;
+  }
+  if(!sbOn()){ MOOD=[]; MOODW=null; return; }
+  try{
+    const from=new Date(Date.now()-400*86400000).toISOString().slice(0,10);
+    MOOD=await sb("rpc/mood_get",{method:"POST",
+      body:JSON.stringify({p_kind:mdKind,p_from:from,p_to:null})})||[];
+  }catch(e){ MOOD=[]; }
+  try{
+    MOODW=sess?await sbAuth("rpc/mood_week",{method:"POST",body:"{}"})
+            :await sb("rpc/mood_week",{method:"POST",body:"{}"});
+  }catch(e){ MOODW=null; }
+}
+async function moodEnter(){
+  $("#mdAdmCard").hidden=!(myLv()>=5);
+  $("#mdGauge").innerHTML=`<p class="muted">読み込み中…</p>`;
+  await moodLoad();
+  moodDraw();
+  /* 見るたびに、その日のぶんを数えなおしておきます */
+  if(!TEST&&sbOn()){
+    try{ await sb("rpc/mood_snap",{method:"POST",body:"{}"}); }catch(e){}
+  }
+}
+function moodDraw(){
+  /* ── メーター（きょうのぶん）── */
+  const day=MOOD.length&&mdKind==="day"?MOOD[MOOD.length-1]:null;
+  let today=day;
+  if(mdKind!=="day"){
+    /* 別のまとめ方を見ているときも、メーターは「きょう」を出します */
+    today=MOOD_TODAY||null;
+  }
+  const v=today?+today.score||0:0;
+  const w=mdWord(v);
+  const prev=(mdKind==="day"&&MOOD.length>1)?+MOOD[MOOD.length-2].score||0:null;
+  const dv=prev==null?null:v-prev;
+  const pct=Math.min(1, v/500);
+  const R=110, C=Math.PI*R;         /* 半円の長さ */
+  $("#mdGauge").innerHTML=`<div class="mdgauge"><svg viewBox="0 0 260 150">
+    <defs><linearGradient id="mdg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7a44d0"/><stop offset="0.6" stop-color="#ff8fb3"/>
+      <stop offset="1" stop-color="#ff6b5e"/></linearGradient></defs>
+    <path class="bg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"/>
+    <path class="fg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"
+      stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>
+    <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-size:34px;font-weight:900;
+      font-family:ui-monospace,Menlo,monospace">${jp(v)}</text>
+  </svg></div>
+  <div class="mdlab">きょうの もりあがり ど</div>
+  <div class="mdword" style="color:${w[2]}">${esc(w[1])}</div>
+  ${dv==null?"":`<div class="mddelta ${dv>=0?"up":"down"}">きのうと比べて ${dv>=0?"＋":"−"}${jp(Math.abs(dv))}</div>`}`;
+
+  const week7=MOOD.slice(-7).reduce((a,b)=>a+(+b.score||0),0);
+  $("#mdNow").innerHTML=`<div class="mdgrid" style="margin-top:14px">
+    <div class="mdcell"><div class="t">この7日の合計</div>
+      <div class="v" style="color:var(--mood)">${jp(week7)}</div>
+      <div class="s">1日あたり ${jp(Math.round(week7/7))}</div></div>
+    <div class="mdcell"><div class="t">残っている日数</div>
+      <div class="v">${jp(MOOD.length)}</div>
+      <div class="s">${MOOD.length?esc(MOOD[0].k)+" から":"—"}</div></div>
+    <div class="mdcell"><div class="t">これまでの合計</div>
+      <div class="v">${jp(MOOD.reduce((a,b)=>a+(+b.score||0),0))}</div>
+      <div class="s">みんなでためた点</div></div>
+  </div>`;
+
+  /* ── 今週の目標 ── */
+  const g=MOODW;
+  $("#mdGoal").innerHTML=g
+    ? `<div class="mdbar ${g.done?"done":""}"><i style="width:${Math.min(100,+g.pct||0)}%"></i>
+        <span>${jp(+g.score||0)} / ${jp(+g.target||0)} 点（${+g.pct||0}%）</span></div>
+      <p class="tiny">${esc(g.week||"")} の合計です。日曜のおわりまでに届けば達成です。</p>
+      ${g.done
+        ? (g.got
+            ? `<p style="color:var(--acc2);font-weight:800">達成！ ごほうびは受け取りずみです。</p>`
+            : (g.joined
+              ? `<p style="color:var(--warn);font-weight:800">達成しました！ ごほうびを受け取れます。</p>
+                 <div class="tools"><button class="btn pri" id="mdClaim">
+                   <span class="pcoin">P</span> ${jp(+g.reward||3)}枚 受け取る</button>
+                   <span class="tiny" id="mdClaimMsg"></span></div>`
+              : `<p class="tiny" style="color:var(--warn)">達成しました！
+                   受け取るには、今週ログインボーナスを受け取ってください（ホームタブ）。</p>`))
+        : `<p class="tiny">あと <b>${jp(Math.max(0,(+g.target||0)-(+g.score||0)))}</b> 点です。
+             記録を出す・つぶやく・遊ぶ・Xに投稿する。どれでも積み上がります。</p>`}`
+    : `<p class="muted">まだ読み込めていません。</p>`;
+  const cb=$("#mdClaim");
+  if(cb) cb.onclick=async()=>{
+    cb.disabled=true;
+    try{
+      const r=await sbAuth("rpc/mood_claim",{method:"POST",body:"{}"});
+      $("#mdClaimMsg").innerHTML=`<span style="color:var(--acc2)">${jp(+r.gained||0)}枚 受け取りました</span>`;
+      PC=r; renderCoins(); renderLoginBonus();
+      MOODW.got=true; moodDraw();
+    }catch(e){ cb.disabled=false;
+      $("#mdClaimMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e).slice(0,80))+'</span>'; }
+  };
+
+  /* ── 内訳 ── */
+  const last7=MOOD.slice(-7);
+  const sum=k=>last7.reduce((a,b)=>a+(+b[k]||0),0);
+  $("#mdBreak").innerHTML=`<div class="scroll" style="max-height:none"><table><thead><tr>
+      <th>なに</th><th class="n" style="text-align:right">1つあたり</th>
+      <th class="n" style="text-align:right">この7日</th>
+      <th class="n" style="text-align:right">点</th></tr></thead><tbody>`
+    +MOOD_W.map(x=>`<tr><td>${esc(x.n)}</td>
+      <td style="text-align:right" class="tiny">${x.w} 点</td>
+      <td style="text-align:right"><b class="mono">${jp(sum(x.k))}</b></td>
+      <td style="text-align:right" class="mono">${jp(sum(x.k)*x.w)}</td></tr>`).join("")
+    +`<tr><td colspan="3"><b>合計</b></td>
+      <td style="text-align:right"><b class="mono" style="color:var(--mood)">${jp(week7)}</b></td></tr>`
+    +`</tbody></table></div>
+    <p class="tiny" style="margin-top:8px">「きた人の数」は、その日ログインボーナスを受け取った人の数です。
+      Xの投稿数は、管理者が毎日入れています（入っていない日は0になります）。</p>`;
+
+  /* ── グラフと一覧 ── */
+  $$("#mdTabs [data-md]").forEach(b=>b.classList.toggle("on",b.dataset.md===mdKind));
+  const rows=MOOD.slice(-(mdKind==="day"?30:mdKind==="week"?16:12));
+  $("#mdChart").innerHTML=mdChart(rows);
+  $("#mdList").innerHTML=rows.length
+    ? `<div class="scroll" style="max-height:40vh"><table><thead><tr>
+        <th>${mdKind==="day"?"日":mdKind==="week"?"週":"月"}</th>
+        <th class="n">X</th><th class="n">提出</th><th class="n">大会</th>
+        <th class="n">つぶやき</th><th class="n">PP</th><th class="n">人</th>
+        <th class="n">達成</th><th class="n">点</th></tr></thead><tbody>`
+      +rows.slice().reverse().map(r=>`<tr><td class="tiny">${esc(mdLabel(r.k))}</td>
+        <td class="n">${jp(+r.x_posts||0)}</td><td class="n">${jp(+r.subs||0)}</td>
+        <td class="n">${jp(+r.cup_subs||0)}</td><td class="n">${jp(+r.chats||0)}</td>
+        <td class="n">${jp(+r.plays||0)}</td><td class="n">${jp(+r.players||0)}</td>
+        <td class="n">${jp(+r.achs||0)}</td>
+        <td class="n"><b style="color:var(--mood)">${jp(+r.score||0)}</b></td></tr>`).join("")
+      +`</tbody></table></div>`
+    : `<p class="muted">まだ記録がありません。</p>`;
+}
+let MOOD_TODAY=null;
+const mdLabel=k=>k.length===10?k.replace(/-/g,"/"):k.indexOf("W")>0?k.replace("-W"," 第")+"週":k.replace("-","年")+"月";
+function mdChart(rows){
+  if(!rows.length) return `<p class="muted">まだ記録がありません。</p>`;
+  const W=760,H=200,L=48,R=12,T=12,B=34;
+  const xs=i=>L+(rows.length<=1?0:(W-L-R)*i/(rows.length-1));
+  const hi=Math.max(1,...rows.map(r=>+r.score||0));
+  const ys=v=>T+(H-T-B)*(1-v/hi);
+  let g="";
+  for(let i=0;i<=3;i++){
+    const v=hi*i/3, y=ys(v);
+    g+=`<line class="gr" x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}"/>`
+      +`<text x="${L-6}" y="${(y+3).toFixed(1)}" text-anchor="end">${jp(Math.round(v))}</text>`;
+  }
+  const step=Math.max(1,Math.ceil(rows.length/8));
+  let xl="";
+  rows.forEach((r,i)=>{
+    if(i%step!==0&&i!==rows.length-1) return;
+    const t=r.k.length===10?r.k.slice(5):r.k.replace(/^\d{4}-/,"");
+    xl+=`<text x="${xs(i).toFixed(1)}" y="${H-B+16}" text-anchor="middle">${esc(t)}</text>`;
+  });
+  let d="", ar="";
+  rows.forEach((r,i)=>{ d+=(i?"L":"M")+xs(i).toFixed(1)+" "+ys(+r.score||0).toFixed(1)+" "; });
+  ar=`M ${L} ${H-B} `+rows.map((r,i)=>"L "+xs(i).toFixed(1)+" "+ys(+r.score||0).toFixed(1)).join(" ")
+    +` L ${xs(rows.length-1).toFixed(1)} ${H-B} Z`;
+  const dots=rows.map((r,i)=>`<circle class="dt" cx="${xs(i).toFixed(1)}" cy="${ys(+r.score||0).toFixed(1)}" r="3">
+    <title>${esc(mdLabel(r.k))}　${jp(+r.score||0)} 点</title></circle>`).join("");
+  return `<svg class="mdchart" viewBox="0 0 ${W} ${H}" style="width:100%;display:block">
+    ${g}<path class="ar" d="${ar}"/><line class="ax" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>
+    <path class="ln" d="${d}"/>${dots}${xl}</svg>`;
+}
+$$("#mdTabs [data-md]").forEach(b=>b.onclick=async()=>{
+  mdKind=b.dataset.md;
+  if(mdKind!=="day"&&!MOOD_TODAY) MOOD_TODAY=MOOD.length?MOOD[MOOD.length-1]:null;
+  await moodLoad(); moodDraw();
+});
+/* ── 管理者のボタン ── */
+const mdMsg=(t,ok)=>{ const e=$("#mdMsg"); if(e){ e.innerHTML=
+  `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; } };
+if($("#mdSnap")) $("#mdSnap").onclick=async()=>{
+  if(mdBusy) return; mdBusy=true; mdMsg("数えています…");
+  try{ await sb("rpc/mood_snap",{method:"POST",body:"{}"}); await moodEnter(); mdMsg("数えなおしました"); }
+  catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
+  mdBusy=false;
+};
+if($("#mdXGo")) $("#mdXGo").onclick=async()=>{
+  const d=$("#mdXDay").value||hsDay(), n=+$("#mdXN").value;
+  if(!(n>=0)) return mdMsg("件数を入れてください", false);
+  try{
+    await sbAuth("rpc/mood_set_x",{method:"POST",body:JSON.stringify({p_day:d,p_n:n})});
+    await moodEnter(); mdMsg(`${d} を ${jp(n)} 件にしました`);
+  }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
+};
+if($("#mdGoalGo")) $("#mdGoalGo").onclick=async()=>{
+  const t=+$("#mdTgt").value, r=+$("#mdRw").value;
+  if(!(t>0)) return mdMsg("目標の点を入れてください", false);
+  try{
+    await sbAuth("rpc/mood_goal_set",{method:"POST",body:JSON.stringify({p_target:t,p_reward:r||3})});
+    await moodEnter(); mdMsg(`目標を ${jp(t)} 点・ごほうび ${jp(r||3)}枚 にしました`);
+  }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
+};
+if($("#mdSecGo")) $("#mdSecGo").onclick=async()=>{
+  const v=($("#mdSec").value||"").trim();
+  if(v.length<8) return mdMsg("8文字以上にしてください", false);
+  try{
+    await sbAuth("rpc/secret_set",{method:"POST",body:JSON.stringify({p_key:"mood",p_value:v})});
+    mdMsg("合いことばを決めました。GitHub の Secrets に入れてください");
+    $("#mdSec").value="";
+  }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
+};
+
 /* ---- 13) 開発者を応援する ---- */
 let CH={total:0,today:0,this_week:0,this_month:0,this_year:0}, CHB=[], chTab="total";
 let chLeft=null, chHalf="";
 let chMonth=null, chCal={};
 /* 上のメニューには出さず、ヘッダーのボタンからだけ開きます */
 $("#cheerBtn").onclick=()=>{
-  ["profile","plan","analysis","hist","ls","card","input","sns","settings","help","cheer"]
+  ["profile","plan","analysis","hist","mood","ls","card","input","sns","settings","help","cheer"]
     .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!=="cheer"); });
   $$("#tabs button").forEach(x=>x.classList.remove("on"));
   $("#menuNow").textContent="開発者を応援する";
@@ -11752,6 +12358,195 @@ tool:`<h3>画面の地図</h3>
                            実行
 </pre>
 <p class="tiny">チャレンジ・競技会の「終了する」「消す」は、この手順を通ります。うっかり押しても消えません。</p>`,
+
+mood:`<h3>Prime Mood とは</h3>
+<p class="tiny">素数あつめ界隈が、いまどれくらい盛り上がっているかを1つの数字にしたものです。<br>
+<b>誰かと競うものではありません。</b>みんなの行動がぜんぶ、同じ1つの数字に積み上がります。</p>
+
+<h3 style="margin-top:16px">なにが点になるか</h3>
+<div class="scroll"><table><thead><tr><th>したこと</th><th class="n">点</th><th>だれの行動でも</th></tr></thead><tbody>
+<tr><td>X に <b>#素数あつめ</b> で投稿する</td><td class="n">3</td><td>入ります</td></tr>
+<tr><td>アチーブメントを達成する</td><td class="n">3</td><td>入ります</td></tr>
+<tr><td>記録を提出する</td><td class="n">2</td><td>入ります</td></tr>
+<tr><td>大会・チャレンジに出す</td><td class="n">2</td><td>入ります</td></tr>
+<tr><td>その日アプリに来る（1人ぶん）</td><td class="n">2</td><td>入ります</td></tr>
+<tr><td>タイムラインにつぶやく</td><td class="n">1</td><td>入ります</td></tr>
+<tr><td>Prime Park であそぶ</td><td class="n">1</td><td>入ります</td></tr>
+</tbody></table></div>
+<p class="tiny">1日の合計が「きょうのもりあがり度」です。数が大きいほど熱い言葉に変わります。</p>
+<div class="scroll"><table><thead><tr><th class="n">点</th><th>ことば</th></tr></thead><tbody>
+<tr><td class="n">0〜19</td><td>しずかな日</td></tr>
+<tr><td class="n">20〜59</td><td>ぽつぽつ</td></tr>
+<tr><td class="n">60〜139</td><td>あたたかい</td></tr>
+<tr><td class="n">140〜259</td><td>にぎわっている</td></tr>
+<tr><td class="n">260〜449</td><td>もりあがり！</td></tr>
+<tr><td class="n">450〜</td><td>お祭りだ！！</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">今週の目標</h3>
+<p class="tiny">1週間（月曜〜日曜）の合計が目標に届くと、<b>その週に来た人みんな</b>に
+Prime Coin が入ります。<br>
+ひとりががんばるより、みんなが少しずつ動いたほうが早く届きます。<br>
+受け取るには、その週にログインボーナスを受け取っておいてください（ホームタブ）。</p>
+<p class="tiny">1週に1回だけ受け取れます。目標の点とごほうびの枚数は、管理者が決めます。</p>
+
+<h3 style="margin-top:16px">記録の見かた</h3>
+<p class="tiny">1日ごと・1週間ごと・1か月ごとに切り替えられます。
+グラフの下の表に、それぞれの内訳（Xの投稿数・提出・つぶやき・人数など）が出ます。</p>
+
+<h3 style="margin-top:16px">X の投稿数について</h3>
+<p class="tiny">X の投稿数だけは、アプリの中では数えられないので、外から入れています。
+入っていない日は 0 になります。<b>管理者が「更新する」を押すと、その場で数えなおします。</b></p>
+
+<h3 style="margin-top:16px">── ここから下は管理者向けの手順です ──</h3>
+
+<h3 style="margin-top:12px">① X の Bearer Token を作る</h3>
+<div class="scroll"><table><thead><tr><th>手順</th><th>すること</th></tr></thead><tbody>
+<tr><td><b>1</b></td><td><b>developer.x.com</b> を開いて、X のアカウントでログインします</td></tr>
+<tr><td><b>2</b></td><td>「Sign up for Free Account」から開発者登録をします（用途を英語で150文字ほど書きます）</td></tr>
+<tr><td><b>3</b></td><td>Developer Portal で <b>Project</b> と <b>App</b> を作ります</td></tr>
+<tr><td><b>4</b></td><td>App の「Keys and tokens」→ <b>Bearer Token</b> を生成してコピーします</td></tr>
+<tr><td><b>5</b></td><td>Console でクレジットを買います（$10 で数年もちます）。<b>支出上限</b>も $1 などに設定してください</td></tr>
+</tbody></table></div>
+<p class="tiny" style="color:var(--warn)">2026年2月から無料枠はなくなり、使った分だけ払う形になりました。
+新しいアカウントには $10 のクーポンが付きます。</p>
+
+<h3 style="margin-top:16px">② 料金と更新のかんかく</h3>
+<p class="tiny">使うのは <b>counts/recent</b>（日別の件数だけを返すもの）で、<b>1回 $0.005</b> です。
+投稿の本文は取らないので、これだけで済みます。</p>
+<div class="scroll"><table><thead><tr><th>かんかく</th><th class="n">1日</th><th class="n">1か月</th>
+<th class="n">1年</th><th>$10 クーポンで</th></tr></thead><tbody>
+<tr><td>1日1回</td><td class="n">1回</td><td class="n">$0.15</td><td class="n">$1.83</td><td>約5年5か月</td></tr>
+<tr><td><b>12時間おき</b></td><td class="n">2回</td><td class="n">$0.30</td><td class="n">$3.65</td><td>約2年8か月</td></tr>
+<tr><td>6時間おき</td><td class="n">4回</td><td class="n">$0.60</td><td class="n">$7.30</td><td>約1年4か月</td></tr>
+<tr><td>3時間おき</td><td class="n">8回</td><td class="n">$1.20</td><td class="n">$14.60</td><td>約8か月</td></tr>
+<tr><td>1時間おき</td><td class="n">24回</td><td class="n">$3.65</td><td class="n">$43.80</td><td>約2か月半</td></tr>
+</tbody></table></div>
+<p class="tiny"><b>1日1回で十分です。</b>counts/recent は「直近7日ぶん」をまとめて返すので、
+1日1回でも取りこぼしません。回数を増やして分かるのは「今日の途中までの数」だけです。<br>
+おすすめは <b>12時間おき</b>（0:10 と 12:10）です。$10 のクーポンで2年半以上もちます。</p>
+
+<h3 style="margin-top:16px">③ 合いことばを決める</h3>
+<p class="tiny">Prime Mood タブのいちばん下（管理者だけに出ます）で、
+<b>合いことば</b>を決めて「合いことばを決める」を押します。8文字以上にしてください。</p>
+
+<h3 style="margin-top:16px">④ GitHub に入れる</h3>
+<p class="tiny">リポジトリの <b>Settings → Secrets and variables → Actions</b> で、
+「New repository secret」から4つ入れます。</p>
+<div class="scroll"><table><thead><tr><th>名前</th><th>中身</th></tr></thead><tbody>
+<tr><td class="mono">X_BEARER</td><td>①でコピーした Bearer Token</td></tr>
+<tr><td class="mono">SB_URL</td><td class="mono">https://…….supabase.co</td></tr>
+<tr><td class="mono">SB_ANON</td><td class="mono">sb_publishable_…（公開してよいキー）</td></tr>
+<tr><td class="mono">MOOD_TOKEN</td><td>③で決めた合いことば</td></tr>
+</tbody></table></div>
+<p class="tiny">つぎに、<b>prime-mood.yml</b> というファイルを
+<span class="mono">.github/workflows/prime-mood.yml</span> に置きます。
+これで毎日ひとりで動きます。Actions タブの「Run workflow」で手動でも動かせます。</p>
+
+<h3 style="margin-top:16px">⑤ 管理者の「更新する」ボタン</h3>
+<p class="tiny">Prime Mood タブの管理者メニューに3つあります。</p>
+<div class="scroll"><table><thead><tr><th>ボタン</th><th>すること</th><th>お金</th></tr></thead><tbody>
+<tr><td>いますぐ数えなおす</td><td>提出・つぶやき・人数などを数えなおします</td><td>かかりません</td></tr>
+<tr><td>この日の件数を入れる</td><td>X の投稿数を手で入れます（自分で数えた数でもOK）</td><td>かかりません</td></tr>
+<tr><td>この目標にする</td><td>今週の目標の点とごほうびの枚数を決めます</td><td>かかりません</td></tr>
+</tbody></table></div>
+<p class="tiny"><b>X に聞きにいくのは GitHub Actions だけ</b>です。
+アプリのボタンからは X を呼びません（勝手に課金されないようにするためです）。
+X の数を今すぐ知りたいときは、GitHub の Actions タブから手で動かしてください。</p>`,
+
+rule:`<h3>利用規約</h3>
+<p class="tiny">素数あつめ RATING（以下「本サイト」）は、個人が無償で運営している趣味のサイトです。
+広告も課金もありません。使う前に、下の内容をご確認ください。</p>
+
+<h3 style="margin-top:16px">1. どんなサイトか</h3>
+<p class="tiny">本サイトは、ゲーム「素数あつめ」の記録をまとめ、RATING を計算して共有するための道具です。
+記録の投稿・大会・アチーブメント・タイムラインなどの機能があります。
+運営は個人（syuuto）で、法人ではありません。</p>
+
+<h3 style="margin-top:16px">2. 使うときの決まり</h3>
+<div class="scroll"><table><thead><tr><th>してはいけないこと</th></tr></thead><tbody>
+<tr><td>うその記録を出すこと</td></tr>
+<tr><td>ほかの人を傷つける言葉を書くこと</td></tr>
+<tr><td>ほかの人の記録や動画を、自分のものとして出すこと</td></tr>
+<tr><td>ほかの人のアカウントを使うこと</td></tr>
+<tr><td>法律に反すること、法律に反するおそれのあること</td></tr>
+<tr><td>本サイトの仕組みをこわすこと、大量の通信を送りつけること</td></tr>
+</tbody></table></div>
+<p class="tiny">守られていないと運営が判断したときは、投稿の削除・役職の取り消し・利用のお断りをすることがあります。</p>
+
+<h3 style="margin-top:16px">3. 投稿できる場所</h3>
+<p class="tiny">タイムラインと部屋への投稿は、<b>誰でも読める公開の場</b>です。
+1対1の非公開のやりとり（ダイレクトメッセージ）の機能はありません。<br>
+<span style="color:var(--warn)">以前あった「招待制の部屋」は、新しく作れません。すでにある部屋も書きこみができず、
+入っている人が読み返すだけになっています。</span></p>
+
+<h3 style="margin-top:16px">4. 記録の審査について</h3>
+<p class="tiny">出された記録は、審査員・スーパーバイザー・ジャッジマンが確認します。
+提出した記録・証明のリンク・Discord に書いた場所は、<b>審査員以上の役職の人が見ます</b>。
+提出することで、これに同意したものとします。</p>
+
+<h3 style="margin-top:16px">5. 消えたり止まったりすること</h3>
+<p class="tiny">本サイトは無償です。運営の都合で、予告なく止めたり、機能を変えたり、
+やめたりすることがあります。データが消えたり、ランキングが正しく出なかったことによる
+損害について、運営は責任を負いません。大事な記録は、ご自身でも控えを取ってください。</p>
+
+<h3 style="margin-top:16px">6. Prime Coin について</h3>
+<p class="tiny">Prime Coin は本サイトの中だけのしるしです。
+<b>お金と交換したり、売り買いしたりはできません。</b>他の人にわたすこともできません。
+運営がやめたときに、なくなります。</p>
+
+<h3 style="margin-top:16px">7. 通報と削除のお願い</h3>
+<p class="tiny">傷つけられた・自分の記録を勝手に使われた、というときは、投稿の「・・・」から通報してください。
+運営が見て、必要があれば消します。<br>
+運営に直接伝えたいときは、<b>設定タブの「開発者に伝える」</b>から送ってください。</p>
+
+<h3 style="margin-top:16px">8. 決まりの変更</h3>
+<p class="tiny">この決まりは、必要に応じて変えます。変えたときは、このページを直します。</p>
+<p class="tiny" style="margin-top:12px;color:var(--dim2)">最後に直した日：2026年8月</p>`,
+
+privacy:`<h3>プライバシーポリシー</h3>
+<p class="tiny">本サイトが、どんな情報をあずかって、何に使うかをまとめています。</p>
+
+<h3 style="margin-top:16px">1. あずかる情報</h3>
+<div class="scroll"><table><thead><tr><th>なに</th><th>いつ</th><th>なぜ</th></tr></thead><tbody>
+<tr><td>メールアドレス</td><td>Google でログインしたとき</td><td>あなたのアカウントを見分けるため</td></tr>
+<tr><td>プレイヤーネーム・@ID・アイコン・自己紹介</td><td>あなたが入れたとき</td><td>ランキングやプロフィールに出すため</td></tr>
+<tr><td>素数ゲームの記録・RATING</td><td>あなたが入れたとき</td><td>計算とランキングのため</td></tr>
+<tr><td>提出した記録・証明のリンク</td><td>あなたが出したとき</td><td>審査のため</td></tr>
+<tr><td>投稿の文とリンク</td><td>あなたが書いたとき</td><td>タイムラインに出すため</td></tr>
+<tr><td>ログインした日・遊んだ記録</td><td>使ったとき</td><td>ログインボーナスと「あなたの軌跡」のため</td></tr>
+</tbody></table></div>
+<p class="tiny">位置情報・電話番号・住所・支払い情報は、いっさいあずかりません。</p>
+
+<h3 style="margin-top:16px">2. どこに置いているか</h3>
+<p class="tiny">データは <b>Supabase</b>（データベースのサービス）に置いています。
+ログインは <b>Google</b> のしくみを使っています。
+サイトのファイルは <b>GitHub Pages</b> に置いています。
+これらは本サイトのために使っている道具で、あなたの情報を広告に使うことはありません。</p>
+
+<h3 style="margin-top:16px">3. 誰が見られるか</h3>
+<div class="scroll"><table><thead><tr><th>情報</th><th>見られる人</th></tr></thead><tbody>
+<tr><td>プレイヤーネーム・@ID・記録・RATING（公開にしたとき）</td><td>だれでも</td></tr>
+<tr><td>タイムラインの投稿</td><td>だれでも</td></tr>
+<tr><td>提出した記録・証明のリンク・Discord の記載場所</td><td>審査員以上</td></tr>
+<tr><td>メールアドレス</td><td>運営だけ</td></tr>
+<tr><td>「あなたの軌跡」の毎日のデータ</td><td>あなただけ</td></tr>
+<tr><td>招待制の部屋の中身（過去のもの）</td><td>その部屋に入っている人だけ（運営も見られません）</td></tr>
+</tbody></table></div>
+<p class="tiny">プロフィールを「非公開」にすると、ランキングに載りません。設定タブで切り替えられます。</p>
+
+<h3 style="margin-top:16px">4. 外に送っていないもの</h3>
+<p class="tiny">アクセス解析（Google アナリティクスなど）や広告のタグは<b>入れていません</b>。
+あなたが本サイトを見たことを、外の会社に知らせるしくみはありません。</p>
+
+<h3 style="margin-top:16px">5. 消したいとき</h3>
+<p class="tiny">アカウントとデータを消したいときは、<b>設定タブの「開発者に伝える」</b>から
+「アカウントを消してください」と送ってください。確認のうえ消します。<br>
+この端末に残っているぶんだけを消したいときは、設定タブの「この端末のデータを消す」を使ってください。</p>
+
+<h3 style="margin-top:16px">6. 変更</h3>
+<p class="tiny">このページは、必要に応じて直します。</p>
+<p class="tiny" style="margin-top:12px;color:var(--dim2)">最後に直した日：2026年8月　／　運営：syuuto（個人）</p>`,
 
 etc:`<h3>RATING のしくみ</h3>
 <p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
@@ -12996,9 +13791,12 @@ function normalize(j){
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
   /* 見はりは、あとからログインしても効くように、いつでも用意しておきます */
   try{ stWatch(); }catch(e){}
+  /* ★ LSやりこみは専用の入れものでそろえます（5分おき） */
+  try{ lsWatch(); }catch(e){}
+  if(sess&&sbOn()){ try{ await lsStart(); }catch(e){} }
   /* あなたの軌跡：きょうのぶんを残して、日付が変わるのを見はります */
-  try{ histWatch(); }catch(e){}
-  try{ await histPull(); histWrite(); }catch(e){}
+  try{ histWatch(); histAuto(); }catch(e){}
+  try{ await histPull(); await histWriteFull(); }catch(e){}
   try{ await loadBorderAt(); }catch(e){} tickClock();
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
@@ -13017,6 +13815,10 @@ function normalize(j){
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
   if($("#recBk")) $("#recBk").onclick=showRecBackups;
   if($("#undoBk")) $("#undoBk").onclick=showUndo;
+  if($("#lsSyncBtn")) $("#lsSyncBtn").onclick=async()=>{
+    if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
+    $("#lsSyncBtn").disabled=true; await lsSync(true); $("#lsSyncBtn").disabled=false; };
+  if($("#lsBk")) $("#lsBk").onclick=showLsBackups;
   stWhat();
   stMark(stState||(sess?"—":"ログインしていません"));
   /* ブラウザを更新しても、さっき見ていた場所に戻します */
