@@ -1,23 +1,26 @@
 # ═══════════════════════════════════════════════════════════════
-#  Prime Mood ── X（Twitter）の #素数あつめ の投稿数を毎日数えます
+#  Prime Mood ── X（Twitter）の投稿数を数えて、アプリに入れます
 #
 #  置く場所： .github/workflows/prime-mood.yml
 #
-#  GitHub の Settings → Secrets and variables → Actions に
-#  つぎの4つを入れてください（値は画面に出ません）
-#    X_BEARER    … X Developer Console で作った Bearer Token
-#    SB_URL      … https://xxxxxxxx.supabase.co
-#    SB_ANON     … sb_publishable_… （公開してよいキー）
-#    MOOD_TOKEN  … Prime Mood タブで決めた「合いことば」
+#  ★ 入れるのは Secrets 2つだけです
+#     GitHub の Settings → Secrets and variables → Actions
+#       X_BEARER    … X Developer Console の Bearer Token
+#       MOOD_TOKEN  … Prime Mood タブで決めた「合いことば」
+#
+#  ★ 数えるハッシュタグは、このファイルではなく
+#     アプリの Prime Mood タブ（管理者メニュー）で決めます。
+#     このファイルは、そこに書かれたタグを読んで数えます。
+#     タグを増やしても、このファイルは触らなくてよいです。
 # ═══════════════════════════════════════════════════════════════
 name: Prime Mood
 
 on:
   schedule:
-    # 日本時間の 0:10 と 12:10（UTC は 15:10 と 3:10）＝ 1日2回
-    # 1本だけ残せば「1日1回」になります（下の料金表を見てください）
+    # 日本時間 0:10（UTC 15:10）＝ 1日1回。$5 で約2年8か月もちます
     - cron: "10 15 * * *"
-    - cron: "10 3 * * *"
+    # 1日2回にしたいときは、下の行の # を外してください（日本時間 12:10）
+    # - cron: "10 3 * * *"
   workflow_dispatch:        # Actions タブから手で動かせます
 
 jobs:
@@ -27,48 +30,80 @@ jobs:
       - name: X の投稿数を数えて Supabase に入れる
         env:
           X_BEARER:   ${{ secrets.X_BEARER }}
-          SB_URL:     ${{ secrets.SB_URL }}
-          SB_ANON:    ${{ secrets.SB_ANON }}
           MOOD_TOKEN: ${{ secrets.MOOD_TOKEN }}
-          QUERY:      '#素数あつめ -is:retweet'
+          # ↓ この2つは公開してよい値なので、ここに書いてあります
+          #   （index.html にも同じものが書かれています）
+          SB_URL:  "https://hlhgjnhxtfcqcqvdklww.supabase.co"
+          SB_ANON: "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU"
         run: |
           set -euo pipefail
 
           # 入れ忘れがないか、先に確かめます
-          for v in X_BEARER SB_URL SB_ANON MOOD_TOKEN; do
+          for v in X_BEARER MOOD_TOKEN; do
             if [ -z "${!v:-}" ]; then
               echo "::error::Secrets に $v が入っていません"
+              echo "  Settings → Secrets and variables → Actions で入れてください"
               exit 1
             fi
           done
 
-          # ── 1) X に聞きます（counts/recent は 1リクエスト $0.005）──
-          #     granularity=hour で「1時間ごとの件数」が返ります。
-          #     日本時間の 0:00〜24:00 でぴったり区切れるので、日付がずれません。
+          # ── 1) アプリから「数えるハッシュタグ」をもらいます（無料）──
+          echo "アプリの設定を読みます…"
+          CFG=$(curl -sS "${SB_URL}/rest/v1/app_state?select=value&key=eq.mood_cfg&limit=1" \
+                  -H "apikey: ${SB_ANON}" || echo '[]')
+          echo "$CFG" | head -c 300; echo
+
+          QUERY=$(CFG="$CFG" python3 <<'PY'
+          import json, os, sys
+          try:
+              rows = json.loads(os.environ["CFG"])
+              cfg = (rows[0]["value"] if rows else {}) or {}
+          except Exception:
+              cfg = {}
+          tags = cfg.get("tags") or ["素数あつめ"]
+          tags = [str(t).strip().lstrip("#") for t in tags if str(t).strip()]
+          if not tags:
+              tags = ["素数あつめ"]
+          extra = str(cfg.get("extra", "-is:retweet") or "").strip()
+          # (#tagA OR #tagB) -is:retweet の形にします
+          inner = " OR ".join("#" + t for t in tags)
+          q = ("(" + inner + ")") if len(tags) > 1 else ("#" + tags[0])
+          if extra:
+              q = q + " " + extra
+          # X の query は 512文字までです
+          if len(q) > 500:
+              sys.stderr.write("タグが多すぎるので削りました\n")
+              q = q[:500]
+          print(q)
+          PY
+          )
+          echo "数える言葉: $QUERY"
+
+          # ── 2) X に聞きます（counts/recent は 1リクエスト $0.005）──
+          #     granularity=hour で1時間ごとにもらい、日本時間の日付で区切りなおします。
           #     料金は「1リクエストいくら」なので、細かくもらっても同じ $0.005 です。
-          #     投稿の本文は取らないので、これ以上お金はかかりません。
-          ENC=$(python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["QUERY"]))')
+          ENC=$(QUERY="$QUERY" python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["QUERY"]))')
           URL="https://api.x.com/2/tweets/counts/recent?query=${ENC}&granularity=hour"
 
           echo "X に聞きます…"
           HTTP=$(curl -sS -o /tmp/x.json -w '%{http_code}' \
                    -H "Authorization: Bearer ${X_BEARER}" "$URL" || true)
           echo "こたえ: HTTP $HTTP"
-          head -c 600 /tmp/x.json; echo
+          head -c 500 /tmp/x.json; echo
 
           if [ "$HTTP" != "200" ]; then
             echo "::error::X から 200 が返りませんでした（HTTP $HTTP）"
+            echo "  400 → 数える言葉の形がおかしい（タグに使えない文字が入っていないか）"
             echo "  401 → Bearer Token がちがう／期限切れ"
-            echo "  403 → 権限が足りない（アプリの設定を確認）"
             echo "  402 → クレジットが足りない"
+            echo "  403 → 権限が足りない"
             echo "  429 → 呼びすぎ（しばらく待つ）"
             exit 1
           fi
 
-          # ── 2) 日本時間の日付ごとにまとめます ──
-          #     ・1時間ごとの枠を、日本時間の日付に振り分けます
-          #     ・いちばん古い日は「途中から」しか取れていないので、送りません
-          #       （前に正しく入れた数を、少ない数で上書きしないため）
+          # ── 3) 日本時間の日付ごとにまとめます ──
+          #     いちばん古い日は「途中から」しか取れないので送りません
+          #     （前に正しく入れた数を、少ない数で上書きしないため）
           python3 > /tmp/days.json <<'PY'
           import json, datetime, sys
           res = json.load(open("/tmp/x.json"))
@@ -84,7 +119,6 @@ jobs:
           for b in buckets:
               d = jst(b["start"]).strftime("%Y-%m-%d")
               out[d] = out.get(d, 0) + int(b.get("tweet_count", 0))
-          # いちばん古い枠が 0:00 ぴったりで始まっていなければ、その日は不完全
           first = jst(buckets[0]["start"])
           if not (first.hour == 0 and first.minute == 0 and first.second == 0):
               part = first.strftime("%Y-%m-%d")
@@ -102,12 +136,12 @@ jobs:
             exit 0
           fi
 
-          # ── 3) Supabase に入れます ──
-          python3 - "$DAYS" > /tmp/body.json <<'PY'
-          import json, sys, os
-          json.dump({"p_days": json.loads(sys.argv[1]),
+          # ── 4) Supabase に入れます ──
+          DAYS="$DAYS" python3 > /tmp/body.json <<'PY'
+          import json, os
+          json.dump({"p_days": json.loads(os.environ["DAYS"]),
                      "p_token": os.environ["MOOD_TOKEN"]},
-                    sys.stdout, ensure_ascii=False)
+                    open("/dev/stdout", "w"), ensure_ascii=False)
           PY
 
           SB=$(curl -sS -o /tmp/sb.json -w '%{http_code}' \
@@ -128,16 +162,14 @@ jobs:
 # ═══════════════════════════════════════════════════════════════
 #  料金のめやす（counts/recent は 1リクエスト $0.005）
 #
-#   更新のかんかく   1日の回数   1か月     1年       $5 で
-#   ───────────────────────────────────────────────────────────
-#   1日1回              1回     $0.15     $1.83     約2年8か月
-#   12時間おき          2回     $0.30     $3.65     約1年4か月   ← この設定
-#   6時間おき           4回     $0.60     $7.30     約8か月
-#   3時間おき           8回     $1.20    $14.60     約4か月
-#   1時間おき          24回     $3.65    $43.80     約1か月半
+#   かんかく      1日の回数   1か月     1年       $5 で
+#   ─────────────────────────────────────────────────────
+#   1日1回  ←今   1回       $0.15     $1.83     約2年8か月
+#   12時間おき     2回       $0.30     $3.65     約1年4か月
+#   6時間おき      4回       $0.60     $7.30     約8か月
+#   1時間おき     24回       $3.65    $43.80     約1か月半
 #
 #  ※ counts/recent は「直近7日ぶん」を1回でまとめて返します。
-#     1日1回でも取りこぼしません。回数を増やして分かるのは
-#     「今日の途中までの数」だけです。
-#  ※ cron を1本だけにすれば「1日1回」＝ $5 で約2年8か月もちます。
+#     1日1回でも取りこぼしません。
+#  ※ ハッシュタグを増やしても、1リクエストのままなので料金は増えません。
 # ═══════════════════════════════════════════════════════════════
