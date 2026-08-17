@@ -43,10 +43,12 @@ jobs:
           done
 
           # ── 1) X に聞きます（counts/recent は 1リクエスト $0.005）──
-          #     granularity=day で「1日ごとの件数」だけが返ります。
+          #     granularity=hour で「1時間ごとの件数」が返ります。
+          #     日本時間の 0:00〜24:00 でぴったり区切れるので、日付がずれません。
+          #     料金は「1リクエストいくら」なので、細かくもらっても同じ $0.005 です。
           #     投稿の本文は取らないので、これ以上お金はかかりません。
           ENC=$(python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["QUERY"]))')
-          URL="https://api.x.com/2/tweets/counts/recent?query=${ENC}&granularity=day"
+          URL="https://api.x.com/2/tweets/counts/recent?query=${ENC}&granularity=hour"
 
           echo "X に聞きます…"
           HTTP=$(curl -sS -o /tmp/x.json -w '%{http_code}' \
@@ -64,18 +66,31 @@ jobs:
           fi
 
           # ── 2) 日本時間の日付ごとにまとめます ──
+          #     ・1時間ごとの枠を、日本時間の日付に振り分けます
+          #     ・いちばん古い日は「途中から」しか取れていないので、送りません
+          #       （前に正しく入れた数を、少ない数で上書きしないため）
           python3 > /tmp/days.json <<'PY'
           import json, datetime, sys
           res = json.load(open("/tmp/x.json"))
           if "errors" in res and "data" not in res:
               print("{}"); sys.stderr.write("Xがエラーを返しました\n"); sys.exit(0)
+          buckets = res.get("data", [])
+          if not buckets:
+              print("{}"); sys.exit(0)
+          JST = datetime.timedelta(hours=9)
+          def jst(iso):
+              return datetime.datetime.fromisoformat(iso.replace("Z", "+00:00")) + JST
           out = {}
-          for b in res.get("data", []):
-              # start は UTC。9時間足して日本時間の日付にします
-              t = datetime.datetime.fromisoformat(b["start"].replace("Z", "+00:00"))
-              t = t + datetime.timedelta(hours=9)
-              d = t.strftime("%Y-%m-%d")
+          for b in buckets:
+              d = jst(b["start"]).strftime("%Y-%m-%d")
               out[d] = out.get(d, 0) + int(b.get("tweet_count", 0))
+          # いちばん古い枠が 0:00 ぴったりで始まっていなければ、その日は不完全
+          first = jst(buckets[0]["start"])
+          if not (first.hour == 0 and first.minute == 0 and first.second == 0):
+              part = first.strftime("%Y-%m-%d")
+              sys.stderr.write("いちばん古い %s は途中からなので送りません（%s から）\n"
+                               % (part, first.strftime("%H:%M")))
+              out.pop(part, None)
           print(json.dumps(out, ensure_ascii=False))
           PY
 
