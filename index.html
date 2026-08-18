@@ -63,6 +63,8 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 @keyframes lscfx{0%{opacity:0;transform:translate(-50%,6px)}
   20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
 #lsCoinBox{position:relative}
+@keyframes rkflow{0%{background-position:0% 50%}100%{background-position:-200% 50%}}
+@media (prefers-reduced-motion:reduce){ [style*="rkflow"]{animation:none!important} }
 .rkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 0;
   border-bottom:1px solid var(--line)}
 .rkrow .rkno{width:26px;height:26px;border-radius:50%;background:#16233a;color:var(--dim);
@@ -2108,7 +2110,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v89";
+const APP_VERSION = "v90";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2188,19 +2190,20 @@ const TOT_BAND =["1000位以下","500〜1000位","100〜500位","50〜100位","2
 const L_BASE=25, L_SUB=5.5, S_BASE=25, S_SUB=4.75, MAXPT=20;
 /** L値・S値は小数第3位で切り捨てる（四捨五入しない）。
  *  1e-9 を足しているのは、2.500 がコンピュータ内部で 2.4999999… になる誤差を打ち消すため。 */
+const f2=v=>Number(v||0).toFixed(2);
 const tr3=v=>(v>0?Math.floor(v*1000+1e-9)/1000:0);
 
 /* ランクの名前・レートの区切り・色。管理者が変えられます（サーバーに入っています）。
    c＝色／c2＝グラデーションのもう一方（なければ単色）／glow＝光らせるか */
-const RANK_DEF=[{min:0,n:"NOVICE",c:"#8ba0bd",c2:null,glow:false},
- {min:4,n:"BRONZE",c:"#c98a52",c2:null,glow:false},
- {min:7,n:"SILVER",c:"#bfcbdb",c2:null,glow:false},
- {min:10,n:"GOLD",c:"#f0c04a",c2:null,glow:false},
- {min:12.5,n:"PLATINUM",c:"#7fe6d4",c2:null,glow:false},
- {min:15,n:"TITAN",c:"#a98bff",c2:null,glow:false},
- {min:17,n:"MASTER",c:"#ff7b8a",c2:null,glow:false},
- {min:19,n:"RAINBOW",c:"#57e0a0",c2:"#7fd8ff",glow:true}];
-const RNUM_DEF={c:"#eef3fa",c2:null,glow:false};
+const RANK_DEF=[{min:0,n:"NOVICE",c:"#8ba0bd",c2:null,glow:false,anim:false},
+ {min:4,n:"BRONZE",c:"#c98a52",c2:null,glow:false,anim:false},
+ {min:7,n:"SILVER",c:"#bfcbdb",c2:null,glow:false,anim:false},
+ {min:10,n:"GOLD",c:"#f0c04a",c2:null,glow:false,anim:false},
+ {min:12.5,n:"PLATINUM",c:"#7fe6d4",c2:null,glow:false,anim:false},
+ {min:15,n:"TITAN",c:"#a98bff",c2:null,glow:false,anim:false},
+ {min:17,n:"MASTER",c:"#ff7b8a",c2:null,glow:false,anim:false},
+ {min:19,n:"RAINBOW",c:"#57e0a0",c2:"#7fd8ff",glow:true,anim:true}];
+const RNUM_DEF={c:"#eef3fa",c2:null,glow:false,anim:false};
 let RANKS=JSON.parse(JSON.stringify(RANK_DEF));   /* いま使っているもの */
 let RNUM=JSON.parse(JSON.stringify(RNUM_DEF));    /* RATING の数字の色 */
 let RCFG_AT=0;
@@ -2208,12 +2211,31 @@ let RCFG_AT=0;
 function rankCSS(r,size){
   if(!r) return "";
   const c=r.c||"#8ba0bd", c2=r.c2||null;
-  let css=c2
-    ? `background:linear-gradient(90deg,${c},${c2});-webkit-background-clip:text;`
-      +`background-clip:text;color:transparent;-webkit-text-fill-color:transparent;`
-    : `color:${c};`;
+  let css;
+  if(c2){
+    /* 動かす時は、色を3つ並べて背景をずらします（つなぎ目が見えないように） */
+    css=r.anim
+      ? `background:linear-gradient(90deg,${c},${c2},${c});background-size:200% 100%;`
+        +`animation:rkflow 3.2s linear infinite;`
+      : `background:linear-gradient(90deg,${c},${c2});`;
+    css+=`-webkit-background-clip:text;background-clip:text;`
+        +`color:transparent;-webkit-text-fill-color:transparent;`;
+  }else{
+    css=`color:${c};`;
+  }
   if(r.glow) css+=`filter:drop-shadow(0 0 ${size||6}px ${c2||c}aa);`;
   return css;
+}
+/** SVG の中で使うグラデーション（動かす場合は中で animate します） */
+function rankGrad(r,id){
+  if(!r||!r.c2) return "";
+  const c=r.c||"#8ba0bd", c2=r.c2;
+  return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${c}"/><stop offset="0.5" stop-color="${c2}"/>
+      <stop offset="1" stop-color="${c}"/>
+      ${r.anim?`<animate attributeName="x1" values="-1;0" dur="3.2s" repeatCount="indefinite"/>
+        <animate attributeName="x2" values="0;1" dur="3.2s" repeatCount="indefinite"/>`:""}
+    </linearGradient>`;
 }
 /** 枠線などに使う、1色ぶんの色 */
 const rankC=r=>(r&&r.c)||"#8ba0bd";
@@ -2735,6 +2757,11 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v90":[
+    "ランクに「動くグラデーション（流れる）」を追加",
+    "ピラミッドを正三角形にして、ランク名を矢印で外に出した（文字のはみ出しを修正）",
+    "ピラミッドとヘルプのレートを小数第2位まで表示",
+    "保存したのに「確認できませんでした」と出ることがあった不具合を修正"],
   "v89":[
     "チャレンジ参加の投稿が、審査後も「未審査」のままだった不具合を修正",
     "タイムラインから記録の中身（1回ごとの得点）を見られるようにした",
@@ -4013,39 +4040,66 @@ async function syncNow(){
 
 /** ランクのピラミッド図。現在地を光らせる */
 function drawPyramid(total,complete){
-  const W=660, rowH=42, n=RANKS.length, H=n*rowH+58;
-  const topW=190, botW=620, cx=W/2;
-  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:${W}px;margin:0 auto"
-    xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ランクのピラミッド">`;
+  const n=RANKS.length;
+  /* 正三角形。底辺 B、高さ B×√3/2。1段の高さ＝高さ÷段数 */
+  const B=300, H=Math.round(B*Math.sqrt(3)/2), GAP=2, rowH=(H+GAP)/n;
+  const padT=18, padB=26;
+  const cx=200;                         /* 三角形の中心（左寄せ）*/
+  const labX=cx+B/2+34;                 /* ラベルはいつも三角形の右外側 */
+  const W=760, Hh=H+padT+padB;      /* 底辺 300・高さ 260 ＝ ほぼ正三角形 */
+  const cur=complete?rankOf(total):null;
+  let defs="", g="";
   for(let i=n-1;i>=0;i--){
-    const r=RANKS[i], idx=n-1-i;                 // 上から何番目か
-    const y=14+idx*rowH;
-    const w0=topW+(botW-topW)*(idx/n), w1=topW+(botW-topW)*((idx+1)/n);
-    const here=complete&&rankOf(total).n===r.n;
-    const nx=RANKS[i+1];
-    const range=nx?`${(+r.min).toFixed(1)} 〜 ${(+nx.min).toFixed(1)}`:`${(+r.min).toFixed(1)} 以上`;
-    const gid=`rkg${i}`;
-    if(r.c2) g+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="${r.c}"/><stop offset="1" stop-color="${r.c2}"/></linearGradient></defs>`;
-    const fillC=r.c2?`url(#${gid})`:rankC(r);
-    g+=`<polygon points="${cx-w0/2},${y} ${cx+w0/2},${y} ${cx+w1/2},${y+rowH-5} ${cx-w1/2},${y+rowH-5}"
-      fill="${rankC(r)}${here?"55":"1f"}" stroke="${rankC(r)}${here?"":"66"}" stroke-width="${here?2.5:1}"/>`;
-    g+=`<text x="${cx-6}" y="${y+rowH/2+1}" text-anchor="end" fill="${fillC}"
-      style="font:700 15px ui-sans-serif,system-ui;letter-spacing:.1em${
+    const r=RANKS[i], idx=n-1-i;        /* 上から何番目か */
+    const y0=padT+idx*rowH, y1=y0+rowH;   /* 下ふちは y1-GAP（段のすきま） */
+    /* その高さでの三角形の幅（上ほど細い） */
+    const w0=B*(idx/n), w1=B*((idx+1)/n);
+    const here=cur&&cur.n===r.n;
+    const gid="rkg"+i;
+    if(r.c2) defs+=rankGrad(r,gid);
+    const fill=r.c2?`url(#${gid})`:rankC(r);
+    /* 段（台形。いちばん上は三角） */
+    g+=`<polygon points="${cx-w0/2},${y0} ${cx+w0/2},${y0} ${cx+w1/2},${y1-GAP} ${cx-w1/2},${y1-GAP}"
+      fill="${rankC(r)}${here?"55":"1f"}" stroke="${rankC(r)}${here?"":"66"}"
+      stroke-width="${here?2.5:1}"/>`;
+    /* 段から外へ伸ばす線と矢印 */
+    const my=(y0+y1)/2-1, ex=cx+w1/2;
+    g+=`<line x1="${ex+3}" y1="${my}" x2="${labX-16}" y2="${my}"
+      stroke="${rankC(r)}" stroke-width="1" opacity="${here?".9":".45"}"/>`;
+    g+=`<path d="M ${labX-16} ${my} l -7 -4 v 8 z" fill="${rankC(r)}" opacity="${here?".9":".55"}"
+      transform="translate(7,0)"/>`;
+    /* ランク名（グラデーション・光にも対応）*/
+    g+=`<text x="${labX}" y="${my+5}" fill="${fill}"
+      style="font:800 15px ui-sans-serif,system-ui;letter-spacing:.08em${
         r.glow?`;filter:drop-shadow(0 0 5px ${r.c2||r.c})`:""}">${esc(r.n)}</text>`;
-    g+=`<text x="${cx+14}" y="${y+rowH/2+1}" fill="#8ba0bd"
-      style="font:400 12px ui-monospace,monospace">${range}</text>`;
-    if(here) g+=`<text x="${cx+w1/2+8}" y="${y+rowH/2+1}" fill="${rankC(r)}"
-      style="font:700 12px ui-sans-serif,system-ui">◀ 現在地</text>`;
+    /* 必要レート（小数第2位まで） */
+    const nx=RANKS[i+1];
+    const need=nx?`${f2(r.min)} 〜 ${f2(nx.min)}`:`${f2(r.min)} 以上`;
+    /* 名前の右に、少し間をあけて必要レートを置きます（全角は広めに数えます） */
+    const nw=[...String(r.n)].reduce((a,ch)=>a+(ch.charCodeAt(0)<128?8.6:15),0);
+    g+=`<text x="${labX+nw+16}" y="${my+5}" fill="#8ba0bd"
+      style="font:400 12px ui-monospace,monospace">${esc(need)}</text>`;
+    if(here) g+=`<text x="${cx-w1/2-10}" y="${my+5}" text-anchor="end" fill="${rankC(r)}"
+      style="font:800 12px ui-sans-serif,system-ui">いまここ ▶</text>`;
   }
-  g+=`<text x="${cx}" y="${H-16}" text-anchor="middle" fill="#61748f"
-    style="font:400 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>`;
-  return g+"</svg>";
+  return `<svg viewBox="0 0 ${W} ${Hh}" width="100%"
+    style="display:block;max-width:${W}px;margin:0 auto;overflow:visible"
+    xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ランクのピラミッド">
+    <defs>${defs}</defs>${g}
+    <text x="${cx}" y="${Hh-8}" text-anchor="middle" fill="#61748f"
+      style="font:400 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>
+  </svg>`;
 }
 /* ══════════════════════════════════════════════════════════
    ランクの編集（管理者だけ・1枚の画面）
    ══════════════════════════════════════════════════════════ */
 let REDIT=null;
+/** 中身だけを取り出した「見くらべ用の文字列」（キーの並び順に左右されません） */
+const rankSig=a=>(a||[]).map(r=>[Number(r.min||0).toFixed(3),String(r.n||""),
+  String(r.c||"").toLowerCase(),String(r.c2||"").toLowerCase(),
+  r.glow?1:0, r.anim?1:0].join("|")).join(";");
+const numSig=o=>[String((o&&o.c)||"").toLowerCase(),String((o&&o.c2)||"").toLowerCase(),
+  (o&&o.glow)?1:0,(o&&o.anim)?1:0].join("|");
 function rkEnter(){
   if(!isAdmin()){ goTab("profile"); return toast("管理者だけが使えます"); }
   REDIT={ranks:JSON.parse(JSON.stringify(RANKS)), num:JSON.parse(JSON.stringify(RNUM))};
@@ -4070,6 +4124,9 @@ function rkDraw(){
       <div class="rkf"><label class="fl">グラデーション</label>
         <label class="pk"><input type="checkbox" data-rg="${i}"${r.c2?" checked":""}> つける</label>
         ${r.c2?`<input type="color" data-rk="${i}.c2" value="${esc(r.c2)}">`:""}</div>
+      <div class="rkf"><label class="fl">動かす</label>
+        <label class="pk"><input type="checkbox" data-ra="${i}"${r.anim?" checked":""}
+          ${r.c2?"":"disabled"}> 流れる</label></div>
       <div class="rkf"><label class="fl">光らせる</label>
         <label class="pk"><input type="checkbox" data-rl="${i}"${r.glow?" checked":""}> 光る</label></div>
       <div class="rkf"><label class="fl">　</label>
@@ -4085,10 +4142,15 @@ function rkDraw(){
   });
   $$("#rkList [data-rg]").forEach(e=>e.onchange=()=>{
     const r=REDIT.ranks[+e.dataset.rg];
-    r.c2=e.checked?(r.c2||"#7fd8ff"):null; rkDraw();
+    r.c2=e.checked?(r.c2||"#7fd8ff"):null;
+    if(!r.c2) r.anim=false;
+    rkDraw();
   });
   $$("#rkList [data-rl]").forEach(e=>e.onchange=()=>{
     REDIT.ranks[+e.dataset.rl].glow=e.checked; rkDraw();
+  });
+  $$("#rkList [data-ra]").forEach(e=>e.onchange=()=>{
+    REDIT.ranks[+e.dataset.ra].anim=e.checked; rkDraw();
   });
   $$("#rkList [data-rx]").forEach(b=>b.onclick=()=>{
     if(REDIT.ranks.length<2) return;
@@ -4103,6 +4165,9 @@ function rkDraw(){
       <div class="rkf"><label class="fl">グラデーション</label>
         <label class="pk"><input type="checkbox" id="rkNumG"${n.c2?" checked":""}> つける</label>
         ${n.c2?`<input type="color" data-rn="c2" value="${esc(n.c2)}">`:""}</div>
+      <div class="rkf"><label class="fl">動かす</label>
+        <label class="pk"><input type="checkbox" id="rkNumA"${n.anim?" checked":""}
+          ${n.c2?"":"disabled"}> 流れる</label></div>
       <div class="rkf"><label class="fl">光らせる</label>
         <label class="pk"><input type="checkbox" id="rkNumL"${n.glow?" checked":""}> 光る</label></div>
     </div>
@@ -4110,7 +4175,12 @@ function rkDraw(){
       <span class="rtplain" style="font-size:52px;${rankCSS(n,10)}">18<span class="d">.842</span></span>
     </div>`;
   $$("#rkNum [data-rn]").forEach(e=>e.oninput=()=>{ REDIT.num[e.dataset.rn]=e.value; rkDraw(); });
-  $("#rkNumG").onchange=e=>{ REDIT.num.c2=e.target.checked?(REDIT.num.c2||"#7fd8ff"):null; rkDraw(); };
+  $("#rkNumG").onchange=e=>{
+    REDIT.num.c2=e.target.checked?(REDIT.num.c2||"#7fd8ff"):null;
+    if(!REDIT.num.c2) REDIT.num.anim=false;
+    rkDraw();
+  };
+  $("#rkNumA").onchange=e=>{ REDIT.num.anim=e.target.checked; rkDraw(); };
   $("#rkNumL").onchange=e=>{ REDIT.num.glow=e.target.checked; rkDraw(); };
 
   /* ── 見本 ── */
@@ -4118,14 +4188,15 @@ function rkDraw(){
     const v=(+r.min||0)+0.5;
     return `<div class="rkdemo">
       <span class="badge" style="${rankCSS(r,5)}border-color:${rankC(r)}66">${esc(r.n||"—")}</span>
-      <span class="tiny">レート ${(+r.min||0).toFixed(3)} から</span>
+      <span class="tiny">レート ${f2(r.min)} から</span>
       <span class="rtplain" style="font-size:26px;${rankCSS(REDIT.num,6)}">${esc(v.toFixed(3))}</span>
       <span style="${rankCSS(r,4)};font-weight:800">${esc(r.n||"—")}</span>
     </div>`;}).join("");
   $("#rkPrev").innerHTML=`<p class="tiny">左から：バッジ／レートの下限／RATING の数字／一覧での名前の出かた</p>`
     +demo
     +`<p class="tiny" style="margin-top:10px;color:var(--dim2)">
-       グラデーションと光は、端末によって少し見え方が変わります。</p>`;
+       グラデーションと光は、端末によって少し見え方が変わります。
+       「流れる」は、端末の設定で動きを減らしている人には止まって見えます。</p>`;
 
   /* ── ピラミッド ── */
   const keep=RANKS;
@@ -4146,7 +4217,7 @@ if($("#rkAdd")) $("#rkAdd").onclick=()=>{
   if(!REDIT) return;
   if(REDIT.ranks.length>=30) return toast("ランクは30までです");
   const mx=REDIT.ranks.reduce((a,r)=>Math.max(a,+r.min||0),0);
-  REDIT.ranks.push({min:Math.min(20,mx+1),n:"NEW",c:"#8ba0bd",c2:null,glow:false});
+  REDIT.ranks.push({min:Math.min(20,mx+1),n:"NEW",c:"#8ba0bd",c2:null,glow:false,anim:false});
   rkDraw();
 };
 if($("#rkDef")) $("#rkDef").onclick=()=>{
@@ -4160,8 +4231,9 @@ if($("#rkSave")) $("#rkSave").onclick=async()=>{
   if(!REDIT) return;
   const cfg={ranks:REDIT.ranks.map(r=>({min:Math.max(0,Math.min(20,+r.min||0)),
       n:String(r.n||"").trim().slice(0,12), c:r.c||"#8ba0bd",
-      c2:r.c2||null, glow:!!r.glow})).sort((a,b)=>a.min-b.min),
-    num:{c:REDIT.num.c||"#eef3fa", c2:REDIT.num.c2||null, glow:!!REDIT.num.glow}};
+      c2:r.c2||null, glow:!!r.glow, anim:!!(r.c2&&r.anim)})).sort((a,b)=>a.min-b.min),
+    num:{c:REDIT.num.c||"#eef3fa", c2:REDIT.num.c2||null,
+         glow:!!REDIT.num.glow, anim:!!(REDIT.num.c2&&REDIT.num.anim)}};
   if(cfg.ranks.some(r=>!r.n)) return toast("名前が空のランクがあります");
   const mins=cfg.ranks.map(r=>r.min);
   if(new Set(mins).size!==mins.length) return toast("同じレートのランクが2つ以上あります");
@@ -4174,9 +4246,11 @@ if($("#rkSave")) $("#rkSave").onclick=async()=>{
   try{
     await sbAuth("rpc/rank_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
     await rankCfgLoad();
-    /* ほんとうに全員に届いたかを、ログインしていない立場で読み直して確かめます */
+    /* ほんとうに全員に届いたかを、ログインしていない立場で読み直して確かめます。
+       サーバー（jsonb）はキーの並び順を変えるので、中身だけを取り出して比べます */
     const srv=await sb("rpc/rank_cfg",{method:"POST",body:"{}"});
-    const same=JSON.stringify((srv&&srv.ranks)||[])===JSON.stringify(cfg.ranks);
+    const same=rankSig((srv&&srv.ranks)||[])===rankSig(cfg.ranks)
+            && numSig(srv&&srv.num)===numSig(cfg.num);
     rkEnter(); render();
     $("#rkMsg").innerHTML=same
       ? `<span style="color:var(--acc2)">保存しました。全員に反映されました</span>`
@@ -14277,7 +14351,7 @@ function rankHelpTbl(){
   const rs=RANKS.slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
   return `<div class="scroll"><table><thead><tr><th>ランク</th><th class="n">レート</th></tr></thead><tbody>`
     +rs.map((r,i)=>{ const nx=rs[i+1];
-      const range=nx?`${(+r.min).toFixed(1)} 〜 ${(+nx.min).toFixed(1)}`:`${(+r.min).toFixed(1)} 以上`;
+      const range=nx?`${f2(r.min)} 〜 ${f2(nx.min)}`:`${f2(r.min)} 以上`;
       return `<tr><td><b style="${rankCSS(r,4)}">${esc(r.n)}</b></td>
         <td class="n mono">${esc(range)}</td></tr>`;
     }).join("")
