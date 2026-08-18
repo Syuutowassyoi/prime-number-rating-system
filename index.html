@@ -1766,18 +1766,25 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       </div>
       <div class="tools" style="margin-top:8px">
         <button class="btn pri" id="mdGhRun">X の集計を実行する（API）</button>
+        <button class="btn" id="mdGhChk2">トークンを調べる</button>
         <button class="btn" id="mdGhOpen">GitHub の実行画面を開く</button>
         <span class="tiny" id="mdGhMsg"></span>
       </div>
+      <div id="mdGhChk" class="tiny" style="margin-top:8px"></div>
       <p class="tiny" style="color:var(--warn);margin-top:6px">トークンはこの端末の中だけに保存され、
         サーバーにも index.html にも書き込まれません。権限は <b>Actions: Read and write</b> だけで足ります。
         1回の実行で <b>$0.005</b> かかります。</p>
 
       <label class="fl" style="margin-top:16px">自動集計の予定時刻（日本時間・カンマ区切り）</label>
       <div class="tools" style="margin-top:0">
-        <input type="text" class="txt" id="mdSched" placeholder="00:10" style="max-width:200px">
-        <span class="tiny">yml の cron と合わせてください（表示用です）</span>
+        <input type="text" class="txt" id="mdSched" placeholder="00:10, 12:10" style="max-width:220px">
+        <button class="btn" id="mdSchedGo">この時刻を GitHub にも反映する</button>
       </div>
+      <p class="tiny" id="mdSchedPrev" style="margin-top:6px"></p>
+      <p class="tiny" style="color:var(--dim2)">「設定を保存する」を押すと画面の表示が変わります。
+        GitHub の実行時刻まで変えるには、上のボタンで yml を書きかえてください
+        （トークンに <b>Workflows: Read and write</b> が必要です）。<br>
+        1回ふやすごとに1日 $0.005 かかります。</p>
     </div>
 
     <div class="mapane" data-mp="log" hidden>
@@ -2647,6 +2654,8 @@ const CHANGES={
     "Prime Park のチュートリアルで先に進めなくなる不具合を修正",
     "チュートリアル中にセリフが画面に重なる問題を修正",
     "電気通信事業法についての説明をヘルプに追加",
+    "Prime Mood の集計を、権限が足りない時でも別の方法で実行できるようにした",
+    "自動集計の時刻を、アプリから GitHub の設定ごと書きかえられるようにした",
     "チャレンジ・競技会に「画像でもOK」を追加（スクリーンショットで提出できます）",
     "チャレンジ・競技会の説明文をあとから書きかえられるようにした"],
   "v87":[
@@ -11908,7 +11917,10 @@ async function moodLoad(){
     return;
   }
   if(!sbOn()){ MOOD=[]; MOOD_D=[]; MOODW=null; MOODST=null; return; }
-  const from=new Date(Date.now()-400*86400000).toISOString().slice(0,10);
+  /* 期間を指定しません＝はじめの日から今日まで、ぜんぶ読みます。
+     mood_daily は1日1行しか増えないので、何年ぶんでも軽いままです。
+     サーバー側でも古い日を消す処理はどこにも入れていません。 */
+  const from=null;
   try{
     MOOD=await sb("rpc/mood_get",{method:"POST",
       body:JSON.stringify({p_kind:mdKind,p_from:from,p_to:null})})||[];
@@ -11976,7 +11988,7 @@ function moodDraw(){
     <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-weight:900;
       font-family:${moodFont(MCFG.font)}">${moodNumHTML(v,38,22)}</text>
   </svg></div>
-  <div class="mdlab">ムード値<span class="tiny" style="opacity:.75">（直近7日間の平均得点）</span></div>
+  <div class="mdlab">ムード値<span class="tiny" style="opacity:.75">（今日を含む7日間の平均得点）</span></div>
   <div class="mdword" style="color:${w[2]}">${esc(w[1])}</div>
   ${dv==null?"":`<div class="mddelta ${dv>=0?"up":"down"}">昨日比 ${dv>=0?"＋":"−"}${
       (Math.round(Math.abs(dv)*100)/100).toFixed(2)}</div>`}`;
@@ -11986,9 +11998,9 @@ function moodDraw(){
     <div class="mdcell"><div class="t">直近7日間の合計</div>
       <div class="v" style="color:var(--mood)">${jp(week7)}</div>
       <div class="s">1日平均 ${(Math.round(v*100)/100).toFixed(2)}</div></div>
-    <div class="mdcell"><div class="t">記録がある日数</div>
-      <div class="v">${jp(MOOD.length)}</div>
-      <div class="s">${MOOD.length?esc(mdLabel(MOOD[0].k))+" から":"—"}</div></div>
+    <div class="mdcell"><div class="t">保存されている日数</div>
+      <div class="v">${jp(MOOD_D.length)}</div>
+      <div class="s">${MOOD_D.length?esc(mdLabel(MOOD_D[0].k))+" から ずっと":"—"}</div></div>
     <div class="mdcell"><div class="t">通算の合計</div>
       <div class="v">${jp(MOOD.reduce((a,b)=>a+(+b.score||0),0))}</div>
       <div class="s">全員で積み上げた点</div></div>
@@ -12224,11 +12236,22 @@ function mdCfgDraw(){
   $("#mdSched").value=(MEDIT.sched||["00:10"]).join(", ");
   $("#mdSched").oninput=()=>{
     MEDIT.sched=$("#mdSched").value.split(/[,、\s]+/).map(t=>t.trim()).filter(Boolean);
+    mdSchedPrev();
   };
+  mdSchedPrev();
   const g2=ghCfg();
   $("#mdGhRepo").value=(g2.owner&&g2.repo)?`${g2.owner}/${g2.repo}`:"";
   $("#mdGhTok").value="";
   if(g2.token) $("#mdGhTok").placeholder="（この端末に保存ずみ）";
+}
+function mdSchedPrev(){
+  const e=$("#mdSchedPrev"); if(!e||!MEDIT) return;
+  const list=(MEDIT.sched||[]).filter(t=>/^\d{1,2}:\d{2}$/.test(t));
+  if(!list.length){ e.innerHTML=`<span style="color:var(--bad)">時刻の形が違います（例：00:10, 12:10）</span>`; return; }
+  const cron=schedToCron(list).map(x=>x.trim()).join("　");
+  const yen=(list.length*0.005*365).toFixed(2);
+  e.innerHTML=`1日 <b>${jp(list.length)}</b> 回（${esc(list.join("　"))}）／ cron：<span class="mono">${esc(cron)}</span>`
+    +`<br>1年でおよそ <b>$${yen}</b>（1回 $0.005）`;
 }
 function mdQPrev(){
   const q=moodQuery(MEDIT);
@@ -12381,11 +12404,125 @@ if($("#mdGhSave")) $("#mdGhSave").onclick=()=>{
   $("#mdGhTok").value=""; $("#mdGhTok").placeholder="（この端末に保存ずみ）";
   ghMsg("この端末に覚えました（開発者メニューと同じものを使います）");
 };
+/* 予定時刻を、GitHub の prime-mood.yml にも書きこみます */
+if($("#mdSchedGo")) $("#mdSchedGo").onclick=async()=>{
+  const g=ghCfg(), sl=ghSlug();
+  const tok=$("#mdGhTok").value.trim()||g.token;
+  if(!sl||!tok) return ghMsg("先にリポジトリ名とトークンを入れてください", false);
+  const list=((MEDIT&&MEDIT.sched)||MCFG.sched||[]).filter(t=>/^\d{1,2}:\d{2}$/.test(t));
+  if(!list.length) return ghMsg("時刻の形が違います（例：00:10）", false);
+  if(!await askYN("GitHub の実行時刻を書きかえますか？",
+    `1日 ${jp(list.length)} 回（${esc(list.join("　"))}）になります。<br>`
+    +`1年でおよそ <b>$${(list.length*0.005*365).toFixed(2)}</b> かかります。`,"書きかえる")) return;
+  const path=".github/workflows/prime-mood.yml", ref=g.branch||"main";
+  const hd={"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json",
+            "X-GitHub-Api-Version":"2022-11-28"};
+  ghMsg("yml を読んでいます…");
+  try{
+    const r=await fetch(`https://api.github.com/repos/${sl}/contents/${path}?ref=${ref}`,{headers:hd});
+    if(!r.ok){ const j=await r.json().catch(()=>({}));
+      throw new Error(`yml を読めませんでした（HTTP ${r.status}）${j.message?"："+j.message:""}`); }
+    const cur=await r.json();
+    const txt=decodeURIComponent(escape(atob(String(cur.content||"").replace(/\s/g,""))));
+    const next=ymlWithSched(txt,list);
+    if(!next) throw new Error("yml の中に schedule: が見つかりませんでした");
+    if(next===txt){ return ghMsg("すでにこの時刻になっています"); }
+    ghMsg("書きこんでいます…");
+    const body=JSON.stringify({message:`Prime Mood の実行時刻を ${list.join(" / ")}（日本時間）にしました`,
+      content:btoa(unescape(encodeURIComponent(next))), sha:cur.sha, branch:ref});
+    const r2=await fetch(`https://api.github.com/repos/${sl}/contents/${path}`,
+      {method:"PUT",headers:Object.assign({"Content-Type":"application/json"},hd),body});
+    if(!r2.ok){ const j=await r2.json().catch(()=>({}));
+      throw new Error(r2.status===403
+        ? `書きこめませんでした（403）。トークンの Permissions で「Workflows」を Read and write にしてください${j.message?"（"+j.message+"）":""}`
+        : `書きこめませんでした（HTTP ${r2.status}）${j.message?"："+j.message:""}`); }
+    ghMsg(`GitHub の実行時刻を ${list.join(" / ")}（日本時間）にしました`);
+  }catch(e){ ghMsg(String(e.message||e).slice(0,160), false); }
+};
 if($("#mdGhOpen")) $("#mdGhOpen").onclick=()=>{
   const sl=ghSlug();
   if(!sl) return ghMsg("先にリポジトリ名を入れてください", false);
   window.open(`https://github.com/${sl}/actions/workflows/prime-mood.yml`,"_blank");
 };
+/** GitHub に聞いて、このトークンで何ができるかを調べます */
+async function ghCheck(){
+  const g=ghCfg(), sl=ghSlug();
+  const tok=$("#mdGhTok").value.trim()||g.token;
+  if(!sl||!tok) return ghMsg("リポジトリ名とトークンを入れてください", false);
+  const box=$("#mdGhChk");
+  const line=(ok,t,d)=>`<div style="margin:3px 0"><b style="color:${ok?"var(--acc2)":"var(--bad)"}">${ok?"✓":"✗"}</b> ${t}`
+    +(d?`<br><span class="tiny" style="color:var(--dim2)">${esc(d)}</span>`:"")+`</div>`;
+  const out=[];
+  const call=async(path,opt)=>{
+    const r=await fetch("https://api.github.com/"+path,Object.assign({},opt,{headers:Object.assign({
+      "Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json",
+      "X-GitHub-Api-Version":"2022-11-28"},(opt&&opt.headers)||{})}));
+    let j=null; try{ j=await r.json(); }catch(e){}
+    return {status:r.status, msg:(j&&j.message)||"", exp:r.headers.get("github-authentication-token-expiration")||""};
+  };
+  box.innerHTML="調べています…";
+  try{
+    const a=await call(`repos/${sl}`);
+    out.push(a.status===200
+      ? line(true,"リポジトリが見えます（Metadata: Read）")
+      : line(false,`リポジトリが見えません（HTTP ${a.status}）`,
+          a.status===404?"名前が違うか、トークンにこのリポジトリが入っていません":a.msg));
+    if(a.exp) out.push(`<div class="tiny">トークンの期限：${esc(a.exp)}</div>`);
+    const b=await call(`repos/${sl}/actions/workflows`);
+    out.push(b.status===200
+      ? line(true,"ワークフローが読めます（Actions: Read）")
+      : line(false,`ワークフローが読めません（HTTP ${b.status}）`,
+          "Permissions →「Actions」を Read（できれば Read and write）にしてください"));
+    if(b.status===200){
+      const names=((await (await fetch(`https://api.github.com/repos/${sl}/actions/workflows`,
+        {headers:{"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json"}})).json()).workflows||[])
+        .map(w=>w.path.split("/").pop());
+      out.push(`<div class="tiny">見えているファイル：${esc(names.join("、")||"（なし）")}</div>`);
+      if(!names.includes("prime-mood.yml"))
+        out.push(line(false,"prime-mood.yml が見つかりません",
+          ".github/workflows/prime-mood.yml に置いて、1度 GitHub 上で実行してください"));
+    }
+    const c=await call(`repos/${sl}/contents/.github/workflows/prime-mood.yml?ref=${g.branch||"main"}`);
+    out.push(c.status===200
+      ? line(true,"yml ファイルが読めます（Contents: Read）")
+      : line(false,`yml ファイルが読めません（HTTP ${c.status}）`,c.msg));
+    out.push(`<p class="tiny" style="margin-top:8px">実行するには <b>Actions: Read and write</b>、
+      時刻を書きかえるには <b>Contents: Read and write</b> と <b>Workflows: Read and write</b> が要ります。<br>
+      GitHub → Settings → Developer settings → Fine-grained tokens → このトークン →
+      Repository permissions で直せます。</p>`);
+    box.innerHTML=out.join("");
+  }catch(e){ box.innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,120))}</span>`; }
+}
+if($("#mdGhChk2")) $("#mdGhChk2").onclick=ghCheck;
+
+/** 予定時刻（日本時間）から、GitHub の cron 行を作ります（cron は UTC です） */
+function schedToCron(list){
+  return (list||["00:10"]).map(t=>{
+    const a=String(t).split(":"); const hh=+a[0]||0, mm=+a[1]||0;
+    const u=(hh+24-9)%24;                       /* 日本時間 → UTC は −9時間 */
+    return `    - cron: "${mm} ${u} * * *"`;
+  });
+}
+/** yml の中の cron 行を、いまの予定時刻に書きかえます */
+function ymlWithSched(txt,list){
+  const lines=String(txt).split("\n");
+  const out=[]; let inSched=false, put=false;
+  for(const L of lines){
+    if(/^\s*schedule:\s*$/.test(L)){ inSched=true; out.push(L); continue; }
+    if(inSched){
+      /* cron の行（コメントも含む）は、まとめて置きかえます */
+      if(/^\s*#?\s*-\s*cron:/.test(L)||/^\s*#/.test(L)){
+        if(!put){ out.push(...schedToCron(list)); put=true; }
+        continue;
+      }
+      if(/^\s*\S/.test(L)){ if(!put){ out.push(...schedToCron(list)); put=true; } inSched=false; }
+    }
+    out.push(L);
+  }
+  if(!put) return null;
+  return out.join("\n");
+}
+
 if($("#mdGhRun")) $("#mdGhRun").onclick=async()=>{
   const g=ghCfg(), sl=ghSlug();
   const tok=$("#mdGhTok").value.trim()||g.token;
@@ -12400,15 +12537,32 @@ if($("#mdGhRun")) $("#mdGhRun").onclick=async()=>{
       {method:"POST",headers:{"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json",
         "X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},
        body:JSON.stringify({ref:g.branch||"main"})});
-    if(r.status!==204){
-      let m="";
-      try{ m=(await r.json()).message||""; }catch(e){}
-      const hint=r.status===404?"リポジトリ名か prime-mood.yml の場所、トークンの権限を確かめてください"
-        :r.status===401?"トークンが違うか期限切れです"
-        :r.status===403?"トークンに Actions の書き込み権限がありません":"";
-      throw new Error(`GitHub が ${r.status} を返しました。${hint}${m?"（"+m+"）":""}`);
+    let okDispatch=(r.status===204), how="workflow_dispatch";
+    if(!okDispatch){
+      let m=""; try{ m=(await r.json()).message||""; }catch(e){}
+      /* 403（権限なし）や404のときは、もう1つの呼び方で試します。
+         こちらは Contents の権限で動くので、data.json を更新できるトークンならそのまま使えます */
+      if(r.status===403||r.status===404){
+        ghMsg("別の呼び方（repository_dispatch）で試しています…");
+        const r2=await fetch(`https://api.github.com/repos/${sl}/dispatches`,
+          {method:"POST",headers:{"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json",
+            "X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},
+           body:JSON.stringify({event_type:"prime-mood"})});
+        if(r2.status===204){ okDispatch=true; how="repository_dispatch"; }
+        else{
+          let m2=""; try{ m2=(await r2.json()).message||""; }catch(e){}
+          throw new Error(`GitHub が ${r.status} を返しました（${m}）。`
+            +`別の呼び方も ${r2.status} でした（${m2}）。`
+            +`トークンの Permissions で「Actions」を Read and write、`
+            +`「Contents」を Read and write にしてください。`
+            +`yml が古い場合は、新しい prime-mood.yml に差し替えてください。`);
+        }
+      }else{
+        const hint=r.status===401?"トークンが違うか期限切れです":"";
+        throw new Error(`GitHub が ${r.status} を返しました。${hint}${m?"（"+m+"）":""}`);
+      }
     }
-    ghMsg("実行を始めました。数が入るまで待っています…");
+    ghMsg(`実行を始めました（${how}）。数が入るまで待っています…`);
     /* 入るまで見張ります（最大3分）*/
     for(let i=0;i<36;i++){
       await new Promise(z=>setTimeout(z,5000));
@@ -13564,6 +13718,32 @@ X の数を今すぐ知りたい時は、GitHub の Actions タブから手で�
 そのため、<b>トークンを持っている GitHub Actions を呼び出す</b>形にしています。
 GitHub のトークンはこの端末の中だけに保存され、サーバーにも index.html にも書き込まれません。</p>
 <p class="tiny">1回の実行で <b>$0.005</b> かかります。押しすぎに気をつけてください。</p>
+<p class="tiny" style="color:var(--warn)"><b>「403 Resource not accessible by personal access token」と出るとき</b><br>
+トークンの権限が足りていません。<b>トークンを調べる</b>を押すと、どこで止まっているか分かります。</p>
+<div class="scroll"><table><thead><tr><th>したいこと</th><th>要る権限（Repository permissions）</th></tr></thead><tbody>
+<tr><td>集計を実行する</td><td class="mono">Actions: Read and write</td></tr>
+<tr><td>（上が無理なとき）別の呼び方で実行</td><td class="mono">Contents: Read and write</td></tr>
+<tr><td>実行時刻を書きかえる</td><td class="mono">Contents + Workflows: Read and write</td></tr>
+<tr><td>（どれにも必要）</td><td class="mono">Metadata: Read-only</td></tr>
+</tbody></table></div>
+<p class="tiny">Actions の権限が付けられない場合でも、アプリが自動で
+<b>repository_dispatch</b> という別の呼び方に切りかえます（Contents の権限だけで動きます）。
+そのためには、新しい <b>prime-mood.yml</b> に差し替えておいてください。<br>
+権限を変えたあとは、<b>数分待ってから</b>もう一度押してください（反映に少しかかります）。</p>
+
+<h3 style="margin-top:16px">⑬ 自動集計の時刻を変える</h3>
+<p class="tiny">「つなぎこみ」タブの<b>自動集計の予定時刻</b>に、日本時間で
+<span class="mono">00:10, 12:10</span> のように書きます（いくつでも）。<br>
+<b>この時刻を GitHub にも反映する</b>を押すと、アプリが
+<span class="mono">.github/workflows/prime-mood.yml</span> の cron 行を書きかえます。
+日本時間 → UTC の計算（−9時間）もアプリがやります。</p>
+<div class="scroll"><table><thead><tr><th>日本時間</th><th>書きこまれる cron</th></tr></thead><tbody>
+<tr><td>00:10</td><td class="mono">10 15 * * *</td></tr>
+<tr><td>12:10</td><td class="mono">10 3 * * *</td></tr>
+<tr><td>09:00</td><td class="mono">0 0 * * *</td></tr>
+</tbody></table></div>
+<p class="tiny">回数を増やすと、そのぶん料金も増えます（1回 $0.005）。
+入力欄の下に「1年でおよそ $○○」と出るので、それを見て決めてください。</p>
 
 <h3 style="margin-top:16px">⑪ 反映ログ ── 全員に届いたかを確かめる</h3>
 <p class="tiny">「反映ログ」タブに、<b>誰が・いつ・何を変えたか</b>が残ります。
@@ -13608,9 +13788,13 @@ Prime Coin が入ります。<br>
 
 <h3 style="margin-top:16px">ムード値とは</h3>
 <p class="tiny">画面の一番上に出ている数字が <b>ムード値</b>です。
-その日1日の点ではなく、<b>直近7日間の平均得点</b>を、小数第2位まで出しています。<br>
+その日1日の点ではなく、<b>今日をふくめた7日間の平均得点</b>を、小数第2位まで出しています。<br>
+（今日・昨日・一昨日…と6日前まで、あわせて7日ぶんの合計 ÷ 7 です。）<br>
 1日だけ大きく動いても急には変わらないので、界隈の調子をならして見られます。
 記録がない日は 0 点として数えます。</p>
+<p class="tiny"><b>過去のデータは消えません。</b>1日ぶんが1行として毎日たまっていき、
+はじめの日から今日までぜんぶ残ります。7日より前のぶんも、グラフと表でいつでも見られます。
+上の「保存されている日数」で、いま何日ぶん残っているか分かります。</p>
 
 <h3 style="margin-top:16px">記録の見かた</h3>
 <p class="tiny">1日ごと・1週間ごと・1か月ごとに切り替えられます。

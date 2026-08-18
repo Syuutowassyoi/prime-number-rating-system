@@ -3,10 +3,15 @@
 #
 #  置く場所： .github/workflows/prime-mood.yml
 #
+#  ★ 素数あつめ RATING の画面からも実行できます（管理者メニュー →「つなぎこみ」）
+#     ・workflow_dispatch … トークンに Actions: Read and write が要ります
+#     ・repository_dispatch … トークンに Contents: Read and write があれば動きます
+#     どちらか通るほうを、アプリが自動で選びます。
+#
 #  ★ 入れるのは Secrets 2つだけです
 #     GitHub の Settings → Secrets and variables → Actions
 #       X_BEARER    … X Developer Console の Bearer Token
-#       MOOD_TOKEN  … Prime Mood タブで決めた「合いことば」
+#       MOOD_TOKEN  … Prime Mood タブで決めた「合言葉」
 #
 #  ★ 数えるハッシュタグは、このファイルではなく
 #     アプリの Prime Mood タブ（管理者メニュー）で決めます。
@@ -19,9 +24,11 @@ on:
   schedule:
     # 日本時間 0:10（UTC 15:10）＝ 1日1回。$5 で約2年8か月もちます
     - cron: "10 15 * * *"
-    # 1日2回にしたいときは、下の行の # を外してください（日本時間 12:10）
+    # 1日2回にしたい時は、下の行の # を外してください（日本時間 12:10）
     # - cron: "10 3 * * *"
   workflow_dispatch:        # Actions タブから手で動かせます
+  repository_dispatch:      # 素数あつめ RATING の画面から呼び出せます
+    types: [prime-mood]
 
 jobs:
   count:
@@ -80,7 +87,7 @@ jobs:
           echo "数える言葉: $QUERY"
 
           # ── 2) X に聞きます（counts/recent は 1リクエスト $0.005）──
-          #     granularity=hour で1時間ごとにもらい、日本時間の日付で区切りなおします。
+          #     granularity=hour で1時間ごとにもらい、日本時間の日付で区切り直します。
           #     料金は「1リクエストいくら」なので、細かくもらっても同じ $0.005 です。
           ENC=$(QUERY="$QUERY" python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["QUERY"]))')
           URL="https://api.x.com/2/tweets/counts/recent?query=${ENC}&granularity=hour"
@@ -94,7 +101,7 @@ jobs:
           if [ "$HTTP" != "200" ]; then
             echo "::error::X から 200 が返りませんでした（HTTP $HTTP）"
             echo "  400 → 数える言葉の形がおかしい（タグに使えない文字が入っていないか）"
-            echo "  401 → Bearer Token がちがう／期限切れ"
+            echo "  401 → Bearer Token が違う／期限切れ"
             echo "  402 → クレジットが足りない"
             echo "  403 → 権限が足りない"
             echo "  429 → 呼びすぎ（しばらく待つ）"
@@ -102,7 +109,7 @@ jobs:
           fi
 
           # ── 3) 日本時間の日付ごとにまとめます ──
-          #     いちばん古い日は「途中から」しか取れないので送りません
+          #     一番古い日は「途中から」しか取れないので送りません
           #     （前に正しく入れた数を、少ない数で上書きしないため）
           python3 > /tmp/days.json <<'PY'
           import json, datetime, sys
@@ -122,7 +129,7 @@ jobs:
           first = jst(buckets[0]["start"])
           if not (first.hour == 0 and first.minute == 0 and first.second == 0):
               part = first.strftime("%Y-%m-%d")
-              sys.stderr.write("いちばん古い %s は途中からなので送りません（%s から）\n"
+              sys.stderr.write("一番古い %s は途中からなので送りません（%s から）\n"
                                % (part, first.strftime("%H:%M")))
               out.pop(part, None)
           print(json.dumps(out, ensure_ascii=False))
@@ -154,7 +161,7 @@ jobs:
 
           if [ "$SB" != "200" ]; then
             echo "::error::Supabase に入れられませんでした（HTTP $SB）"
-            echo "  合いことば（MOOD_TOKEN）がちがう／SQLが古い、などが考えられます"
+            echo "  合言葉（MOOD_TOKEN）が違う／SQLが古い、などが考えられます"
             exit 1
           fi
           echo "入れました"
@@ -162,7 +169,7 @@ jobs:
 # ═══════════════════════════════════════════════════════════════
 #  料金のめやす（counts/recent は 1リクエスト $0.005）
 #
-#   かんかく      1日の回数   1か月     1年       $5 で
+#   間隔      1日の回数   1か月     1年       $5 で
 #   ─────────────────────────────────────────────────────
 #   1日1回  ←今   1回       $0.15     $1.83     約2年8か月
 #   12時間おき     2回       $0.30     $3.65     約1年4か月
