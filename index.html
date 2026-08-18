@@ -210,7 +210,7 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .neon.n-achc{--nc:#5ee6a8}
 .lslogbox{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:11px;padding:8px}
 .lsbox .v.bump{animation:bump .35s ease-out}
-/* S値・L値が伸びるときの光と、増えたぶんの吹き出し */
+/* S値・L値が伸びる時の光と、増えたぶんの吹き出し */
 .lsval.rise{color:#9dffe4;text-shadow:0 0 18px #7fe9ffaa,0 0 42px #7fe9ff44;
   transition:color .5s ease,text-shadow .5s ease}
 .lspop{position:absolute;right:12px;top:28px;text-align:right;pointer-events:none;
@@ -231,7 +231,7 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
   background:linear-gradient(135deg,#2f6fd0,#3f9de0);box-shadow:0 10px 30px -18px #4da3ff}
 .lshit:active{transform:translateY(2px)}
 .lshit:disabled{opacity:.4;cursor:not-allowed;background:#25344c;border-color:var(--line)}
-/* クリアしたときの光り方 */
+/* クリアした時の光り方 */
 .lshit.hit{animation:lshit .5s ease-out}
 .lshit.hitbig{animation:lshitbig .9s ease-out}
 @keyframes lshit{
@@ -892,7 +892,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <p class="pwtiny">みなさんの記録はすべて残っています。消えていません。</p>
     <div class="pwtools">
       <button class="btn sm" id="pwLogin">管理者の方はこちら</button>
-      <button class="btn sm" id="pwRetry">もう一度たしかめる</button>
+      <button class="btn sm" id="pwRetry">もう一度確かめる</button>
     </div>
     <p class="pwtiny" id="pwWho"></p>
   </div>
@@ -902,7 +902,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   <div class="hslockin">
     <div class="hsring"><span></span><span></span><span></span></div>
     <div class="hsbig">データを書き込んでいます。</div>
-    <div class="tiny" id="hsLockSub">日付が変わったので、きょうまでの記録を残しています…</div>
+    <div class="tiny" id="hsLockSub">日付が変わったので、今日までの記録を残しています…</div>
   </div>
 </div>
 
@@ -1178,7 +1178,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <!-- 部屋えらび -->
       <div id="roomPick">
         <div class="card">
-          <h2>部屋をえらぶ</h2>
+          <h2>部屋を選ぶ</h2>
           <p class="tiny" id="feedStat">—</p>
           <p class="tiny" id="feedAt">—</p>
           <div class="tools" style="margin-top:8px">
@@ -1191,7 +1191,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <!-- 部屋の中 -->
       <div id="roomIn" hidden>
       <div class="tools" style="margin-top:0;margin-bottom:10px">
-        <button class="btn" id="roomBack">◀ 部屋をえらぶ</button>
+        <button class="btn" id="roomBack">◀ 部屋を選ぶ</button>
         <b id="roomTitle" style="align-self:center"></b>
         <span class="tiny" id="roomWho" style="align-self:center"></span>
         <button class="btn sm" id="roomEdit" hidden style="margin-left:auto">部屋の設定</button>
@@ -1201,9 +1201,9 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div class="card" style="padding-bottom:8px">
         <h2>タイムライン</h2>
         <div class="tools" style="margin-top:0">
-          <input type="text" class="txt" id="tagQ" placeholder="ことばやタグで探す（例：素数 / #素数）" style="flex:1;min-width:170px">
+          <input type="text" class="txt" id="tagQ" placeholder="言葉やタグで探す（例：素数 / #素数）" style="flex:1;min-width:170px">
           <button class="btn sm pri" id="tagGo">探す</button>
-          <button class="btn sm" id="fdMore">くわしく</button>
+          <button class="btn sm" id="fdMore">詳しく</button>
           <button class="btn sm" id="tagAll" hidden>すべて表示</button>
         </div>
         <div id="fdAdv" hidden style="margin-top:8px">
@@ -1388,7 +1388,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 
   <div class="card">
     <h2>@ID で申請する</h2>
-    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認したときに双方のフレンドになります。
+    <p class="muted" style="margin-top:-8px">相手の @ID を入れて申請すると、相手が承認した時に双方のフレンドになります。
       <br><span class="tiny">相手も一度ログインして、公開設定をONにしている必要があります。</span></p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <input type="text" class="txt" id="frTo" placeholder="aaa111" style="max-width:220px">
@@ -1517,10 +1517,10 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <h2>ヘルプ</h2>
     <p class="muted" style="margin-top:-8px">このアプリの仕組みをまとめています。分からないところはここを見てください。</p>
     <div class="segs" id="helpTabs" style="grid-template-columns:repeat(3,1fr)">
-      <button data-hp="role" class="on">審査のしくみ</button>
+      <button data-hp="role" class="on">審査の仕組み</button>
       <button data-hp="cup">大会とチャレンジ</button>
       <button data-hp="ach">アチーブメント</button>
-      <button data-hp="award">ごほうび</button>
+      <button data-hp="award">ご褒美</button>
       <button data-hp="tool">道具の使い方</button>
       <button data-hp="etc">そのほか</button>
       <button data-hp="mood">Prime Mood</button>
@@ -1584,7 +1584,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <button class="btn sm" id="hsPrevM">◀ 前の月</button>
       <button class="btn sm" id="hsNextM">次の月 ▶</button>
       <label class="pk"><input type="checkbox" id="hsFill" checked> 入力のない日をおぎなう</label>
-      <label class="pk"><input type="checkbox" id="hsPred"> 予測を出す</label>
+      <label class="pk" id="hsPredLb"><input type="checkbox" id="hsPred"> 予測を出す</label>
     </div>
     <div id="hsChart" style="margin-top:12px"></div>
     <div id="hsList" style="margin-top:10px"></div>
@@ -1598,7 +1598,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 
   <div class="card">
-    <h2>ぜんぶの記録</h2>
+    <h2>全部の記録</h2>
     <div id="hsAll"></div>
   </div>
 </section>
@@ -1608,21 +1608,17 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <h2 style="text-align:left">Prime Mood</h2>
     <p class="muted" style="margin-top:-8px;text-align:left">
       素数あつめ界隈が、いまどれくらい盛り上がっているかを数字で見ます。<br>
-      <span class="tiny">誰かと競うものではありません。みんなの行動がぜんぶ、この1つの数字に積み上がります。</span></p>
+      <span class="tiny">誰かと競うものではありません。みんなの行動が全部、この1つの数字に積み上がります。</span></p>
     <div id="mdGauge"></div>
+    <div id="mdWhen" class="tiny" style="margin-top:10px;color:var(--dim2)"></div>
     <div id="mdNow"></div>
   </div>
 
   <div class="card">
     <h2>今週の目標</h2>
-    <p class="muted" style="margin-top:-8px">みんなの合計で届きます。届いたら、その週にきた人みんなに
+    <p class="muted" style="margin-top:-8px">みんなの合計で届きます。届いたら、その週に来た人みんなに
       <span class="pcoin">P</span> Prime Coin が入ります。</p>
     <div id="mdGoal"></div>
-  </div>
-
-  <div class="card">
-    <h2>なにが盛り上がり度になるか</h2>
-    <div id="mdBreak"></div>
   </div>
 
   <div class="card">
@@ -1636,20 +1632,26 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div id="mdList" style="margin-top:10px"></div>
   </div>
 
+  <div class="card">
+    <h2>何が「ムード値」になるか</h2>
+    <div id="mdBreak"></div>
+  </div>
+
   <div class="card" id="mdAdmCard" hidden>
     <h2>管理者メニュー</h2>
-    <div class="segs" id="mdAdmTabs" style="grid-template-columns:repeat(4,1fr)">
+    <div class="segs" id="mdAdmTabs" style="grid-template-columns:repeat(5,1fr)">
       <button data-ma="run" class="on">更新する</button>
       <button data-ma="tag">ハッシュタグ</button>
-      <button data-ma="score">配点とことば</button>
+      <button data-ma="score">配点と言葉</button>
       <button data-ma="key">つなぎこみ</button>
+      <button data-ma="log">反映ログ</button>
     </div>
 
     <div class="mapane" data-mp="run">
-      <p class="tiny">数えなおしはお金がかかりません（何度押しても同じ結果です）。</p>
+      <p class="tiny">数え直しはお金がかかりません（何度押しても同じ結果です）。</p>
       <div class="tools" style="margin-top:0">
-        <button class="btn pri" id="mdSnap">いますぐ数えなおす</button>
-        <button class="btn" id="mdRecount">配点を変えたので、過去のぶんも数えなおす</button>
+        <button class="btn pri" id="mdSnap">いますぐ数え直す</button>
+        <button class="btn" id="mdRecount">配点を変えたので、過去のぶんも数え直す</button>
         <span class="tiny" id="mdMsg"></span>
       </div>
       <label class="fl">X（Twitter）の投稿数を手で入れる</label>
@@ -1661,7 +1663,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <label class="fl" style="margin-top:12px">今週の目標</label>
       <div class="tools" style="margin-top:0">
         <input type="number" class="txt" id="mdTgt" min="1" step="10" style="max-width:130px">
-        <span class="tiny">点で達成　／　ごほうび</span>
+        <span class="tiny">点で達成　／　ご褒美</span>
         <input type="number" class="txt" id="mdRw" min="1" max="20" step="1" style="max-width:90px">
         <span class="tiny">枚</span>
         <button class="btn" id="mdGoalGo">この目標にする</button>
@@ -1692,12 +1694,12 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
         <input type="number" class="txt" id="mdMax" min="10" step="10" style="max-width:140px">
         <span class="tiny">点</span>
       </div>
-      <label class="fl" style="margin-top:14px">点による ことば</label>
+      <label class="fl" style="margin-top:14px">点による 言葉</label>
       <p class="tiny" style="margin-top:-2px">「この点から」を小さい順に並べます。色も選べます。</p>
       <div id="mdWords"></div>
       <div class="tools" style="margin-top:6px">
-        <button class="btn sm" id="mdWordAdd">＋ ことばを増やす</button>
-        <button class="btn sm" id="mdWordDef">はじめに戻す</button>
+        <button class="btn sm" id="mdWordAdd">＋ 言葉を増やす</button>
+        <button class="btn sm" id="mdWordDef">初期値に戻す</button>
       </div>
       <label class="fl" style="margin-top:14px">点の文字の形</label>
       <select class="txt" id="mdFont" style="max-width:280px"></select>
@@ -1709,19 +1711,54 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     </div>
 
     <div class="mapane" data-mp="key" hidden>
-      <label class="fl">GitHub Actions からXの数を入れるための合いことば</label>
+      <label class="fl">GitHub Actions からXの数を入れるための合言葉</label>
       <div class="tools" style="margin-top:0">
         <input type="text" class="txt" id="mdSec" placeholder="長めの文字列（例：pm-9f2a-…）" style="max-width:300px">
-        <button class="btn" id="mdSecGo">合いことばを決める</button>
+        <button class="btn" id="mdSecGo">合言葉を決める</button>
       </div>
       <p class="tiny" style="margin-top:6px">これを GitHub の Secrets に <b>MOOD_TOKEN</b> として入れます。
         入れるのは <b>X_BEARER</b> と <b>MOOD_TOKEN</b> の2つだけです。<br>
         手順はヘルプの「Prime Mood」に書いてあります。</p>
+
+      <label class="fl" style="margin-top:16px">この画面から X の集計を実行する</label>
+      <p class="tiny" style="margin-top:0">GitHub Actions を呼び出して、X API での集計をその場で走らせます。
+        <b>X の Bearer Token はこの画面に入れません</b>（GitHub の金庫に入ったままです）。</p>
+      <div class="tools" style="margin-top:0">
+        <input type="text" class="txt" id="mdGhRepo" placeholder="ユーザー名/リポジトリ名" style="max-width:250px">
+        <input type="password" class="txt" id="mdGhTok" placeholder="GitHub の個人アクセストークン" style="max-width:250px">
+        <button class="btn" id="mdGhSave">この端末に覚えさせる</button>
+      </div>
+      <div class="tools" style="margin-top:8px">
+        <button class="btn pri" id="mdGhRun">X の集計を実行する（API）</button>
+        <button class="btn" id="mdGhOpen">GitHub の実行画面を開く</button>
+        <span class="tiny" id="mdGhMsg"></span>
+      </div>
+      <p class="tiny" style="color:var(--warn);margin-top:6px">トークンはこの端末の中だけに保存され、
+        サーバーにも index.html にも書き込まれません。権限は <b>Actions: Read and write</b> だけで足ります。
+        1回の実行で <b>$0.005</b> かかります。</p>
+
+      <label class="fl" style="margin-top:16px">自動集計の予定時刻（日本時間・カンマ区切り）</label>
+      <div class="tools" style="margin-top:0">
+        <input type="text" class="txt" id="mdSched" placeholder="00:10" style="max-width:200px">
+        <span class="tiny">yml の cron と合わせてください（表示用です）</span>
+      </div>
+    </div>
+
+    <div class="mapane" data-mp="log" hidden>
+      <p class="tiny">管理者が行った変更と、自動集計の実行がここに残ります。
+        <b>ここに出ていれば、その内容は全員の画面に反映されています。</b></p>
+      <div class="tools" style="margin-top:0">
+        <button class="btn" id="mdLogGo">最新に更新する</button>
+        <button class="btn" id="mdVerify">いま全員に見えている設定を確かめる</button>
+        <span class="tiny" id="mdLogMsg"></span>
+      </div>
+      <div id="mdVerifyBox" style="margin-top:10px"></div>
+      <div id="mdLog" style="margin-top:10px"></div>
     </div>
 
     <div class="tools" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <button class="btn pri" id="mdCfgSave">この設定を保存する（全員に反映）</button>
-      <button class="btn" id="mdCfgReload">保存せずに読みなおす</button>
+      <button class="btn" id="mdCfgReload">保存せずに読み直す</button>
       <span class="tiny" id="mdCfgMsg"></span>
     </div>
   </div>
@@ -1758,7 +1795,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div class="tools" style="margin-top:0;margin-bottom:12px">
       <button class="btn pri" id="editOn">個人データを入力する</button>
       <button class="btn" id="editOff" hidden>入力を終わる</button>
-      <span class="tiny" id="editNote">まちがえて書き換えないよう、ふだんは編集できません。</span>
+      <span class="tiny" id="editNote">間違えて書き換えないよう、ふだんは編集できません。</span>
     </div>
     <div class="tools" style="margin-top:0;margin-bottom:12px">
       <button class="btn" id="borderBtn">現在のボーダーラインを見る</button>
@@ -1807,7 +1844,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       ボーダーの更新、GitHubへの反映、追加の道具の登録はここからです。</p>
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="devOpen">開発者メニューを開く</button>
-      <span class="tiny">ページのいちばん下にある ⚙ からも開けます</span>
+      <span class="tiny">ページの一番下にある ⚙ からも開けます</span>
     </div>
   </div>
 <div class="card">
@@ -1828,7 +1865,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     </div>
     <p class="tiny" id="syncWhat" style="margin-top:8px"></p>
     <p class="tiny" style="margin-top:6px;color:var(--dim2)">
-      記録が消えてしまったときは「記録を元に戻す」から、前の姿に戻せます（20回ぶんまで残しています）。</p>
+      記録が消えてしまった時は「記録を元に戻す」から、前の姿に戻せます（20回ぶんまで残しています）。</p>
   </div>
 <div class="card">
     <h2>プロフィール設定</h2>
@@ -1871,24 +1908,24 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
   <div class="card">
     <h2>タイムラインへの自動投稿</h2>
-    <p class="muted" style="margin-top:-8px">オンにすると、記録が伸びたときと大会に出したときにタイムラインへ流します。
+    <p class="muted" style="margin-top:-8px">オンにすると、記録が伸びた時と大会に出した時にタイムラインへ流します。
       自動の投稿では経験値は増えません。</p>
     <div class="sw">
-      <div><div class="t">記録を更新したとき</div>
+      <div><div class="t">記録を更新した時</div>
         <div class="tiny">前より良い記録を入れると「記録を更新しました！」と流します。</div></div>
       <div class="tools" style="margin-top:0">
         <button class="btn sm" id="apRecOn">する</button><button class="btn sm" id="apRecOff">しない</button></div>
     </div>
     <div class="sw">
-      <div><div class="t">大会・チャレンジに出したとき</div>
+      <div><div class="t">大会・チャレンジに出した時</div>
         <div class="tiny">提出した合計スコアと動画リンクを流します。</div></div>
       <div class="tools" style="margin-top:0">
         <button class="btn sm" id="apCupOn">する</button><button class="btn sm" id="apCupOff">しない</button></div>
     </div>
     <div class="sw">
       <div><div class="t">アチーブメント</div>
-        <div class="tiny">公式は<b>達成したときだけ</b>流します（未達成では流れません）。
-          みんなのアチーブメントは提出したときに流します。</div></div>
+        <div class="tiny">公式は<b>達成した時だけ</b>流します（未達成では流れません）。
+          みんなのアチーブメントは提出した時に流します。</div></div>
       <div class="tools" style="margin-top:0">
         <button class="btn sm" id="apAchOn">する</button><button class="btn sm" id="apAchOff">しない</button></div>
     </div>
@@ -1963,14 +2000,14 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v86";
+const APP_VERSION = "v87";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
 const DEV_HASH = "07ded47312281a20b4793962012c710e85a406c4ebea7edbbf744f5c58d470b7";
 const DEV_ITER = 310000;
 
-/* data.json が読めないときのフォールバック */
+/* data.json が読めない時のフォールバック */
 const EMBEDDED_WEEK = {
  date:"2026-07-25",
  borders:{
@@ -2407,7 +2444,7 @@ function toJstInput(t){ const d=new Date(t); if(isNaN(d)) return "";
   return p.replace(" ","T").slice(0,16); }
 /* JSTとして入力された値を正しいUTC時刻に直す */
 function fromJstInput(v){ return new Date(v+"+09:00"); }
-/* 値が無いときでも落ちないようにします */
+/* 値が無い時でも落ちないようにします */
 const nice=v=>(v===null||v===undefined||v===""||!isFinite(+v))?"—"
   :(Number.isInteger(+v)?jp(+v):(+v).toLocaleString("ja-JP",{maximumFractionDigits:3}));
 /* 種目ごとの、小数の桁数。書いていないものは整数（または最大3桁）です */
@@ -2592,7 +2629,7 @@ async function loadBorderAt(){
   try{
     const r=await sb("app_state?select=value&key=eq.border&limit=1");
     BORDER_AT=(r&&r[0]&&r[0].value&&r[0].value.at)||null;
-  }catch(e){ /* 古い SQL のときは、待たせないでおきます */ BORDER_AT=new Date().toISOString(); }
+  }catch(e){ /* 古い SQL の時は、待たせないでおきます */ BORDER_AT=new Date().toISOString(); }
 }
 setInterval(tickClock,1000);
 setInterval(()=>{ if(!document.hidden) loadBorderAt(); },120000);
@@ -2647,7 +2684,7 @@ function pgRender(){
   const w=pgWeek(0), pw=pgWeek(1);
   box.innerHTML=`
     <p class="pgnote">いまのボーダー：<b>${esc(w?w.date:"—")}</b>
-      ／ くらべている先週：<b>${esc(pw?pw.date:"（まだありません）")}</b></p>
+      ／ 比べている先週：<b>${esc(pw?pw.date:"（まだありません）")}</b></p>
     <div class="pgpick">${PG_ORDER.map(n=>
       `<button data-pg="${esc(n)}" class="${n===pgPick?"on":""}">${esc(n)}</button>`).join("")}</div>
     <div class="pgboard">
@@ -2695,7 +2732,7 @@ function pgBuildTicker(){
     +`<div class="sp" style="width:${Math.round(pgSpeed*3)}px"></div>`;
   band.innerHTML=`<div class="pgtin" id="pgtIn">${one()}${one()}</div>`;
   const inn=band.querySelector("#pgtIn");
-  /* いちばん広いブロックに合わせて、全部そろえます */
+  /* 一番広いブロックに合わせて、全部そろえます */
   const cs=[...inn.querySelectorAll(".c")];
   let mw=0;
   cs.forEach(c=>{ c.style.width="auto"; const x=c.getBoundingClientRect().width; if(x>mw) mw=x; });
@@ -2732,7 +2769,7 @@ let extOn=false, extState="まだ読み込んでいません", extErr="";
 /* eval はこの場所で呼ぶので、アプリの中の名前をそのまま使えます */
 function extRun(code){
   try{ eval(code); return true; }
-  catch(e){ extErr="動かすときに失敗："+String(e&&e.message||e); console.error(e); return false; }
+  catch(e){ extErr="動かす時に失敗："+String(e&&e.message||e); console.error(e); return false; }
 }
 async function extLoad(force){
   if(extOn&&!force) return extState;
@@ -2780,7 +2817,7 @@ const ST_KEYS=[
   "sa-times-v1","sa-baseline-v1",
   "sa-mymax-v1","sa-claim-v1",
   /* LSやりこみと追加の道具は、専用の入れもの（ls_state）で持ちます。
-     版（rev）で食いちがいを見つけて必ず混ぜるので、こちらでは扱いません */
+     版（rev）で食い違いを見つけて必ず混ぜるので、こちらでは扱いません */
   "sa-autopost-v1","sa-tagwatch-v1",
   "pp-seen-v1",       /* Prime Park：チュートリアルを見たか */
   "pp-story-v1",      /* Prime Park：ストーリーの台本 */
@@ -2808,7 +2845,7 @@ function stEmpty(raw){
   }catch(e){}
   return false;
 }
-/** 手元に中身があるのに、空っぽを受け取ったときは書き戻しません */
+/** 手元に中身があるのに、空っぽを受け取った時は書き戻しません */
 function stKeepMine(k,next){
   if(ST_GUARD.indexOf(k)<0) return true;
   const cur=localStorage.getItem(k);
@@ -2822,7 +2859,7 @@ function stKeepMine(k,next){
 /* ══════════════════════════════════════════════════════════════
    ★ データを絶対に消さないための、3つのまもり
    ① 書きかわる前の中身を、この端末に必ず控えます（sa-undo-v1）
-   ② まだ送れていない変更があるのに、ちがう中身が届いたときは
+   ② まだ送れていない変更があるのに、違う中身が届いた時は
       勝手に入れかえず、「どちらを残すか」を聞きます
    ③ サーバー側にも入れかわる前の中身が30個ぶん残ります
    ══════════════════════════════════════════════════════════════ */
@@ -2835,7 +2872,7 @@ function stKeep(k, before){
     const last=q.find(x=>x.k===k);
     if(last && last.v===before) return;          /* 同じものは重ねません */
     q.unshift({ k, v:before, at:Date.now() });
-    /* 1つのキーにつき5個まで、ぜんぶで60個まで */
+    /* 1つのキーにつき5個まで、全部で60個まで */
     const cnt={}; const keep=[];
     for(const x of q){
       cnt[x.k]=(cnt[x.k]||0)+1;
@@ -2847,7 +2884,7 @@ function stKeep(k, before){
 }
 const stUndoList=()=>{ try{ return JSON.parse(localStorage.getItem(K_UNDO)||"[]")||[]; }catch(e){ return []; } };
 
-/** まだ送れていない変更があるキーで、ちがう中身が届いたときの「食いちがい」 */
+/** まだ送れていない変更があるキーで、違う中身が届いた時の「食い違い」 */
 let ST_CONFLICT=[];
 function stConflict(k, mine, theirs, at){
   if(ST_CONFLICT.some(c=>c.k===k)) return;
@@ -2877,7 +2914,7 @@ function stConflictBanner(){
     const top=document.querySelector(".wrap");
     if(top) top.insertBefore(b, top.firstChild); else document.body.appendChild(b);
   }
-  b.innerHTML=`<b>データの食いちがいがあります</b>　`
+  b.innerHTML=`<b>データの食い違いがあります</b>　`
     +`ほかの端末のデータが、この端末のものと違います。`
     +`かってに入れかえていません。<br>`
     +`<span class="tiny">${ST_CONFLICT.map(c=>esc(stName(c.k))).join("・")}</span>　`
@@ -2901,10 +2938,10 @@ function stConflictPick(){
       </tbody></table></div></div>`;
   }).join("");
   const M=modal(`<h2>どちらのデータを残しますか？</h2>
-    <p class="tiny">別々の端末で、同じところを直したときに出ます。
+    <p class="tiny">別々の端末で、同じところを直した時に出ます。
       えらばなかったほうは「同期の控え」に残るので、あとから戻せます。</p>
     ${rows}
-    <div class="tools"><button class="btn" id="cfAllMine">ぜんぶこの端末を残す</button>
+    <div class="tools"><button class="btn" id="cfAllMine">全部この端末を残す</button>
       <button class="btn" id="cfX">あとで決める</button></div>`,{w:640});
   const take=(i,which)=>{
     const c=ST_CONFLICT[i]; if(!c) return;
@@ -2919,7 +2956,7 @@ function stConflictPick(){
     stSaveAt(); stScan(true); stReload(true); stConflictBanner();
     M.close();
     if(ST_CONFLICT.length) setTimeout(stConflictPick,150);
-    else { toast("えらんだほうを残しました"); stSync(); }
+    else { toast("選んだほうを残しました"); stSync(); }
   };
   M.qa("[data-cm]").forEach(b=>b.onclick=()=>take(+b.dataset.cm,"mine"));
   M.qa("[data-ct]").forEach(b=>b.onclick=()=>take(+b.dataset.ct,"theirs"));
@@ -2971,7 +3008,7 @@ function stSoon(ms){
   if(!stCan()) return;
   clearTimeout(stT); stT=setTimeout(()=>stSync(), ms==null?2000:ms);
 }
-/** うまくいかなかったときは、少しずつ間をあけてやり直します */
+/** うまくいかなかった時は、少しずつ間をあけてやり直します */
 function stRetry(){
   clearTimeout(stRetryT);
   const wait=[5000,15000,60000,180000][Math.min(stFail,3)];
@@ -2981,7 +3018,7 @@ function stCan(){
   return !(typeof TEST!=="undefined"&&TEST) && typeof sess!=="undefined" && !!sess
       && typeof sbOn==="function" && sbOn();
 }
-/** 同期の説明。かくれた機能のことは、管理者以外には出しません */
+/** 同期の説明。隠れた機能のことは、管理者以外には出しません */
 function stWhat(){
   const el=document.getElementById("syncWhat"); if(!el) return;
   const admin=(typeof isAdmin==="function")&&isAdmin();
@@ -2990,14 +3027,14 @@ function stWhat(){
     +(admin&&EXT.syncNote?"・"+EXT.syncNote:"")+"・自動投稿の設定<br>"
     +'<span style="color:var(--dim2)">'
     +"パソコンで記録、スマホでLSやりこみ、のように別々にいじっても、両方とも残ります。"
-    +"同じところを同時にいじったときは、あとから保存したほうが残ります。</span>";
+    +"同じところを同時にいじった時は、あとから保存したほうが残ります。</span>";
 }
 function stMark(t){
   stState=t;
   const el=document.getElementById("syncNow2");
   if(el) el.textContent=t;
 }
-/** はじめてつないだとき。
+/** 初めてつないだ時。
  *  クラウドにあるものはクラウドを正とし、クラウドに無いものだけこちらから足します */
 async function stStart(){
   if(!stCan()||stReady) return;
@@ -3014,7 +3051,7 @@ async function stStart(){
       if(at<=(stStamp[k]||0)) return;
       if(!stKeepMine(k,e.v)) return;
       const mine=localStorage.getItem(k);
-      /* この端末にしかない中身があるのに、ちがうものが届いたら、勝手に入れかえません */
+      /* この端末にしかない中身があるのに、違うものが届いたら、勝手に入れかえません */
       if(mine!=null && mine!==e.v && !stEmpty(mine) && (stStamp[k]||0)>stSince0){
         stConflict(k, mine, e.v, at); return;
       }
@@ -3060,7 +3097,7 @@ async function stSync(showToast){
     if(showToast) toast(String((e&&e.message)||e).slice(0,120));
   }finally{ stBusy=false; }
 }
-/** クラウドから来たぶんを、手元が古いときだけ書き戻します */
+/** クラウドから来たぶんを、手元が古い時だけ書き戻します */
 function stApply(got){
   if(!got||typeof got!=="object") return;
   let changed=false, top=stSince;
@@ -3073,7 +3110,7 @@ function stApply(got){
     if(at<=(stStamp[k]||0)) return;
     if(!stKeepMine(k,e.v)) return;
     const mine=localStorage.getItem(k);
-    /* まだ送れていない変更があるのに、ちがうものが届いたら、勝手に入れかえません */
+    /* まだ送れていない変更があるのに、違うものが届いたら、勝手に入れかえません */
     if(mine!=null && mine!==e.v && !stEmpty(mine) && (stStamp[k]||0)>since0){
       stConflict(k, mine, e.v, at); return;
     }
@@ -3089,8 +3126,8 @@ function stApply(got){
    同期を取りこぼさないための見はり
    ・3秒ごとに中身が変わっていないか見る（今までどおり）
    ・20秒ごとに、変わっていなくても取りに行く（ほかの端末のぶんを拾う）
-   ・タブを離れる／閉じるときに、その場で送る
-   ・もどってきたとき、ネットにつながったときにも送る
+   ・タブを離れる／閉じる時に、その場で送る
+   ・もどってきた時、ネットにつながった時にも送る
    ══════════════════════════════════════════════════════════════ */
 let stPullT=null;
 function stWatch(){
@@ -3101,7 +3138,7 @@ function stWatch(){
   }, 20000);
   document.addEventListener("visibilitychange", ()=>{
     if(!stCan()) return;
-    if(document.hidden) stFlush();             /* 離れるときは、その場で送る */
+    if(document.hidden) stFlush();             /* 離れる時は、その場で送る */
     else { stFail=0; stSync(); }               /* もどったら、すぐそろえる */
   });
   window.addEventListener("online", ()=>{ stFail=0; if(stCan()) stSync(); });
@@ -3109,7 +3146,7 @@ function stWatch(){
   window.addEventListener("beforeunload", stFlush);
   window.addEventListener("blur", ()=>{ if(stCan()) stSoon(600); });
 }
-/** 閉じるときでも届くように、keepalive で送ります */
+/** 閉じる時でも届くように、keepalive で送ります */
 function stFlush(){
   if(!stCan()) return;
   try{
@@ -3135,8 +3172,8 @@ function stFlush(){
 /* ══════════════════════════════════════════════════════════════
    ★ LSやりこみ専用の同期（アカウントがデータを持ちます）
    ・5分おきに自動で送ります
-   ・「版（rev）」で食いちがいを見つけ、必ず混ぜてから書きます
-   ・混ぜ方は「多いほうを残す」なので、進みぐあいが減ることはありません
+   ・「版（rev）」で食い違いを見つけ、必ず混ぜてから書きます
+   ・混ぜ方は「多いほうを残す」なので、進み具合が減ることはありません
    ══════════════════════════════════════════════════════════════ */
 const K_LSREV="sa-lsrev-v1";
 /* このまとまりを、ひとつの入れものとして扱います */
@@ -3162,7 +3199,7 @@ function keepMost(a, b){
   if(Array.isArray(a)&&Array.isArray(b)){
     const out=a.slice(), seen=new Set(a.map(x=>lsId(x)));
     b.forEach(x=>{ const k=lsId(x); if(!seen.has(k)){ seen.add(k); out.push(x); } });
-    /* 時刻がついているものは、古い順にならべます */
+    /* 時刻がついているものは、古い順に並べます */
     if(out.every(x=>x&&typeof x==="object"&&(x.start!=null||x.at!=null)))
       out.sort((x,y)=>(+(x.start||x.at||0))-(+(y.start||y.at||0)));
     return out;
@@ -3252,7 +3289,7 @@ async function lsSync(showToast){
   }
   lsBusy=false; return false;
 }
-/** はじめてつないだとき。サーバーのぶんと混ぜてから、そろえます */
+/** 初めてつないだ時。サーバーのぶんと混ぜてから、そろえます */
 async function lsStart(){
   if(!stCan()) return;
   try{
@@ -3268,7 +3305,7 @@ async function lsStart(){
   }catch(e){}
   await lsSync();
 }
-/** 受け取ったぶんを画面に出しなおします */
+/** 受け取ったぶんを画面に出し直します */
 function lsReload(){
   try{
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
@@ -3281,7 +3318,7 @@ function lsReload(){
     extCall("renderLs");
   }catch(e){}
 }
-/** 5分おきに自動で送ります。変えたときは30秒後にも送ります */
+/** 5分おきに自動で送ります。変えた時は30秒後にも送ります */
 function lsWatch(){
   clearInterval(lsTick);
   lsTick=setInterval(()=>{ if(!document.hidden&&stCan()) lsSync(); }, 5*60*1000);
@@ -3293,12 +3330,12 @@ function lsWatch(){
   window.addEventListener("pagehide",lsFlush);
   window.addEventListener("beforeunload",lsFlush);
 }
-/** 変えたときに呼びます（少しまとめてから送ります） */
+/** 変えた時に呼びます（少しまとめてから送ります） */
 function lsSoon(){
   if(!stCan()) return;
   clearTimeout(lsT); lsT=setTimeout(()=>lsSync(),30000);
 }
-/** 閉じるときでも届くように送ります */
+/** 閉じる時でも届くように送ります */
 function lsFlush(){
   if(!stCan()) return;
   try{
@@ -3333,7 +3370,7 @@ async function showLsBackups(){
       const d=await sbAuth("rpc/ls_restore",{method:"POST",
         body:JSON.stringify({p_saved:list[+b.dataset.lb].saved_at})});
       if(!d) throw new Error("中身がありません");
-      /* 戻すときも「へらさない」ように混ぜます */
+      /* 戻す時も「へらさない」ように混ぜます */
       lsUnpack(lsMerge(d, lsPack()));
       lsReload(); await lsSync(true); M.close(); toast("戻しました");
     }catch(e){ b.disabled=false; toast(String(e.message||e).slice(0,90)); }
@@ -3350,7 +3387,7 @@ async function showRecBackups(){
   if(!list.length) return toast("控えはまだありません");
   const M=modal(`<h2>記録を元に戻す</h2>
     <p class="muted" style="margin-top:-8px">いまの記録は <b>${jp(now)}</b> 種目ぶんです。
-      戻したい時点をえらんでください。</p>
+      戻したい時点を選んでください。</p>
     <div class="scroll" style="max-height:46vh"><table><thead><tr>
       <th>いつの記録か</th><th>種目数</th><th>合計スコア</th><th>RATING</th><th></th>
     </tr></thead><tbody>`
@@ -3634,7 +3671,7 @@ function render(){
   if(autoSync&&sbOn()&&sess&&pro.handle) schedulePublish();
 }
 let pubT=null;
-/* プロフィールを直したときは早めに送ります（記録の入力は今までどおり） */
+/* プロフィールを直した時は早めに送ります（記録の入力は今までどおり） */
 function schedulePublish(ms){ clearTimeout(pubT); pubT=setTimeout(syncNow,ms||6000); }
 function pushState(t,c){ const el=$("#pushState");
   if(el){ el.textContent=t; el.style.color=c||"var(--dim2)"; } }
@@ -3824,7 +3861,7 @@ function effortOf(n,a,b){
   if(hb<=0) return Infinity;
   return Math.log(ha/hb);
 }
-/** 努力量 E をかけたときに到達する記録 */
+/** 努力量 E をかけた時に到達する記録 */
 function targetForEffort(n,v,E){
   const B=DATA().borders[n]; if(!B) return v;
   const h=headroom(n,v);
@@ -3866,7 +3903,7 @@ function difficultyAll(){
   raw.forEach((x,i)=>{
     const score=raw.length>1?Math.round((1-i/(raw.length-1))*100):50;
     out[x.n]={climb:x.c.total,segs:x.c.segs,wall:x.c.wall,score,
-      label:score>=75?"とてもむずかしい":score>=50?"むずかしい":score>=25?"ふつう":"やさしい"};
+      label:score>=75?"とても難しい":score>=50?"難しい":score>=25?"普通":"易しい"};
   });
   _diffCache=out; _diffKey=key;
   return out;
@@ -3987,7 +4024,7 @@ function renderAnaDeca(){
      <div class="stat"><div class="t">伸ばしやすい種目</div>
       <div class="v" style="font-size:1.1rem">${esc(rows.slice()
         .sort((a,b)=>a.d.score-b.d.score)[0]?.n||"—")}</div>
-      <div class="s">難易度がいちばん低い</div></div></div>`+
+      <div class="s">難易度が一番低い</div></div></div>`+
     `<h3>合計に占める割合</h3>`+
     `<div class="scroll"><table><thead><tr><th>種目</th><th>記録</th><th>合計に占める割合</th>`+
     `<th>1位までの残り</th><th>難易度</th></tr></thead><tbody>`+
@@ -3998,7 +4035,7 @@ function renderAnaDeca(){
       `<td>${headroom(x.n,x.v)>0?jp(Math.round(headroom(x.n,x.v))):(x.v>0?"到達済み":"—")}</td>`+
       `<td class="tiny">${x.d.label}</td></tr>`).join("")+
     `</tbody></table></div>`+
-    `<p class="tiny">「1位までの残り」が大きく、難易度が「やさしい」種目ほど、伸ばす余地があります。</p>`;
+    `<p class="tiny">「1位までの残り」が大きく、難易度が「易しい」種目ほど、伸ばす余地があります。</p>`;
 }
 
 /* =========================================================
@@ -4382,7 +4419,7 @@ $("#doPlanStep").onclick=()=>{
     (p.steps.some(x=>x.n==="合計スコア")?
       `<h3>十種競技総合スコアの上げ方</h3>`+
       decaEvenHTML(p.steps.filter(x=>x.n==="合計スコア").slice(-1)[0].req):"")+
-    `<h3>おすすめの順番</h3>`+
+    `<h3>お勧めの順番</h3>`+
     `<p class="tiny" style="margin-top:-4px">上昇量 ÷ 必要な伸び幅 が大きい順です。最後の一手で目標にぴったり合わせます。</p>`+
     `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>現在</th><th>目標</th>`+
     `<th>必要な伸び</th><th>上昇</th><th>到達RATING</th></tr></thead><tbody>`+rows.join("")+`</tbody></table></div>`;
@@ -4558,7 +4595,7 @@ function renderFriends(){
       `</tbody></table></div>`;
   $$("[data-fp]").forEach(a=>a.onclick=async e=>{ e.preventDefault();
     const f=friends[+a.dataset.fp];
-    /* ランキングから開いたときと同じ画面を出します（レベル・トロフィー・スターつき）*/
+    /* ランキングから開いた時と同じ画面を出します（レベル・トロフィー・スターつき）*/
     if(f.pro.handle && (TEST||sbOn())) return openProfile(f.pro.handle);
     const times={}; (f.log||[]).forEach(e2=>{ if(!times[e2.n]||e2.at>times[e2.n]) times[e2.n]=e2.at; });
     showPlayer(Object.assign({},f.pro,{updated_at:f.at?new Date(f.at).toISOString():null,
@@ -5028,7 +5065,7 @@ async function sb(path,opt){
   const o=opt||{}, h={apikey:SB_KEY};
   /* 旧 anon キー（JWT）のみ Bearer を付ける。新しい sb_publishable_… は apikey だけ */
   if(SB_KEY.startsWith("eyJ")) h.Authorization="Bearer "+SB_KEY;
-  /* GET に Content-Type を付けると余計な preflight が走るので POST のときだけ付ける */
+  /* GET に Content-Type を付けると余計な preflight が走るので POST の時だけ付ける */
   if(o.method&&o.method!=="GET") h["Content-Type"]="application/json";
   const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),12000);
   try{
@@ -5255,7 +5292,7 @@ async function loadRanking(force){
       let r=null;
       try{ r=await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}); }
       catch(e){ r=null; }
-      /* 取れなかったときは、公開プロフィールから直接もう一度さがします */
+      /* 取れなかった時は、公開プロフィールから直接もう一度さがします */
       if(!r||typeof r!=="object"||!Object.keys(r).length){
         try{
           const p=await sb(`profiles_public?select=records&handle=eq.${encodeURIComponent(h)}&limit=1`);
@@ -5428,7 +5465,7 @@ async function pushMe(force){
     p_handle:(pro.handle||"").toLowerCase()||null, p_name:pro.name||"",
     p_rating:c.complete?Number(c.total.toFixed(3)):null,
     p_l:c.L===null?null:Number(c.L.toFixed(3)), p_s:c.S===null?null:Number(c.S.toFixed(3)),
-    /* 記録が空っぽのときは送りません。クラウドにある記録を空で塗りつぶさないためです */
+    /* 記録が空っぽの時は送りません。クラウドにある記録を空で塗りつぶさないためです */
     p_total:rec["合計スコア"]||null, p_records:stEmpty(JSON.stringify(rec))?null:rec, p_public:!!pro.pub,
     p_x:(Array.isArray(pro.proofs)&&pro.proofs.find(x=>x.url))?pro.proofs.find(x=>x.url).url:(pro.x_url||null),
     p_proofs:(Array.isArray(pro.proofs)?pro.proofs.filter(x=>x.url&&isXUrl(x.url)):[]),
@@ -5475,7 +5512,7 @@ const ROLE_C={admin:"var(--warn)",judgeman:"#ff9de2",supervisor:"#9db7ff",
 const roleColor=r=>ROLE_C[r]||"var(--tx)";
 const roleCls=r=>"nm"+(ROLE_C[r]?" nm-"+r:"");
 /** 役職に応じて光る名前を返す */
-/** 名前。plain=true のときは色だけにして、役職名は付けません（一覧がずれないように） */
+/** 名前。plain=true の時は色だけにして、役職名は付けません（一覧がずれないように） */
 function nameHTML(name,role,rating,plain){
   const rb=(typeof rating==="number"&&rating>=19);
   return `<span class="${roleCls(role)}${rb?" rb-text nm-RAINBOW":""}"`
@@ -5517,7 +5554,7 @@ function renderAcctTop(){
   $("#atOut").onclick=signOut;
   $("#atSync").onclick=syncAll;
 }
-/** プロフィールの見た目もふくめて、まるごと同期しなおします */
+/** プロフィールの見た目もふくめて、まるごと同期し直します */
 async function syncAll(btn){
   if(!(sess&&sbOn())) return toast("先にログインしてください");
   const say=t=>{ const a2=$("#atState"); if(a2) a2.textContent=t; pushState(t); };
@@ -6592,10 +6629,10 @@ function renderLsSum(){
 }
 $$("#lsSumTabs [data-ls]").forEach(b=>b.onclick=()=>{ lsSumTab=b.dataset.ls; renderLsSum(); });
 
-/* ---- クリアしたときの光と音 ---- */
+/* ---- クリアした時の光と音 ---- */
 let lsAC=null;
-/** 電子音。big=true は目標やボーダーを越えたときの少し長い音 */
-/* キリ番ごとの音。倍数が重なったら、いちばん大きい数の音だけ鳴らします */
+/** 電子音。big=true は目標やボーダーを越えた時の少し長い音 */
+/* キリ番ごとの音。倍数が重なったら、一番大きい数の音だけ鳴らします */
 const LS_TONES={
   1  :{notes:[880,1320],            type:"square",  gap:0.055,vol:0.16,len:0.24},
   5  :{notes:[988,1319,1568],       type:"square",  gap:0.060,vol:0.19,len:0.34},
@@ -6729,7 +6766,7 @@ function lsSetSKey(){
   M.q("#mSKeyX").onclick=()=>{ document.removeEventListener("keydown",onKey,true); M.close(); };
 }
 document.addEventListener("keydown",e=>{
-  /* LSやりこみの画面を見ているときだけ数えます */
+  /* LSやりこみの画面を見ている時だけ数えます */
   const onLs=$("#ls")&&!$("#ls").hidden;
   /* 追加の道具のうち、キーで数えてよい画面だけを見ます */
   const onEx=EXT.keyOk.some(id=>{ const e2=$("#"+id); return e2&&!e2.hidden; })
@@ -7124,7 +7161,7 @@ function rvLists(){
   };
 }
 /** 表示するタブ。審査員には審査員審査もスーパーバイザー審査も見せません */
-/** 「審査をする」ときと「確認する」ときで、出すタブを変えます */
+/** 「審査をする」時と「確認する」時で、出すタブを変えます */
 function rvTabDefs(L){
   const lv=myLv();
   if(rvMode==="see")
@@ -7174,7 +7211,7 @@ function renderRvq(){
   $$("#rvMode button").forEach(b=>b.onclick=()=>{
     rvMode=b.dataset.rm; rvTab=null; renderRvq(); });
   $$("#rvMode button").forEach(b=>b.classList.toggle("on",b.dataset.rm===rvMode));
-  /* 手つかずの審査があれば、いちばん上で知らせる */
+  /* 手つかずの審査があれば、一番上で知らせる */
   const al=$("#rvAlert"), waits=[];
   if(L.j.length) waits.push("審査 "+L.j.length+"件");
   if(L.s.length) waits.push("審査員審査 "+L.s.length+"件");
@@ -7311,7 +7348,7 @@ async function achReview(id,ok){
     <label class="pk" style="margin-top:12px;display:inline-flex">
       <input type="checkbox" id="arDone"> <b>この人は達成の条件を満たしている</b></label>
     <p class="tiny">満たしていなくても、出された内容が正しければ承認できます。
-      チェックを入れたときだけ「達成」になり、タイムラインに流れます。</p>
+      チェックを入れた時だけ「達成」になり、タイムラインに流れます。</p>
     <label class="fl">メモ（任意）</label>
     <input type="text" class="txt" id="arN">
     <div class="tools"><button class="btn pri" id="arGo">承認する</button></div>`,{w:640});
@@ -7378,7 +7415,7 @@ async function rvAct(id,act){
       await loadRvq(); await loadMyStat(); renderRvq(); renderMyStat(); }
     catch(e){ toast(String(e.message||e).slice(0,120)); }
   };
-  /* まちがい防止のため、どのボタンでも必ず一度確認します */
+  /* 間違い防止のため、どのボタンでも必ず一度確認します */
   const ask=(title,msg,ok)=>askYN(title,`<b>${who}</b><br>${what}<br><br>${msg}`,ok);
 
   if(act==="approve"){
@@ -7399,7 +7436,7 @@ async function rvAct(id,act){
   }
   if(act==="reject"){
     const M=modal(`<h2>この記録を却下する</h2>
-      <p class="muted" style="margin-top:-8px">却下するときは理由が必要です。提出した人はこの理由を読めます。</p>
+      <p class="muted" style="margin-top:-8px">却下する時は理由が必要です。提出した人はこの理由を読めます。</p>
       <p class="tiny"><b>${who}</b>　${what}</p>
       <textarea id="rjT" rows="4" placeholder="例：動画に映っている数値と一致しません"></textarea>
       <div class="tools"><button class="btn pri" id="rjGo">却下する</button></div>`);
@@ -7631,7 +7668,7 @@ function tstBuild(){
     mk({user_id:"t7",event:"暗素因数分解 Lv.3",value:76300,status:"certified",
         judge_id:"t5",judge_act:"approve",judged_at:ago(140),
         sv_id:"t3",sv_act:"fix",sv_from:76900,sv_at:ago(130)},8),
-    /* 全部おわり */
+    /* 全部終わり */
     mk({user_id:"t8",event:"素数判定・改",value:92400,status:"certified",
         judge_id:"t4",judge_act:"approve",judged_at:ago(300),
         sv_id:"t2",sv_act:"accept",sv_at:ago(280),
@@ -7664,7 +7701,7 @@ function tstBuild(){
     body:"暗素因数分解、lv.3だけ急に難しくなりませんか",
     link:null,created_at:ago(15),mine:false},lvo("t1")));
   posts.push(Object.assign({id:"pc2",handle:"mikan",name:"みかん",kind:"chat",
-    body:"わかる。でも慣れると気持ちいいですよ",
+    body:"分かる。でも慣れると気持ちいいですよ",
     link:null,created_at:ago(12),reply_to:"pc1",mine:false},lvo("t2")));
   const cups=[
     {id:"c1",kind:"challenge",owner_handle:"hakase",owner_name:"素数博士",title:"暗素因数分解ぐるぐる杯",
@@ -8234,7 +8271,7 @@ function periodTitle(cup,pd){
     const k=(n.getFullYear()-st.getFullYear())*12+(n.getMonth()-st.getMonth())+1;
     return `第${k}回　${n.getFullYear()}年${n.getMonth()+1}月　Monthly`;
   }
-  return "通算（はじめてからの全部）";
+  return "通算（初めてからの全部）";
 }
 async function loadPcupEnt(id,pd){
   pd=pd||cupPeriod[id]||"all"; cupPeriod[id]=pd;
@@ -8258,7 +8295,7 @@ function renderPfeed(){
       ? `<div class="hintbox" style="margin-top:0"><b>投稿を読み込めませんでした</b><br>
           <span class="tiny">${esc(feedErr).slice(0,200)}</span><br>
           <span class="tiny" style="color:var(--dim2)">
-            「posts_feed」という表が見つからない、という内容のときは、
+            「posts_feed」という表が見つからない、という内容の時は、
             SETUP.md を最後まで貼り直すと直ります。</span></div>
          <div class="tools"><button class="btn sm" id="pfRetry">もう一度読み込む</button></div>`
       : '<p class="muted">まだ投稿がありません。</p>';
@@ -8314,7 +8351,7 @@ function renderPfeed(){
   box.querySelectorAll("[data-achgo]").forEach(b=>b.onclick=()=>achOpenByTitle(b.dataset.achgo,false));
   box.querySelectorAll("[data-achrv]").forEach(b=>b.onclick=()=>achOpenByTitle(b.dataset.achrv,true));
 }
-/** 枠を出すときは、本文からは中身を省いて1行だけ見せます（二重にしないため） */
+/** 枠を出す時は、本文からは中身を省いて1行だけ見せます（二重にしないため） */
 function neonHead(p){
   const b=p.body||"";
   if(/#記録更新/.test(b)&&/→|->/.test(b)) return b.split("\n")[0];
@@ -8363,9 +8400,9 @@ function neonHTML(p){
     return `<div class="neon ${off?"n-ach":"n-achc"}"><span class="nlab">${esc(am[1])}</span>
       <div class="ntit">${esc(am[2])}</div>
       ${a&&a.body?`<div class="ncond"><b style="color:var(--tx)">達成条件</b>　${esc(a.body)}</div>`:""}
-      ${(!a)?`<div class="ncond">「くわしく見る」で達成条件が見られます。</div>`:""}
+      ${(!a)?`<div class="ncond">「詳しく見る」で達成条件が見られます。</div>`:""}
       <div class="tools" style="margin-top:7px">
-        <button class="btn sm" data-achgo="${esc(am[2])}">くわしく見る</button>
+        <button class="btn sm" data-achgo="${esc(am[2])}">詳しく見る</button>
         ${off&&myLv()>=2?`<button class="btn sm done" disabled>審査済み</button>`:""}
       </div></div>`;
   }
@@ -8380,7 +8417,7 @@ async function rvDetail(subId, entryId, cupId, doReview){
     s=RVQ.find(x=>x.id===subId)||null;
   }catch(e){}
   if(!s&&subId){
-    /* 審査待ちの一覧に無いとき（認定済みなど）は、そのまま読みに行きます */
+    /* 審査待ちの一覧に無い時（認定済みなど）は、そのまま読みに行きます */
     try{ const r=await sb(`submissions?select=*&id=eq.${encodeURIComponent(subId)}&limit=1`);
       s=(r&&r[0])||null; }catch(e){}
   }
@@ -8520,7 +8557,7 @@ const poGrow=()=>{ const t=$("#poBody"); if(!t) return;
   t.style.height="auto"; t.style.height=Math.min(t.scrollHeight,Math.round(innerHeight*0.34))+"px"; };
 $("#poBody").oninput=poGrow;
 poGrow();
-/** 名前を押したときにその人のプロフィールを開く。ランキングと同じ画面です */
+/** 名前を押した時にその人のプロフィールを開く。ランキングと同じ画面です */
 async function openProfile(handle){
   if(TEST){
     const u=TST_USERS.find(x=>x.handle===handle)||{name:handle,handle,role:"user"};
@@ -8541,7 +8578,7 @@ async function openProfile(handle){
       pr.trophies=(aw&&aw[0])?aw[0].trophies:0; pr.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
     let rc=null;
     try{ rc=await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}); }catch(e){}
-    /* 取れなかったときは、公開プロフィールから直接もう一度さがします */
+    /* 取れなかった時は、公開プロフィールから直接もう一度さがします */
     if(!rc||typeof rc!=="object"||!Object.keys(rc).length){
       try{
         const p2=await sb(`profiles_public?select=records&handle=eq.${encodeURIComponent(handle)}&limit=1`);
@@ -8552,7 +8589,7 @@ async function openProfile(handle){
     showPlayer(pr,rc||{});
   }catch(e){ toast("プロフィールを開けませんでした"); }
 }
-/** 「・・・」を押したときのメニュー。一般ユーザーは通報だけ、審査員以上は削除も出ます */
+/** 「・・・」を押した時のメニュー。一般ユーザーは通報だけ、審査員以上は削除も出ます */
 function poMore(id){
   const p=PFEED.find(x=>x.id===id); if(!p) return;
   const canDel = p.mine || myLv()>=2;
@@ -8567,7 +8604,7 @@ function poMore(id){
       ${canDel?`<button class="btn" id="moDel" style="border-color:#7a3030;color:#ff8a8a">削除する</button>`:""}
     </div>
     <p class="tiny">${p.mine?"自分の投稿は自分で消せます。"
-      :myLv()>=2?"迷うときは消さずに通報すると、ほかの審査員に投票してもらえます。"
+      :myLv()>=2?"迷う時は消さずに通報すると、ほかの審査員に投票してもらえます。"
       :"消してよいか判断するのは審査員です。気になる投稿は通報してください。"}</p>`,{w:520});
   M.q("#moRep").onclick=()=>{ M.close(); poReport(id); };
   if(M.q("#moDel")) M.q("#moDel").onclick=async()=>{
@@ -8794,7 +8831,7 @@ function setEditMode(on){
   if(eo) eo.hidden=editMode; if(ef) ef.hidden=!editMode;
   if(nt) nt.textContent=editMode
     ? "いま編集できます。書き終わったら「入力を終わる」を押してください。"
-    : "まちがえて書き換えないよう、ふだんは編集できません。";
+    : "間違えて書き換えないよう、ふだんは編集できません。";
   $$("#tb input[data-in]").forEach(el=>{
     const isTotal=el.dataset.in==="合計スコア";
     el.disabled=!editMode||isTotal;
@@ -9242,7 +9279,7 @@ function tagPicker(){
     ...PFEED.flatMap(p=>tagsOf(p.body))])].sort();
   const cur=new Set(Array.isArray(tagWatch)?tagWatch:myTags());
   const M=modal(`<h2>通知するタグを選ぶ</h2>
-    <p class="muted" style="margin-top:-8px">選んだタグで誰かが投稿したときに、タイムラインの上でお知らせします。</p>
+    <p class="muted" style="margin-top:-8px">選んだタグで誰かが投稿した時に、タイムラインの上でお知らせします。</p>
     <div class="ptags" id="tpBox">${all.length?all.map(t=>
       `<button class="ptag${cur.has(t)?" on":""}" data-t="${esc(t)}">#${esc(t)}</button>`).join("")
       :'<span class="tiny">まだタグがありません。</span>'}</div>
@@ -9281,7 +9318,7 @@ async function loadTags(){
   try{
     TAGS=await sb(`tag_counts?select=tag,n&room_id=eq.${rid}&order=n.desc&limit=40`);
   }catch(e){
-    /* 古い SQL（部屋の区別なし）のときは、手元の投稿から数えます */
+    /* 古い SQL（部屋の区別なし）の時は、手元の投稿から数えます */
     try{ TAGS=countTags(); }catch(e2){ TAGS=[]; }
   }
   try{ const f=await sb("feed_stats?select=*&limit=1"); FSTAT=(f&&f[0])||null; }catch(e){ FSTAT=null; }
@@ -9371,7 +9408,7 @@ function feedMatch(p){
   if(FQ.to   && t>new Date(FQ.to  +"T23:59:59+09:00").getTime()) return false;
   return true;
 }
-/** 検索。条件があるときはサーバーに聞きにいくので、何年前の投稿でも見つかります。
+/** 検索。条件がある時はサーバーに聞きにいくので、何年前の投稿でも見つかります。
  *  返ってくるのは条件に合う分だけ（最大60件・約8KB）なので通信量は増えません。 */
 let SEARCH=null;                       /* 検索結果。null なら通常のタイムライン */
 async function runSearch(){
@@ -9388,7 +9425,7 @@ async function runSearch(){
   try{
     SEARCH = await call(body);
   }catch(e){
-    /* 古い SQL には p_room がないので、そのときは受け取ってから部屋で絞ります */
+    /* 古い SQL には p_room がないので、その時は受け取ってから部屋で絞ります */
     try{
       const b2=Object.assign({},body); delete b2.p_room;
       const all=await call(b2);
@@ -9445,7 +9482,7 @@ function liveStart(){
 }
 
 /* ---- 8) 正多角形のチャート ----
-   各頂点はその種目のレート割合（1位＝いちばん外側）。25%・50%・75% に薄い線を引きます。 */
+   各頂点はその種目のレート割合（1位＝一番外側）。25%・50%・75% に薄い線を引きます。 */
 function radarSVG(events,rates,recs,title){
   const N=events.length, W=520, H=470, cx=W/2, cy=225, R=140;
   const pt=(i,r)=>{
@@ -9801,7 +9838,7 @@ function achForm(id){
       p_auto_done:off?false:!!(M.q("#afAuto")&&M.q("#afAuto").checked),
       p_keep:off?"best":((M.qa('input[name="afK"]').find(x=>x.checked)||{}).value||"best"),
       p_section:(M.q("#afSec")||{}).value||null};
-    /* 達成基準を変えたときは、必ず再審査してもらいます */
+    /* 達成基準を変えた時は、必ず再審査してもらいます */
     let rejudge=false;
     if(id&&!off){
       let ch=null;
@@ -9830,14 +9867,14 @@ function achForm(id){
   };
 }
 
-/** 達成基準を変えたときの確認。再審査を選ばないと保存できません */
+/** 達成基準を変えた時の確認。再審査を選ばないと保存できません */
 function askRejudge(n){
   return new Promise(res=>{
     const M=modal(`<h2>達成基準が変更されています</h2>
       <p style="margin-top:-4px">再審査を行いますか？</p>
       <p class="tiny">これまでに提出された <b>${jp(n)}</b> 件の記録を、1件ずつ新しい基準で見直します。
         新しい基準を満たしていれば「達成」、満たさなくなっていれば「未達成」になります。
-        同じ人が何回も出しているときは、1件でも満たしていればその人は達成のままです。</p>
+        同じ人が何回も出している時は、1件でも満たしていればその人は達成のままです。</p>
       <p class="tiny" style="color:var(--warn)">再審査を行わない場合は保存できません。</p>
       <div class="tools" style="margin-top:12px">
         <button class="btn pri" id="rjGo">再審査して保存する</button>
@@ -10087,7 +10124,7 @@ function cupMore(cid){
   };
 }
 /* ---- 2) 過去データを自動で復元する ---- */
-/** 記録を出したときのタイムライン投稿から、当時の記録を作り直します */
+/** 記録を出した時のタイムライン投稿から、当時の記録を作り直します */
 async function restoreForm(c){
   const M=modal(`<h2>過去データを自動で復元する</h2>
     <p class="muted" style="margin-top:-8px">${esc(c.title)}</p>
@@ -10124,7 +10161,7 @@ async function restoreForm(c){
           :'<span class="sbtag certified">作ります</span>'}</td></tr>`).join("")
       +`</tbody></table></div>`
     : `<p class="muted">この大会の投稿が見つかりませんでした。<br>
-       <span class="tiny">記録を出したときの投稿を消してしまった場合や、
+       <span class="tiny">記録を出した時の投稿を消してしまった場合や、
        自動投稿を切っていた場合は復元できません。「過去データを手で入れる」をお使いください。</span></p>`;
   M.q("#rsGo").disabled=!(list&&list.length);
   if(list&&list.length&&!New.length)
@@ -10279,7 +10316,7 @@ const pkOf=(pd,d)=>{
   const wk=Math.ceil((((th-j1)/86400000)+1)/7);
   return `${th.getFullYear()}-W${p2(wk)}`;
 };
-/* いちばん古い記録の日。開いた日より前の記録があれば、そちらを始まりにします */
+/* 一番古い記録の日。開いた日より前の記録があれば、そちらを始まりにします */
 const CUP_FIRST={};
 /** その期間が「第何回」か。チャレンジが始まった日から数えます */
 function nthOf(cup,pd,d){
@@ -10369,7 +10406,7 @@ async function champions(cid){
     }
     ch=ch.filter(x=>x.pkey&&x.pkey!=="all");
     ch.sort((a,b)=>String(b.pkey).localeCompare(String(a.pkey)));
-    /* いちばん古い記録を覚えておくと、第n回の数え方がずれません */
+    /* 一番古い記録を覚えておくと、第n回の数え方がずれません */
     ch.forEach(x=>{ if(x.first_at && (!CUP_FIRST[cid] || x.first_at < CUP_FIRST[cid]))
       CUP_FIRST[cid]=x.first_at; });
     st=st.filter(x=>+x.joins>0);
@@ -10710,7 +10747,7 @@ function xlEditor(fields,cur,onOk){
       typeof vals[p]==="number"?jp(Math.round(vals[p]*1000)/1000):esc(String(vals[p]==null?"":vals[p]))}`);
     M.q("#xlInfo").innerHTML=picks.length
       ? "記録にするセル："+list.join("　／　")
-        +`<br><span class="tiny">（${fields.map(f=>f.key+"="+demo[f.key]).join(", ")} を入れたときの計算結果）</span>`
+        +`<br><span class="tiny">（${fields.map(f=>f.key+"="+demo[f.key]).join(", ")} を入れた時の計算結果）</span>`
       : "まだ記録にするセルを選んでいません。";
   };
   M.q("#xlPick").onclick=()=>{
@@ -10977,10 +11014,10 @@ async function loadMyAwards(){
   }catch(e){ MY_AW={trophies:0,stars:0}; }
   try{ MY_MEDALS=await loadMedals(pro.handle); }catch(e){ MY_MEDALS=null; }
 }
-/** 期間が終わったぶんのごほうびを配ってもらいます（何度呼んでも安全です） */
+/** 期間が終わったぶんのご褒美を配ってもらいます（何度呼んでも安全です） */
 async function askAwards(){
   if(TEST||!(sess&&sbOn())) return;
-  /* まず「直し込み」で呼びます。古いSQLのときは今までどおり award_all にします */
+  /* まず「直し込み」で呼びます。古いSQLの時は今までどおり award_all にします */
   try{ await sbAuth("rpc/award_fix",{method:"POST",body:"{}"}); return; }catch(e){}
   try{ await sbAuth("rpc/award_all",{method:"POST",body:"{}"}); }catch(e){}
 }
@@ -10988,17 +11025,17 @@ async function askAwards(){
 /* ══════════════════════════════════════════════════════════════
    12b) あなたの軌跡
    ・毎日のデータを1日1行で残します（ログインしていなくても残ります）
-   ・同じ日に何回変えても、いちばん新しい中身だけを残します
+   ・同じ日に何回変えても、一番新しい中身だけを残します
    ・入力のない日は「無い」ままにします（0 は入れません）
-   ・累積のもの（スコアの累積・生成した乱数の累積）は、あいだを直線でおぎないます
+   ・累積のもの（スコアの累積・生成した乱数の累積）は、あいだを直線で補います
    ══════════════════════════════════════════════════════════════ */
 const K_HIST="sa-hist-v1", K_HISTDAY="sa-histday-v1";
 let HIST=ls(K_HIST,{});
 const saveHist=()=>{try{ localStorage.setItem(K_HIST,JSON.stringify(HIST)); }catch(e){}};
-/** 日本時間のきょう（YYYY-MM-DD） */
+/** 日本時間の今日（YYYY-MM-DD） */
 const hsDay=(d)=>new Intl.DateTimeFormat("sv-SE",
   {timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).format(d||new Date());
-/** 見るもの。cum=true は「積み上がっていく数」なので、あいだをおぎないます */
+/** 見るもの。cum=true は「積み上がっていく数」なので、あいだを補います */
 const HS_ITEMS=[
   {k:"score_cum", n:"スコアの累積",           cum:true,  from:r=>r["スコアの累積"]},
   {k:"rand_cum",  n:"生成した乱数の累積",     cum:true,  from:r=>r["生成した乱数の累積"]},
@@ -11009,7 +11046,7 @@ const HS_ITEMS=[
 EVENTS.forEach(n=>HS_ITEMS.push({k:"ev:"+n, n:n, cum:false, from:r=>r[n]}));
 const hsItem=k=>HS_ITEMS.find(x=>x.k===k)||HS_ITEMS[0];
 
-/** きょうのぶんの中身を作ります。入っていないものは入れません（0にしません） */
+/** 今日のぶんの中身を作ります。入っていないものは入れません（0にしません） */
 function histSnap(){
   const c=compute(rec);
   const o={};
@@ -11025,7 +11062,7 @@ function histSnap(){
   o.at=Date.now();
   return o;
 }
-/** きょうのぶんとして残します（同じ日は上書き＝いちばん新しいものが残ります） */
+/** 今日のぶんとして残します（同じ日は上書き＝一番新しいものが残ります） */
 function histWrite(day){
   const d=day||hsDay();
   const o=histSnap();
@@ -11086,7 +11123,7 @@ async function histPull(){
     return n;
   }catch(e){ return 0; }
 }
-/** 日付が変わったら、きのうまでのぶんを確定させます */
+/** 日付が変わったら、昨日までのぶんを確定させます */
 let histTick=null;
 function histWatch(){
   clearInterval(histTick);
@@ -11095,7 +11132,7 @@ function histWatch(){
     const last=ls(K_HISTDAY,"");
     if(last&&last!==today) histCloseDay(last,today);
   },20000);
-  /* はじめて使うときは、いまの値をすぐ残します（00:00 を待ちません） */
+  /* 初めて使う時は、いまの値をすぐ残します（00:00 を待ちません） */
   const today=hsDay();
   const last=ls(K_HISTDAY,"");
   if(!last){ histWrite(today); try{ localStorage.setItem(K_HISTDAY,JSON.stringify(today)); }catch(e){} }
@@ -11109,7 +11146,7 @@ async function histCloseDay(last,today){
     $("#hsLockSub").textContent=`${last} までの記録を残しています…`;
     /* ★ 経験値・トロフィーもここで取りに行きます（画面を見ていなくてもそろいます） */
     try{ if(sess&&sbOn()){ await loadMyStat(); await loadMyAwards(); } }catch(e){}
-    /* きのうのぶんを確定（その日の最後の姿）→ きょうのぶんも作っておきます */
+    /* 昨日のぶんを確定（その日の最後の姿）→ 今日のぶんも作っておきます */
     histWrite(last);
     histWrite(today);
     try{ localStorage.setItem(K_HISTDAY,JSON.stringify(today)); }catch(e){}
@@ -11127,7 +11164,7 @@ async function histCloseDay(last,today){
 }
 const sleepMs=ms=>new Promise(r=>setTimeout(r,ms));
 
-/* ── データの取り出しと、おぎない ── */
+/* ── データの取り出しと、補い ── */
 /** その項目の、日付→値 のならび（入っている日だけ） */
 function hsRaw(key){
   const it=hsItem(key), out=[];
@@ -11140,7 +11177,7 @@ function hsRaw(key){
   });
   return out;
 }
-/** あいだをおぎないます。
+/** あいだを補います。
  *  積み上がる数（累積）は直線で、そうでない数は「そのまま横ばい」にします */
 function hsFill(key, from, to){
   const it=hsItem(key), raw=hsRaw(key);
@@ -11157,7 +11194,7 @@ function hsFill(key, from, to){
     if(!prev){ out.push({d, v:null, real:false}); return; }
     if(!next){ out.push({d, v: it.cum ? null : prev.v, real:false, hold:!it.cum}); return; }
     if(it.cum){
-      /* 直線でおぎないます */
+      /* 直線で補います */
       const t0=Date.parse(prev.d), t1=Date.parse(next.d), t=Date.parse(d);
       const v=prev.v+(next.v-prev.v)*((t-t0)/(t1-t0));
       out.push({d, v, real:false, lerp:true});
@@ -11205,14 +11242,14 @@ function hsChart(rows, opt){
   rows.forEach((r,i)=>{
     if(r.v==null) return;
     dots+=`<circle class="dt${r.real?"":" fill"}" cx="${xs(i).toFixed(1)}" cy="${ys(r.v).toFixed(1)}"
-      r="${r.real?3.2:2}"><title>${esc(r.d)}　${esc(jp(Math.round(r.v)))}${r.real?"":"（おぎない）"}</title></circle>`;
+      r="${r.real?3.2:2}"><title>${esc(r.d)}　${esc(jp(Math.round(r.v)))}${r.real?"":"（補い）"}</title></circle>`;
   });
   /* 予測 */
   let pl="";
   if(o.pred&&o.pred.length){
     const all=rows.concat(o.pred);
     const xs2=i=>L+(all.length<=1?0:(W-L-R)*i/(all.length-1));
-    /* 予測を足したぶん、全体を引きなおします */
+    /* 予測を足したぶん、全体を引き直します */
     let d2="", f2=true;
     all.forEach((r,i)=>{
       if(r.v==null){ f2=true; return; }
@@ -11241,6 +11278,8 @@ const hsShort=v=>{
 };
 /* ── 予測（最小二乗法）── */
 const HS_PRED_MIN=7;      /* この日数ぶん入力がないと出しません */
+/* 予測を出してよい項目（累積で、増え方がだいたい一定のものだけ） */
+const HS_PRED_OK=k=>k==="score_cum"||k==="rand_cum";
 function hsPredict(key, days){
   const it=hsItem(key);
   if(!it.cum) return null;
@@ -11296,7 +11335,7 @@ function hsDraw(){
     <div class="lsbox"><div class="t">残っている日数</div>
       <div class="v" style="font-size:1.6rem">${jp(days.length)}</div>
       <div class="s">${days.length?esc(days[0])+" 〜 "+esc(days[days.length-1]):"—"}</div></div>
-    <div class="lsbox"><div class="t">きょうのぶん</div>
+    <div class="lsbox"><div class="t">今日のぶん</div>
       <div class="v" style="font-size:1.6rem">${HIST[hsDay()]?"残っています":"まだです"}</div>
       <div class="s">${HIST[hsDay()]?esc(jstFull(new Date(HIST[hsDay()].at||Date.now()).toISOString())):"—"}</div></div>
     <div class="lsbox"><div class="t">クラウド</div>
@@ -11311,16 +11350,25 @@ function hsDraw(){
   const doFill=$("#hsFill").checked;
   const rows=doFill?hsFill(hsKey,from,to)
     :hsRaw(hsKey).filter(r=>r.d>=from&&r.d<=to);
+  /* 予測を出すのは「スコアの累積」と「生成した乱数の累積」だけです
+     （ほかは伸び方が一定ではないので、予測しても意味がありません） */
+  const canPred=HS_PRED_OK(hsKey);
+  $("#hsPred").disabled=!canPred;
+  const lb=$("#hsPredLb");
+  if(lb){
+    lb.style.opacity=canPred?"1":".45";
+    lb.title=canPred?"":"予測は「スコアの累積」と「生成した乱数の累積」だけです";
+  }
   let pred=null;
-  if($("#hsPred").checked&&it.cum){
+  if(canPred&&$("#hsPred").checked){
     const p=hsPredict(hsKey,14);
     if(p&&p.list) pred=p.list;
   }
   $("#hsChart").innerHTML=hsChart(rows,{pred})
     +`<div class="hslegend">
-      <span><i style="border-color:var(--acc2)"></i>じっさいの記録</span>
+      <span><i style="border-color:var(--acc2)"></i>実際の記録</span>
       <span><span class="dt" style="display:inline-block;width:8px;height:8px;border-radius:50%;
-        background:#2c5f8a;margin-right:4px"></span>おぎなった日</span>
+        background:#2c5f8a;margin-right:4px"></span>補った日</span>
       ${pred?`<span><i style="border-color:var(--warn);border-top-style:dashed"></i>予測</span>`:""}
     </div>`;
 
@@ -11335,7 +11383,7 @@ function hsDraw(){
         return `<tr><td class="tiny">${esc(r.d)}</td>
           <td style="text-align:right"><b class="mono">${esc(jp(Math.round(r.v)))}</b></td>
           <td class="tiny">${r.real?'<span style="color:var(--acc2)">入力した日</span>'
-            :(r.lerp?'<span style="color:var(--dim2)">あいだをおぎない</span>'
+            :(r.lerp?'<span style="color:var(--dim2)">あいだを補い</span>'
                     :'<span style="color:var(--dim2)">前の日のまま</span>')}</td>
           <td style="text-align:right" class="tiny">${dv==null?"—":(dv>0?"+":"")+jp(Math.round(dv))}</td></tr>`;
       }).join("")+`</tbody></table></div>`
@@ -11346,7 +11394,7 @@ function hsDraw(){
 }
 function hsDrawPred(){
   const box=$("#hsPredBox"); if(!box) return;
-  const items=HS_ITEMS.filter(x=>x.cum&&(x.k==="score_cum"||x.k==="rand_cum"));
+  const items=HS_ITEMS.filter(x=>HS_PRED_OK(x.k));
   box.innerHTML=items.map(it=>{
     const p=hsPredict(it.k,30);
     if(!p) return "";
@@ -11401,7 +11449,7 @@ if($("#hsPred")) $("#hsPred").onchange=hsDraw;
 if($("#hsSave")) $("#hsSave").onclick=async()=>{
   $("#hsMsg").textContent="集めています…";
   const ok=await histWriteFull();
-  $("#hsMsg").innerHTML=ok?'<span style="color:var(--acc2)">きょうのぶんを残しました</span>'
+  $("#hsMsg").innerHTML=ok?'<span style="color:var(--acc2)">今日のぶんを残しました</span>'
     :'<span style="color:var(--warn)">残すデータがありません（記録を入力してください）</span>';
   histEnter();
 };
@@ -11416,22 +11464,21 @@ if($("#hsSync")) $("#hsSync").onclick=async()=>{
 
 /* ══════════════════════════════════════════════════════════════
    12c) Prime Mood ── 素数あつめ界隈の盛り上がり
-   ・みんなの行動がぜんぶ1つの数字になります（競争ではありません）
+   ・みんなの行動が全部1つの数字になります（競争ではありません）
    ・1日ごと／1週間ごと／1か月ごとにまとめて見られます
-   ・今週の目標に届くと、その週にきた人みんなに Prime Coin
+   ・今週の目標に届くと、その週に来た人みんなに Prime Coin
    ══════════════════════════════════════════════════════════════ */
-let MOOD=[], MOODW=null, mdKind="day", mdBusy=false;
+let MOOD=[], MOOD_D=[], MOODW=null, MOODST=null, mdKind="day", mdBusy=false;
 /* 数えるものの並び（名前は決まっています。配点は管理者が変えられます） */
 const MOOD_ITEMS=[
   {k:"x_posts", n:"X の投稿（ハッシュタグ）"},
   {k:"achs",    n:"アチーブメント達成"},
   {k:"subs",    n:"記録の提出"},
-  {k:"cup_subs",n:"大会への提出"},
-  {k:"players", n:"きた人の数"},
-  {k:"chats",   n:"つぶやき"},
-  {k:"plays",   n:"Prime Park であそぶ"}
+  {k:"cup_subs",n:"大会への提出"}
 ];
-/* 点の文字の形。えらべるものは、どの端末にもある字だけにしています */
+/* 記録には残すが、点にはしないもの（一覧にも出しません） */
+const MOOD_OFF=["chats","plays","players"];
+/* 点の文字の形。選べるものは、どの端末にもある字だけにしています */
 const MOOD_FONTS=[
   {k:"mono",   n:"等幅（既定）",     f:'ui-monospace,Menlo,Consolas,"Courier New",monospace'},
   {k:"gothic", n:"ゴシック体",       f:'-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif'},
@@ -11447,19 +11494,19 @@ const moodFont=k=>(MOOD_FONTS.find(x=>x.k===k)||MOOD_FONTS[0]).f;
 /* 設定。サーバーから読みます（管理者だけが変えられます） */
 const MOOD_DEF={
   tags:["素数あつめ"], extra:"-is:retweet",
-  weights:{x_posts:3,achs:3,subs:2,cup_subs:2,players:2,chats:1,plays:1},
-  words:[{min:0,text:"しずかな日",color:"#5f7490"},
+  weights:{x_posts:3,achs:3,subs:2,cup_subs:2},
+  words:[{min:0,text:"静かな日",color:"#5f7490"},
          {min:20,text:"ぽつぽつ",color:"#93a4c0"},
-         {min:60,text:"あたたかい",color:"#5ee6a8"},
+         {min:60,text:"温かい",color:"#5ee6a8"},
          {min:140,text:"にぎわっている",color:"#ffd45e"},
-         {min:260,text:"もりあがり！",color:"#ff8fb3"},
+         {min:260,text:"盛り上がり！",color:"#ff8fb3"},
          {min:450,text:"お祭りだ！！",color:"#ff6b5e"}],
-  max:500, font:"mono"
+  max:500, font:"mono", sched:["00:10"]
 };
 let MCFG=JSON.parse(JSON.stringify(MOOD_DEF));   /* いま使っている設定 */
 let MEDIT=null;                                   /* 管理者が編集中のもの */
 const mcW=k=>+((MCFG.weights||{})[k])||0;
-/** その点にあてはまる ことば */
+/** その点にあてはまる 言葉 */
 function mdWord(v){
   const ws=(MCFG.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
   if(!ws.length) return [0,"—","#93a4c0"];
@@ -11496,18 +11543,30 @@ async function moodLoad(){
       const d=new Date(Date.parse(today)-i*86400000).toISOString().slice(0,10);
       const x=2+((i*7)%9), sb=1+((i*3)%5), ch=(i*5)%7, pl=(i*2)%4, pe=1+((i)%4), ac=(i%5===0)?1:0;
       MOOD.push({k:d,x_posts:x,subs:sb,cup_subs:i%4===0?1:0,chats:ch,plays:pl,players:pe,achs:ac,
-        score:x*3+sb*2+(i%4===0?2:0)+ch+pl+pe*2+ac*3, days:1});
+        score:x*3+sb*2+(i%4===0?2:0)+ac*3, days:1});
     }
+    MOOD_D=MOOD.slice();
     MOODW={week:"2026-W34",score:MOOD.slice(-7).reduce((a,b)=>a+b.score,0),target:300,reward:3,
          done:false,joined:true,got:false,pct:60};
+    MOODST={x_at:new Date(Date.now()-3600e3).toISOString(),x_day:hsDay(),x_n:5,
+            snap_at:new Date().toISOString(),cfg_at:null,goal_at:null,sched:MCFG.sched||["00:10"]};
     return;
   }
-  if(!sbOn()){ MOOD=[]; MOODW=null; return; }
+  if(!sbOn()){ MOOD=[]; MOOD_D=[]; MOODW=null; MOODST=null; return; }
+  const from=new Date(Date.now()-400*86400000).toISOString().slice(0,10);
   try{
-    const from=new Date(Date.now()-400*86400000).toISOString().slice(0,10);
     MOOD=await sb("rpc/mood_get",{method:"POST",
       body:JSON.stringify({p_kind:mdKind,p_from:from,p_to:null})})||[];
   }catch(e){ MOOD=[]; }
+  /* ムード値は「1日ごと」の並びから出すので、別に取っておきます */
+  if(mdKind==="day"){ MOOD_D=MOOD; }
+  else{
+    try{
+      MOOD_D=await sb("rpc/mood_get",{method:"POST",
+        body:JSON.stringify({p_kind:"day",p_from:from,p_to:null})})||[];
+    }catch(e){ MOOD_D=[]; }
+  }
+  try{ MOODST=await sb("rpc/mood_status",{method:"POST",body:"{}"}); }catch(e){ MOODST=null; }
   try{
     MOODW=sess?await sbAuth("rpc/mood_week",{method:"POST",body:"{}"})
             :await sb("rpc/mood_week",{method:"POST",body:"{}"});
@@ -11520,23 +11579,36 @@ async function moodEnter(){
   $("#mdGauge").innerHTML=`<p class="muted">読み込み中…</p>`;
   await moodLoad();
   moodDraw();
-  /* 見るたびに、その日のぶんを数えなおしておきます */
+  /* 見るたびに、その日のぶんを数え直しておきます */
   if(!TEST&&sbOn()){
     try{ await sb("rpc/mood_snap",{method:"POST",body:"{}"}); }catch(e){}
   }
 }
-function moodDraw(){
-  /* ── メーター（きょうのぶん）── */
-  const day=MOOD.length&&mdKind==="day"?MOOD[MOOD.length-1]:null;
-  let today=day;
-  if(mdKind!=="day"){
-    /* 別のまとめ方を見ているときも、メーターは「きょう」を出します */
-    today=MOOD_TODAY||null;
+/** 直近7日間の平均得点＝ムード値。日付が飛んでいる日は0点として数えます */
+function moodAvg7(endDay){
+  const end=endDay||hsDay();
+  const m={}; (MOOD_D||[]).forEach(r=>{ m[r.k]=+r.score||0; });
+  let sum=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(Date.parse(end)-i*86400000).toISOString().slice(0,10);
+    sum+=m[d]||0;
   }
-  const v=today?+today.score||0:0;
+  return sum/7;
+}
+/** 12.30 のように、小数第2位まで。小数部分は小さく出します */
+function moodNumHTML(v,big,small,color){
+  const t=(Math.round(v*100)/100).toFixed(2);
+  const i=t.split(".")[0], f=t.split(".")[1];
+  return `<tspan style="font-size:${big}px">${esc(i)}</tspan>`
+       + `<tspan style="font-size:${small}px" opacity="0.75">.${esc(f)}</tspan>`;
+}
+function moodDraw(){
+  /* ── メーター（ムード値＝直近7日間の平均得点）── */
+  const today=hsDay();
+  const v=moodAvg7(today);
+  const yest=moodAvg7(new Date(Date.parse(today)-86400000).toISOString().slice(0,10));
   const w=mdWord(v);
-  const prev=(mdKind==="day"&&MOOD.length>1)?+MOOD[MOOD.length-2].score||0:null;
-  const dv=prev==null?null:v-prev;
+  const dv=(MOOD_D&&MOOD_D.length)?v-yest:null;
   const pct=Math.min(1, v/Math.max(10,+MCFG.max||500));
   const R=110, C=Math.PI*R;         /* 半円の長さ */
   $("#mdGauge").innerHTML=`<div class="mdgauge"><svg viewBox="0 0 260 150">
@@ -11546,44 +11618,48 @@ function moodDraw(){
     <path class="bg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"/>
     <path class="fg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"
       stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>
-    <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-size:34px;font-weight:900;
-      font-family:${moodFont(MCFG.font)}">${jp(v)}</text>
+    <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-weight:900;
+      font-family:${moodFont(MCFG.font)}">${moodNumHTML(v,38,22)}</text>
   </svg></div>
-  <div class="mdlab">きょうの もりあがり ど</div>
+  <div class="mdlab">ムード値<span class="tiny" style="opacity:.75">（直近7日間の平均得点）</span></div>
   <div class="mdword" style="color:${w[2]}">${esc(w[1])}</div>
-  ${dv==null?"":`<div class="mddelta ${dv>=0?"up":"down"}">きのうと比べて ${dv>=0?"＋":"−"}${jp(Math.abs(dv))}</div>`}`;
+  ${dv==null?"":`<div class="mddelta ${dv>=0?"up":"down"}">昨日比 ${dv>=0?"＋":"−"}${
+      (Math.round(Math.abs(dv)*100)/100).toFixed(2)}</div>`}`;
 
-  const week7=MOOD.slice(-7).reduce((a,b)=>a+(+b.score||0),0);
+  const week7=Math.round(v*7);
   $("#mdNow").innerHTML=`<div class="mdgrid" style="margin-top:14px">
-    <div class="mdcell"><div class="t">この7日の合計</div>
+    <div class="mdcell"><div class="t">直近7日間の合計</div>
       <div class="v" style="color:var(--mood)">${jp(week7)}</div>
-      <div class="s">1日あたり ${jp(Math.round(week7/7))}</div></div>
-    <div class="mdcell"><div class="t">残っている日数</div>
+      <div class="s">1日平均 ${(Math.round(v*100)/100).toFixed(2)}</div></div>
+    <div class="mdcell"><div class="t">記録がある日数</div>
       <div class="v">${jp(MOOD.length)}</div>
-      <div class="s">${MOOD.length?esc(MOOD[0].k)+" から":"—"}</div></div>
-    <div class="mdcell"><div class="t">これまでの合計</div>
+      <div class="s">${MOOD.length?esc(mdLabel(MOOD[0].k))+" から":"—"}</div></div>
+    <div class="mdcell"><div class="t">通算の合計</div>
       <div class="v">${jp(MOOD.reduce((a,b)=>a+(+b.score||0),0))}</div>
-      <div class="s">みんなでためた点</div></div>
+      <div class="s">全員で積み上げた点</div></div>
   </div>`;
+
+  /* ── 更新の時刻（全員が見られます）── */
+  mdWhenDraw();
 
   /* ── 今週の目標 ── */
   const g=MOODW;
   $("#mdGoal").innerHTML=g
     ? `<div class="mdbar ${g.done?"done":""}"><i style="width:${Math.min(100,+g.pct||0)}%"></i>
         <span>${jp(+g.score||0)} / ${jp(+g.target||0)} 点（${+g.pct||0}%）</span></div>
-      <p class="tiny">${esc(g.week||"")} の合計です。日曜のおわりまでに届けば達成です。</p>
+      <p class="tiny">${esc(g.week||"")} の合計です。日曜の終わりまでに届けば達成です。</p>
       ${g.done
         ? (g.got
-            ? `<p style="color:var(--acc2);font-weight:800">達成！ ごほうびは受け取りずみです。</p>`
+            ? `<p style="color:var(--acc2);font-weight:800">達成！ ご褒美は受け取りずみです。</p>`
             : (g.joined
-              ? `<p style="color:var(--warn);font-weight:800">達成しました！ ごほうびを受け取れます。</p>
+              ? `<p style="color:var(--warn);font-weight:800">達成しました！ ご褒美を受け取れます。</p>
                  <div class="tools"><button class="btn pri" id="mdClaim">
                    <span class="pcoin">P</span> ${jp(+g.reward||3)}枚 受け取る</button>
                    <span class="tiny" id="mdClaimMsg"></span></div>`
               : `<p class="tiny" style="color:var(--warn)">達成しました！
                    受け取るには、今週ログインボーナスを受け取ってください（ホームタブ）。</p>`))
         : `<p class="tiny">あと <b>${jp(Math.max(0,(+g.target||0)-(+g.score||0)))}</b> 点です。
-             記録を出す・つぶやく・遊ぶ・Xに投稿する。どれでも積み上がります。</p>`}`
+             記録の提出・大会への提出・アチーブメント達成・X への投稿が積み上がります。</p>`}`
     : `<p class="muted">まだ読み込めていません。</p>`;
   const cb=$("#mdClaim");
   if(cb) cb.onclick=async()=>{
@@ -11597,23 +11673,32 @@ function moodDraw(){
       $("#mdClaimMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e).slice(0,80))+'</span>'; }
   };
 
-  /* ── 内訳 ── */
-  const last7=MOOD.slice(-7);
+  /* ── 内訳（点になるものだけ）── */
+  const dm={}; (MOOD_D||[]).forEach(r=>{ dm[r.k]=r; });
+  const last7=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(Date.parse(today)-i*86400000).toISOString().slice(0,10);
+    if(dm[d]) last7.push(dm[d]);
+  }
   const sum=k=>last7.reduce((a,b)=>a+(+b[k]||0),0);
   $("#mdBreak").innerHTML=`<div class="scroll" style="max-height:none"><table><thead><tr>
-      <th>なに</th><th class="n" style="text-align:right">1つあたり</th>
-      <th class="n" style="text-align:right">この7日</th>
+      <th>対象</th><th class="n" style="text-align:right">1つあたり</th>
+      <th class="n" style="text-align:right">直近7日</th>
       <th class="n" style="text-align:right">点</th></tr></thead><tbody>`
     +MOOD_ITEMS.map(x=>`<tr><td>${esc(x.n)}${x.k==="x_posts"&&(MCFG.tags||[]).length
         ?`<br><span class="tiny mono">${esc((MCFG.tags||[]).map(t=>"#"+t).join("　"))}</span>`:""}</td>
       <td style="text-align:right" class="tiny">${jp(mcW(x.k))} 点</td>
       <td style="text-align:right"><b class="mono">${jp(sum(x.k))}</b></td>
       <td style="text-align:right" class="mono">${jp(sum(x.k)*mcW(x.k))}</td></tr>`).join("")
-    +`<tr><td colspan="3"><b>合計</b></td>
+    +`<tr><td colspan="3"><b>直近7日の合計</b></td>
       <td style="text-align:right"><b class="mono" style="color:var(--mood)">${jp(week7)}</b></td></tr>`
+    +`<tr><td colspan="3"><b>ムード値（7日平均）</b></td>
+      <td style="text-align:right"><b class="mono" style="color:var(--mood)">${
+        (Math.round(v*100)/100).toFixed(2)}</b></td></tr>`
     +`</tbody></table></div>
-    <p class="tiny" style="margin-top:8px">「きた人の数」は、その日ログインボーナスを受け取った人の数です。
-      Xの投稿数は、管理者が毎日入れています（入っていない日は0になります）。</p>`;
+    <p class="tiny" style="margin-top:8px">この4つだけが点になります。
+      タイムラインの投稿・Prime Park の遊んだ回数・来訪人数は、記録には残しますが点には入れません。<br>
+      X の投稿数は自動集計で入ります（入っていない日は 0 として計算します）。</p>`;
 
   /* ── グラフと一覧 ── */
   $$("#mdTabs [data-md]").forEach(b=>b.classList.toggle("on",b.dataset.md===mdKind));
@@ -11622,19 +11707,63 @@ function moodDraw(){
   $("#mdList").innerHTML=rows.length
     ? `<div class="scroll" style="max-height:40vh"><table><thead><tr>
         <th>${mdKind==="day"?"日":mdKind==="week"?"週":"月"}</th>
-        <th class="n">X</th><th class="n">提出</th><th class="n">大会</th>
-        <th class="n">つぶやき</th><th class="n">PP</th><th class="n">人</th>
-        <th class="n">達成</th><th class="n">点</th></tr></thead><tbody>`
+        <th class="n">X</th><th class="n">達成</th><th class="n">提出</th>
+        <th class="n">大会</th><th class="n">点</th></tr></thead><tbody>`
       +rows.slice().reverse().map(r=>`<tr><td class="tiny">${esc(mdLabel(r.k))}</td>
-        <td class="n">${jp(+r.x_posts||0)}</td><td class="n">${jp(+r.subs||0)}</td>
-        <td class="n">${jp(+r.cup_subs||0)}</td><td class="n">${jp(+r.chats||0)}</td>
-        <td class="n">${jp(+r.plays||0)}</td><td class="n">${jp(+r.players||0)}</td>
-        <td class="n">${jp(+r.achs||0)}</td>
+        <td class="n">${jp(+r.x_posts||0)}</td><td class="n">${jp(+r.achs||0)}</td>
+        <td class="n">${jp(+r.subs||0)}</td><td class="n">${jp(+r.cup_subs||0)}</td>
         <td class="n"><b style="color:var(--mood)">${jp(+r.score||0)}</b></td></tr>`).join("")
       +`</tbody></table></div>`
     : `<p class="muted">まだ記録がありません。</p>`;
 }
 let MOOD_TODAY=null;
+/* ══════════ 更新の時刻 ══════════ */
+/** 日本時間の「YYYY/MM/DD HH:MM」に直します */
+function jstStamp(iso){
+  if(!iso) return "—";
+  const d=new Date(iso); if(isNaN(d)) return "—";
+  const f=new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",
+    day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d);
+  const g=k=>(f.find(x=>x.type===k)||{}).value||"";
+  return `${g("year")}/${g("month")}/${g("day")} ${g("hour")}:${g("minute")}`;
+}
+/** どれくらい前か */
+function agoText(iso){
+  if(!iso) return "";
+  const ms=Date.now()-Date.parse(iso); if(!(ms>=0)) return "";
+  const m=Math.floor(ms/60000);
+  if(m<1) return "たった今";
+  if(m<60) return `${jp(m)}分前`;
+  const h=Math.floor(m/60); if(h<24) return `${jp(h)}時間前`;
+  return `${jp(Math.floor(h/24))}日前`;
+}
+/** 次の自動集計の予定時刻（日本時間）。設定の sched から出します */
+function moodNextRun(){
+  const sc=(MCFG.sched&&MCFG.sched.length?MCFG.sched:["00:10"])
+    .map(t=>String(t).trim()).filter(t=>/^\d{1,2}:\d{2}$/.test(t))
+    .map(t=>{ const a=t.split(":"); return (+a[0])*60+(+a[1]); })
+    .sort((a,b)=>a-b);
+  if(!sc.length) return null;
+  /* いまの日本時間を「その日の何分目か」で出します */
+  const f=new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",minute:"2-digit",hour12:false})
+    .formatToParts(new Date());
+  const g=k=>+((f.find(x=>x.type===k)||{}).value||0);
+  const now=g("hour")*60+g("minute");
+  let nx=sc.find(m=>m>now), day=hsDay();
+  if(nx==null){ nx=sc[0]; day=new Date(Date.parse(day)+86400000).toISOString().slice(0,10); }
+  const hh=String(Math.floor(nx/60)).padStart(2,"0"), mm=String(nx%60).padStart(2,"0");
+  return {day, hm:`${hh}:${mm}`, text:`${day.replace(/-/g,"/")} ${hh}:${mm}`};
+}
+function mdWhenDraw(){
+  const e=$("#mdWhen"); if(!e) return;
+  const st=MOODST||{};
+  const nx=moodNextRun();
+  const late=st.x_at&&(Date.now()-Date.parse(st.x_at)>36*3600e3);
+  e.innerHTML=`<span title="X の投稿数が最後に入った時刻">最終更新 <b class="mono">${esc(jstStamp(st.x_at))}</b>`
+    +`<span style="opacity:.8">（${esc(agoText(st.x_at))}）</span></span>`
+    +`　｜　次回更新予定 <b class="mono">${esc(nx?nx.text:"—")}</b>`
+    +(late?`<br><span style="color:var(--warn)">36時間以上新しい数が入っていません。自動集計が止まっているかもしれません。</span>`:"");
+}
 const mdLabel=k=>k.length===10?k.replace(/-/g,"/"):k.indexOf("W")>0?k.replace("-W"," 第")+"週":k.replace("-","年")+"月";
 function mdChart(rows){
   if(!rows.length) return `<p class="muted">まだ記録がありません。</p>`;
@@ -11710,17 +11839,17 @@ function mdCfgDraw(){
   $("#mdMax").value=+MEDIT.max||500;
   $("#mdMax").oninput=()=>{ MEDIT.max=Math.max(10,+$("#mdMax").value||500); };
 
-  /* ── ことば ── */
+  /* ── 言葉 ── */
   const ws=MEDIT.words||[];
   $("#mdWords").innerHTML=ws.length?ws.map((w,i)=>`
     <div class="mdrow"><span class="lb">この点から</span>
       <input type="number" class="txt" data-wm="${i}" min="0" step="10"
         value="${+w.min||0}" style="max-width:100px">
       <input type="text" class="txt" data-wd="${i}" value="${esc(w.text||"")}"
-        placeholder="ことば" style="max-width:190px">
+        placeholder="言葉" style="max-width:190px">
       <input type="color" data-wc="${i}" value="${esc(w.color||"#93a4c0")}">
       <button class="btn sm del" data-wx="${i}">消す</button></div>`).join("")
-    : `<p class="tiny" style="color:var(--warn)">ことばがありません。1つ以上入れてください。</p>`;
+    : `<p class="tiny" style="color:var(--warn)">言葉がありません。1つ以上入れてください。</p>`;
   $$("#mdWords [data-wm]").forEach(e=>e.oninput=()=>{
     MEDIT.words[+e.dataset.wm].min=Math.max(0,+e.value||0); mdWordPrev(); });
   $$("#mdWords [data-wd]").forEach(e=>e.oninput=()=>{
@@ -11735,6 +11864,16 @@ function mdCfgDraw(){
     `<option value="${f.k}"${(MEDIT.font||"mono")===f.k?" selected":""}>${esc(f.n)}</option>`).join("");
   $("#mdFont").onchange=()=>{ MEDIT.font=$("#mdFont").value; mdWordPrev(); };
   mdWordPrev();
+
+  /* ── つなぎこみ ── */
+  $("#mdSched").value=(MEDIT.sched||["00:10"]).join(", ");
+  $("#mdSched").oninput=()=>{
+    MEDIT.sched=$("#mdSched").value.split(/[,、\s]+/).map(t=>t.trim()).filter(Boolean);
+  };
+  const g2=ghCfg();
+  $("#mdGhRepo").value=(g2.owner&&g2.repo)?`${g2.owner}/${g2.repo}`:"";
+  $("#mdGhTok").value="";
+  if(g2.token) $("#mdGhTok").placeholder="（この端末に保存ずみ）";
 }
 function mdQPrev(){
   const q=moodQuery(MEDIT);
@@ -11755,7 +11894,10 @@ function mdWordPrev(){
   $("#mdWordPrev").style.color=w.color||"#93a4c0";
   $("#mdFontPrev").style.color=w.color||"var(--mood)";
 }
-$$("#mdAdmTabs [data-ma]").forEach(b=>b.onclick=()=>{ mdAdmTab=b.dataset.ma; mdCfgDraw(); });
+$$("#mdAdmTabs [data-ma]").forEach(b=>b.onclick=()=>{
+  mdAdmTab=b.dataset.ma; mdCfgDraw();
+  if(mdAdmTab==="log") mdLogDraw();
+});
 if($("#mdTagAdd")) $("#mdTagAdd").onclick=()=>{
   MEDIT.tags=MEDIT.tags||[]; MEDIT.tags.push(""); mdCfgDraw();
   const l=$$("#mdTagList [data-tg]"); if(l.length) l[l.length-1].focus();
@@ -11772,7 +11914,7 @@ const mdCfgMsg=(t,ok)=>{ const e=$("#mdCfgMsg"); if(e) e.innerHTML=
   `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; };
 if($("#mdCfgSave")) $("#mdCfgSave").onclick=async()=>{
   if(!MEDIT) return;
-  /* 入れまちがいを直してから送ります */
+  /* 入れ間違いを直してから送ります */
   const cfg=JSON.parse(JSON.stringify(MEDIT));
   cfg.tags=(cfg.tags||[]).map(t=>String(t).replace(/^#/,"").trim()).filter(Boolean);
   if(!cfg.tags.length) return mdCfgMsg("ハッシュタグを1つ以上入れてください", false);
@@ -11780,27 +11922,152 @@ if($("#mdCfgSave")) $("#mdCfgSave").onclick=async()=>{
   cfg.words=(cfg.words||[]).filter(w=>String(w.text||"").trim())
     .map(w=>({min:Math.max(0,+w.min||0),text:String(w.text).trim(),color:w.color||"#93a4c0"}))
     .sort((a,b)=>a.min-b.min);
-  if(!cfg.words.length) return mdCfgMsg("ことばを1つ以上入れてください", false);
-  if(cfg.words[0].min!==0) cfg.words[0].min=0;   /* いちばん下は0点から */
+  if(!cfg.words.length) return mdCfgMsg("言葉を1つ以上入れてください", false);
+  if(cfg.words[0].min!==0) cfg.words[0].min=0;   /* 一番下は0点から */
   cfg.weights=cfg.weights||{};
   MOOD_ITEMS.forEach(x=>{ cfg.weights[x.k]=Math.max(0,Math.min(99,+cfg.weights[x.k]||0)); });
   cfg.max=Math.max(10,+cfg.max||500);
   cfg.font=(MOOD_FONTS.find(f=>f.k===cfg.font)?cfg.font:"mono");
   cfg.extra=String(cfg.extra||"").trim();
+  cfg.sched=(cfg.sched||["00:10"]).map(t=>String(t).trim())
+    .filter(t=>/^\d{1,2}:\d{2}$/.test(t))
+    .map(t=>{ const a=t.split(":"); return String(Math.min(23,+a[0])).padStart(2,"0")+":"
+                                        +String(Math.min(59,+a[1])).padStart(2,"0"); });
+  if(!cfg.sched.length) cfg.sched=["00:10"];
   const b=$("#mdCfgSave"); b.disabled=true; mdCfgMsg("送っています…");
   try{
     const r=await sbAuth("rpc/mood_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
     MCFG=Object.assign(JSON.parse(JSON.stringify(MOOD_DEF)), r||cfg);
     MEDIT=JSON.parse(JSON.stringify(MCFG));
-    mdCfgMsg("保存しました。全員に反映されます");
+    mdCfgMsg("保存しました。反映を確かめています…");
     await moodLoad(); moodDraw(); mdCfgDraw();
+    await mdVerify();            /* 全員に見えている中身を読み直して照らし合わせます */
+    await mdLogDraw();
   }catch(e){ mdCfgMsg(String(e.message||e).slice(0,90), false); }
   b.disabled=false;
 };
 if($("#mdCfgReload")) $("#mdCfgReload").onclick=async()=>{
   await moodCfgLoad();
   MEDIT=JSON.parse(JSON.stringify(MCFG));
-  mdCfgDraw(); moodDraw(); mdCfgMsg("読みなおしました");
+  mdCfgDraw(); moodDraw(); mdCfgMsg("読み直しました");
+};
+
+/* ══════════ 反映ログ（全員に届いたことの確認）══════════ */
+async function mdLogDraw(){
+  const e=$("#mdLog"); if(!e) return;
+  if(TEST||!sbOn()){ e.innerHTML=`<p class="muted">ログインするとログを読めます。</p>`; return; }
+  try{
+    const rows=await sbAuth("rpc/admin_log_get",{method:"POST",body:JSON.stringify({p_limit:40})})||[];
+    e.innerHTML=rows.length
+      ? `<div class="scroll" style="max-height:40vh"><table><thead><tr>
+          <th>日時</th><th>誰が</th><th>種類</th><th>内容</th></tr></thead><tbody>`
+        +rows.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
+          <td class="tiny">${esc(r.handle||"—")}</td>
+          <td class="tiny"><b>${esc(r.kind||"")}</b></td>
+          <td class="tiny">${esc(r.note||"")}</td></tr>`).join("")
+        +`</tbody></table></div>`
+      : `<p class="muted">まだ記録がありません。</p>`;
+  }catch(e2){ e.innerHTML=`<p class="tiny" style="color:var(--bad)">${esc(String(e2.message||e2).slice(0,90))}</p>`; }
+}
+/** サーバーの設定をもう一度読んで、いま画面に出ているものと同じか照らし合わせます */
+async function mdVerify(){
+  const box=$("#mdVerifyBox"); if(!box) return;
+  if(TEST||!sbOn()){ box.innerHTML=`<p class="muted">ログインすると確かめられます。</p>`; return; }
+  box.innerHTML=`<p class="tiny">確かめています…</p>`;
+  try{
+    /* ログインしていない人と同じ立場（anon）で読み直します */
+    const srv=await sb("rpc/mood_cfg",{method:"POST",body:"{}"});
+    const st =await sb("rpc/mood_status",{method:"POST",body:"{}"});
+    const same=k=>JSON.stringify((srv||{})[k])===JSON.stringify(MCFG[k]);
+    const rows=[["ハッシュタグ","tags"],["配点","weights"],["満点","max"],
+                ["言葉","words"],["文字の形","font"],["予定時刻","sched"]];
+    const ng=rows.filter(r=>!same(r[1]));
+    box.innerHTML=`<div class="card" style="margin:0;border-color:${ng.length?"var(--bad)":"var(--acc2)"}">
+      <p style="font-weight:800;color:${ng.length?"var(--bad)":"var(--acc2)"};margin:0">
+        ${ng.length?"✗ 一部が反映されていません":"✓ 全員に反映されています"}</p>
+      <p class="tiny" style="margin:6px 0 0">ログインしていない人と同じ立場でサーバーを読み直した結果です。</p>
+      <div class="scroll" style="max-height:none;margin-top:8px"><table><tbody>`
+      +rows.map(r=>`<tr><td class="tiny">${esc(r[0])}</td>
+        <td class="tiny" style="color:${same(r[1])?"var(--acc2)":"var(--bad)"}">${same(r[1])?"一致":"違う"}</td>
+        <td class="tiny mono">${esc(JSON.stringify((srv||{})[r[1]]||"").slice(0,60))}</td></tr>`).join("")
+      +`</tbody></table></div>
+      <p class="tiny" style="margin-top:8px">設定の保存時刻 <b class="mono">${esc(jstStamp(st&&st.cfg_at))}</b>
+        ／ 目標の保存時刻 <b class="mono">${esc(jstStamp(st&&st.goal_at))}</b></p>
+      <p class="tiny" style="color:var(--dim2)">※ すでにアプリを開いている人には、
+        次にPrime Moodタブを開いた時（または再読み込み時）に反映されます。</p></div>`;
+    if(ng.length) mdCfgMsg("保存しましたが、反映を確認できませんでした", false);
+    else mdCfgMsg("保存しました。全員に反映されました");
+  }catch(e){ box.innerHTML=`<p class="tiny" style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</p>`; }
+}
+if($("#mdLogGo")) $("#mdLogGo").onclick=()=>{ $("#mdLogMsg").textContent=""; mdLogDraw(); };
+if($("#mdVerify")) $("#mdVerify").onclick=()=>mdVerify();
+
+/* ══════════ GitHub Actions を呼んで X を集計する（管理者だけ）══════════ */
+/* 連携先とトークンは、開発者メニューにあるものをそのまま使います
+   （この端末の中だけに入っていて、index.html にもサーバーにも書きません） */
+function ghCfg(){ try{ return JSON.parse(localStorage.getItem("sa-gh-v1")||"{}")||{}; }catch(e){ return {}; } }
+const ghMsg=(t,ok)=>{ const e=$("#mdGhMsg"); if(e) e.innerHTML=
+  `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; };
+/** 「ユーザー名/リポジトリ名」を取り出します */
+const ghSlug=()=>{ const g=ghCfg(); return (g.owner&&g.repo)?`${g.owner}/${g.repo}`:""; };
+if($("#mdGhSave")) $("#mdGhSave").onclick=()=>{
+  const v=$("#mdGhRepo").value.trim()
+    .replace(/^https?:\/\/github\.com\//,"").replace(/\/+$/,"");
+  const tok=$("#mdGhTok").value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(v)) return ghMsg("「ユーザー名/リポジトリ名」の形で入れてください", false);
+  const g=ghCfg();
+  g.owner=v.split("/")[0]; g.repo=v.split("/")[1];
+  if(tok) g.token=tok;
+  g.branch=g.branch||"main"; g.path=g.path||"data.json";
+  try{ localStorage.setItem("sa-gh-v1", JSON.stringify(g)); }catch(e){}
+  if(typeof gh==="object"&&gh) Object.assign(gh,g);
+  $("#mdGhTok").value=""; $("#mdGhTok").placeholder="（この端末に保存ずみ）";
+  ghMsg("この端末に覚えました（開発者メニューと同じものを使います）");
+};
+if($("#mdGhOpen")) $("#mdGhOpen").onclick=()=>{
+  const sl=ghSlug();
+  if(!sl) return ghMsg("先にリポジトリ名を入れてください", false);
+  window.open(`https://github.com/${sl}/actions/workflows/prime-mood.yml`,"_blank");
+};
+if($("#mdGhRun")) $("#mdGhRun").onclick=async()=>{
+  const g=ghCfg(), sl=ghSlug();
+  const tok=$("#mdGhTok").value.trim()||g.token;
+  if(!sl||!tok) return ghMsg("リポジトリ名とトークンを入れて「この端末に覚えさせる」を押してください", false);
+  if(!await askYN("X の集計を実行しますか？",
+    "GitHub Actions を呼び出して、X API で件数を数えます。1回およそ $0.005 かかります。","実行する")) return;
+  const b=$("#mdGhRun"); b.disabled=true;
+  const before=(MOODST&&MOODST.x_at)||"";
+  ghMsg("GitHub に実行をお願いしています…");
+  try{
+    const r=await fetch(`https://api.github.com/repos/${sl}/actions/workflows/prime-mood.yml/dispatches`,
+      {method:"POST",headers:{"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json",
+        "X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},
+       body:JSON.stringify({ref:g.branch||"main"})});
+    if(r.status!==204){
+      let m="";
+      try{ m=(await r.json()).message||""; }catch(e){}
+      const hint=r.status===404?"リポジトリ名か prime-mood.yml の場所、トークンの権限を確かめてください"
+        :r.status===401?"トークンが違うか期限切れです"
+        :r.status===403?"トークンに Actions の書き込み権限がありません":"";
+      throw new Error(`GitHub が ${r.status} を返しました。${hint}${m?"（"+m+"）":""}`);
+    }
+    ghMsg("実行を始めました。数が入るまで待っています…");
+    /* 入るまで見張ります（最大3分）*/
+    for(let i=0;i<36;i++){
+      await new Promise(z=>setTimeout(z,5000));
+      let st=null;
+      try{ st=await sb("rpc/mood_status",{method:"POST",body:"{}"}); }catch(e){}
+      if(st&&st.x_at&&st.x_at!==before){
+        MOODST=st; mdWhenDraw();
+        await moodLoad(); moodDraw(); await mdLogDraw();
+        ghMsg(`入りました（${jstStamp(st.x_at)}／${esc(String(st.x_day||""))} は ${jp(+st.x_n||0)} 件）`);
+        b.disabled=false; return;
+      }
+      ghMsg(`実行中です… ${jp((i+1)*5)}秒`);
+    }
+    ghMsg("3分待っても入りませんでした。GitHub の実行画面で結果を見てください", false);
+  }catch(e){ ghMsg(String(e.message||e).slice(0,140), false); }
+  b.disabled=false;
 };
 
 /* ── 管理者のボタン ── */
@@ -11808,19 +12075,19 @@ const mdMsg=(t,ok)=>{ const e=$("#mdMsg"); if(e){ e.innerHTML=
   `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; } };
 if($("#mdRecount")) $("#mdRecount").onclick=async()=>{
   if(mdBusy) return;
-  if(!await askYN("過去のぶんも数えなおしますか？",
-    "いまの配点で、これまでの毎日の点をぜんぶ計算しなおします。"
-    +"Xの投稿数や提出の数は変わりません。","数えなおす")) return;
-  mdBusy=true; mdMsg("数えなおしています…");
+  if(!await askYN("過去のぶんも数え直しますか？",
+    "いまの配点で、これまでの毎日の点を全部計算し直します。"
+    +"Xの投稿数や提出の数は変わりません。","数え直す")) return;
+  mdBusy=true; mdMsg("数え直しています…");
   try{
     const r=await sbAuth("rpc/mood_recount",{method:"POST",body:JSON.stringify({p_days:400})});
-    await moodEnter(); mdMsg(`${jp((r&&r.days)||0)} 日ぶんを数えなおしました`);
+    await moodEnter(); mdMsg(`${jp((r&&r.days)||0)} 日ぶんを数え直しました`);
   }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
   mdBusy=false;
 };
 if($("#mdSnap")) $("#mdSnap").onclick=async()=>{
   if(mdBusy) return; mdBusy=true; mdMsg("数えています…");
-  try{ await sb("rpc/mood_snap",{method:"POST",body:"{}"}); await moodEnter(); mdMsg("数えなおしました"); }
+  try{ await sb("rpc/mood_snap",{method:"POST",body:"{}"}); await moodEnter(); mdMsg("数え直しました"); }
   catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
   mdBusy=false;
 };
@@ -11837,7 +12104,7 @@ if($("#mdGoalGo")) $("#mdGoalGo").onclick=async()=>{
   if(!(t>0)) return mdMsg("目標の点を入れてください", false);
   try{
     await sbAuth("rpc/mood_goal_set",{method:"POST",body:JSON.stringify({p_target:t,p_reward:r||3})});
-    await moodEnter(); mdMsg(`目標を ${jp(t)} 点・ごほうび ${jp(r||3)}枚 にしました`);
+    await moodEnter(); mdMsg(`目標を ${jp(t)} 点・ご褒美 ${jp(r||3)}枚 にしました`);
   }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
 };
 if($("#mdSecGo")) $("#mdSecGo").onclick=async()=>{
@@ -11845,7 +12112,7 @@ if($("#mdSecGo")) $("#mdSecGo").onclick=async()=>{
   if(v.length<8) return mdMsg("8文字以上にしてください", false);
   try{
     await sbAuth("rpc/secret_set",{method:"POST",body:JSON.stringify({p_key:"mood",p_value:v})});
-    mdMsg("合いことばを決めました。GitHub の Secrets に入れてください");
+    mdMsg("合言葉を決めました。GitHub の Secrets に入れてください");
     $("#mdSec").value="";
   }catch(e){ mdMsg(String(e.message||e).slice(0,80), false); }
 };
@@ -11907,7 +12174,7 @@ function renderCheer(){
     ? "押すにはログインが必要です。"
     : done
       ? `${chHalf||"いまの時間帯"}は50回ぶん押し切りました。${chHalf==="午前"?"12時":"あすの0時"}になるとまた押せます。`
-        +"（記録を出したときの3ポイントは、この回数とは別に入ります）"
+        +"（記録を出した時の3ポイントは、この回数とは別に入ります）"
       : (chLeft==null?"午前・午後それぞれ50回まで押せます（1日で最大100回）。"
          :`いまの時間帯はあと ${chLeft} 回押せます。`);
   $$("#chTabs button").forEach(b=>b.classList.toggle("on",b.dataset.cb===chTab));
@@ -12023,7 +12290,7 @@ function renderLoginBonus(){
       <div class="lsbox"><div class="t">持っている Prime Coin</div>
         <div class="v" style="font-size:1.8rem">${COIN} ${jp(+PC.coins||0)}</div>
         <div class="s">連続ログイン ${jp(+PC.streak||0)} 日</div></div>
-      <div class="lsbox"><div class="t">きょうのぶん</div>
+      <div class="lsbox"><div class="t">今日のぶん</div>
         <div class="v" style="font-size:1.4rem">${PC.got_today
           ?'<span style="color:var(--acc2)">受け取りずみ</span>'
           :'<span style="color:var(--warn)">まだです</span>'}</div>
@@ -12033,8 +12300,8 @@ function renderLoginBonus(){
     <p class="tiny" style="margin-top:8px">${esc(month.replace("-","年"))}月のカレンダー</p>
     ${calHTML(month)}
     <p class="tiny" style="margin-top:8px;color:var(--dim2)">
-      1つのアカウントにつき、1日1枚だけです。7日つづけてログインすると、その日にもう2枚入ります。
-      記録を出したときにも1日3枚までもらえます。</p>`;
+      1つのアカウントにつき、1日1枚だけです。7日続けてログインすると、その日にもう2枚入ります。
+      記録を出した時にも1日3枚までもらえます。</p>`;
   const g=$("#lbGet"); if(g) g.onclick=()=>claimLogin(false);
 }
 
@@ -12065,7 +12332,7 @@ function lbWindow(gain,bonus){
       <div class="big">${COIN}</div>
       <div class="got">＋${jp(gain)} Prime Coin</div>
       ${bonus?`<p class="tiny" style="color:var(--warn)">
-        ${jp(+PC.streak||0)}日つづけてログイン！ ボーナス ${COIN}×${jp(bonus)} も入りました</p>`:""}
+        ${jp(+PC.streak||0)}日続けてログイン！ ボーナス ${COIN}×${jp(bonus)} も入りました</p>`:""}
       <p class="tiny">いま ${COIN} ${jp(+PC.coins||0)} 枚　／　連続 ${jp(+PC.streak||0)} 日
         （あと ${jp(+PC.next_streak||0)} 日で ${COIN}×2）</p>
     </div>
@@ -12099,7 +12366,7 @@ async function claimParkCoins(){
    ══════════════════════════════════════════════════════════════ */
 const K_PAUSE="sa-pause-v1";
 let PAUSE=ls(K_PAUSE,{on:false});
-/** サーバーの合図を見に行きます。つながらないときは、前に見た合図を使います */
+/** サーバーの合図を見に行きます。つながらない時は、前に見た合図を使います */
 async function loadPause(){
   if(!sbOn()) return PAUSE;
   try{
@@ -12123,7 +12390,7 @@ function applyPause(){
     $("#pwWho").textContent=sess
       ? `${(me&&me.name)||(pro&&pro.name)||"ログイン中"} さんとしてログインしています（管理者ではありません）`
       : "";
-    $("#pwLogin").textContent=sess?"役職をたしかめる":"管理者の方はこちら";
+    $("#pwLogin").textContent=sess?"役職を確かめる":"管理者の方はこちら";
   }else if(PAUSE&&PAUSE.on){
     /* 管理者には、止まっていることを知らせます */
     const b=$("#pauseBanner");
@@ -12131,7 +12398,7 @@ function applyPause(){
       b.innerHTML=`<b>いま公開を止めています</b>　`
         +`ほかの人には「お休み中」の画面だけが出ています。`
         +`<span class="tiny">（${esc(PAUSE.at||"")}）</span>　`
-        +`<button class="btn sm" id="pbGo">開発者メニューでもどす</button>`;
+        +`<button class="btn sm" id="pbGo">開発者メニューで戻す</button>`;
       const g=$("#pbGo"); if(g) g.onclick=()=>{ try{ openDev(); }catch(e){} };
     }
   }
@@ -12161,7 +12428,7 @@ setInterval(async()=>{
   else applyPause();
 },30000);
 
-/** 起動したときに1回だけ。1日1回しか出しません */
+/** 起動した時に1回だけ。1日1回しか出しません */
 async function loginBonusBoot(){
   if(TEST||!(sess&&sbOn())) return;
   const today=jstDay(new Date());
@@ -12186,7 +12453,7 @@ function renderCoins(){
   have.innerHTML=`${COIN} ${jp(n)}`;
   const note=$("#pcNote");
   if(note) note.textContent=PC
-    ? `きょうの記録ぶん あと ${jp(+PC.submits_left||0)} 枚まで`
+    ? `今日の記録ぶん あと ${jp(+PC.submits_left||0)} 枚まで`
     : "—";
   pcUse=Math.max(1,Math.min(Math.max(1,n),pcUse));
   const u=$("#pcUse"); if(u) u.textContent=jp(pcUse);
@@ -12317,15 +12584,15 @@ function cheerSubmit(){
 
 /* ---- 11) ヘルプ ---- */
 const HELP={
-role:`<h3>審査のしくみ</h3>
-<p class="tiny">出された記録は、3段階の確認を通ってはじめて公式の記録になります。</p>
+role:`<h3>審査の仕組み</h3>
+<p class="tiny">出された記録は、3段階の確認を通って初めて公式の記録になります。</p>
 <div class="scroll"><table><thead><tr><th>段階</th><th>だれが</th><th>すること</th><th>記録の色</th></tr></thead><tbody>
 <tr><td>提出</td><td>だれでも</td><td>大会・チャレンジに記録と動画を出す</td><td><span class="sbval st-pending" style="font-size:1rem">灰色</span></td></tr>
 <tr><td>① 審査</td><td>審査員</td><td>動画と数値を見比べて 承認／修正／却下</td><td><span class="sbval st-judged" style="font-size:1rem">黄色</span></td></tr>
 <tr><td>② 審査員審査</td><td>スーパーバイザー</td><td>①が正しかったかを確認して 認定／修正</td><td><span class="sbval st-certified" style="font-size:1rem">白く光る</span></td></tr>
 <tr><td>③ スーパーバイザー審査</td><td>ジャッジマン</td><td>②が正しかったかを確認</td><td>—</td></tr>
 </tbody></table></div>
-<h3 style="margin-top:16px">ひとりで二役はできません</h3>
+<h3 style="margin-top:16px">一人で二役はできません</h3>
 <p class="tiny">同じ記録について、審査した人がその審査員審査をすることはできません。
 つねに別の人が見るようにして、公平さを保っています。</p>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
@@ -12364,9 +12631,9 @@ role:`<h3>審査のしくみ</h3>
 ・審査件数が50件を超えている</span></div>
 <h3 style="margin-top:16px">却下されたら</h3>
 <p class="tiny">却下には必ず理由が付きます。理由は提出した人だけが読めます。
-納得できないときは、その記録から不服を申し立てられます。ジャッジマンが確認します。</p>`,
+納得できない時は、その記録から不服を申し立てられます。ジャッジマンが確認します。</p>`,
 
-cup:`<h3>大会とチャレンジのちがい</h3>
+cup:`<h3>大会とチャレンジの違い</h3>
 <div class="scroll"><table><thead><tr><th></th><th>チャレンジ</th><th>競技会</th></tr></thead><tbody>
 <tr><td>だれが開ける</td><td>だれでも</td><td>サポーター以上</td></tr>
 <tr><td>ルールの作り方</td><td>順番・連続・ノーミスを組み合わせる</td><td>種目と期間を決める</td></tr>
@@ -12469,13 +12736,13 @@ CONCATENATE／VLOOKUP</p>
 <h3 style="margin-top:16px">タイムラインへの投稿</h3>
 <p class="tiny">達成すると <b style="color:#ffd45e">#公式アチーブメント</b> または
 <b style="color:#ffd45e">#みんなのアチーブメント</b> の金色タグが自動で付きます。
-公式は<b>達成したときだけ</b>流れます。設定タブで止められます。</p>`,
+公式は<b>達成した時だけ</b>流れます。設定タブで止められます。</p>`,
 
-award:`<h3>ごほうびは3種類</h3>
-<div class="scroll"><table><thead><tr><th></th><th>もらえるとき</th><th>経験値</th><th>どこに出る</th></tr></thead><tbody>
+award:`<h3>ご褒美は3種類</h3>
+<div class="scroll"><table><thead><tr><th></th><th>もらえる時</th><th>経験値</th><th>どこに出る</th></tr></thead><tbody>
 <tr><td><b style="color:#ffd45e">スター</b></td><td>チャレンジの期間ごとの上位3人</td><td>1個 5 XP</td><td>プロフィール右上・カード</td></tr>
-<tr><td><b>トロフィー</b></td><td>競技会で優勝したとき</td><td>1個 50 XP</td><td>プロフィール右上・カード</td></tr>
-<tr><td><b>メダル</b></td><td>アチーブメントを達成したとき</td><td>ランクによる</td><td>アチーブメントの棚</td></tr>
+<tr><td><b>トロフィー</b></td><td>競技会で優勝した時</td><td>1個 50 XP</td><td>プロフィール右上・カード</td></tr>
+<tr><td><b>メダル</b></td><td>アチーブメントを達成した時</td><td>ランクによる</td><td>アチーブメントの棚</td></tr>
 </tbody></table></div>
 
 <h3 style="margin-top:16px">スターのもらい方</h3>
@@ -12501,7 +12768,7 @@ award:`<h3>ごほうびは3種類</h3>
 合計 <b>240個</b>（1,200 XP ＝ 約4.8レベル）</span></div>
 
 <h3 style="margin-top:16px">順位の決め方</h3>
-<p class="tiny"><b>その期間に出した中でいちばん良い記録</b>で競います。通算の最高記録ではありません。</p>
+<p class="tiny"><b>その期間に出した中で一番良い記録</b>で競います。通算の最高記録ではありません。</p>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
   7/20 に 300点   ┐
   7/21 に 500点   ├─ 7/21 の Daily は 500点で勝負
@@ -12512,20 +12779,20 @@ award:`<h3>ごほうびは3種類</h3>
 同点は同じ順位（1T のように T が付きます）で、どちらにもスターが入ります。</p>
 
 <h3 style="margin-top:16px">トロフィーのもらい方</h3>
-<p class="tiny">競技会（サポーター以上が開けるもの）が<b>終了したとき</b>、合計スコアが1位だった人に1個入ります。
+<p class="tiny">競技会（サポーター以上が開けるもの）が<b>終了した時</b>、合計スコアが1位だった人に1個入ります。
 チャレンジではトロフィーは出ません。</p>
 
 <h3 style="margin-top:16px">いつ配られるか</h3>
-<p class="tiny">期間が終わったあと、誰かが Prime SNS を開いたときにまとめて配られます。
+<p class="tiny">期間が終わったあと、誰かが Prime SNS を開いた時にまとめて配られます。
 <b>同じぶんが二重に配られることはありません。</b>もらったものはプロフィールとカードの右上に出ます。</p>
 
 <h3 style="margin-top:16px">Prime Coin</h3>
 <p class="tiny">応援ボタンを押し切ったあとに、続けて連打するためのコインです。</p>
 <div class="scroll"><table><thead><tr><th>もらい方</th><th>枚数</th><th>上限</th></tr></thead><tbody>
 <tr><td>ログインボーナス</td><td><span class="pcoin">P</span>×1</td><td>1日1枚だけ</td></tr>
-<tr><td>7日つづけてログイン</td><td><span class="pcoin">P</span>×2</td><td>7日ごとに1回</td></tr>
+<tr><td>7日続けてログイン</td><td><span class="pcoin">P</span>×2</td><td>7日ごとに1回</td></tr>
 <tr><td>チャレンジ・競技会に記録を出す</td><td><span class="pcoin">P</span>×1</td><td>1日3枚まで</td></tr>
-<tr><td>Prime Park のアトラクションを1回あそぶ</td><td><span class="pcoin">P</span>×1</td><td>1点以上とるか3桁以上を出したとき</td></tr>
+<tr><td>Prime Park のアトラクションを1回遊ぶ</td><td><span class="pcoin">P</span>×1</td><td>1点以上とるか3桁以上を出した時</td></tr>
 </tbody></table></div>
 <p class="tiny"><b>1つのアカウントにつき、ログインボーナスは1日1枚きりです。</b>
 何回開き直しても、別の端末から入っても増えません（日本時間で数えています）。</p>
@@ -12555,7 +12822,7 @@ tool:`<h3>画面の地図</h3>
 
 <h3 style="margin-top:16px">個人データ入力</h3>
 <div class="scroll"><table><thead><tr><th>すること</th><th>やり方</th></tr></thead><tbody>
-<tr><td>記録を入れる</td><td>いちばん上の「個人データを入力する」を押してから書き換えます</td></tr>
+<tr><td>記録を入れる</td><td>一番上の「個人データを入力する」を押してから書き換えます</td></tr>
 <tr><td>合計スコア</td><td><b>自動で計算</b>されます（十種競技9種目の合計）。手では入れられません</td></tr>
 <tr><td>タイムアタック系</td><td>種目名の隣に（単位:秒）と出ます。秒数を入れてください</td></tr>
 <tr><td>いまのボーダー</td><td>「現在のボーダーラインを見る」</td></tr>
@@ -12572,21 +12839,21 @@ tool:`<h3>画面の地図</h3>
                     │
               終了して記録する ──▶ やりこみ記録に残る
 </pre>
-<div class="scroll"><table><thead><tr><th>ことば</th><th>意味</th></tr></thead><tbody>
+<div class="scroll"><table><thead><tr><th>言葉</th><th>意味</th></tr></thead><tbody>
 <tr><td>今回の増加</td><td>いまの1回ぶんから数えた増加（スタートごとに0に戻ります）</td></tr>
 <tr><td><b>現在までの増加</b></td><td>リセットを押すまで足し続ける増加。<b>累積の見込みはこちらを使います</b></td></tr>
 <tr><td>目標値／あと／残り回数</td><td>白＝目標の数字、緑＝そこまでの残り、黄＝あと何回まわせばよいか</td></tr>
 </tbody></table></div>
 <p class="tiny">累積を手で書き換えると、そのぶんも「現在までの増加」に取り込まれます。
-リセットを押すと、そのときの累積が新しい基準になります。</p>
+リセットを押すと、その時の累積が新しい基準になります。</p>
 <div class="scroll" style="margin-top:10px"><table><thead><tr><th>回数</th><th>鳴る音</th></tr></thead><tbody>
-<tr><td>ふつう</td><td>短い2音</td></tr>
+<tr><td>普通</td><td>短い2音</td></tr>
 <tr><td>5の倍数</td><td>3音</td></tr>
 <tr><td>10の倍数</td><td>4音</td></tr>
 <tr><td>50の倍数</td><td>5音</td></tr>
-<tr><td>100の倍数</td><td>7音（いちばん華やか）</td></tr>
+<tr><td>100の倍数</td><td>7音（一番華やか）</td></tr>
 </tbody></table></div>
-<p class="tiny">重なったときは<b>大きい数のほうが優先</b>です。50回目は「50の倍数の音」だけが鳴ります。</p>
+<p class="tiny">重なった時は<b>大きい数のほうが優先</b>です。50回目は「50の倍数の音」だけが鳴ります。</p>
 
 <h3 style="margin-top:16px">プランと分析</h3>
 <div class="scroll"><table><thead><tr><th>道具</th><th>できること</th></tr></thead><tbody>
@@ -12632,14 +12899,14 @@ moodAdmin:`<h3 style="margin-top:16px">── ここから下は管理者向け�
 <p class="tiny" style="color:var(--warn)">2026年2月から無料枠はなくなり、使った分だけ払う形になりました。
 クレジットは Developer Console で買います。<b>支出上限（Spending limit）を必ず設定してください。</b></p>
 
-<h3 style="margin-top:16px">② 料金と更新のかんかく</h3>
+<h3 style="margin-top:16px">② 料金と更新の間隔</h3>
 <p class="tiny">使うのは <b>counts/recent</b>（件数だけを返すもの）で、<b>1回 $0.005</b> です。
 投稿の本文は取らないので、これだけで済みます。</p>
-<p class="tiny">1時間ごとの件数でもらって、<b>日本時間の 0:00〜24:00 で区切りなおして</b>います。
+<p class="tiny">1時間ごとの件数でもらって、<b>日本時間の 0:00〜24:00 で区切り直して</b>います。
 UTC のまま日別でもらうと9時間ずれるためです。細かくもらっても料金は同じ（1リクエスト $0.005）です。<br>
-いちばん古い日は「途中から」しか取れないので、その日は送りません
+一番古い日は「途中から」しか取れないので、その日は送りません
 （前に正しく入れた数を、少ない数で上書きしないためです）。</p>
-<div class="scroll"><table><thead><tr><th>かんかく</th><th class="n">1日</th><th class="n">1か月</th>
+<div class="scroll"><table><thead><tr><th>間隔</th><th class="n">1日</th><th class="n">1か月</th>
 <th class="n">1年</th><th>$5 で</th></tr></thead><tbody>
 <tr><td>1日1回</td><td class="n">1回</td><td class="n">$0.15</td><td class="n">$1.83</td><td>約2年8か月</td></tr>
 <tr><td><b>12時間おき</b></td><td class="n">2回</td><td class="n">$0.30</td><td class="n">$3.65</td><td>約1年4か月</td></tr>
@@ -12650,26 +12917,26 @@ UTC のまま日別でもらうと9時間ずれるためです。細かくもら
 <p class="tiny"><b>1日1回で十分です。</b>counts/recent は「直近7日ぶん」をまとめて返すので、
 1日1回でも取りこぼしません。回数を増やして分かるのは「今日の途中までの数」だけです。<br>
 <b>prime-mood.yml は 1日1回（日本時間 0:10）になっています。</b>
-12時間おきにしたいときは、yml の中の
+12時間おきにしたい時は、yml の中の
 <span class="mono"># - cron: "10 3 * * *"</span> の <span class="mono">#</span> を外してください。<br>
 ハッシュタグを何個に増やしても、<b>1回のお願いでまとめて数える</b>ので料金は増えません。</p>
 
-<h3 style="margin-top:16px">③ 合いことばを決める</h3>
-<p class="tiny">Prime Mood タブのいちばん下（管理者だけに出ます）で、
-<b>合いことば</b>を決めて「合いことばを決める」を押します。8文字以上にしてください。</p>
+<h3 style="margin-top:16px">③ 合言葉を決める</h3>
+<p class="tiny">Prime Mood タブの一番下（管理者だけに出ます）で、
+<b>合言葉</b>を決めて「合言葉を決める」を押します。8文字以上にしてください。</p>
 
 <h3 style="margin-top:16px">④ GitHub に入れる</h3>
 <p class="tiny">リポジトリの <b>Settings → Secrets and variables → Actions</b> で、
 「New repository secret」から <b>2つだけ</b>入れます。</p>
 <div class="scroll"><table><thead><tr><th>名前</th><th>中身</th></tr></thead><tbody>
 <tr><td class="mono">X_BEARER</td><td>①でコピーした Bearer Token</td></tr>
-<tr><td class="mono">MOOD_TOKEN</td><td>③で決めた合いことば</td></tr>
+<tr><td class="mono">MOOD_TOKEN</td><td>③で決めた合言葉</td></tr>
 </tbody></table></div>
 <p class="tiny">Supabase の URL と公開キーは、もともと index.html に書いてあって
 <b>隠す必要のない値</b>なので、yml の中に直接書いてあります。秘密にするのはこの2つだけです。</p>
-<p class="tiny">つぎに、<b>prime-mood.yml</b> というファイルを
+<p class="tiny">次に、<b>prime-mood.yml</b> というファイルを
 <span class="mono">.github/workflows/prime-mood.yml</span> に置きます。
-<b>置くだけで、毎日ひとりで動きます。</b>Actions タブの「Run workflow」で手動でも動かせます。<br>
+<b>置くだけで、毎日一人で動きます。</b>Actions タブの「Run workflow」で手動でも動かせます。<br>
 <span style="color:var(--dim2)">※ yml の中身は公開されても大丈夫です。ほんとうの秘密は
 <span class="mono">\${{ secrets.… }}</span> という書き方で外から読み込むので、ファイルには入りません。</span></p>
 <p class="tiny" style="color:var(--warn)">※ GitHub の決まりで、<b>60日間そのリポジトリに何も変更がないと自動実行が止まります。</b>
@@ -12677,28 +12944,28 @@ UTC のまま日別でもらうと9時間ずれるためです。細かくもら
 ※ 決まった時刻ぴったりには動かず、数分〜十数分おくれることがあります（GitHub の混み具合によります）。</p>
 
 <h3 style="margin-top:16px">⑤ 管理者メニューのボタン</h3>
-<p class="tiny">Prime Mood タブのいちばん下（管理者だけに出ます）に、4つのタブがあります。</p>
+<p class="tiny">Prime Mood タブの一番下（管理者だけに出ます）に、4つのタブがあります。</p>
 <div class="scroll"><table><thead><tr><th>タブ</th><th>できること</th><th>お金</th></tr></thead><tbody>
-<tr><td><b>更新する</b></td><td>いますぐ数えなおす／過去のぶんも数えなおす／X の件数を手で入れる／今週の目標を決める</td><td>かかりません</td></tr>
+<tr><td><b>更新する</b></td><td>いますぐ数え直す／過去のぶんも数え直す／X の件数を手で入れる／今週の目標を決める</td><td>かかりません</td></tr>
 <tr><td><b>ハッシュタグ</b></td><td>数えるタグを増やす・変える・消す。おまけの条件も足せます</td><td>かかりません</td></tr>
-<tr><td><b>配点とことば</b></td><td>何を何点にするか、満点、点ごとのことばと色、点の文字の形</td><td>かかりません</td></tr>
-<tr><td><b>つなぎこみ</b></td><td>合いことば（MOOD_TOKEN）を決めます</td><td>かかりません</td></tr>
+<tr><td><b>配点と言葉</b></td><td>何を何点にするか、満点、点ごとの言葉と色、点の文字の形</td><td>かかりません</td></tr>
+<tr><td><b>つなぎこみ</b></td><td>合言葉（MOOD_TOKEN）を決めます</td><td>かかりません</td></tr>
 </tbody></table></div>
 <p class="tiny"><b>X に聞きにいくのは GitHub Actions だけ</b>です。
 アプリのボタンからは X を呼びません（勝手に課金されないようにするためです）。
-X の数を今すぐ知りたいときは、GitHub の Actions タブから手で動かしてください。</p>
+X の数を今すぐ知りたい時は、GitHub の Actions タブから手で動かしてください。</p>
 
 <h3 style="margin-top:16px">⑥ ハッシュタグを増やす・変える</h3>
 <p class="tiny">「ハッシュタグ」タブで <b>＋ タグを増やす</b> を押して、名前を入れるだけです。
 <span class="mono">#</span> は付けても付けなくてもよいです（勝手に整えます）。</p>
 <p class="tiny">下の「お願いの文」に、実際に X に送る文がそのまま出ます。</p>
 <div class="scroll"><table><tbody>
-<tr><td>1つのとき</td><td class="mono">#素数あつめ -is:retweet</td></tr>
+<tr><td>1つの時</td><td class="mono">#素数あつめ -is:retweet</td></tr>
 <tr><td>2つ以上</td><td class="mono">(#素数あつめ OR #素数大富豪) -is:retweet</td></tr>
 </tbody></table></div>
 <p class="tiny">「おまけの条件」はそのまま後ろに付きます。よく使うもの：</p>
 <div class="scroll"><table><thead><tr><th>書きかた</th><th>意味</th></tr></thead><tbody>
-<tr><td class="mono">-is:retweet</td><td>リポストを数えない（おすすめ）</td></tr>
+<tr><td class="mono">-is:retweet</td><td>リポストを数えない（お勧め）</td></tr>
 <tr><td class="mono">-is:reply</td><td>返信を数えない</td></tr>
 <tr><td class="mono">lang:ja</td><td>日本語の投稿だけ数える</td></tr>
 <tr><td class="mono">has:images</td><td>画像つきだけ数える</td></tr>
@@ -12711,32 +12978,32 @@ X の数を今すぐ知りたいときは、GitHub の Actions タブから手�
 （X は過去7日ぶんしか数えられないので、それより前はさかのぼれません）。</p>
 
 <h3 style="margin-top:16px">⑦ 配点・満点を変える</h3>
-<p class="tiny">「配点とことば」タブで、7つの行動それぞれに <b>0〜99点</b>を付けられます。
+<p class="tiny">「配点と言葉」タブで、7つの行動それぞれに <b>0〜99点</b>を付けられます。
 <b>0点</b>にすると、その行動は点になりません（ヘルプの表にも「数えません」と出ます）。</p>
 <p class="tiny"><b>満点</b>は、メーターがいっぱいになる点です。ふだんの1日の点の
 2〜3倍くらいにしておくと、針の動きが分かりやすくなります。</p>
-<p class="tiny" style="color:var(--warn)"><b>配点を変えたら「過去のぶんも数えなおす」を押してください。</b>
+<p class="tiny" style="color:var(--warn)"><b>配点を変えたら「過去のぶんも数え直す」を押してください。</b>
 押さないと、前の日は古い配点の点のままで、グラフが途中で段になります。
-（X の投稿数や提出の数そのものは変わりません。点だけ計算しなおします。）</p>
+（X の投稿数や提出の数そのものは変わりません。点だけ計算し直します。）</p>
 
-<h3 style="margin-top:16px">⑧ 点ごとのことばを変える</h3>
-<p class="tiny">「この点から」に区切りの点、その右にことば、いちばん右に色を入れます。
-<b>いちばん下の行は必ず 0点から</b>になります（並び順は保存するとき自動で直します）。</p>
-<div class="scroll"><table><thead><tr><th class="n">この点から</th><th>ことば</th><th>出る範囲</th></tr></thead><tbody>
-<tr><td class="n">0</td><td>しずかな日</td><td>0〜19点</td></tr>
+<h3 style="margin-top:16px">⑧ 点ごとの言葉を変える</h3>
+<p class="tiny">「この点から」に区切りの点、その右に言葉、一番右に色を入れます。
+<b>一番下の行は必ず 0点から</b>になります（並び順は保存する時自動で直します）。</p>
+<div class="scroll"><table><thead><tr><th class="n">この点から</th><th>言葉</th><th>出る範囲</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>静かな日</td><td>0〜19点</td></tr>
 <tr><td class="n">20</td><td>ぽつぽつ</td><td>20〜59点</td></tr>
-<tr><td class="n">60</td><td>あたたかい</td><td>60点〜つぎの区切りまで</td></tr>
+<tr><td class="n">60</td><td>温かい</td><td>60点〜次の区切りまで</td></tr>
 </tbody></table></div>
-<p class="tiny">ことばを空にした行は、保存のときに消えます。行ごと消したいときは「消す」を押してください。
-「はじめに戻す」で最初の6段階に戻ります。</p>
+<p class="tiny">言葉を空にした行は、保存の時に消えます。行ごと消したい時は「消す」を押してください。
+「初期値に戻す」で最初の6段階に戻ります。</p>
 
 <h3 style="margin-top:16px">⑨ 点の文字の形を変える</h3>
 <p class="tiny">「文字のかたち」で選べます。すぐ下に見本が出ます。</p>
 <div class="scroll"><table><thead><tr><th>名前</th><th>見え方</th></tr></thead><tbody>
 <tr><td>等幅（既定）</td><td>数字の幅がそろうので、増えても位置がずれません</td></tr>
-<tr><td>ゴシック</td><td>ふつうの太めの字</td></tr>
-<tr><td>明朝</td><td>すこし上品な字</td></tr>
-<tr><td>丸ゴシック</td><td>やわらかい字</td></tr>
+<tr><td>ゴシック</td><td>普通の太めの字</td></tr>
+<tr><td>明朝</td><td>少し上品な字</td></tr>
+<tr><td>丸ゴシック</td><td>柔らかい字</td></tr>
 <tr><td>インパクト</td><td>とても太い字（お祭り向け）</td></tr>
 <tr><td>HGPゴシックE</td><td>その端末に入っていれば使われます。無ければゴシックになります</td></tr>
 <tr><td>Georgia</td><td>欧文の数字がきれい</td></tr>
@@ -12744,38 +13011,81 @@ X の数を今すぐ知りたいときは、GitHub の Actions タブから手�
 </tbody></table></div>
 <p class="tiny">端末に入っていない字は、自動でにたものに置きかわります（画面がこわれることはありません）。</p>
 
-<h3 style="margin-top:16px">⑩ 保存と取り消し</h3>
+<h3 style="margin-top:16px">⑩ この画面から X の集計を実行する</h3>
+<p class="tiny">「つなぎこみ」タブの下に、<b>X の集計を実行する（API）</b>があります。
+押すと GitHub Actions が動いて、X API で件数を数えて入れます。数が入るまで画面が待ちます（最大3分）。</p>
+<div class="scroll"><table><thead><tr><th>入れるもの</th><th>中身</th></tr></thead><tbody>
+<tr><td>ユーザー名/リポジトリ名</td><td class="mono">Syuutowassyoi/prime-number-rating-system</td></tr>
+<tr><td>個人アクセストークン</td><td>GitHub → Settings → Developer settings → Fine-grained tokens</td></tr>
+</tbody></table></div>
+<p class="tiny">トークンの権限は <b>Actions: Read and write</b> が必要です
+（data.json も更新するなら <b>Contents: Read and write</b> も付けてください）。
+開発者メニューに入れたものと同じ場所に保存されるので、すでに入れていれば自動で出ます。</p>
+<p class="tiny" style="color:var(--warn)"><b>なぜ直接 X を呼ばないのか</b>：
+このサイトは静的ページなので、X の Bearer Token をページに書くと、開いた人全員に見えてしまいます。
+また X API はブラウザからの直接呼び出しを許していません（CORS）。
+そのため、<b>トークンを持っている GitHub Actions を呼び出す</b>形にしています。
+GitHub のトークンはこの端末の中だけに保存され、サーバーにも index.html にも書き込まれません。</p>
+<p class="tiny">1回の実行で <b>$0.005</b> かかります。押しすぎに気をつけてください。</p>
+
+<h3 style="margin-top:16px">⑪ 反映ログ ── 全員に届いたかを確かめる</h3>
+<p class="tiny">「反映ログ」タブに、<b>誰が・いつ・何を変えたか</b>が残ります。
+GitHub Actions が X の件数を入れた時も残るので、自動集計が動いているかもここで分かります。</p>
+<div class="scroll"><table><thead><tr><th>種類</th><th>残るもの</th></tr></thead><tbody>
+<tr><td>設定</td><td>ハッシュタグ・配点・言葉・文字を変えた</td></tr>
+<tr><td>数え直し</td><td>過去のぶんを計算し直した</td></tr>
+<tr><td>X の集計</td><td>何日ぶんの投稿数が入ったか</td></tr>
+<tr><td>今週の目標</td><td>目標の点とご褒美の枚数</td></tr>
+<tr><td>合言葉・公開</td><td>合言葉を決め直した／サイトを止めた・再開した</td></tr>
+</tbody></table></div>
+<p class="tiny"><b>いま全員に見えている設定を確かめる</b>を押すと、
+<b>ログインしていない人と同じ立場</b>でサーバーを読み直して、画面の中身と1つずつ照らし合わせます。
+「✓ 全員に反映されています」と出れば確実です。<br>
+すでにアプリを開いている人には、次に Prime Mood タブを開いた時（または再読み込み時）に反映されます。</p>
+
+<h3 style="margin-top:16px">⑫ 保存と取り消し</h3>
 <div class="scroll"><table><tbody>
 <tr><td><b>この設定を保存する</b></td><td>全員に反映されます。ヘルプの表も自動で書きかわります</td></tr>
-<tr><td><b>保存せずに読みなおす</b></td><td>いま画面でいじった分を捨てて、保存済みの中身に戻します</td></tr>
+<tr><td><b>保存せずに読み直す</b></td><td>いま画面でいじった分を捨てて、保存済みの中身に戻します</td></tr>
 </tbody></table></div>
 <p class="tiny">設定は Supabase の <span class="mono">app_state</span> に入ります。
 変えられるのは<b>管理者だけ</b>で、読むのは誰でもできます（表示に必要なので）。</p>`,
 
 mood:`<h3>Prime Mood とは</h3>
 <p class="tiny">素数あつめ界隈が、いまどれくらい盛り上がっているかを1つの数字にしたものです。<br>
-<b>誰かと競うものではありません。</b>みんなの行動がぜんぶ、同じ1つの数字に積み上がります。</p>
+<b>誰かと競うものではありません。</b>みんなの行動が全部、同じ1つの数字に積み上がります。</p>
 
-<h3 style="margin-top:16px">なにが点になるか</h3>
+<h3 style="margin-top:16px">何が点になるか</h3>
 {{MOODPTS}}
-<p class="tiny">1日の合計が「きょうのもりあがり度」です。数が大きいほど熱い言葉に変わります。</p>
+<p class="tiny">1日の合計が「今日の盛り上がり度」です。数が大きいほど熱い言葉に変わります。</p>
 {{MOODWORDS}}
 
 <h3 style="margin-top:16px">今週の目標</h3>
 <p class="tiny">1週間（月曜〜日曜）の合計が目標に届くと、<b>その週に来た人みんな</b>に
 Prime Coin が入ります。<br>
-ひとりががんばるより、みんなが少しずつ動いたほうが早く届きます。<br>
+一人ががんばるより、みんなが少しずつ動いたほうが早く届きます。<br>
 受け取るには、その週にログインボーナスを受け取っておいてください（ホームタブ）。</p>
-<p class="tiny">1週に1回だけ受け取れます。目標の点とごほうびの枚数は、管理者が決めます。</p>
+<p class="tiny">1週に1回だけ受け取れます。目標の点とご褒美の枚数は、管理者が決めます。</p>
+
+<h3 style="margin-top:16px">ムード値とは</h3>
+<p class="tiny">画面の一番上に出ている数字が <b>ムード値</b>です。
+その日1日の点ではなく、<b>直近7日間の平均得点</b>を、小数第2位まで出しています。<br>
+1日だけ大きく動いても急には変わらないので、界隈の調子をならして見られます。
+記録がない日は 0 点として数えます。</p>
 
 <h3 style="margin-top:16px">記録の見かた</h3>
 <p class="tiny">1日ごと・1週間ごと・1か月ごとに切り替えられます。
-グラフの下の表に、それぞれの内訳（Xの投稿数・提出・つぶやき・人数など）が出ます。</p>
+グラフの下の表に、点になる4つの内訳（X の投稿・アチーブメント達成・記録の提出・大会への提出）が出ます。</p>
+
+<h3 style="margin-top:16px">更新の時刻</h3>
+<p class="tiny">メーターの下に <b>最終更新</b>（X の投稿数が最後に入った時刻）と
+<b>次回更新予定</b>が出ます。予定の時刻は管理者が決めています。
+自動集計は数分おくれることがあります。</p>
 
 <h3 style="margin-top:16px">X の投稿数について</h3>
 <p class="tiny">X の投稿数だけは、アプリの中では数えられないので、外から入れています。
-入っていない日は 0 になります。<b>管理者が「更新する」を押すと、その場で数えなおします。</b><br>
-数える言葉（ハッシュタグ）・配点・ことばは、管理者が決めています。
+入っていない日は 0 になります。<b>管理者が「更新する」を押すと、その場で数え直します。</b><br>
+数える言葉（ハッシュタグ）・配点・言葉は、管理者が決めています。
 上の表は、いま決まっている中身をそのまま出しています。</p>`,
 
 rule:`<h3>利用規約</h3>
@@ -12787,7 +13097,7 @@ rule:`<h3>利用規約</h3>
 記録の投稿・大会・アチーブメント・タイムラインなどの機能があります。
 運営は個人（syuuto）で、法人ではありません。</p>
 
-<h3 style="margin-top:16px">2. 使うときの決まり</h3>
+<h3 style="margin-top:16px">2. 使う時の決まり</h3>
 <div class="scroll"><table><thead><tr><th>してはいけないこと</th></tr></thead><tbody>
 <tr><td>うその記録を出すこと</td></tr>
 <tr><td>ほかの人を傷つける言葉を書くこと</td></tr>
@@ -12796,7 +13106,7 @@ rule:`<h3>利用規約</h3>
 <tr><td>法律に反すること、法律に反するおそれのあること</td></tr>
 <tr><td>本サイトの仕組みをこわすこと、大量の通信を送りつけること</td></tr>
 </tbody></table></div>
-<p class="tiny">守られていないと運営が判断したときは、投稿の削除・役職の取り消し・利用のお断りをすることがあります。</p>
+<p class="tiny">守られていないと運営が判断した時は、投稿の削除・役職の取り消し・利用のお断りをすることがあります。</p>
 
 <h3 style="margin-top:16px">3. 投稿できる場所</h3>
 <p class="tiny">タイムラインと部屋への投稿は、<b>誰でも読める公開の場</b>です。
@@ -12817,15 +13127,15 @@ rule:`<h3>利用規約</h3>
 <h3 style="margin-top:16px">6. Prime Coin について</h3>
 <p class="tiny">Prime Coin は本サイトの中だけのしるしです。
 <b>お金と交換したり、売り買いしたりはできません。</b>他の人にわたすこともできません。
-運営がやめたときに、なくなります。</p>
+運営がやめた時に、なくなります。</p>
 
 <h3 style="margin-top:16px">7. 通報と削除のお願い</h3>
-<p class="tiny">傷つけられた・自分の記録を勝手に使われた、というときは、投稿の「・・・」から通報してください。
+<p class="tiny">傷つけられた・自分の記録を勝手に使われた、という時は、投稿の「・・・」から通報してください。
 運営が見て、必要があれば消します。<br>
-運営に直接伝えたいときは、<b>設定タブの「開発者に伝える」</b>から送ってください。</p>
+運営に直接伝えたい時は、<b>設定タブの「開発者に伝える」</b>から送ってください。</p>
 
 <h3 style="margin-top:16px">8. 決まりの変更</h3>
-<p class="tiny">この決まりは、必要に応じて変えます。変えたときは、このページを直します。</p>
+<p class="tiny">この決まりは、必要に応じて変えます。変えた時は、このページを直します。</p>
 <p class="tiny" style="margin-top:12px;color:var(--dim2)">最後に直した日：2026年8月</p>`,
 
 privacy:`<h3>プライバシーポリシー</h3>
@@ -12833,24 +13143,24 @@ privacy:`<h3>プライバシーポリシー</h3>
 
 <h3 style="margin-top:16px">1. あずかる情報</h3>
 <div class="scroll"><table><thead><tr><th>なに</th><th>いつ</th><th>なぜ</th></tr></thead><tbody>
-<tr><td>メールアドレス</td><td>Google でログインしたとき</td><td>あなたのアカウントを見分けるため</td></tr>
-<tr><td>プレイヤーネーム・@ID・アイコン・自己紹介</td><td>あなたが入れたとき</td><td>ランキングやプロフィールに出すため</td></tr>
-<tr><td>素数ゲームの記録・RATING</td><td>あなたが入れたとき</td><td>計算とランキングのため</td></tr>
-<tr><td>提出した記録・証明のリンク</td><td>あなたが出したとき</td><td>審査のため</td></tr>
-<tr><td>投稿の文とリンク</td><td>あなたが書いたとき</td><td>タイムラインに出すため</td></tr>
-<tr><td>ログインした日・遊んだ記録</td><td>使ったとき</td><td>ログインボーナスと「あなたの軌跡」のため</td></tr>
+<tr><td>メールアドレス</td><td>Google でログインした時</td><td>あなたのアカウントを見分けるため</td></tr>
+<tr><td>プレイヤーネーム・@ID・アイコン・自己紹介</td><td>あなたが入れた時</td><td>ランキングやプロフィールに出すため</td></tr>
+<tr><td>素数ゲームの記録・RATING</td><td>あなたが入れた時</td><td>計算とランキングのため</td></tr>
+<tr><td>提出した記録・証明のリンク</td><td>あなたが出した時</td><td>審査のため</td></tr>
+<tr><td>投稿の文とリンク</td><td>あなたが書いた時</td><td>タイムラインに出すため</td></tr>
+<tr><td>ログインした日・遊んだ記録</td><td>使った時</td><td>ログインボーナスと「あなたの軌跡」のため</td></tr>
 </tbody></table></div>
 <p class="tiny">位置情報・電話番号・住所・支払い情報は、いっさいあずかりません。</p>
 
 <h3 style="margin-top:16px">2. どこに置いているか</h3>
 <p class="tiny">データは <b>Supabase</b>（データベースのサービス）に置いています。
-ログインは <b>Google</b> のしくみを使っています。
+ログインは <b>Google</b> の仕組みを使っています。
 サイトのファイルは <b>GitHub Pages</b> に置いています。
 これらは本サイトのために使っている道具で、あなたの情報を広告に使うことはありません。</p>
 
 <h3 style="margin-top:16px">3. 誰が見られるか</h3>
 <div class="scroll"><table><thead><tr><th>情報</th><th>見られる人</th></tr></thead><tbody>
-<tr><td>プレイヤーネーム・@ID・記録・RATING（公開にしたとき）</td><td>だれでも</td></tr>
+<tr><td>プレイヤーネーム・@ID・記録・RATING（公開にした時）</td><td>だれでも</td></tr>
 <tr><td>タイムラインの投稿</td><td>だれでも</td></tr>
 <tr><td>提出した記録・証明のリンク・Discord の記載場所</td><td>審査員以上</td></tr>
 <tr><td>メールアドレス</td><td>運営だけ</td></tr>
@@ -12861,18 +13171,18 @@ privacy:`<h3>プライバシーポリシー</h3>
 
 <h3 style="margin-top:16px">4. 外に送っていないもの</h3>
 <p class="tiny">アクセス解析（Google アナリティクスなど）や広告のタグは<b>入れていません</b>。
-あなたが本サイトを見たことを、外の会社に知らせるしくみはありません。</p>
+あなたが本サイトを見たことを、外の会社に知らせる仕組みはありません。</p>
 
-<h3 style="margin-top:16px">5. 消したいとき</h3>
-<p class="tiny">アカウントとデータを消したいときは、<b>設定タブの「開発者に伝える」</b>から
+<h3 style="margin-top:16px">5. 消したい時</h3>
+<p class="tiny">アカウントとデータを消したい時は、<b>設定タブの「開発者に伝える」</b>から
 「アカウントを消してください」と送ってください。確認のうえ消します。<br>
-この端末に残っているぶんだけを消したいときは、設定タブの「この端末のデータを消す」を使ってください。</p>
+この端末に残っているぶんだけを消したい時は、設定タブの「この端末のデータを消す」を使ってください。</p>
 
 <h3 style="margin-top:16px">6. 変更</h3>
 <p class="tiny">このページは、必要に応じて直します。</p>
 <p class="tiny" style="margin-top:12px;color:var(--dim2)">最後に直した日：2026年8月　／　運営：syuuto（個人）</p>`,
 
-etc:`<h3>RATING のしくみ</h3>
+etc:`<h3>RATING の仕組み</h3>
 <p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
 <div class="scroll"><table><thead><tr><th>まとまり</th><th>内容</th><th>配点</th></tr></thead><tbody>
 <tr><td>①</td><td>十種競技総合スコア（素数判定を除く9種の合計）</td><td>6点</td></tr>
@@ -12889,19 +13199,19 @@ S値 ＝ log<sub>25</sub>(スコアの累積) − 4.75<br>
 <h3 style="margin-top:16px">タイムライン</h3>
 <p class="tiny">本文に <b>#素数</b> のように書くとタグになります。押すとそのタグの投稿だけ表示されます。
 タグは誰でも作れて、いくつでも付けられます。</p>
-<p class="tiny">「通知するタグを選ぶ」で選んでおくと、そのタグで誰かが投稿したときにお知らせが出ます。</p>
+<p class="tiny">「通知するタグを選ぶ」で選んでおくと、そのタグで誰かが投稿した時にお知らせが出ます。</p>
 <p class="tiny">投稿の「・・・」から通報できます。審査員以上は削除もできますが、
-迷うときは通報すると、ほかの審査員に判断してもらえます。
+迷う時は通報すると、ほかの審査員に判断してもらえます。
 <b>審査員3人が「削除する」に入れるか、スーパーバイザー以上が1人入れると消えます。</b></p>
 <h3 style="margin-top:16px">役職の色</h3>
 <div class="tools" style="margin-top:6px">
 ${["judge","supervisor","judgeman","supporter","admin"].map(r=>
   `<span class="${roleCls(r)}">${roleLabel(r)}</span>`).join("　")}
 </div>
-<h3 style="margin-top:16px">記録が消えるとき</h3>
+<h3 style="margin-top:16px">記録が消える時</h3>
 <p class="tiny">審査員が却下し、スーパーバイザーがそれを妥当だと認めた記録は完全に消えます。
 Prime SNS からも見えなくなります。ただし、正しく却下した審査員のグッドポイントは残ります。</p>
-<h3 style="margin-top:16px">困ったとき</h3>
+<h3 style="margin-top:16px">困った時</h3>
 <div class="scroll"><table><thead><tr><th>困りごと</th><th>やること</th></tr></thead><tbody>
 <tr><td>名前や画像が一覧に出ない</td><td>設定で「公開」にして、「今すぐ同期」を押す</td></tr>
 <tr><td>審査室が出てこない</td><td>審査員以上だけが入れます。設定から申請できます</td></tr>
@@ -12921,7 +13231,7 @@ function moodHelpPts(){
 }
 function moodHelpWords(){
   const ws=(MCFG.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
-  return `<div class="scroll"><table><thead><tr><th class="n">点</th><th>ことば</th></tr></thead><tbody>`
+  return `<div class="scroll"><table><thead><tr><th class="n">点</th><th>言葉</th></tr></thead><tbody>`
     +ws.map((w,i)=>{ const nx=ws[i+1];
       const rg=nx?`${jp(+w.min||0)}〜${jp((+nx.min||0)-1)}`:`${jp(+w.min||0)}〜`;
       return `<tr><td class="n">${rg}</td><td style="color:${esc(w.color||"#93a4c0")}">${esc(w.text||"")}</td></tr>`;
@@ -13153,7 +13463,7 @@ function parseEventBlocks(text){
       if(!m) return;
       const rank=+m[1];
       if(![1,5,10,50,100,200].includes(rank)) return;
-      /* この順位より左でいちばん近い種目名が、この区画の担当です */
+      /* この順位より左で一番近い種目名が、この区画の担当です */
       const own=cols.filter(x=>x.i<=i).sort((a2,b2)=>b2.i-a2.i)[0];
       if(!own) return;
       for(let j=i+1;j<cells.length&&j<=i+4;j++){
@@ -13184,7 +13494,7 @@ const K_GH="sa-gh-v1";
 let gh=ls(K_GH,{owner:"",repo:"",branch:"main",path:"data.json",token:""});
 const saveGh=()=>{try{localStorage.setItem(K_GH,JSON.stringify(gh));}catch(e){}};
 const ghReady=()=>!!(gh.owner&&gh.repo&&gh.token);
-/** 失敗したときの、直しかたの案内 */
+/** 失敗した時の、直しかたの案内 */
 function ghHint(m){
   m=String(m||"");
   if(/Bad credentials|401/i.test(m))
@@ -13257,7 +13567,7 @@ function devEditor(box,close){
     <span class="tiny" id="dvCdMsg"></span>
   </div>
 
-  <h3>公開を止める・もどす</h3>
+  <h3>公開を止める・戻す</h3>
   <p class="tiny" style="margin-top:-4px">止めると、ほかの人には「いまお休みしています」だけが出ます。
     <b>データは何も消えません。</b>もどせばすぐ元どおりです。管理者は止めていても中に入れます。</p>
   <div class="lockbox" id="dvPwState" style="margin-bottom:8px"></div>
@@ -13267,7 +13577,7 @@ function devEditor(box,close){
     style="max-width:none"></textarea>
   <div class="tools" style="margin-top:6px;margin-bottom:14px">
     <button class="btn" id="dvPwOn" style="border-color:var(--bad);color:var(--bad)">公開を止める</button>
-    <button class="btn pri" id="dvPwOff">公開をもどす</button>
+    <button class="btn pri" id="dvPwOff">公開を戻す</button>
     <span class="tiny" id="dvPwOut"></span>
   </div>
 
@@ -13313,7 +13623,7 @@ function devEditor(box,close){
     <button id="bdLS">生成した乱数の累積・スコアの累積のボーダー</button>
   </div>
   <div id="bdGameBox">
-  <details style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（おすすめ）</summary>
+  <details style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（お勧め）</summary>
     <p class="tiny"><b>Excel の「統計情報(ハイスコア系)」をそのまま範囲選択してコピーし、ここに貼るだけです。</b><br>
       3種目が横に並んだ形のまま読み取ります。差分（⤴+1,607）の列は無視します。<br>
       「種目名」の行のあとに「1位 79,799」が続く形式、
@@ -13332,7 +13642,7 @@ function devEditor(box,close){
     `</tr></tbody></table></div></div>
   <div id="bdLSBox" hidden>
     <p class="muted">生成した乱数の累積・スコアの累積のランキングボーダーです。LSやりこみタブで使われます。</p>
-    <details open style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（おすすめ）</summary>
+    <details open style="margin-bottom:12px"><summary class="muted">貼り付けて一括入力（お勧め）</summary>
       <p class="tiny">ランキング表をそのままコピーして貼り付けてください。「1位&nbsp;&nbsp;1,702,125,499,390」のような行を読み取ります。</p>
       <div class="frow">
         <div><label class="fl">生成した乱数の累積</label>
@@ -13358,7 +13668,7 @@ function devEditor(box,close){
     <span class="tiny">「この端末だけに反映」はご自分の画面の確認用で、他のプレイヤーには届きません。</span>
   </div>
   <div class="tools" style="margin-top:0;margin-bottom:10px">
-    <button class="btn pri" id="dvGh">GitHubに直接反映する（おすすめ）</button>
+    <button class="btn pri" id="dvGh">GitHubに直接反映する（お勧め）</button>
     <button class="btn sm" id="dvGhCheck">いま GitHub に入っているものを見る</button>
     <button class="btn sm" id="dvGhCfg">GitHub連携の設定</button>
     <span class="tiny" id="dvGhState"></span>
@@ -13473,7 +13783,7 @@ function devEditor(box,close){
       toast("カウントダウンをはじめました");
     }catch(e){ m2.innerHTML='<span class="lose">失敗：'+esc(String(e.message||e)).slice(0,160)+'</span>'; }
   };
-  /* 公開を止める・もどす */
+  /* 公開を止める・戻す */
   const pwState=()=>{
     const e2=box.querySelector("#dvPwState"); if(!e2) return;
     e2.innerHTML=(PAUSE&&PAUSE.on)
@@ -13536,7 +13846,7 @@ function devEditor(box,close){
       +`配られたトロフィー <b class="win">${jp(+d.trophies||0)}</b> 個　／　`
       +`スター ${jp(+d.stars||0)} 個`
       +(d.added!=null?`　／　今回あらたに配った数 ${jp(+d.added||0)}`:"")
-      +(d.no_handle?`<br><span class="lose">@IDが空のごほうびが ${jp(+d.no_handle)} 件あります</span>`:"")
+      +(d.no_handle?`<br><span class="lose">@IDが空のご褒美が ${jp(+d.no_handle)} 件あります</span>`:"")
       +`</span>`
       +(why.length?`<br><span class="tiny lose">${esc(why[0])}</span>`:"")
       +(ch.length?`<br><br><b>優勝者</b><br><span class="tiny">`
@@ -13638,7 +13948,7 @@ function devEditor(box,close){
           : ok2===null ? `※ 確認の読み込みができませんでした。GitHub でファイルを見てください。`
           : `<span class="lose">※ 確認したら ${jp(ok2)} 週でした。もう一度お試しください。</span>`)
         +`</span><br><span class="tiny">GitHub Pages への反映まで1〜3分かかります。`
-        +`直らないときは、ブラウザで Ctrl+F5 を押してください。</span>`;
+        +`直らない時は、ブラウザで Ctrl+F5 を押してください。</span>`;
       toast("GitHubに反映しました");
     }catch(e){
       const m2=String(e.message||e);
@@ -13660,7 +13970,7 @@ function devEditor(box,close){
       const ls2=(last.lsBorders||{});
       msg.innerHTML=`<span class="win">GitHub の ${esc(gh.path)}：${jp(wk.length)} 週`+
         (wk.length?`（${esc(wk[0].date)} 〜 ${esc(last.date)}）`:"")+`</span><br>`+
-        `<span class="tiny">いちばん新しい週：素数ゲーム ${jp(Object.keys(last.borders||{}).length)} 種目 ／ `+
+        `<span class="tiny">一番新しい週：素数ゲーム ${jp(Object.keys(last.borders||{}).length)} 種目 ／ `+
         `合計スコア ${jp(Object.keys(last.totalBorders||{}).length)} 段 ／ `+
         `LSやりこみ 乱数 ${jp(Object.keys(ls2.rand||{}).length)} 段・スコア ${jp(Object.keys(ls2.score||{}).length)} 段<br>`+
         `この画面が見ている週：${jp(WEEKS.length)} 週（${esc(WEEKS[0]?WEEKS[0].date:"—")} 〜 ${esc(WEEKS[WEEKS.length-1]?WEEKS[WEEKS.length-1].date:"—")}）</span>`;
@@ -13880,7 +14190,7 @@ async function renderHomeChallenges(){
   });
 }
 /** フレンドの更新履歴（登録時に取り込んだ記録の新しい順）*/
-/** フレンド情報を差し替えるとき、前回との差分を「更新履歴」として残す */
+/** フレンド情報を差し替える時、前回との差分を「更新履歴」として残す */
 function saveFriend(pro2,rec2){
   const key=(pro2.handle||pro2.name||"").toLowerCase();
   const mine=(pro.handle||"").toLowerCase();
@@ -14123,8 +14433,8 @@ function normalize(j){
     }
   }
   fillInputs(); lsFxLabels();
-  /* ★ いちばん先に「止まっていないか」を見ます。
-        止まっているときは、先に役職を調べてから決めます（管理者は入れます） */
+  /* ★ 一番先に「止まっていないか」を見ます。
+        止まっている時は、先に役職を調べてから決めます（管理者は入れます） */
   try{
     applyPause();                                  /* 前に見た合図で、すぐ出します */
     await loadPause();
@@ -14141,7 +14451,7 @@ function normalize(j){
   /* ★ LSやりこみは専用の入れものでそろえます（5分おき） */
   try{ lsWatch(); }catch(e){}
   if(sess&&sbOn()){ try{ await lsStart(); }catch(e){} }
-  /* あなたの軌跡：きょうのぶんを残して、日付が変わるのを見はります */
+  /* あなたの軌跡：今日のぶんを残して、日付が変わるのを見はります */
   try{ histWatch(); histAuto(); }catch(e){}
   try{ await histPull(); await histWriteFull(); }catch(e){}
   try{ await loadBorderAt(); }catch(e){} tickClock();
