@@ -63,6 +63,7 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 @keyframes lscfx{0%{opacity:0;transform:translate(-50%,6px)}
   20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
 #lsCoinBox{position:relative}
+.pyrwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 @keyframes rkflow{0%{background-position:0% 50%}100%{background-position:-200% 50%}}
 @media (prefers-reduced-motion:reduce){ [style*="rkflow"]{animation:none!important} }
 .rkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 0;
@@ -2110,7 +2111,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v90";
+const APP_VERSION = "v91";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2757,6 +2758,9 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v91":[
+    "ランクが多い時にピラミッドの文字が重なる不具合を修正（字の大きさと間かくが自動で決まります）",
+    "ランクの編集で、1文字打つと入力中がはずれる不具合を修正"],
   "v90":[
     "ランクに「動くグラデーション（流れる）」を追加",
     "ピラミッドを正三角形にして、ランク名を矢印で外に出した（文字のはみ出しを修正）",
@@ -4041,55 +4045,59 @@ async function syncNow(){
 /** ランクのピラミッド図。現在地を光らせる */
 function drawPyramid(total,complete){
   const n=RANKS.length;
-  /* 正三角形。底辺 B、高さ B×√3/2。1段の高さ＝高さ÷段数 */
-  const B=300, H=Math.round(B*Math.sqrt(3)/2), GAP=2, rowH=(H+GAP)/n;
-  const padT=18, padB=26;
-  const cx=200;                         /* 三角形の中心（左寄せ）*/
-  const labX=cx+B/2+34;                 /* ラベルはいつも三角形の右外側 */
-  const W=760, Hh=H+padT+padB;      /* 底辺 300・高さ 260 ＝ ほぼ正三角形 */
+  /* 段が多いほど文字を小さくし、重ならない高さを必ず用意します */
+  const fs = n<=10?15 : n<=16?13 : n<=24?12 : 11;   /* ランク名の大きさ */
+  const rs = Math.max(10, fs-3);                    /* レートの大きさ */
+  const gap= Math.ceil(fs*1.42);                    /* 1段の高さ（これ以上は詰めません） */
+  /* 正三角形：高さ ＝ 底辺 × √3/2 */
+  const H = Math.max(n*gap, 150), B = Math.round(H*2/Math.sqrt(3));
+  const GAP=Math.min(2,gap/6), rowH=(H+GAP)/n;   /* 段のすきまを足して、外形をきっちり正三角形に */
+  const padT=18, padB=26, padL=90;                  /* 左は「いまここ」のぶん */
+  const cx=padL+B/2;
+  const labX=cx+B/2+30;                             /* ラベルは三角形の右外側 */
+  /* いちばん長い名前に合わせて、幅を決めます */
+  const nameW=RANKS.reduce((a,r)=>Math.max(a,
+    [...String(r.n||"")].reduce((x,ch)=>x+(ch.charCodeAt(0)<128?fs*0.62:fs*1.02),0)),0);
+  const W=Math.ceil(labX+nameW+18+rs*7.2+16);
+  const Hh=H+padT+padB;
   const cur=complete?rankOf(total):null;
   let defs="", g="";
   for(let i=n-1;i>=0;i--){
-    const r=RANKS[i], idx=n-1-i;        /* 上から何番目か */
-    const y0=padT+idx*rowH, y1=y0+rowH;   /* 下ふちは y1-GAP（段のすきま） */
-    /* その高さでの三角形の幅（上ほど細い） */
+    const r=RANKS[i], idx=n-1-i;                    /* 上から何番目か */
+    const y0=padT+idx*rowH, y1=y0+rowH;
     const w0=B*(idx/n), w1=B*((idx+1)/n);
     const here=cur&&cur.n===r.n;
     const gid="rkg"+i;
     if(r.c2) defs+=rankGrad(r,gid);
     const fill=r.c2?`url(#${gid})`:rankC(r);
-    /* 段（台形。いちばん上は三角） */
     g+=`<polygon points="${cx-w0/2},${y0} ${cx+w0/2},${y0} ${cx+w1/2},${y1-GAP} ${cx-w1/2},${y1-GAP}"
       fill="${rankC(r)}${here?"55":"1f"}" stroke="${rankC(r)}${here?"":"66"}"
       stroke-width="${here?2.5:1}"/>`;
-    /* 段から外へ伸ばす線と矢印 */
-    const my=(y0+y1)/2-1, ex=cx+w1/2;
-    g+=`<line x1="${ex+3}" y1="${my}" x2="${labX-16}" y2="${my}"
-      stroke="${rankC(r)}" stroke-width="1" opacity="${here?".9":".45"}"/>`;
-    g+=`<path d="M ${labX-16} ${my} l -7 -4 v 8 z" fill="${rankC(r)}" opacity="${here?".9":".55"}"
-      transform="translate(7,0)"/>`;
-    /* ランク名（グラデーション・光にも対応）*/
-    g+=`<text x="${labX}" y="${my+5}" fill="${fill}"
-      style="font:800 15px ui-sans-serif,system-ui;letter-spacing:.08em${
-        r.glow?`;filter:drop-shadow(0 0 5px ${r.c2||r.c})`:""}">${esc(r.n)}</text>`;
-    /* 必要レート（小数第2位まで） */
+    /* 段の右はしから、ラベルまで線を引いて矢印で指します */
+    const my=(y0+y1-GAP)/2, ex=cx+w1/2;
+    g+=`<line x1="${ex+3}" y1="${my}" x2="${labX-13}" y2="${my}"
+      stroke="${rankC(r)}" stroke-width="1" opacity="${here?".9":".4"}"/>`;
+    g+=`<path d="M ${labX-6} ${my} l -7 -3.5 v 7 z" fill="${rankC(r)}" opacity="${here?".95":".55"}"/>`;
+    g+=`<text x="${labX}" y="${my+fs*0.35}" fill="${fill}"
+      style="font:800 ${fs}px ui-sans-serif,system-ui;letter-spacing:.06em${
+        r.glow?`;filter:drop-shadow(0 0 4px ${r.c2||r.c})`:""}">${esc(r.n)}</text>`;
     const nx=RANKS[i+1];
     const need=nx?`${f2(r.min)} 〜 ${f2(nx.min)}`:`${f2(r.min)} 以上`;
-    /* 名前の右に、少し間をあけて必要レートを置きます（全角は広めに数えます） */
-    const nw=[...String(r.n)].reduce((a,ch)=>a+(ch.charCodeAt(0)<128?8.6:15),0);
-    g+=`<text x="${labX+nw+16}" y="${my+5}" fill="#8ba0bd"
-      style="font:400 12px ui-monospace,monospace">${esc(need)}</text>`;
-    if(here) g+=`<text x="${cx-w1/2-10}" y="${my+5}" text-anchor="end" fill="${rankC(r)}"
-      style="font:800 12px ui-sans-serif,system-ui">いまここ ▶</text>`;
+    g+=`<text x="${labX+nameW+14}" y="${my+fs*0.35}" fill="#8ba0bd"
+      style="font:400 ${rs}px ui-monospace,monospace">${esc(need)}</text>`;
+    if(here) g+=`<text x="${cx-w1/2-8}" y="${my+fs*0.35}" text-anchor="end" fill="${rankC(r)}"
+      style="font:800 ${Math.max(11,fs-2)}px ui-sans-serif,system-ui">いまここ ▶</text>`;
   }
-  return `<svg viewBox="0 0 ${W} ${Hh}" width="100%"
-    style="display:block;max-width:${W}px;margin:0 auto;overflow:visible"
+  /* 画面が狭い時は、字を小さくせずに横スクロールで読めるようにします */
+  return `<div class="pyrwrap"><svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}"
+    style="display:block;max-width:100%;height:auto;min-width:${Math.min(W,520)}px;margin:0 auto"
     xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ランクのピラミッド">
     <defs>${defs}</defs>${g}
     <text x="${cx}" y="${Hh-8}" text-anchor="middle" fill="#61748f"
       style="font:400 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>
-  </svg>`;
+  </svg></div>`;
 }
+
 /* ══════════════════════════════════════════════════════════
    ランクの編集（管理者だけ・1枚の画面）
    ══════════════════════════════════════════════════════════ */
@@ -4106,9 +4114,9 @@ function rkEnter(){
   rkDraw();
 }
 function rkSort(){ REDIT.ranks.sort((a,b)=>(+a.min||0)-(+b.min||0)); }
-function rkDraw(){
+function rkDraw(keepSort){
   if(!REDIT) return;
-  rkSort();
+  if(!keepSort) rkSort();
   /* ── 一覧 ── */
   $("#rkList").innerHTML=REDIT.ranks.map((r,i)=>`
     <div class="rkrow">
@@ -4133,12 +4141,25 @@ function rkDraw(){
         <button class="btn sm del" data-rx="${i}"${REDIT.ranks.length<2?" disabled":""}>消す</button></div>
       <div class="rkp" style="${rankCSS(r,8)}">${esc(r.n||"（名前なし）")}</div>
     </div>`).join("");
-  $$("#rkList [data-rk]").forEach(e=>e.oninput=()=>{
-    const [i,f]=e.dataset.rk.split(".");
-    const r=REDIT.ranks[+i];
-    if(f==="min") r.min=Math.max(0,Math.min(20,+e.value||0));
-    else r[f]=e.value;
-    rkDraw();
+  /* ★ 文字を打つたびに作り直すと、入力中がはずれてしまいます。
+        打っている間は「見本」だけを描きなおし、並べ替えは指をはなした時にします */
+  $$("#rkList [data-rk]").forEach(e=>{
+    e.oninput=()=>{
+      const [i,f]=e.dataset.rk.split(".");
+      const r=REDIT.ranks[+i];
+      if(f==="min") r.min=Math.max(0,Math.min(20,+e.value||0));
+      else r[f]=e.value;
+      /* その行の見本だけ、その場で塗りかえます */
+      const row=e.closest(".rkrow"), p=row&&row.querySelector(".rkp");
+      if(p){ p.textContent=r.n||"（名前なし）"; p.style.cssText=rankCSS(r,8); }
+      rkPrev();                     /* 下の見本・ピラミッド・注意書きだけ更新 */
+    };
+    /* 数字を打ち終わって指をはなしたら、並べ替えます */
+    if(e.dataset.rk.endsWith(".min")) e.onchange=()=>{
+      const before=REDIT.ranks.map(r=>r.n).join("|");
+      rkSort();
+      if(REDIT.ranks.map(r=>r.n).join("|")!==before) rkDraw();
+    };
   });
   $$("#rkList [data-rg]").forEach(e=>e.onchange=()=>{
     const r=REDIT.ranks[+e.dataset.rg];
@@ -4183,6 +4204,11 @@ function rkDraw(){
   $("#rkNumA").onchange=e=>{ REDIT.num.anim=e.target.checked; rkDraw(); };
   $("#rkNumL").onchange=e=>{ REDIT.num.glow=e.target.checked; rkDraw(); };
 
+  rkPrev();
+}
+/** 見本・ピラミッド・注意書きだけを描きなおします（入力欄はそのまま） */
+function rkPrev(){
+  if(!REDIT) return;
   /* ── 見本 ── */
   const demo=REDIT.ranks.map(r=>{
     const v=(+r.min||0)+0.5;
