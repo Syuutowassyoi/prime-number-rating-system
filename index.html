@@ -11733,6 +11733,8 @@ const MOOD_DEF={
   max:500, font:"mono", sched:["00:10"]
 };
 let MCFG=JSON.parse(JSON.stringify(MOOD_DEF));   /* いま使っている設定 */
+let MCFG_AT=0;                                    /* サーバーから読めた時刻（0＝まだ） */
+let moodCfgBusy=false, moodCfgTried=0;            /* ヘルプから読みに行った回数 */
 let MEDIT=null;                                   /* 管理者が編集中のもの */
 const mcW=k=>+((MCFG.weights||{})[k])||0;
 /** その点にあてはまる 言葉 */
@@ -11755,11 +11757,14 @@ function moodQuery(cfg){
   return q;
 }
 async function moodCfgLoad(){
-  if(TEST){ MCFG=JSON.parse(JSON.stringify(MOOD_DEF)); return MCFG; }
+  if(TEST){ MCFG=JSON.parse(JSON.stringify(MOOD_DEF)); MCFG_AT=Date.now(); return MCFG; }
   if(!sbOn()) return MCFG;
   try{
     const r=await sb("rpc/mood_cfg",{method:"POST",body:"{}"});
-    if(r&&typeof r==="object") MCFG=Object.assign(JSON.parse(JSON.stringify(MOOD_DEF)),r);
+    if(r&&typeof r==="object"){
+      MCFG=Object.assign(JSON.parse(JSON.stringify(MOOD_DEF)),r);
+      MCFG_AT=Date.now();
+    }
   }catch(e){}
   return MCFG;
 }
@@ -12169,6 +12174,8 @@ if($("#mdCfgSave")) $("#mdCfgSave").onclick=async()=>{
     MCFG=Object.assign(JSON.parse(JSON.stringify(MOOD_DEF)), r||cfg);
     MEDIT=JSON.parse(JSON.stringify(MCFG));
     mdCfgMsg("保存しました。反映を確かめています…");
+    MCFG_AT=Date.now();
+    if(helpTab==="mood") renderHelp();      /* ヘルプの表もすぐ書きかえます */
     await moodLoad(); moodDraw(); mdCfgDraw();
     await mdVerify();            /* 全員に見えている中身を読み直して照らし合わせます */
     await mdLogDraw();
@@ -13435,8 +13442,10 @@ mood:`<h3>Prime Mood とは</h3>
 
 <h3 style="margin-top:16px">何が点になるか</h3>
 {{MOODPTS}}
-<p class="tiny">1日の合計が「今日の盛り上がり度」です。数が大きいほど熱い言葉に変わります。</p>
+<p class="tiny">1日ぶんの点を7日間ならしたものが <b>ムード値</b>です。
+数が大きいほど熱い言葉に変わります。</p>
 {{MOODWORDS}}
+{{MOODNOW}}
 
 <h3 style="margin-top:16px">今週の目標</h3>
 <p class="tiny">1週間（月曜〜日曜）の合計が目標に届くと、<b>その週に来た人みんな</b>に
@@ -13457,14 +13466,15 @@ Prime Coin が入ります。<br>
 
 <h3 style="margin-top:16px">更新の時刻</h3>
 <p class="tiny">メーターの下に <b>最終更新</b>（X の投稿数が最後に入った時刻）と
-<b>次回更新予定</b>が出ます。予定の時刻は管理者が決めています。
+<b>次回更新予定</b>が出ます。{{MOODSCHED}}
 自動集計は数分おくれることがあります。</p>
 
 <h3 style="margin-top:16px">X の投稿数について</h3>
 <p class="tiny">X の投稿数だけは、アプリの中では数えられないので、外から入れています。
 入っていない日は 0 になります。<b>管理者が「更新する」を押すと、その場で数え直します。</b><br>
-数える言葉（ハッシュタグ）・配点・言葉は、管理者が決めています。
-上の表は、いま決まっている中身をそのまま出しています。</p>`,
+数える言葉（ハッシュタグ）・配点・言葉・満点・更新の時刻は、管理者が決めています。<br>
+<b>このページの表と数字は、いまサーバーに入っている設定をそのまま読んで作っています。</b>
+管理者が設定を変えると、ここも自動で書きかわります。</p>`,
 
 rule:`<h3>このサイトについて（安心して使えます）</h3>
 <div class="lockbox" style="margin-bottom:12px">
@@ -13626,6 +13636,23 @@ function moodHelpPts(){
     +rows.map(r=>`<tr><td>${r.n}</td><td class="n">${jp(r.w)}</td><td>${r.w?"入ります":"数えません"}</td></tr>`).join("")
     +`</tbody></table></div>`;
 }
+/** いまの設定（満点・タグ・文字の形・更新時刻）を、そのまま表にします */
+function moodHelpNow(){
+  const f=(MOOD_FONTS.find(x=>x.k===(MCFG.font||"mono"))||MOOD_FONTS[0]).n;
+  const tg=(MCFG.tags||[]).map(t=>"#"+t).join("　")||"—";
+  const sc=(MCFG.sched||[]).join("　")||"—";
+  return `<h3 style="margin-top:16px">いまの設定</h3>
+    <div class="scroll"><table><tbody>
+      <tr><td>数えるハッシュタグ</td><td class="mono">${esc(tg)}</td></tr>
+      <tr><td>おまけの条件</td><td class="mono">${esc(MCFG.extra||"—")}</td></tr>
+      <tr><td>メーターの満点</td><td><b>${jp(+MCFG.max||500)}</b> 点</td></tr>
+      <tr><td>点の文字</td><td style="font-family:${moodFont(MCFG.font)}">${esc(f)}　1,234.56</td></tr>
+      <tr><td>自動集計の時刻</td><td class="mono">${esc(sc)}（日本時間）</td></tr>
+    </tbody></table></div>
+    <p class="tiny" style="color:var(--dim2)">${MCFG_AT
+      ? "この内容は "+esc(jstStamp(new Date(MCFG_AT).toISOString()))+" にサーバーから読みました。"
+      : "サーバーからまだ読めていないので、はじめの設定を出しています。"}</p>`;
+}
 function moodHelpWords(){
   const ws=(MCFG.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
   return `<div class="scroll"><table><thead><tr><th class="n">点</th><th>言葉</th></tr></thead><tbody>`
@@ -13641,7 +13668,18 @@ function renderHelp(){
   $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
   let h=HELP[helpTab]||"";
   if(helpTab==="mood"){
-    h=h.replace("{{MOODPTS}}",moodHelpPts()).replace("{{MOODWORDS}}",moodHelpWords());
+    /* まだ設定を読んでいなければ、読んでから出し直します
+       （管理者が変えた中身と、ヘルプの中身がずれないようにするため） */
+    if(!MCFG_AT&&!TEST&&sbOn()&&!moodCfgBusy&&moodCfgTried<2){
+      moodCfgBusy=true; moodCfgTried++;      /* 読めなくても、ここで止めます（繰り返さない） */
+      moodCfgLoad().then(()=>{ moodCfgBusy=false; if(MCFG_AT&&helpTab==="mood") renderHelp(); });
+    }
+    h=h.replace("{{MOODPTS}}",moodHelpPts())
+       .replace("{{MOODWORDS}}",moodHelpWords())
+       .replace("{{MOODNOW}}",moodHelpNow())
+       .replace("{{MOODSCHED}}",(MCFG.sched&&MCFG.sched.length)
+         ? `予定の時刻は <b class="mono">${esc(MCFG.sched.join("　"))}</b>（日本時間）です。`
+         : "予定の時刻は管理者が決めています。");
     /* 管理者だけに出す手順（一般ユーザーには出しません） */
     if(isAdmin()) h+=HELP.moodAdmin||"";
   }
