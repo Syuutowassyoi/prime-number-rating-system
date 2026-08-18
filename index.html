@@ -58,6 +58,20 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .ver{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;
   letter-spacing:.06em;background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;
   font-variant-numeric:tabular-nums}
+.postbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:26px;margin-left:6px;padding:0;border-radius:8px;cursor:pointer;
+  background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;vertical-align:middle}
+.postbtn:hover{background:#25497a}
+.postbtn .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;
+  background:#ff2d55;border:1px solid #0b1220}
+.ntc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
+  background:rgba(255,255,255,.02)}
+.ntc.pin{border-color:var(--warn)}
+.ntc .ttl{font-weight:800;color:var(--acc2);font-size:.95rem}
+.ntc .at{font-size:.72rem;color:var(--dim2)}
+.ntc .bd{margin-top:6px;white-space:pre-wrap;line-height:1.7;font-size:.86rem}
+.ntc .bd a,.ntclink{color:#5aa9ff;text-decoration:underline;word-break:break-all}
+.ntc .bd a:hover{color:#8fc7ff}
 h2{font-size:.95rem;margin:0 0 14px;color:var(--acc);letter-spacing:.06em;font-weight:600}
 h3{font-size:.84rem;margin:20px 0 8px;color:var(--dim);letter-spacing:.04em}
 a{color:var(--acc)}
@@ -842,6 +856,14 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 <header>
   <h1>素数あつめ <span class="g">RATING</span></h1>
   <span class="ver" id="verBadge">—</span>
+  <button class="postbtn" id="noticeBtn" title="管理者からのお知らせ" aria-label="管理者からのお知らせ">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"
+            fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M3.6 6.9 12 13l8.4-6.1" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <i class="dot" id="noticeDot" hidden></i>
+  </button>
   <button class="btn sm" id="cheerBtn" style="margin-left:8px">開発者を応援する</button>
   <a class="btn sm ppbtn" id="ppBtn" href="prime-park.html">Prime Park</a>
   <span class="hclock" id="nowClock">—</span>
@@ -1963,6 +1985,18 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <h2>サポーター</h2>
     <div id="supBox"></div>
   </div>
+  <div class="card" id="coinCard" hidden>
+    <h2>Prime Coin の配り方（管理者だけ）</h2>
+    <p class="muted" style="margin-top:-8px">「1回に何枚」と「1日に何回まで」を種類ごとに決められます。
+      <b>0 にするとその配り方は止まります。</b>ここで決めた上限はサーバーが必ず守ります。</p>
+    <div id="ccBox"></div>
+    <div class="tools">
+      <button class="btn pri" id="ccSave">この配り方を保存する（全員に反映）</button>
+      <button class="btn" id="ccReload">保存せずに読み直す</button>
+      <button class="btn" id="ccDef">初期値に戻す</button>
+      <span class="tiny" id="ccMsg"></span>
+    </div>
+  </div>
   <div class="card" id="adminCard" hidden>
     <h2>管理者メニュー</h2>
     <div id="adminBox"></div>
@@ -2000,7 +2034,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v87";
+const APP_VERSION = "v88";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2575,6 +2609,176 @@ async function pbkdf2(pw,saltHex,iter){
 const b64e=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const b64d=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
 const rndHex=n=>hex(crypto.getRandomValues(new Uint8Array(n)));
+
+/* ══════════════════════════════════════════════════════════
+   2x. 管理者からのお知らせ（ポストマーク）
+   ・誰でも読めます。書けるのは管理者だけです
+   ・本文に書いた http… は、自動で青いリンクになります
+   ══════════════════════════════════════════════════════════ */
+const K_NTC="sa-noticeseen-v1";
+let NOTICES=[], ntcBusy=false;
+const ntcSeen=()=>+(localStorage.getItem(K_NTC)||0);
+const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} };
+
+/** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
+const CHANGES={
+  "v88":[
+    "管理者からのお知らせを追加（バージョン名の隣のマークから読めます）",
+    "ランキングの自動更新をオン・オフできるようにした",
+    "全種目そろっていない人の RATING を出さないようにした",
+    "Prime Coin の配り方を作り直した（Prime Park は1日3枚まで）",
+    "LSやりこみのクリアと自己ベスト更新でも Prime Coin がもらえるようにした",
+    "LSやりこみだけ、1日にもらえる枚数を無制限にした（100回クリアごとに1枚）",
+    "Prime Park のチュートリアルで先に進めなくなる不具合を修正",
+    "チュートリアル中にセリフが画面に重なる問題を修正",
+    "電気通信事業法についての説明をヘルプに追加"],
+  "v87":[
+    "ムード値（直近7日間の平均得点）を追加",
+    "Prime Mood の対象を4つにしぼった",
+    "管理者の反映ログと、全員に届いたかの確認を追加",
+    "この画面から X の集計を実行できるようにした",
+    "「あなたの軌跡」の予測を累積2つだけにした",
+    "画面の文字づかいを見直した（ひらがな→漢字）"],
+  "v86":[
+    "Prime Mood のハッシュタグ・配点・言葉・文字を管理者が変えられるようにした",
+    "管理者向けのヘルプが全員に見えていた点を修正"]
+};
+/** 本文の中の http… を青いリンクにします（それ以外はそのまま文字として出します） */
+function ntcBody(t){
+  const out=[]; const re=/https?:\/\/[^\s　「」）)】]+/g;
+  let last=0, m;
+  while((m=re.exec(String(t||"")))){
+    out.push(esc(String(t).slice(last,m.index)));
+    const u=m[0];
+    out.push(`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(u)}</a>`);
+    last=m.index+u.length;
+  }
+  out.push(esc(String(t||"").slice(last)));
+  return out.join("");
+}
+async function ntcLoad(){
+  if(TEST){ NOTICES=NOTICES.length?NOTICES:[]; return NOTICES; }
+  if(!sbOn()){ NOTICES=[]; return NOTICES; }
+  try{ NOTICES=await sb("rpc/notice_list",{method:"POST",body:JSON.stringify({p_limit:50})})||[]; }
+  catch(e){ NOTICES=[]; }
+  return NOTICES;
+}
+function ntcBadge(){
+  const d=$("#noticeDot"); if(!d) return;
+  const newest=NOTICES.reduce((a,n)=>Math.max(a,+n.id||0),0);
+  d.hidden=!(newest>ntcSeen());
+}
+function ntcCard(n){
+  return `<div class="ntc ${n.pinned?"pin":""}">
+    <div class="ttl">${n.pinned?'<span class="tiny" style="color:var(--warn)">［重要］</span> ':""}${esc(n.title||"")}</div>
+    <div class="at">${esc(jstStamp(n.at))}${n.ver?`　／　${esc(n.ver)}`:""}${n.handle?`　／　@${esc(n.handle)}`:""}</div>
+    <div class="bd">${ntcBody(n.body)}</div>
+    ${n.link?`<div style="margin-top:8px"><a class="ntclink" href="${esc(n.link)}"
+       target="_blank" rel="noopener noreferrer">リンクを開く →</a></div>`:""}
+    ${isAdmin()?`<div class="tools" style="margin-top:8px">
+       <button class="btn sm" data-ned="${esc(n.id)}">直す</button>
+       <button class="btn sm" data-nde="${esc(n.id)}">消す</button></div>`:""}
+  </div>`;
+}
+async function openNotices(){
+  const M=modal(`<h2>管理者からのお知らせ</h2>
+    <div id="ntcList"><p class="muted">読み込み中…</p></div>
+    <div id="ntcAdm"></div>
+    <div class="tools"><button class="btn" id="ntcClose">閉じる</button></div>`,{w:760});
+  M.q("#ntcClose").onclick=()=>M.close();
+  const draw=()=>{
+    M.q("#ntcList").innerHTML=NOTICES.length?NOTICES.map(ntcCard).join("")
+      :`<p class="muted">まだお知らせはありません。</p>`;
+    M.qa("[data-nde]").forEach(b=>b.onclick=async()=>{
+      if(!await askYN("このお知らせを消しますか？","元には戻せません。","消す")) return;
+      try{ await sbAuth("rpc/notice_del",{method:"POST",body:JSON.stringify({p_id:+b.dataset.nde})});
+        await ntcLoad(); draw(); ntcBadge(); toast("消しました"); }
+      catch(e){ toast(String(e.message||e).slice(0,60)); }
+    });
+    M.qa("[data-ned]").forEach(b=>b.onclick=()=>{
+      const n=NOTICES.find(x=>String(x.id)===b.dataset.ned); if(!n) return;
+      M.q("#nfId").value=n.id; M.q("#nfTtl").value=n.title||"";
+      M.q("#nfBody").value=n.body||""; M.q("#nfLink").value=n.link||"";
+      M.q("#nfVer").value=n.ver||APP_VERSION; M.q("#nfPin").checked=!!n.pinned;
+      M.q("#nfTtl").scrollIntoView({block:"center"});
+      ntcMsg(M,"直したい所を変えて「この内容で出す」を押してください");
+    });
+    if(NOTICES.length) ntcSetSeen(NOTICES.reduce((a,n)=>Math.max(a,+n.id||0),0));
+    ntcBadge();
+  };
+  await ntcLoad(); draw();
+
+  if(isAdmin()){
+    const ch=CHANGES[APP_VERSION]||[];
+    M.q("#ntcAdm").innerHTML=`<h3 style="margin-top:18px">お知らせを書く（管理者だけ）</h3>
+      <div class="lockbox" style="margin-bottom:10px">
+        <b>${esc(APP_VERSION)} で変わったところ</b>
+        <p class="tiny" style="margin:4px 0 6px">下の一覧はアプリに入っている変更の概要です。
+          これを見ながら、お知らせの文をまとめてください。</p>
+        ${ch.length?`<ul class="tiny" style="margin:0 0 8px 18px;line-height:1.8">
+          ${ch.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+          <div class="tools" style="margin-top:0">
+            <button class="btn sm" id="nfIns">この一覧を本文に入れる</button>
+            <button class="btn sm" id="nfIns2">見出しだけ入れる</button></div>`
+          :`<p class="tiny">この版の変更概要は入っていません。</p>`}
+      </div>
+      <input type="hidden" id="nfId">
+      <label class="fl">タイトル</label>
+      <input type="text" class="txt" id="nfTtl" maxlength="80" style="max-width:none"
+        placeholder="例：v88 を公開しました（不具合の修正）">
+      <label class="fl">本文</label>
+      <textarea class="txt" id="nfBody" rows="8" style="max-width:none"
+        placeholder="ここに書いた http… は、自動で青いリンクになります"></textarea>
+      <label class="fl">リンク（任意）</label>
+      <input type="text" class="txt" id="nfLink" style="max-width:none" placeholder="https://…">
+      <div class="tools" style="margin-top:10px">
+        <input type="text" class="txt" id="nfVer" style="max-width:110px" placeholder="版">
+        <label class="pk"><input type="checkbox" id="nfPin"> 上に固定する</label>
+        <button class="btn pri" id="nfGo">この内容で出す</button>
+        <button class="btn" id="nfNew">新しく書く</button>
+        <span class="tiny" id="nfMsg"></span>
+      </div>`;
+    M.q("#nfVer").value=APP_VERSION;
+    if(M.q("#nfIns")) M.q("#nfIns").onclick=()=>{
+      const b=M.q("#nfBody");
+      b.value=(b.value?b.value.replace(/\s+$/,"")+"\n\n":"")
+        +`【${APP_VERSION} の変更点】\n`+ch.map(x=>"・"+x).join("\n");
+    };
+    if(M.q("#nfIns2")) M.q("#nfIns2").onclick=()=>{
+      const b=M.q("#nfBody");
+      b.value=(b.value?b.value.replace(/\s+$/,"")+"\n\n":"")+`【${APP_VERSION} の変更点】\n・`;
+      b.focus();
+    };
+    M.q("#nfNew").onclick=()=>{
+      M.q("#nfId").value=""; M.q("#nfTtl").value=""; M.q("#nfBody").value="";
+      M.q("#nfLink").value=""; M.q("#nfPin").checked=false; M.q("#nfVer").value=APP_VERSION;
+      ntcMsg(M,"新しく書きます");
+    };
+    M.q("#nfGo").onclick=async()=>{
+      if(ntcBusy) return;
+      const t=M.q("#nfTtl").value.trim();
+      if(!t) return ntcMsg(M,"タイトルを入れてください",false);
+      const lk=M.q("#nfLink").value.trim();
+      if(lk&&!/^https?:\/\//.test(lk)) return ntcMsg(M,"リンクは https:// で始めてください",false);
+      ntcBusy=true; ntcMsg(M,"出しています…");
+      try{
+        await sbAuth("rpc/notice_put",{method:"POST",body:JSON.stringify({
+          p_id:M.q("#nfId").value?+M.q("#nfId").value:null,
+          p_title:t, p_body:M.q("#nfBody").value, p_link:lk||null,
+          p_ver:M.q("#nfVer").value.trim()||null, p_pinned:M.q("#nfPin").checked})});
+        await ntcLoad(); draw();
+        M.q("#nfId").value="";
+        ntcMsg(M,"出しました。全員に見えています");
+      }catch(e){ ntcMsg(M,String(e.message||e).slice(0,80),false); }
+      ntcBusy=false;
+    };
+  }
+}
+function ntcMsg(M,t,ok){
+  const e=M.q("#nfMsg"); if(e) e.innerHTML=
+    `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`;
+}
+if($("#noticeBtn")) $("#noticeBtn").onclick=openNotices;
 
 /* =========================================================
    2y. 時計と「データ更新までの残り」
@@ -5258,9 +5462,13 @@ async function loadRanking(force){
       $("#rkReload").onclick=()=>loadRanking(true); return; }
     const mine=(pro.handle||"").toLowerCase();
     el.innerHTML=`<div class="tools" style="margin-top:0"><button class="btn" id="rkReload">再読み込み</button>
-      <button class="btn pri" id="rkPush">自分の記録を公開／更新</button></div>
+      <button class="btn pri" id="rkPush">自分の記録を公開／更新</button>
+      <label class="pk" title="オンにすると20秒ごとに最新にします。読んでいる途中で上に戻ってしまう時はオフにしてください">
+        <input type="checkbox" id="rkLive"${LIVE_ON?" checked":""}> 自動で最新にする</label></div>
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
       <p class="tiny" id="rkAt">最終更新 —</p>
+      <p class="tiny"><b>RATING は全21項目（合計スコア・18種目・累積2つ）がそろって初めて出ます。</b>
+        1つでも空いている人は「計測中」と出ます。</p>
       <p class="tiny">名前やアイコンを押すとその人のプロフィールが開きます。
         アイコンの<span style="color:#ff2d55">赤いリング</span>は3日以内、
         <span style="color:#ffc861">黄色いリング</span>は7日以内に記録を更新した人です。</p>
@@ -5277,7 +5485,7 @@ async function loadRanking(force){
         `<br><span class="tiny" style="color:var(--dim2)">${r.updated_at?agoText(r.updated_at):"更新日時不明"}</span>`+
         `</div></div></td>`+
         (rkSortKey==="rating"?"":`<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`)+
-        `<td>${r.rating==null?"—":f3(+r.rating)}</td>`+
+        `<td>${r.rating==null?'<span class="tiny" style="color:var(--dim2)">計測中</span>':f3(+r.rating)}</td>`+
         `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
         `</tr>`;}).join("")+
@@ -5286,7 +5494,15 @@ async function loadRanking(force){
     const rat=$("#rkAt");
     if(rat) rat.textContent="最終更新 "+fmtAt(rows.reduce((a,r)=>
       (r.updated_at&&(!a||r.updated_at>a))?r.updated_at:a,null))
-      +"　／　20秒ごとに自動で見に行きます";
+      +(LIVE_ON?"　／　20秒ごとに自動で見に行きます":"　／　自動更新はオフです（下まで読めます）");
+    const lv=$("#rkLive");
+    if(lv) lv.onchange=()=>{
+      liveSet(lv.checked);
+      toast(lv.checked?"自動更新をオンにしました":"自動更新をオフにしました。手で「再読み込み」を押してください");
+      const r2=$("#rkAt");
+      if(r2) r2.textContent=r2.textContent.replace(/　／　.*$/,
+        LIVE_ON?"　／　20秒ごとに自動で見に行きます":"　／　自動更新はオフです（下まで読めます）");
+    };
     /* 記録は必要になった時だけ1人分を取りに行く（一覧の通信量を抑えるため） */
     const fetchRec=async h=>{
       let r=null;
@@ -5442,7 +5658,7 @@ function mergeCloud(cloud){
 /** 記録が伸びたらタイムラインに流します（経験値は付きません） */
 let lastRecSnap=null;
 async function autoPostRecords(){
-  if(!autoPost.rec || TEST || !(sess&&sbOn()) || !pro.pub) return;
+  if(TEST || !(sess&&sbOn())) return;
   const snap={}; ORDER.forEach(n=>{ if(rec[n]>0) snap[n]=rec[n]; });
   if(!lastRecSnap){ lastRecSnap=snap; return; }
   const ups=[];
@@ -5454,6 +5670,11 @@ async function autoPostRecords(){
   });
   lastRecSnap=snap;
   if(!ups.length) return;
+  /* 自己ベストを更新したので Prime Coin（1日の上限まで）。
+     累積2つは毎回増えるので、種目の記録だけを数えます */
+  const bests=ups.filter(t=>t.indexOf(RAND)!==0&&t.indexOf(SCORE)!==0).length;
+  if(bests>0){ try{ await coinEarn("best", bests); }catch(e){} }
+  if(!autoPost.rec || !pro.pub) return;
   try{ await callRpc("post_update",{p_body:"#記録更新 記録を更新しました！\n"+ups.slice(0,5).join("\n")});
     await loadFeed(true); renderPfeed(); }catch(e){}
 }
@@ -5618,7 +5839,8 @@ function renderSettings(){
   $("#autoOff").classList.toggle("on",!autoSync);
   renderSupporter();
   $("#adminCard").hidden=!isAdmin();
-  if(isAdmin()) renderAdmin();
+  if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
+  if(isAdmin()){ renderAdmin(); ccEnter(); }
 }
 function renderSupporter(){
   const b=$("#supBox");
@@ -6700,9 +6922,11 @@ function lsHit(){
   lsCool=now;
   const prev=lsRun?lsRun.count:0;
   if(lsRun) lsRun.count++;
+  const prevAll=lsAll;
   lsAll++; saveLsAll();
   lsAddB();                            /* 見込み（基準値C）を1回ぶん進めます */
   extCall("clear");                    /* 追加の道具に知らせます */
+  try{ lsCoinCheck(prevAll, lsAll); }catch(e){}   /* Prime Coin（1日の上限あり） */
   const big=lsCrossed(lsAll-1,lsAll);
   lsFlash(big); lsBeep(big,lsRun?lsRun.count:1);
   $("#lsHit").disabled=true;
@@ -9457,11 +9681,16 @@ $("#fdClear").onclick=()=>$("#tagAll").click();
 $("#tagPick").onclick=tagPicker;
 
 /* ---- 6) 自動で最新にする ---- */
+/* ランキングを見ている間に勝手に上へ戻されると読めないので、
+   オン・オフを選べるようにしています（この端末に覚えます） */
+const K_LIVE="sa-live-v1";
+let LIVE_ON=(localStorage.getItem(K_LIVE)!=="off");
+const liveSet=v=>{ LIVE_ON=v; try{ localStorage.setItem(K_LIVE, v?"on":"off"); }catch(e){} };
 let liveT=null;
 function liveStart(){
   clearInterval(liveT);
   liveT=setInterval(async()=>{
-    if(TEST||document.hidden) return;
+    if(TEST||document.hidden||!LIVE_ON) return;
     if($("#sns").hidden) return;
     try{
       await loadLastUp();
@@ -12344,6 +12573,139 @@ function lbWindow(gain,bonus){
 
 /* ── Prime Park であそんだぶんの Prime Coin を受け取ります ── */
 const K_PPCOIN = "sa-ppcoin-v1";
+/* ══════════ コインをもらう（共通）══════════
+   種類：submit＝記録の提出／game＝Prime Park／ls＝LSやりこみ／
+         best＝自己ベスト更新／ach＝アチーブメント達成
+   1回に何枚か・1日に何回までかは、管理者が決めます（サーバーが守ります） */
+async function coinEarn(kind,n,quiet){
+  if(TEST||!(sess&&sbOn())) return 0;
+  try{
+    const r=await sbAuth("rpc/coin_add",{method:"POST",
+      body:JSON.stringify({p_kind:kind,p_n:Math.max(1,+n||1)})});
+    if(r){ PC=r; renderCoins(); renderLoginBonus(); }
+    const got=(r&&+r.gained)||0;
+    if(got>0&&!quiet) toast(`${COIN} ${jp(got)}枚 もらいました（${COIN_N[kind]||kind}）`);
+    return got;
+  }catch(e){ return 0; }
+}
+const COIN_N={submit:"記録の提出",game:"Prime Park",ls:"LSやりこみ",
+              best:"自己ベスト更新",ach:"アチーブメント達成"};
+/** 今日あと何回もらえるか */
+const coinLeft=k=>{
+  const o=PC&&PC.kinds&&PC.kinds[k];
+  return o?(+o.left||0):null;
+};
+const coinPer=k=>{
+  const o=PC&&PC.kinds&&PC.kinds[k];
+  return o?(+o.per||0):0;
+};
+
+/* LSやりこみ：決まった回数クリアするごとに1枚（既定は100回に1枚） */
+const K_LSCOIN="sa-lscoin-v1";
+async function lsCoinCheck(before,after){
+  const per=coinPer("ls")||100;
+  if(!(per>0)) return;
+  let last=+(localStorage.getItem(K_LSCOIN)||0);
+  if(!(last>=0)) last=0;
+  const base=Math.max(last, Math.floor(before/per)*per);
+  const times=Math.floor((after-base)/per);
+  if(times<1) return;
+  try{ localStorage.setItem(K_LSCOIN, String(base+times*per)); }catch(e){}
+  await coinEarn("ls", times);
+}
+
+/* ══════════ Prime Coin の配り方（管理者だけ）══════════ */
+const CC_ITEMS=[
+  {k:"login", n:"ログインボーナス",     cap:false, note:"1日1回。必ず1回だけです"},
+  {k:"streak",n:"連続ログイン",         cap:false, note:"何日続けるごとにもらえるか"},
+  {k:"submit",n:"記録の提出",           cap:true,  note:"チャレンジ・競技会に出した時"},
+  {k:"game",  n:"Prime Park",           cap:true,  note:"アトラクションを1回遊び終えるごと"},
+  {k:"ls",    n:"LSやりこみ",           cap:true,  note:"決めた回数クリアするごと。上限なしにもできます"},
+  {k:"best",  n:"自己ベスト更新",       cap:true,  note:"種目の記録を更新した時"},
+  {k:"ach",   n:"アチーブメント達成",   cap:true,  note:"達成が認められた時"}
+];
+/* cap は「1日に何回まで」。-1 は無制限、0 は止める */
+const CC_DEF={login:{amount:1,cap:1},streak:{amount:2,every:7},submit:{amount:1,cap:3},
+  game:{amount:1,cap:3},ls:{amount:1,cap:-1,per:100},best:{amount:1,cap:3},ach:{amount:1,cap:3}};
+let CCFG=JSON.parse(JSON.stringify(CC_DEF)), CCEDIT=null;
+async function ccLoad(){
+  if(TEST||!sbOn()) return CCFG;
+  try{
+    const r=await sb("rpc/coin_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object") CCFG=Object.assign(JSON.parse(JSON.stringify(CC_DEF)),r);
+  }catch(e){}
+  return CCFG;
+}
+async function ccEnter(){
+  await ccLoad();
+  CCEDIT=JSON.parse(JSON.stringify(CCFG));
+  ccDraw();
+}
+function ccDraw(){
+  const b=$("#ccBox"); if(!b||!CCEDIT) return;
+  const num=(k,f,mn,mx,w)=>`<input type="number" class="txt" data-cc="${k}.${f}"
+    min="${mn}" max="${mx}" step="1" value="${+((CCEDIT[k]||{})[f])||0}" style="max-width:${w||80}px">`;
+  b.innerHTML=`<div class="scroll" style="max-height:none"><table><thead><tr>
+      <th>もらえる場面</th><th class="n" style="text-align:right">1回に</th>
+      <th class="n" style="text-align:right">1日に</th><th>そのほか</th></tr></thead><tbody>`
+    +CC_ITEMS.map(x=>`<tr>
+      <td>${esc(x.n)}<br><span class="tiny" style="color:var(--dim2)">${esc(x.note)}</span></td>
+      <td style="text-align:right">${num(x.k,"amount",0,99)} <span class="tiny">枚</span></td>
+      <td style="text-align:right">${x.cap?(()=>{
+        const c=+((CCEDIT[x.k]||{}).cap); const inf=c<0;
+        return `<input type="number" class="txt" data-cc="${x.k}.cap" min="0" max="99" step="1"
+            value="${inf?"":c||0}" ${inf?"disabled":""} style="max-width:80px${inf?";opacity:.4":""}">
+          <span class="tiny">回まで</span><br>
+          <label class="pk" style="justify-content:flex-end"><input type="checkbox"
+            data-ci="${x.k}"${inf?" checked":""}> 上限なし</label>`;
+      })():`<span class="tiny" style="color:var(--dim2)">—</span>`}</td>
+      <td>${x.k==="ls"?`${num(x.k,"per",1,100000,110)} <span class="tiny">回クリアごと</span>`
+        :x.k==="streak"?`${num(x.k,"every",1,365)} <span class="tiny">日続けるごと</span>`
+        :`<span class="tiny" style="color:var(--dim2)">—</span>`}</td></tr>`).join("")
+    +`</tbody></table></div>
+    <p class="tiny" style="margin-top:8px">1日にもらえる最大は
+      <b>${jp(CC_ITEMS.filter(x=>x.cap&&(+((CCEDIT[x.k]||{}).cap)||0)>0)
+        .reduce((a,x)=>a+(+((CCEDIT[x.k]||{}).amount)||0)*(+((CCEDIT[x.k]||{}).cap)||0),0)
+        +(+((CCEDIT.login||{}).amount)||0))}</b> 枚
+      ${CC_ITEMS.filter(x=>x.cap&&(+((CCEDIT[x.k]||{}).cap)||0)<0).length
+        ?`＋ <b style="color:var(--warn)">${esc(CC_ITEMS.filter(x=>x.cap&&(+((CCEDIT[x.k]||{}).cap)||0)<0)
+            .map(x=>x.n).join("・"))}</b>（上限なし）`:""}
+      です（連続ログインの分をのぞく）。</p>`;
+  $$("#ccBox [data-cc]").forEach(e=>e.oninput=()=>{
+    const [k,f]=e.dataset.cc.split(".");
+    CCEDIT[k]=CCEDIT[k]||{};
+    CCEDIT[k][f]=Math.max(f==="per"||f==="every"?1:0, Math.min(f==="per"?100000:365, +e.value||0));
+    ccDraw();
+  });
+  $$("#ccBox [data-ci]").forEach(e=>e.onchange=()=>{
+    const k=e.dataset.ci;
+    CCEDIT[k]=CCEDIT[k]||{};
+    CCEDIT[k].cap = e.checked ? -1 : 3;      /* 外したら、いったん3回に戻します */
+    ccDraw();
+  });
+}
+const ccMsg=(t,ok)=>{ const e=$("#ccMsg"); if(e) e.innerHTML=
+  `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; };
+if($("#ccSave")) $("#ccSave").onclick=async()=>{
+  if(!CCEDIT) return;
+  const cfg=JSON.parse(JSON.stringify(CCEDIT));
+  ccMsg("送っています…");
+  try{
+    const r=await sbAuth("rpc/coin_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
+    CCFG=Object.assign(JSON.parse(JSON.stringify(CC_DEF)), r||cfg);
+    CCEDIT=JSON.parse(JSON.stringify(CCFG)); ccDraw();
+    /* 本当に全員に届いたかを、ログインしていない立場で読み直して確かめます */
+    const srv=await sb("rpc/coin_cfg",{method:"POST",body:"{}"});
+    const same=JSON.stringify(srv&&srv.game)===JSON.stringify(cfg.game)
+            && JSON.stringify(srv&&srv.ls)===JSON.stringify(cfg.ls);
+    ccMsg(same?"保存しました。全員に反映されました":"保存しましたが、確認できませんでした",same?true:false);
+    await loadCoins(); renderCoins();
+  }catch(e){ ccMsg(String(e.message||e).slice(0,80), false); }
+};
+if($("#ccReload")) $("#ccReload").onclick=async()=>{ await ccEnter(); ccMsg("読み直しました"); };
+if($("#ccDef")) $("#ccDef").onclick=()=>{ CCEDIT=JSON.parse(JSON.stringify(CC_DEF)); ccDraw();
+  ccMsg("初期値に戻しました（保存はまだです）"); };
+
 async function claimParkCoins(){
   if(TEST||!(sess&&sbOn())) return 0;
   let q=[]; try{ q=JSON.parse(localStorage.getItem(K_PPCOIN)||"[]")||[]; }catch(e){ q=[]; }
@@ -12452,16 +12814,24 @@ function renderCoins(){
   const n=PC?(+PC.coins||0):0;
   have.innerHTML=`${COIN} ${jp(n)}`;
   const note=$("#pcNote");
-  if(note) note.textContent=PC
-    ? `今日の記録ぶん あと ${jp(+PC.submits_left||0)} 枚まで`
-    : "—";
+  if(note){
+    if(!PC) note.textContent="—";
+    else{
+      const ks=["submit","game","ls","best","ach"].filter(k=>coinLeft(k)!==null);
+      note.innerHTML=ks.length
+        ? "今日あと：" + ks.map(k=>coinLeft(k)<0
+            ? `${esc(COIN_N[k])} <b style="color:var(--warn)">無制限</b>`
+            : `${esc(COIN_N[k])} <b>${jp(coinLeft(k))}</b>回`).join("　／　")
+        : `今日の記録ぶん あと ${jp(+PC.submits_left||0)} 回まで`;
+    }
+  }
   pcUse=Math.max(1,Math.min(Math.max(1,n),pcUse));
   const u=$("#pcUse"); if(u) u.textContent=jp(pcUse);
   const s=$("#pcSec"); if(s) s.textContent=`＝ ${jp(pcUse*5)}秒`;
   const go=$("#pcGo"); if(go) go.disabled=(n<1);
   const msg=$("#pcMsg");
   if(msg) msg.innerHTML=(n<1)
-    ? '<span style="color:var(--dim2)">コインがありません。ログインボーナスや記録の提出でもらえます。</span>'
+    ? '<span style="color:var(--dim2)">コインがありません。ログインボーナス・記録の提出・LSやりこみ・自己ベスト更新・Prime Park でもらえます。</span>'
     : "";
 }
 if($("#pcUp"))   $("#pcUp").onclick  =()=>{ pcUse=Math.min(PC?(+PC.coins||0):1,pcUse+1); renderCoins(); };
@@ -12791,8 +13161,16 @@ award:`<h3>ご褒美は3種類</h3>
 <div class="scroll"><table><thead><tr><th>もらい方</th><th>枚数</th><th>上限</th></tr></thead><tbody>
 <tr><td>ログインボーナス</td><td><span class="pcoin">P</span>×1</td><td>1日1枚だけ</td></tr>
 <tr><td>7日続けてログイン</td><td><span class="pcoin">P</span>×2</td><td>7日ごとに1回</td></tr>
+<tr><td>LSやりこみでクリアする</td><td><span class="pcoin">P</span>×1</td>
+  <td><b>100回クリアするごと・1日の上限なし</b></td></tr>
+<tr><td>種目の自己ベストを更新する</td><td><span class="pcoin">P</span>×1</td><td>1日3回まで</td></tr>
+<tr><td>アチーブメントを達成する</td><td><span class="pcoin">P</span>×1</td><td>1日3回まで</td></tr>
+</tbody></table></div>
+<p class="tiny"><b>もらえる枚数と1日の回数は、管理者が変えることがあります。</b>
+いま自分が今日あと何回もらえるかは、ホームタブの Prime Coin のところに出ています。</p>
+<div class="scroll"><table><tbody>
 <tr><td>チャレンジ・競技会に記録を出す</td><td><span class="pcoin">P</span>×1</td><td>1日3枚まで</td></tr>
-<tr><td>Prime Park のアトラクションを1回遊ぶ</td><td><span class="pcoin">P</span>×1</td><td>1点以上とるか3桁以上を出した時</td></tr>
+<tr><td>Prime Park のアトラクションを1回遊ぶ</td><td><span class="pcoin">P</span>×1</td><td>1点以上とるか3桁以上を出した時・<b>1日3枚まで</b></td></tr>
 </tbody></table></div>
 <p class="tiny"><b>1つのアカウントにつき、ログインボーナスは1日1枚きりです。</b>
 何回開き直しても、別の端末から入っても増えません（日本時間で数えています）。</p>
@@ -13088,7 +13466,20 @@ Prime Coin が入ります。<br>
 数える言葉（ハッシュタグ）・配点・言葉は、管理者が決めています。
 上の表は、いま決まっている中身をそのまま出しています。</p>`,
 
-rule:`<h3>利用規約</h3>
+rule:`<h3>このサイトについて（安心して使えます）</h3>
+<div class="lockbox" style="margin-bottom:12px">
+<p class="tiny" style="margin:0"><b>素数あつめ RATING は、広告も課金もない非営利のサイトです。</b>
+運営でお金は一切受け取っていません（サーバーもすべて無料の範囲で動かしています）。</p>
+<p class="tiny">2026年8月、<b>総務省に直接問い合わせて確認しました。</b>
+その結果、<b>本サイトは電気通信事業法の適用外</b>であることが分かりました。
+利益が発生していないため「事業」にあたらず、届出も登録も必要ありません。</p>
+<p class="tiny">あわせて、<b>DM（1対1のやりとり）を作った場合でも、
+利益が発生しないかぎり届出は不要</b>だと確認しています。</p>
+<p class="tiny" style="color:var(--dim2)">もし将来、広告を出す・お金を受け取るなど運営の形が変わる時は、
+先にこのページでお知らせしてから変更します。だまって変えることはしません。</p>
+</div>
+
+<h3>利用規約</h3>
 <p class="tiny">素数あつめ RATING（以下「本サイト」）は、個人が無償で運営している趣味のサイトです。
 広告も課金もありません。使う前に、下の内容をご確認ください。</p>
 
@@ -13182,7 +13573,13 @@ privacy:`<h3>プライバシーポリシー</h3>
 <p class="tiny">このページは、必要に応じて直します。</p>
 <p class="tiny" style="margin-top:12px;color:var(--dim2)">最後に直した日：2026年8月　／　運営：syuuto（個人）</p>`,
 
-etc:`<h3>RATING の仕組み</h3>
+etc:`<h3>管理者からのお知らせ</h3>
+<p class="tiny">画面の一番上、バージョン名（${"v"}…）の隣にある<b>封筒のマーク</b>を押すと、
+アップデートの内容や大切な連絡が読めます。<br>
+まだ読んでいないお知らせがある時は、マークの右上に<span style="color:#ff2d55">赤い点</span>が付きます。</p>
+<p class="tiny">本文の中に書かれた http… は、そのまま押せるリンク（青い文字）になります。</p>
+
+<h3>RATING の仕組み</h3>
 <p class="tiny">20点満点です。3つのまとまりから点を集めます。</p>
 <div class="scroll"><table><thead><tr><th>まとまり</th><th>内容</th><th>配点</th></tr></thead><tbody>
 <tr><td>①</td><td>十種競技総合スコア（素数判定を除く9種の合計）</td><td>6点</td></tr>
@@ -14284,6 +14681,10 @@ async function checkUpdate(){
 $("#updGo").onclick=()=>{ try{ save(); }catch(e){} location.reload(); };
 $("#updLater").onclick=()=>{ $("#updBanner").hidden=true; };
 setInterval(checkUpdate,5*60*1000);
+/* 管理者からのお知らせ。Supabase の設定が入ってから見に行き、そのあと5分おきに見直します */
+function ntcBoot(){ if(sbOn()) ntcLoad().then(ntcBadge); else setTimeout(ntcBoot,800); }
+setTimeout(ntcBoot,300);
+setInterval(()=>{ if(document.visibilityState==="visible"&&sbOn()) ntcLoad().then(ntcBadge); },5*60*1000);
 /* 届いた申請に気づけるよう、2分おきに確認する */
 setInterval(()=>{ if(sess&&sbOn()&&document.visibilityState==="visible")
   loadFriendReq().then(()=>{ updateMenuBadge(); if(snsShown("fr")) renderFriendReq(); }); },120000);

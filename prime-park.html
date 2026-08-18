@@ -106,7 +106,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   color:var(--warn);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;
   text-shadow:0 0 20px #ffd45e88}
 #stEmote.on{opacity:1;animation:ppjump .6s ease-out}
-/* すがたを出さない人のときは、セリフ枠のすぐ上に出します */
+/* すがたを出さない人の時は、セリフ枠のすぐ上に出します */
 #stCharWrap.nochar #stEmote{position:static;display:block;text-align:center;margin:0}
 #stBox{background:rgba(9,14,26,.96);border-top:2px solid var(--pp);padding:14px 18px 18px;
   min-height:172px;position:relative;cursor:pointer}
@@ -171,7 +171,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 #gLeft{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line)}
 #gLanes{position:relative;flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
   overflow:hidden;touch-action:none;min-height:0}
-/* とれる はんい の下じきり。画面の大きさが変わっても、ここが「いちばん下」です */
+/* とれる はんい の下じきり。画面の大きさが変わっても、ここが「一番下」です */
 #gLine{position:absolute;left:0;right:0;bottom:0;height:0;border-top:2px dashed #3c5a86;
   pointer-events:none;z-index:3}
 #gLine span{position:absolute;right:6px;bottom:3px;font-size:.58rem;color:#3c5a86;letter-spacing:.1em}
@@ -254,7 +254,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 @keyframes ppcnt{0%{transform:scale(1.5);opacity:0}30%{transform:scale(1);opacity:1}
   100%{transform:scale(.86);opacity:.5}}
 #gCountN.tick{animation:ppcnt .9s ease-out}
-/* 素数大富豪の手札（画面の下・かならず横1列） */
+/* 素数大富豪の手札（画面の下・必ず横1列） */
 #gHandWrap{flex:none;border-top:1px solid var(--line);background:#0a1020;padding:5px 8px 7px}
 #gHandLab{color:#3c4d6e;text-align:center;margin-bottom:3px}
 #gHand{display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-start;align-items:center;
@@ -270,18 +270,26 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   border:2px solid var(--warn);background:rgba(255,212,94,.28);pointer-events:none;display:none;
   box-shadow:0 0 18px -2px var(--warn);transform:translate(-50%,-50%)}
 #tutHand.on{display:block;transition:left .9s ease-in-out,top .9s ease-in-out}
-#tutBar{position:fixed;left:50%;transform:translateX(-50%);bottom:196px;z-index:204;
+#tutBar{position:fixed;left:50%;transform:translateX(-50%);top:112px;z-index:204;
   background:#241a10;border:1px solid var(--warn);border-radius:12px;padding:7px 16px;
   color:var(--warn);font-size:.86rem;font-weight:700;display:none;white-space:nowrap;
   box-shadow:0 0 24px -8px var(--warn)}
 #tutBar.on{display:block}
 #tutOk{color:var(--acc2);margin-left:8px}
 /* やってみよう中は、うしろのゲームをさわれるようにします */
+/* 練習中は、セリフを画面の一番上に小さくまとめます。
+   下（持っている数・ストック・レーンのボタン）が全部見えるようにするためです */
 #story.act{background:transparent;pointer-events:none}
-#story.act #stStage{background:transparent;pointer-events:none}
+#story.act #stStage{display:none}
 #story.act #stCharWrap{opacity:0}
-#story.act #stBox{pointer-events:none;background:rgba(9,14,26,.92);border-top-color:var(--warn)}
+#story.act #stBox{position:fixed;left:0;right:0;top:0;min-height:0;max-height:32vh;overflow:auto;
+  padding:8px 14px 10px;border-top:none;border-bottom:2px solid var(--warn);
+  background:rgba(9,14,26,.93);pointer-events:none;cursor:default}
+#story.act #stText{font-size:.86rem;line-height:1.62;min-height:0}
+#story.act #stName{font-size:.74rem;padding:2px 10px;margin-bottom:5px}
 #story.act #stNext{display:none}
+#story.act #stTools{display:none}
+#story.act #stBar{top:auto;bottom:0}
 #gWait{position:fixed;inset:0;z-index:168;background:rgba(6,10,20,.93);display:none;
   flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
 #gWait.on{display:flex}
@@ -399,7 +407,7 @@ label.pk input{margin:0}
   .pcard{width:26px;height:36px;font-size:.86rem}
   .pcard.big{font-size:.68rem}
   #gHand{min-height:44px}
-  #tutBar{bottom:auto;top:8px;font-size:.74rem;padding:5px 10px;max-width:94vw;white-space:normal}
+  #tutBar{bottom:auto;font-size:.74rem;padding:5px 10px;max-width:94vw;white-space:normal}
   #stBox{min-height:150px;padding:11px 13px 15px}
   #stText{font-size:.92rem;line-height:1.7;min-height:5em}
   #stChar svg{width:130px !important;height:143px !important}
@@ -415,7 +423,7 @@ label.pk input{margin:0}
   #gQueue{display:none}
   .pcard{width:23px;height:32px;font-size:.78rem}
 }
-/* 指でさわったときに、画面がひっぱられないように */
+/* 指でさわった時に、画面がひっぱられないように */
 @media(pointer:coarse){
   #game,#story,#modes{overscroll-behavior:none}
   .part,.stockbox,#gHand .pcard{-webkit-user-select:none;user-select:none;
@@ -433,7 +441,7 @@ label.pk input{margin:0}
     <p class="pwtiny">みなさんの記録はすべて残っています。消えていません。</p>
     <div class="pwtools">
       <a class="btn sm" href="index.html">素数あつめ RATING へ</a>
-      <button class="btn sm" id="pwRetry">もう一度たしかめる</button>
+      <button class="btn sm" id="pwRetry">もう一度確かめる</button>
     </div>
   </div>
 </div>
@@ -520,13 +528,13 @@ label.pk input{margin:0}
   <div class="modecard" data-mode="normal">
     <div class="lab">NORMAL</div>
     <h3>通常モード</h3>
-    <p class="tiny">＋n・−n・×n・カードの4種類の部品で素数をつくります。たすけはありません。</p>
+    <p class="tiny">＋n・−n・×n・カードの4種類の部品で素数を作ります。たすけはありません。</p>
   </div>
   <div class="modecard" data-mode="rich">
     <div class="lab">SPECIAL</div>
     <h3 style="color:#7fd8ff">素数大富豪モード</h3>
     <p class="tiny">カードだけが流れてきます。A・10・J・Q・K が入り、
-      ならべた順に読んで1つの数にします（A=1／J=11／Q=12／K=13）。ストックは6枚。</p>
+      並べた順に読んで1つの数にします（A=1／J=11／Q=12／K=13）。ストックは6枚。</p>
   </div>
   <div class="card" style="text-align:center">
     <button class="btn" id="modeBack">やめる</button>
@@ -552,7 +560,7 @@ label.pk input{margin:0}
 <!-- ═══════════ Prime Factory ═══════════ -->
 <div id="game">
   <div class="gtop">
-    <div id="gTime"><div class="t">のこり</div><div class="v" id="gTimeV">60.0</div></div>
+    <div id="gTime"><div class="t">残り</div><div class="v" id="gTimeV">60.0</div></div>
     <div id="gMode">通常モード</div>
     <div id="gDoc"></div>
     <div id="gDog"></div>
@@ -611,7 +619,7 @@ label.pk input{margin:0}
 <div id="gWait">
   <div id="gWaitDoc"></div>
   <div class="big">博士がまだ調べています…</div>
-  <p class="tiny">出した分がぜんぶ終わるまで待ちます</p>
+  <p class="tiny">出した分が全部終わるまで待ちます</p>
   <div id="gWaitList"></div>
 </div>
 
@@ -653,8 +661,8 @@ label.pk input{margin:0}
       <button class="btn sm" id="rkCalNext">▶</button>
     </div>
     <div id="rkCal"></div>
-    <p class="tiny" style="margin-top:6px">数字はその日の<b>みんなのいちばん</b>。
-      緑わくは自分がはたらいた日で、下の小さい数字が自分のいちばんです。</p>
+    <p class="tiny" style="margin-top:6px">数字はその日の<b>みんなの一番</b>。
+      緑わくは自分がはたらいた日で、下の小さい数字が自分の一番です。</p>
   </div>
 </div>
 
@@ -704,7 +712,7 @@ label.pk input{margin:0}
     </div>
     <div class="card" id="edForm">
       <h2>この行の中身</h2>
-      <p class="muted" id="edNone">左から行をえらんでください。</p>
+      <p class="muted" id="edNone">左から行を選んでください。</p>
       <div id="edFields" class="hidden">
         <label class="fl">話している人</label>
         <select class="txt" id="fWho"></select>
@@ -721,7 +729,7 @@ label.pk input{margin:0}
         <div class="grid3">
           <div><label class="fl">かお</label>
             <select class="txt" id="fFace">
-              <option value="">そのまま</option><option value="normal">ふつう</option>
+              <option value="">そのまま</option><option value="normal">普通</option>
               <option value="happy">うれしい</option><option value="think">かんがえる</option>
               <option value="bad">こまる</option></select></div>
           <div><label class="fl">立ち位置</label>
@@ -753,7 +761,7 @@ label.pk input{margin:0}
           <span class="mono">#gNumWrap</span>（持っている数）
           <span class="mono">#gSubmit</span>（提出）
           <span class="mono">#gDump</span>（分解マシーン）
-          <span class="mono">#gTime</span>（のこり時間）
+          <span class="mono">#gTime</span>（残り時間）
           <span class="mono">#gScore</span>（スコア）
           <span class="mono">#gDog</span>（Prime Dog）</p>
       </div>
@@ -902,7 +910,7 @@ function dogLine(n){
 function defaultStories(){
   return {
     tutorial: {
-      id:"tutorial", title:"はじめての Prime Factory",
+      id:"tutorial", title:"初めての Prime Factory",
       chars:{ hakase:{name:"立方体博士",color:"#c08bff",kind:"cube"},
               dog:{name:"Prime Dog",color:"#ffb877",kind:"dog"},
               you:{name:"あなた",color:"#5ee6a8",kind:"none"} },
@@ -933,16 +941,16 @@ function defaultStories(){
           act:{ type:"grab", part:{kind:"card",n:3}, lane:1, num:50,
             hint:"レーンの「3」カードを押して、ストックに入れてみよう" } },
         { who:"hakase", text:"押して使うと、前か後ろかを聞かれる。好きなほうを選ぶのじゃ。",
-          act:{ type:"use", hint:"ストックの「3」を押して、前か後ろをえらんでみよう" } },
+          act:{ type:"use", hint:"ストックの「3」を押して、前か後ろを選んでみよう" } },
         { who:"hakase", text:"「これは素数じゃ！」と思ったら、わしに提出せい。\nわしは18桁まで素因数分解できる。……時間はかかるがの。", focus:"#gSubmit", face:"normal" },
         { who:"hakase", text:"では、いま持っている数を出してみよ。",
           act:{ type:"submit", num:97, hint:"「博士に提出」を押してみよう" } },
         { who:"hakase", text:"提出した順に調べて、その場で素因数分解の結果を教える。\n混んでいても、どんどん出してよいぞ。", focus:"#gSubmit" },
-        { who:"hakase", text:"自信がないときは、自然数分解マシーンに捨ててもよい。\n捨てた数も、あとで正体を教えてやろう。", focus:"#gDump", face:"think" },
-        { who:"hakase", text:"ためしに、いまの数を捨ててみるのじゃ。",
+        { who:"hakase", text:"自信がない時は、自然数分解マシーンに捨ててもよい。\n捨てた数も、あとで正体を教えてやろう。", focus:"#gDump", face:"think" },
+        { who:"hakase", text:"試しに、いまの数を捨ててみるのじゃ。",
           act:{ type:"dump", hint:"「分解マシーンに捨てる」を押してみよう" } },
-        { who:"hakase", text:"素数だったときの点は\n（最高位の数 ÷ 3）×（3の桁数乗）。\n9973 なら 243点じゃ。", focus:"#gScore", face:"happy" },
-        { who:"hakase", text:"素数でなかったら、10×桁数 だけ引かれる。\n大きな数ほど、はずしたときが痛いぞ。", focus:"#gScore", face:"bad", shake:true },
+        { who:"hakase", text:"素数だった時の点は\n（最高位の数 ÷ 3）×（3の桁数乗）。\n9973 なら 243点じゃ。", focus:"#gScore", face:"happy" },
+        { who:"hakase", text:"素数でなかったら、10×桁数 だけ引かれる。\n大きな数ほど、はずした時が痛いぞ。", focus:"#gScore", face:"bad", shake:true },
         { who:"dog",    text:"おたすけモードでは、ボクがとなりにいるワン。\n「それは7の倍数な気がするワン」って教えるワン！", face:"happy", focus:"#gDog" },
         { who:"hakase", text:"時間は左上に出ておる。はじまる前に3つ数えるから、心の準備をな。", focus:"#gTime", face:"normal" },
         { who:"hakase", text:"素数大富豪モードでは、取ったカードが右がわに並ぶ。\nカードを引っぱれば、順番を入れかえられるぞ。", face:"think" },
@@ -1054,10 +1062,21 @@ const ACT_NAME = {
   reorder:"手札のカードを引っぱって、順番を入れかえてみよう"
 };
 /** 練習をはじめます。できるまで次の行へ進みません */
+/** セリフ枠の高さを測って、練習の案内をそのすぐ下に出します */
+function tutorBarPos(){
+  const box = $("#stBox"), bar = $("#tutBar");
+  if(!box || !bar) return;
+  const h = box.getBoundingClientRect().height || 0;
+  bar.style.top = Math.max(56, h + 10) + "px";
+  bar.style.bottom = "auto";
+}
 function tutorStart(act){
   TUTOR = { type: act.type, done:false, act };
   $("#story").classList.add("act");
   $("#tutBar").classList.add("on");
+  setTimeout(tutorBarPos, 30);
+  clearInterval(TUTOR.pos);
+  TUTOR.pos = setInterval(tutorBarPos, 500);
   $("#tutTxt").textContent = act.hint || ACT_NAME[act.type] || "やってみよう";
   $("#tutOk").hidden = true;
   $("#tutSkip").hidden = false;
@@ -1071,7 +1090,7 @@ function tutorStart(act){
   clearInterval(TUTOR.watch);
   TUTOR.watch = setInterval(tutorSupply, 900);
 }
-/** 練習に必要な部品が無くなっていたら、そっと出しなおします */
+/** 練習に必要な部品が無くなっていたら、そっと出し直します */
 function tutorSupply(){
   if(!TUTOR || TUTOR.done || !G) return;
   const a = TUTOR.act || {};
@@ -1084,7 +1103,7 @@ function tutorSupply(){
     return;
   }
   if(TUTOR.type === "drag"){
-    /* 引っぱる練習：レーンにも無く、ストックにも無いなら出しなおします */
+    /* 引っぱる練習：レーンにも無く、ストックにも無いなら出し直します */
     if(!sameLane && !inStock) spawnPart(a.part, li);
     return;
   }
@@ -1128,8 +1147,10 @@ function tutorHand(act){
 }
 /* どの操作でも「やりたいこと」ができていれば合格にします。
    （引っぱるつもりが押してしまった、なども先に進めるようにするため） */
+/* 部品を動かす練習（grab／drag／use）は、どのやり方でも合格にします。
+   「ストックに入れたのに次へ進まない」で止まってしまうのを防ぐためです。 */
 const ACT_OK = {
-  grab:["grab"], use:["use","drag"], drag:["drag","use"],
+  grab:["grab","drag","use"], use:["use","drag","grab"], drag:["drag","use","grab"],
   submit:["submit"], dump:["dump"], reorder:["reorder"]
 };
 /** ゲームの中から呼ばれます。合っていれば次へ進みます */
@@ -1139,6 +1160,8 @@ function tutorHit(type){
   if(ok.indexOf(type) < 0) return;
   TUTOR.done = true;
   clearInterval(TUTOR.watch);
+  clearInterval(TUTOR.pos);
+  if(type !== TUTOR.type) $("#tutTxt").textContent = "そのやり方でもよいぞ！";
   $("#tutOk").hidden = false;
   $("#tutSkip").hidden = true;
   clearInterval(tutorHand._t);
@@ -1151,8 +1174,9 @@ function tutorHit(type){
   }, 700);
 }
 function tutorStop(){
-  if(TUTOR) clearInterval(TUTOR.watch);
+  if(TUTOR){ clearInterval(TUTOR.watch); clearInterval(TUTOR.pos); }
   TUTOR = null;
+  const bar = $("#tutBar"); if(bar){ bar.style.top = ""; bar.style.bottom = ""; }
   clearInterval(tutorHand._t);
   $("#tutHand").classList.remove("on");
   $("#tutBar").classList.remove("on");
@@ -1163,7 +1187,7 @@ $("#stBox").onclick = () => { if(!TUTOR) stNext(); };
 $("#tutSkip").onclick = e => {
   e.stopPropagation();
   if(!TUTOR) return;
-  TUTOR.done = true; clearInterval(TUTOR.watch);
+  TUTOR.done = true; clearInterval(TUTOR.watch); clearInterval(TUTOR.pos);
   tutorStop(); stNext();
 };
 $("#stSkip").onclick = e => { e.stopPropagation(); if(ST) stEnd(); };
@@ -1175,7 +1199,7 @@ document.addEventListener("keydown", e => {
 }, true);
 
 /* ══════════════════════════════════════════════════════════════
-   4) むずかしさの設定（管理者だけ）
+   4) 難しさの設定（管理者だけ）
    ══════════════════════════════════════════════════════════════ */
 const DIFF_DEF = { laneMs:1000, fallMs:4200, thinkBase:500, thinkPerDigit:240,
                    sec:{ normal:60, help:60, rich:60 }, count:3 };
@@ -1202,7 +1226,7 @@ function fixDiff(d){
   return d;
 }
 DIFF = fixDiff(DIFF);
-/** むずかしさはサーバーに1つだけ置きます。みんな同じ設定であそびます */
+/** 難しさはサーバーに1つだけ置きます。みんな同じ設定であそびます */
 let DIFF_FROM = "この端末の設定";
 async function loadDiff(){
   const c = sbConf();
@@ -1245,7 +1269,7 @@ const SB_KEY_DEF = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 const K_SESS = "sa-sess-v3", K_SB = "sa-sb-v3", K_PRO = "sa-pro-v3";
 const LV_NAME = { 0:"一般ユーザー", 1:"サポーター", 2:"審査員", 3:"スーパーバイザー",
                   4:"ジャッジマン", 5:"管理者" };
-let IS_ADMIN = false, MY_LV = 0, ROLE_STATE = "しらべていません";
+let IS_ADMIN = false, MY_LV = 0, ROLE_STATE = "調べていません";
 function sbConf(){
   const o = LS.get(K_SB, null) || {};
   return { url:String(o.url || SB_URL_DEF).trim().replace(/\/+$/,""),
@@ -1269,7 +1293,7 @@ async function refreshSess(){
     return ns;
   }catch(e){ return null; }
 }
-/** 役職のレベルを聞きます。うまくいかなかったときは null を返します */
+/** 役職のレベルを聞きます。うまくいかなかった時は null を返します */
 async function askLevel(){
   let s = mySess(); const c = sbConf();
   if(!s || !c.url || !c.key){ ROLE_STATE = "ログインしていません"; return null; }
@@ -1286,7 +1310,7 @@ async function askLevel(){
     if(e.status === 401 || e.status === 403){
       const ns = await refreshSess();
       if(ns){ try{ return await call(ns.access_token); }catch(e2){} }
-      ROLE_STATE = "ログインしなおしてください";
+      ROLE_STATE = "ログインし直してください";
       return null;
     }
     ROLE_STATE = "つながりませんでした";
@@ -1327,7 +1351,7 @@ async function sbCall(path, body, needAuth){
 const online = () => { const c = sbConf(); return !!(c.url && c.key); };
 const loggedIn = () => !!mySess();
 
-/** 役職をしらべて、管理者メニューの出しわけを決めます */
+/** 役職を調べて、管理者メニューの出しわけを決めます */
 async function loadRole(){
   const lv = await askLevel();
   MY_LV = (lv == null) ? 0 : lv;
@@ -1371,7 +1395,7 @@ const partSub = p => p.kind === "card"
 /* ── 素数大富豪の「持ち方」 ── */
 const richStr = cards => cards.map(c => String(c)).join("");
 const richBig = cards => cards.length ? BigInt(richStr(cards)) : null;
-/** 見た目の桁数は、ならべた文字の長さで数えます */
+/** 見た目の桁数は、並べた文字の長さで数えます */
 const richLen = cards => richStr(cards).length;
 
 function curBig(){
@@ -1387,7 +1411,7 @@ function newHand(){
   }
 }
 
-/** 画面をつくるところ。tutor=true なら時間も部品も止めたままにします */
+/** 画面を作るところ。tutor=true なら時間も部品も止めたままにします */
 function setupGame(mode, tutor){
   $("#home").classList.add("hidden");
   $("#editor").classList.add("hidden");
@@ -1529,7 +1553,7 @@ function toStock(part){
   tutorHit("grab");
   return true;
 }
-/** そのレーンで「いちばん下にある部品」。
+/** そのレーンで「一番下にある部品」。
  *  真ん中が とれる はんい（レーンの上端〜下端）に入っているものだけが対象です。
  *  画面の大きさが変わっても、実際に測った位置で決めるのでズレません。 */
 function lowestPart(li){
@@ -2042,7 +2066,7 @@ function showResult(){
     <div class="card" style="text-align:center">
       <div class="tools" style="justify-content:center">
         <button class="btn pp" id="grAgain">もう一度はたらく</button>
-        <button class="btn" id="grMode">モードをえらぶ</button>
+        <button class="btn" id="grMode">モードを選ぶ</button>
         <button class="btn" id="grHome">パークにもどる</button>
       </div></div>`;
   $("#gRes").classList.add("on");
@@ -2051,7 +2075,7 @@ function showResult(){
     const left = (LS.get(K_QUEUE, []) || []).length;
     if(!online() || !loggedIn()){
       el.innerHTML = '<span style="color:var(--warn)">まだ送れていません。'
-        + 'ログインしてもう一度ひらくと、みんなのランキングに載ります。</span>';
+        + 'ログインしてもう一度開くと、みんなのランキングに載ります。</span>';
       return;
     }
     if(left){ await flushRuns(); }
@@ -2068,11 +2092,16 @@ function showResult(){
 }
 /* ══════════════════════════════════════════════════════════════
    スコアと Prime Coin をサーバーへ送ります。
-   ・つながらないときは、この端末にためておき、あとで自動で送りなおします
+   ・つながらない時は、この端末にためておき、あとで自動で送り直します
    ══════════════════════════════════════════════════════════════ */
 const K_COIN  = "sa-ppcoin-v1";     /* 本体アプリが受け取る、もらったコインの控え */
 const K_QUEUE = "pp-queue-v1";      /* まだ送れていない記録 */
 let PP_COINS = null;                /* サーバーが教えてくれた、いまの枚数 */
+let PP_LEFT  = null;                /* 今日あと何回コインをもらえるか（管理者が決めます） */
+/** サーバーの返事から「今日の残り」を覚えます */
+function keepLeft(o){
+  if(o && o.kinds && o.kinds.game) PP_LEFT = +o.kinds.game.left;
+}
 
 function coinEarn(mode, score, big3){
   const q = LS.get(K_COIN, []) || [];
@@ -2108,6 +2137,7 @@ async function flushRuns(){
         p_mode:r.mode, p_score:Math.round(r.score||0), p_ok:r.ok||0, p_ng:r.ng||0,
         p_dump:r.dump||0, p_digits:r.digits||0, p_game:"factory" }, true);
       if(out && out.coins != null) PP_COINS = +out.coins;
+      keepLeft(out);
       /* サーバーに入ったので、この端末の控えは消します */
       if(r.kept){
         const c = LS.get(K_COIN, []) || [];
@@ -2135,6 +2165,7 @@ async function askCoins(){
   try{
     const o = await sbCall("rpc/coin_state", {}, true);
     PP_COINS = o ? +o.coins : null;
+    keepLeft(o);
   }catch(e){ PP_COINS = null; }
   drawCoin();
   return PP_COINS;
@@ -2224,7 +2255,7 @@ $("#btnTuto").onclick = async () => {
    7b) ランキング（Daily / Weekly / Monthly）
    　　素数あつめRATING のチャレンジと同じ考え方です。
    　　・期間ごとに別々に集計します
-   　　・その期間に出したなかで、いちばん良い記録で競います
+   　　・その期間に出したなかで、一番良い記録で競います
    　　・過去の回もさかのぼって見られます
    　　・歴代チャンピオン（優勝回数・出場回数）も出します
    ══════════════════════════════════════════════════════════════ */
@@ -2266,7 +2297,7 @@ function myName(){
   return LS.get(K_NAME, null) || p.name || p.handle || "あなた";
 }
 /* 記録はサーバー（pp_runs）に入っています。みんなのぶんが見えます。
-   つながらないときだけ、この端末に残っているぶんを出します。 */
+   つながらない時だけ、この端末に残っているぶんを出します。 */
 const allRuns = () => (LS.get(K_LOG, []) || []).filter(x => x && x.at != null);
 function localRank(kind, key, mode){
   const best = {};
@@ -2291,7 +2322,7 @@ function withPos(rows){
   rows.forEach(r => { r.tie = rows.filter(x => x.pos === r.pos).length > 1; });
   return rows;
 }
-/** その回のランキング。1人につき、いちばん良い記録だけで競います */
+/** その回のランキング。1人につき、一番良い記録だけで競います */
 async function rankOf(kind, key, mode){
   if(online()){
     try{
@@ -2341,7 +2372,7 @@ async function rkDraw(){
   $("#rkNote").innerHTML = (rkTab === "day"
     ? "毎日 0時（日本時間）で区切ります。"
     : rkTab === "week" ? "毎週 月曜 0時で区切ります。" : "毎月 1日 0時で区切ります。")
-    + "　その回に出したなかで、<b>いちばん良いスコア</b>で競います。"
+    + "　その回に出したなかで、<b>一番良いスコア</b>で競います。"
     + (online() ? "　みんなの記録が出ます。" : "")
     + (RK_ERR ? `<br><span style="color:var(--bad)">つながりませんでした：${esc(RK_ERR)}
         （この端末の記録だけを出しています）</span>` : "");
@@ -2464,9 +2495,13 @@ function drawCoin(){
   const waiting = (LS.get(K_QUEUE, []) || []).length;
   if(PP_COINS != null){
     el.textContent = jp(PP_COINS);
-    $("#homeCoinNote").textContent = waiting
+    const left = (PP_LEFT == null) ? ""
+      : (PP_LEFT < 0 ? "　今日は何回でももらえます。"
+      : (PP_LEFT > 0 ? `　今日はあと ${jp(PP_LEFT)} 回もらえます。`
+                     : "　今日のぶんはもらいきりました（また明日）。"));
+    $("#homeCoinNote").textContent = (waiting
       ? `まだ送れていない記録が ${jp(waiting)} 件あります（つながったら自動で送ります）`
-      : "素数あつめ RATING と同じ残高です。";
+      : "素数あつめ RATING と同じ残高です。") + left;
   }else{
     el.textContent = jp(coinPending());
     $("#homeCoinNote").textContent = loggedIn()
@@ -2535,7 +2570,7 @@ function openDiff(){
   if(!IS_ADMIN) return null;
   const M = modal(`<h2>全体難易度調整</h2>
     <p class="tiny">レーンの速さなどを決めます。ジャッジマン以上だけがさわれます。<br>
-      ここで保存すると、<b>全員が同じ設定であそぶ</b>ようになります（いま：${esc(DIFF_FROM)}）。</p>
+      ここで保存すると、<b>全員が同じ設定で遊ぶ</b>ようになります（いま：${esc(DIFF_FROM)}）。</p>
     <div id="dfRows"></div>
     <h3 style="margin-top:14px">プレビュー</h3>
     <p class="tiny">いまの設定で、部品がどのくらいの速さで流れるかを見られます。</p>
@@ -2576,7 +2611,7 @@ function openDiff(){
     let msg = "";
     try{ await saveDiffServer(); msg = "みんなに反映しました。"; }
     catch(e){ msg = "みんなには反映できませんでした（この端末だけ）：" + String(e.message||e).slice(0,80); }
-    admOut("むずかしさを保存しました。" + msg + "\n"
+    admOut("難しさを保存しました。" + msg + "\n"
       + DF_ROWS.map(z=>`・${z.n}：${dfGet(z.k)}${z.unit}`).join("\n"));
     stopPreview(); M.close();
   };
@@ -2779,7 +2814,7 @@ $("#edImport").onclick = () => {
   if(!t) return;
   try{
     const o = JSON.parse(t);
-    if(!o || typeof o !== "object") throw new Error("形がちがいます");
+    if(!o || typeof o !== "object") throw new Error("形が違います");
     STORIES = o; saveStories();
     edId = STORIES.tutorial ? "tutorial" : Object.keys(STORIES)[0];
     edSel = 0; edDrawPick(); edDrawChars(); edDrawList(); edDrawForm(); edMsg("読みこみました");
@@ -2811,7 +2846,7 @@ function admSync(){
 }
 $("#btnEdit").onclick = edOpen;
 $("#btnDiff").onclick = openDiff;
-/** ランキングの見た目をたしかめるための、にせの記録 */
+/** ランキングの見た目を確かめるための、にせの記録 */
 $("#btnSeed").onclick = () => {
   const who = ["みかん","りんご","素数博士","ぶどう","syuuto"];
   const modes = ["normal","help","rich"];
@@ -2894,7 +2929,7 @@ function selfTest(){
   eq("いない人が話していない", (st.lines||[]).filter(L=>!st.chars[L.who]).length, 0);
   eq("注目させる場所がすべて実在する",
      (st.lines||[]).filter(L=>L.focus&&!document.querySelector(L.focus)).length, 0);
-  admOut((ng.length ? "× "+ng.length+" 件おかしいところがあります\n\n" : "○ ぜんぶ合っています\n\n")+out.join("\n"));
+  admOut((ng.length ? "× "+ng.length+" 件おかしいところがあります\n\n" : "○ 全部合っています\n\n")+out.join("\n"));
   return ng;
 }
 $("#btnSelfTest").onclick = selfTest;
@@ -2902,7 +2937,7 @@ $("#btnSelfTest").onclick = selfTest;
 /* さいごに、ホームのランキング表示を出します（下で作った関数を使うため） */
 try{ homeRank(); }catch(e){}
 /* ══════════════════════════════════════════════════════════════
-   起動したときと、もどってきたときに、サーバーとそろえます
+   起動した時と、もどってきた時に、サーバーとそろえます
    ══════════════════════════════════════════════════════════════ */
 /* ── 一時停止：素数あつめ RATING と同じ合図を見ます ── */
 const K_PAUSE = "pp-pause-v1";
@@ -2957,7 +2992,7 @@ async function ppSync(){
   ppBooted = true;
 }
 ppSync();
-/* 30秒ごと、もどってきたとき、つながったときにも、そろえなおします */
+/* 30秒ごと、もどってきた時、つながった時にも、そろえ直します */
 setInterval(()=>{ if(!document.hidden) ppSync(); }, 30000);
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) ppSync(); });
 window.addEventListener("online", ()=>ppSync());
