@@ -63,6 +63,15 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 @keyframes lscfx{0%{opacity:0;transform:translate(-50%,6px)}
   20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
 #lsCoinBox{position:relative}
+.rkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 0;
+  border-bottom:1px solid var(--line)}
+.rkrow .rkno{width:26px;height:26px;border-radius:50%;background:#16233a;color:var(--dim);
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}
+.rkrow .rkf{display:flex;flex-direction:column;gap:3px}
+.rkrow .rkf .fl{margin:0;font-size:.62rem}
+.rkrow .rkp{margin-left:auto;font-weight:900;font-size:1.15rem;letter-spacing:.08em;align-self:center}
+.rkdemo{display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.rkdemo .tiny{min-width:120px;color:var(--dim2)}
 .postbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;
   width:30px;height:26px;margin-left:6px;padding:0;border-radius:8px;cursor:pointer;
   background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;vertical-align:middle}
@@ -908,6 +917,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <button data-tab="sns">Prime SNS</button></div>
   <div class="grp" data-g="set"><div class="ghead">設定</div>
     <button data-tab="settings">設定</button>
+    <button data-tab="rankedit" id="tabRankEdit" hidden>ランクの編集</button>
     <button data-tab="help">ヘルプ</button></div>
 </nav>
 
@@ -1014,7 +1024,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 
 <div class="card">
-    <h2>ランクとレートの仕組み</h2>
+    <h2>ランクとレートの仕組み
+      <button class="btn sm" id="rkEditGo" hidden style="float:right">ランクを編集する</button></h2>
     <div id="pyramid"></div>
     <div id="pyramidNote"></div>
   </div>
@@ -1807,6 +1818,48 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 </section>
 
+<section id="rankedit" hidden>
+  <div class="card" style="border-color:var(--warn)">
+    <h2>ランクとレートの編集（管理者だけ）</h2>
+    <p class="muted" style="margin-top:-8px">ここで決めた名前・レートの区切り・色は、
+      <b>全員の画面</b>（ホーム・ランキング・プロフィール・カード・ヘルプ）に反映されます。<br>
+      <span class="tiny">保存するまでは、誰にも見えません。下の「見本」で確かめてから保存してください。</span></p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="rkSave">この内容で保存する（全員に反映）</button>
+      <button class="btn" id="rkReload">保存せずに読み直す</button>
+      <button class="btn" id="rkDef">はじめの形に戻す</button>
+      <button class="btn" id="rkBack">ホームに戻る</button>
+      <span class="tiny" id="rkMsg"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>見本（プレビュー）</h2>
+    <div id="rkPrev"></div>
+  </div>
+
+  <div class="card">
+    <h2>RATING の数字の色</h2>
+    <div id="rkNum"></div>
+  </div>
+
+  <div class="card">
+    <h2>ランクの一覧</h2>
+    <p class="muted" style="margin-top:-8px">「このレートから」の小さい順に並びます。
+      いちばん下は必ず 0 からになります。</p>
+    <div id="rkList"></div>
+    <div class="tools">
+      <button class="btn sm" id="rkAdd">＋ ランクを増やす</button>
+      <span class="tiny">最大30個まで。名前は12文字までです。</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ピラミッドの見え方</h2>
+    <div id="rkPyr"></div>
+  </div>
+</section>
+
 <section id="card" hidden>
   <div class="card">
     <h2>プロフィールカード</h2>
@@ -2055,7 +2108,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v88";
+const APP_VERSION = "v89";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2137,10 +2190,33 @@ const L_BASE=25, L_SUB=5.5, S_BASE=25, S_SUB=4.75, MAXPT=20;
  *  1e-9 を足しているのは、2.500 がコンピュータ内部で 2.4999999… になる誤差を打ち消すため。 */
 const tr3=v=>(v>0?Math.floor(v*1000+1e-9)/1000:0);
 
-const RANKS=[{min:0,n:"NOVICE",c:"#8ba0bd"},{min:4,n:"BRONZE",c:"#c98a52"},
- {min:7,n:"SILVER",c:"#bfcbdb"},{min:10,n:"GOLD",c:"#f0c04a"},
- {min:12.5,n:"PLATINUM",c:"#7fe6d4"},{min:15,n:"TITAN",c:"#a98bff"},
- {min:17,n:"MASTER",c:"#ff7b8a"},{min:19,n:"RAINBOW",c:"#57e0a0"}];
+/* ランクの名前・レートの区切り・色。管理者が変えられます（サーバーに入っています）。
+   c＝色／c2＝グラデーションのもう一方（なければ単色）／glow＝光らせるか */
+const RANK_DEF=[{min:0,n:"NOVICE",c:"#8ba0bd",c2:null,glow:false},
+ {min:4,n:"BRONZE",c:"#c98a52",c2:null,glow:false},
+ {min:7,n:"SILVER",c:"#bfcbdb",c2:null,glow:false},
+ {min:10,n:"GOLD",c:"#f0c04a",c2:null,glow:false},
+ {min:12.5,n:"PLATINUM",c:"#7fe6d4",c2:null,glow:false},
+ {min:15,n:"TITAN",c:"#a98bff",c2:null,glow:false},
+ {min:17,n:"MASTER",c:"#ff7b8a",c2:null,glow:false},
+ {min:19,n:"RAINBOW",c:"#57e0a0",c2:"#7fd8ff",glow:true}];
+const RNUM_DEF={c:"#eef3fa",c2:null,glow:false};
+let RANKS=JSON.parse(JSON.stringify(RANK_DEF));   /* いま使っているもの */
+let RNUM=JSON.parse(JSON.stringify(RNUM_DEF));    /* RATING の数字の色 */
+let RCFG_AT=0;
+/** 文字に色・グラデーション・光を付けるCSS */
+function rankCSS(r,size){
+  if(!r) return "";
+  const c=r.c||"#8ba0bd", c2=r.c2||null;
+  let css=c2
+    ? `background:linear-gradient(90deg,${c},${c2});-webkit-background-clip:text;`
+      +`background-clip:text;color:transparent;-webkit-text-fill-color:transparent;`
+    : `color:${c};`;
+  if(r.glow) css+=`filter:drop-shadow(0 0 ${size||6}px ${c2||c}aa);`;
+  return css;
+}
+/** 枠線などに使う、1色ぶんの色 */
+const rankC=r=>(r&&r.c)||"#8ba0bd";
 
 const SAMPLE={"合計スコア":789918,"素因数分解・初級":79798,"素因数分解・上級":13395,
  "素数判定":75062,"素数特定":48886,"素数判定・改":56503,"素数増強":75525,"二数限定":45204,
@@ -2581,9 +2657,10 @@ async function loadSegFont(){
 function ratingHTML(v,scale){
   const k=scale||1, lock=v===null;
   const s=lock?"--.---":f3(v).replace(/,/g,""), i=s.indexOf(".");
-  const on=lock?"#43536e":"#eef3fa";
+  const on=lock?"#43536e":(RNUM.c||"#eef3fa");
+  const style=lock?`color:${on}`:rankCSS(RNUM,10);
   if(!DIGITAL)
-    return `<span class="rtplain" style="font-size:${62*k}px;color:${on}">`+
+    return `<span class="rtplain" style="font-size:${62*k}px;${style}">`+
       `${esc(s.slice(0,i))}<span class="d">${esc(s.slice(i))}</span></span>`;
   if(SEG_FONT)
     return `<span class="segfont" style="font-size:${62*k}px;color:${on}">`+
@@ -2593,8 +2670,23 @@ function ratingHTML(v,scale){
   return `<span class="segwrap" style="gap:${8*k}px">`+
     segSVG(s.slice(0,i),big)+segSVG(s.slice(i),sml)+`</span>`;
 }
-const rankOf=v=>{let r=RANKS[0];for(const x of RANKS) if(v>=x.min) r=x; return r;};
-const nextRank=v=>RANKS.find(x=>x.min>v)||null;
+const rankOf=v=>{let r=RANKS[0];for(const x of RANKS) if(v>=+x.min) r=x; return r;};
+const nextRank=v=>RANKS.find(x=>+x.min>v)||null;
+/** ランクの設定をサーバーから読みます（誰でも読めます） */
+async function rankCfgLoad(){
+  if(typeof TEST!=="undefined"&&TEST){ RCFG_AT=Date.now(); return; }
+  if(!(typeof sbOn==="function"&&sbOn())) return;
+  try{
+    const r=await sb("rpc/rank_cfg",{method:"POST",body:"{}"});
+    if(r&&Array.isArray(r.ranks)&&r.ranks.length){
+      RANKS=r.ranks.slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
+      RNUM=Object.assign(JSON.parse(JSON.stringify(RNUM_DEF)), r.num||{});
+      RCFG_AT=Date.now();
+      try{ render(); }catch(e){}
+      try{ if(!$("#help").hidden) renderHelp(); }catch(e){}
+    }
+  }catch(e){}
+}
 /** 最前面に出す共通の小窓 */
 function modal(html,opt){
   const mask=document.createElement("div"); mask.className="mask";
@@ -2643,6 +2735,15 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v89":[
+    "チャレンジ参加の投稿が、審査後も「未審査」のままだった不具合を修正",
+    "タイムラインから記録の中身（1回ごとの得点）を見られるようにした",
+    "その場で審査できるボタンを追加（自分の記録・審査済みは押せません）",
+    "LSやりこみのまとめに、タイマーを使っていないクリアも数えるようにした",
+    "ホームの大会成績を「チャレンジ参加回数」「競技会参加回数」に分けた",
+    "ランクの名前・レートの区切り・色・グラデーション・光を管理者が編集できるようにした",
+    "RATING の数字の色も変えられるようにした",
+    "Prime Coin とランクのヘルプが、いまの設定をそのまま出すようにした"],
   "v88":[
     "管理者からのお知らせを追加（バージョン名の隣のマークから読めます）",
     "ランキングの自動更新をオン・オフできるようにした",
@@ -3407,7 +3508,7 @@ function stFlush(){
    ══════════════════════════════════════════════════════════════ */
 const K_LSREV="sa-lsrev-v1";
 /* このまとまりを、ひとつの入れものとして扱います */
-const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1"];
+const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1","sa-lsday-v1"];
 /** 追加の道具が足したものも、いっしょに持ちます */
 const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
 /* 設定のように「新しいほうが正しい」もの */
@@ -3541,10 +3642,11 @@ function lsReload(){
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
+    if(typeof lsDay!=="undefined") lsDay=ls(K_LSDAY,{});
     if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null});
     if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0});
     extCall("reload");
-    if(typeof renderLs==="function"&&$("#ls")&&!$("#ls").hidden) renderLs();
+    if(typeof renderLs==="function"&&$("#ls")&&!$("#ls").hidden){ renderLs(); renderLsSum(); }
     extCall("renderLs");
   }catch(e){}
 }
@@ -3856,12 +3958,10 @@ function render(){
     (pro.x_url?` 　<a href="${esc(pro.x_url)}" target="_blank" rel="noopener" class="tiny">記録の証明 ↗</a>`:"");
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
   const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
-  const isRB=rk&&rk.n==="RAINBOW";
   rb.textContent=rk?rk.n:"—";
-  rb.className="badge"+(rk?" bg-"+rk.n:"")+(isRB?" rb-text":"");
-  rb.style.color=rk&&!isRB?rk.c:"";
-  rb.style.borderColor=rk?rk.c+"66":"var(--line)";
-  $("#ratingWrap").className=isRB?"rb-text":"";
+  rb.className="badge";
+  rb.style.cssText=rk?rankCSS(rk,5)+`border-color:${rankC(rk)}66`:"";
+  $("#ratingWrap").className="";
   const lb=$("#lockbox");
   if(c.complete) lb.hidden=true;
   else{lb.hidden=false;
@@ -3923,20 +4023,169 @@ function drawPyramid(total,complete){
     const w0=topW+(botW-topW)*(idx/n), w1=topW+(botW-topW)*((idx+1)/n);
     const here=complete&&rankOf(total).n===r.n;
     const nx=RANKS[i+1];
-    const range=nx?`${r.min.toFixed(1)} 〜 ${nx.min.toFixed(1)}`:`${r.min.toFixed(1)} 以上`;
+    const range=nx?`${(+r.min).toFixed(1)} 〜 ${(+nx.min).toFixed(1)}`:`${(+r.min).toFixed(1)} 以上`;
+    const gid=`rkg${i}`;
+    if(r.c2) g+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${r.c}"/><stop offset="1" stop-color="${r.c2}"/></linearGradient></defs>`;
+    const fillC=r.c2?`url(#${gid})`:rankC(r);
     g+=`<polygon points="${cx-w0/2},${y} ${cx+w0/2},${y} ${cx+w1/2},${y+rowH-5} ${cx-w1/2},${y+rowH-5}"
-      fill="${r.c}${here?"55":"1f"}" stroke="${r.c}${here?"":"66"}" stroke-width="${here?2.5:1}"/>`;
-    g+=`<text x="${cx-6}" y="${y+rowH/2+1}" text-anchor="end" fill="${r.c}"
-      style="font:700 15px ui-sans-serif,system-ui;letter-spacing:.1em">${r.n}</text>`;
+      fill="${rankC(r)}${here?"55":"1f"}" stroke="${rankC(r)}${here?"":"66"}" stroke-width="${here?2.5:1}"/>`;
+    g+=`<text x="${cx-6}" y="${y+rowH/2+1}" text-anchor="end" fill="${fillC}"
+      style="font:700 15px ui-sans-serif,system-ui;letter-spacing:.1em${
+        r.glow?`;filter:drop-shadow(0 0 5px ${r.c2||r.c})`:""}">${esc(r.n)}</text>`;
     g+=`<text x="${cx+14}" y="${y+rowH/2+1}" fill="#8ba0bd"
       style="font:400 12px ui-monospace,monospace">${range}</text>`;
-    if(here) g+=`<text x="${cx+w1/2+8}" y="${y+rowH/2+1}" fill="${r.c}"
+    if(here) g+=`<text x="${cx+w1/2+8}" y="${y+rowH/2+1}" fill="${rankC(r)}"
       style="font:700 12px ui-sans-serif,system-ui">◀ 現在地</text>`;
   }
   g+=`<text x="${cx}" y="${H-16}" text-anchor="middle" fill="#61748f"
     style="font:400 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>`;
   return g+"</svg>";
 }
+/* ══════════════════════════════════════════════════════════
+   ランクの編集（管理者だけ・1枚の画面）
+   ══════════════════════════════════════════════════════════ */
+let REDIT=null;
+function rkEnter(){
+  if(!isAdmin()){ goTab("profile"); return toast("管理者だけが使えます"); }
+  REDIT={ranks:JSON.parse(JSON.stringify(RANKS)), num:JSON.parse(JSON.stringify(RNUM))};
+  rkDraw();
+}
+function rkSort(){ REDIT.ranks.sort((a,b)=>(+a.min||0)-(+b.min||0)); }
+function rkDraw(){
+  if(!REDIT) return;
+  rkSort();
+  /* ── 一覧 ── */
+  $("#rkList").innerHTML=REDIT.ranks.map((r,i)=>`
+    <div class="rkrow">
+      <div class="rkno">${i+1}</div>
+      <div class="rkf"><label class="fl">このレートから</label>
+        <input type="number" class="txt" data-rk="${i}.min" step="0.1" min="0" max="20"
+          value="${+r.min||0}" style="max-width:110px"></div>
+      <div class="rkf"><label class="fl">名前</label>
+        <input type="text" class="txt" data-rk="${i}.n" maxlength="12"
+          value="${esc(r.n||"")}" style="max-width:170px"></div>
+      <div class="rkf"><label class="fl">色</label>
+        <input type="color" data-rk="${i}.c" value="${esc(r.c||"#8ba0bd")}"></div>
+      <div class="rkf"><label class="fl">グラデーション</label>
+        <label class="pk"><input type="checkbox" data-rg="${i}"${r.c2?" checked":""}> つける</label>
+        ${r.c2?`<input type="color" data-rk="${i}.c2" value="${esc(r.c2)}">`:""}</div>
+      <div class="rkf"><label class="fl">光らせる</label>
+        <label class="pk"><input type="checkbox" data-rl="${i}"${r.glow?" checked":""}> 光る</label></div>
+      <div class="rkf"><label class="fl">　</label>
+        <button class="btn sm del" data-rx="${i}"${REDIT.ranks.length<2?" disabled":""}>消す</button></div>
+      <div class="rkp" style="${rankCSS(r,8)}">${esc(r.n||"（名前なし）")}</div>
+    </div>`).join("");
+  $$("#rkList [data-rk]").forEach(e=>e.oninput=()=>{
+    const [i,f]=e.dataset.rk.split(".");
+    const r=REDIT.ranks[+i];
+    if(f==="min") r.min=Math.max(0,Math.min(20,+e.value||0));
+    else r[f]=e.value;
+    rkDraw();
+  });
+  $$("#rkList [data-rg]").forEach(e=>e.onchange=()=>{
+    const r=REDIT.ranks[+e.dataset.rg];
+    r.c2=e.checked?(r.c2||"#7fd8ff"):null; rkDraw();
+  });
+  $$("#rkList [data-rl]").forEach(e=>e.onchange=()=>{
+    REDIT.ranks[+e.dataset.rl].glow=e.checked; rkDraw();
+  });
+  $$("#rkList [data-rx]").forEach(b=>b.onclick=()=>{
+    if(REDIT.ranks.length<2) return;
+    REDIT.ranks.splice(+b.dataset.rx,1); rkDraw();
+  });
+
+  /* ── RATING の数字 ── */
+  const n=REDIT.num;
+  $("#rkNum").innerHTML=`<div class="rkrow">
+      <div class="rkf"><label class="fl">色</label>
+        <input type="color" data-rn="c" value="${esc(n.c||"#eef3fa")}"></div>
+      <div class="rkf"><label class="fl">グラデーション</label>
+        <label class="pk"><input type="checkbox" id="rkNumG"${n.c2?" checked":""}> つける</label>
+        ${n.c2?`<input type="color" data-rn="c2" value="${esc(n.c2)}">`:""}</div>
+      <div class="rkf"><label class="fl">光らせる</label>
+        <label class="pk"><input type="checkbox" id="rkNumL"${n.glow?" checked":""}> 光る</label></div>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <span class="rtplain" style="font-size:52px;${rankCSS(n,10)}">18<span class="d">.842</span></span>
+    </div>`;
+  $$("#rkNum [data-rn]").forEach(e=>e.oninput=()=>{ REDIT.num[e.dataset.rn]=e.value; rkDraw(); });
+  $("#rkNumG").onchange=e=>{ REDIT.num.c2=e.target.checked?(REDIT.num.c2||"#7fd8ff"):null; rkDraw(); };
+  $("#rkNumL").onchange=e=>{ REDIT.num.glow=e.target.checked; rkDraw(); };
+
+  /* ── 見本 ── */
+  const demo=REDIT.ranks.map(r=>{
+    const v=(+r.min||0)+0.5;
+    return `<div class="rkdemo">
+      <span class="badge" style="${rankCSS(r,5)}border-color:${rankC(r)}66">${esc(r.n||"—")}</span>
+      <span class="tiny">レート ${(+r.min||0).toFixed(3)} から</span>
+      <span class="rtplain" style="font-size:26px;${rankCSS(REDIT.num,6)}">${esc(v.toFixed(3))}</span>
+      <span style="${rankCSS(r,4)};font-weight:800">${esc(r.n||"—")}</span>
+    </div>`;}).join("");
+  $("#rkPrev").innerHTML=`<p class="tiny">左から：バッジ／レートの下限／RATING の数字／一覧での名前の出かた</p>`
+    +demo
+    +`<p class="tiny" style="margin-top:10px;color:var(--dim2)">
+       グラデーションと光は、端末によって少し見え方が変わります。</p>`;
+
+  /* ── ピラミッド ── */
+  const keep=RANKS;
+  RANKS=REDIT.ranks;
+  try{ $("#rkPyr").innerHTML=drawPyramid(((+REDIT.ranks[Math.floor(REDIT.ranks.length/2)].min)||0)+0.5,true); }
+  finally{ RANKS=keep; }
+
+  /* ── 入力のまちがいを知らせます ── */
+  const ng=[];
+  if(REDIT.ranks.some(r=>!String(r.n||"").trim())) ng.push("名前が空のランクがあります");
+  const mins=REDIT.ranks.map(r=>+r.min||0);
+  if(new Set(mins).size!==mins.length) ng.push("同じレートのランクが2つ以上あります");
+  $("#rkMsg").innerHTML=ng.length
+    ? `<span style="color:var(--bad)">${esc(ng.join(" ／ "))}</span>`
+    : `<span style="color:var(--dim2)">${jp(REDIT.ranks.length)} 段階</span>`;
+}
+if($("#rkAdd")) $("#rkAdd").onclick=()=>{
+  if(!REDIT) return;
+  if(REDIT.ranks.length>=30) return toast("ランクは30までです");
+  const mx=REDIT.ranks.reduce((a,r)=>Math.max(a,+r.min||0),0);
+  REDIT.ranks.push({min:Math.min(20,mx+1),n:"NEW",c:"#8ba0bd",c2:null,glow:false});
+  rkDraw();
+};
+if($("#rkDef")) $("#rkDef").onclick=()=>{
+  REDIT={ranks:JSON.parse(JSON.stringify(RANK_DEF)),num:JSON.parse(JSON.stringify(RNUM_DEF))};
+  rkDraw(); toast("はじめの形に戻しました（保存はまだです）");
+};
+if($("#rkReload")) $("#rkReload").onclick=async()=>{ await rankCfgLoad(); rkEnter(); toast("読み直しました"); };
+if($("#rkBack")) $("#rkBack").onclick=()=>goTab("profile");
+if($("#rkEditGo")) $("#rkEditGo").onclick=()=>goTab("rankedit");
+if($("#rkSave")) $("#rkSave").onclick=async()=>{
+  if(!REDIT) return;
+  const cfg={ranks:REDIT.ranks.map(r=>({min:Math.max(0,Math.min(20,+r.min||0)),
+      n:String(r.n||"").trim().slice(0,12), c:r.c||"#8ba0bd",
+      c2:r.c2||null, glow:!!r.glow})).sort((a,b)=>a.min-b.min),
+    num:{c:REDIT.num.c||"#eef3fa", c2:REDIT.num.c2||null, glow:!!REDIT.num.glow}};
+  if(cfg.ranks.some(r=>!r.n)) return toast("名前が空のランクがあります");
+  const mins=cfg.ranks.map(r=>r.min);
+  if(new Set(mins).size!==mins.length) return toast("同じレートのランクが2つ以上あります");
+  cfg.ranks[0].min=0;                       /* いちばん下は必ず 0 から */
+  if(!await askYN("この内容で保存しますか？",
+    `<b>全員の画面</b>（ホーム・ランキング・プロフィール・カード・ヘルプ）が
+     すぐに書きかわります。<br>${jp(cfg.ranks.length)} 段階になります。`,"保存する")) return;
+  const b=$("#rkSave"); b.disabled=true;
+  $("#rkMsg").textContent="送っています…";
+  try{
+    await sbAuth("rpc/rank_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
+    await rankCfgLoad();
+    /* ほんとうに全員に届いたかを、ログインしていない立場で読み直して確かめます */
+    const srv=await sb("rpc/rank_cfg",{method:"POST",body:"{}"});
+    const same=JSON.stringify((srv&&srv.ranks)||[])===JSON.stringify(cfg.ranks);
+    rkEnter(); render();
+    $("#rkMsg").innerHTML=same
+      ? `<span style="color:var(--acc2)">保存しました。全員に反映されました</span>`
+      : `<span style="color:var(--bad)">保存しましたが、確認できませんでした</span>`;
+    try{ if(!$("#help").hidden) renderHelp(); }catch(e){}
+  }catch(e){ $("#rkMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</span>`; }
+  b.disabled=false;
+};
+
 function renderPyramid(){
   const c=compute(rec);
   $("#pyramid").innerHTML=drawPyramid(c.total,c.complete);
@@ -4423,7 +4672,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","plan","analysis","hist","mood","ls","card","input","sns","settings","help","cheer"]
+  ["profile","pgbc","plan","analysis","hist","mood","ls","card","input","sns","settings","rankedit","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -4436,6 +4685,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
 
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
+  if(b.dataset.tab==="rankedit") rkEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
   if(b.dataset.tab==="hist"){ histEnter(); }
   if(b.dataset.tab==="mood"){ moodEnter(); }
@@ -4820,7 +5070,7 @@ function renderFriends(){
           `<button class="btn sm" data-del="${x.i}">削除</button></div>`:""}`+
         `</div></div></td>`+
         `<td>${x.c.complete?f3(x.c.total):"—"}</td>`+
-        `<td style="color:${x.c.complete?rankOf(x.c.total).c:"var(--dim)"}">${x.c.complete?rankOf(x.c.total).n:"未完成"}</td>`+
+        `<td style="${x.c.complete?rankCSS(rankOf(x.c.total),4):"color:var(--dim)"}">${x.c.complete?esc(rankOf(x.c.total).n):"未完成"}</td>`+
         `</tr>`;}).join("")+
       `</tbody></table></div>`;
   $$("[data-fp]").forEach(a=>a.onclick=async e=>{ e.preventDefault();
@@ -5514,7 +5764,7 @@ async function loadRanking(force){
         `</div></div></td>`+
         (rkSortKey==="rating"?"":`<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`)+
         `<td>${r.rating==null?'<span class="tiny" style="color:var(--dim2)">計測中</span>':f3(+r.rating)}</td>`+
-        `<td style="color:${r.rating==null?"var(--dim)":rankOf(+r.rating).c}">${r.rating==null?"—":rankOf(+r.rating).n}</td>`+
+        `<td style="${r.rating==null?"color:var(--dim)":rankCSS(rankOf(+r.rating),4)}">${r.rating==null?"—":esc(rankOf(+r.rating).n)}</td>`+
         `<td>${r.l_value==null?"—":f3(+r.l_value)}</td><td>${r.s_value==null?"—":f3(+r.s_value)}</td>`+
         `</tr>`;}).join("")+
       `</tbody></table></div><div id="rkCmp"></div>`;
@@ -5751,6 +6001,12 @@ function avatarWarn(){
 }
 const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
+/** 管理者だけに見せるものを出し入れします */
+function admShow(){
+  if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
+  if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
+  if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
+}
 /* 役職の強さ。SQL 側の role_level と同じ順番にしてあります */
 const ROLE_LV={admin:5,judgeman:4,supervisor:3,judge:2,supporter:1,user:0};
 const lvOf=r=>ROLE_LV[r]||0;
@@ -5868,6 +6124,8 @@ function renderSettings(){
   renderSupporter();
   $("#adminCard").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
+  if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
+  if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
   if(isAdmin()){ renderAdmin(); ccEnter(); }
 }
 function renderSupporter(){
@@ -6549,6 +6807,17 @@ let lsCfg=ls(K_LS,{perScore:0,perRand:0,goalS:0,goalR:0,goalSv:0,goalLv:0,stepSv
 /* リセットするまで足し続けるクリア回数。累積の見込みはこちらを使います */
 const K_LSALL="sa-lsall-v1";
 let lsAll=ls(K_LSALL,0);
+/* 日ごとの「押した回数」。タイマーを使っていなくても数えます */
+const K_LSDAY="sa-lsday-v1";
+let lsDay=ls(K_LSDAY,{});
+const saveLsDay=()=>{ try{ localStorage.setItem(K_LSDAY,JSON.stringify(lsDay)); }catch(e){} };
+/** 今日のぶんを1回ふやします */
+function lsDayHit(){
+  const d=hsDay();
+  lsDay[d]=(+lsDay[d]||0)+1;
+  saveLsDay();
+  try{ lsSoon(); }catch(e){}          /* すぐクラウドにも送ります */
+}
 const saveLsAll=()=>{try{localStorage.setItem(K_LSALL,JSON.stringify(lsAll));}catch(e){}
   try{ lsSoon(); }catch(e){}};
 let lsLog=ls(K_LSLOG,[]);
@@ -6901,33 +7170,50 @@ const LSUM_N={day:"日",week:"週（月曜はじまり）",month:"月"};
 function renderLsSum(){
   const box=$("#lsSum"); if(!box) return;
   $$("#lsSumTabs [data-ls]").forEach(b=>b.classList.toggle("on",b.dataset.ls===lsSumTab));
-  if(!lsLog.length){ box.innerHTML=`<p class="muted">まだ記録がありません。</p>`; return; }
   const map={};
+  /* ① タイマーで残した記録（計測したぶん） */
   lsLog.forEach(L=>{
     const k=lsPeriodKey(L.start,lsSumTab);
-    if(!map[k]) map[k]={n:0,ms:0,runs:0,gs:0,gr:0};
+    if(!map[k]) map[k]={n:0,all:0,ms:0,runs:0,gs:0,gr:0};
     map[k].n+=(+L.count||0); map[k].ms+=(+L.ms||0); map[k].runs++;
     map[k].gs+=(+L.gainS||0); map[k].gr+=(+L.gainR||0);
   });
+  /* ② 押した回数ぜんぶ（タイマーを使っていない分も入ります） */
+  Object.keys(lsDay||{}).forEach(d=>{
+    const k=lsPeriodKey(Date.parse(d+"T12:00:00+09:00"),lsSumTab);
+    if(!map[k]) map[k]={n:0,all:0,ms:0,runs:0,gs:0,gr:0};
+    map[k].all+=(+lsDay[d]||0);
+  });
   const keys=Object.keys(map).sort().reverse();
-  const tot=keys.reduce((a,k)=>a+map[k].n,0);
+  if(!keys.length){ box.innerHTML=`<p class="muted">まだ記録がありません。</p>`; return; }
+  const tot=keys.reduce((a,k)=>a+Math.max(map[k].all,map[k].n),0);
+  const totM=keys.reduce((a,k)=>a+map[k].n,0);
   const label=k=>lsSumTab==="month"
     ? k.replace("-","年")+"月"
     : lsSumTab==="week" ? k.replace(/-/g,"/")+" の週" : k.replace(/-/g,"/");
   box.innerHTML=`<div class="scroll" style="max-height:52vh"><table><thead><tr>
       <th>${esc(LSUM_N[lsSumTab])}</th><th style="text-align:right">クリア回数</th>
-      <th style="text-align:right">計測した回数</th><th style="text-align:right">時間</th>
+      <th style="text-align:right">計測した回数</th><th style="text-align:right">計測の本数</th>
+      <th style="text-align:right">時間</th>
       <th style="text-align:right">スコア増加</th><th style="text-align:right">乱数増加</th>
     </tr></thead><tbody>`
-    +keys.map(k=>`<tr><td>${esc(label(k))}</td>
-      <td style="text-align:right"><b>${jp(map[k].n)}</b></td>
+    +keys.map(k=>{
+      const all=Math.max(map[k].all,map[k].n);      /* 記録のほうが多いことは無いはずですが念のため */
+      return `<tr><td>${esc(label(k))}</td>
+      <td style="text-align:right"><b>${jp(all)}</b></td>
+      <td style="text-align:right"><b style="color:var(--acc2)">${jp(map[k].n)}</b>
+        ${all>map[k].n?`<br><span class="tiny" style="color:var(--dim2)">未計測 ${jp(all-map[k].n)}</span>`:""}</td>
       <td style="text-align:right" class="tiny">${jp(map[k].runs)}</td>
       <td style="text-align:right" class="tiny">${lsFmtTime(map[k].ms)}</td>
       <td style="text-align:right" class="tiny">${map[k].gs?"+"+jp(map[k].gs):"—"}</td>
-      <td style="text-align:right" class="tiny">${map[k].gr?"+"+jp(map[k].gr):"—"}</td></tr>`).join("")
+      <td style="text-align:right" class="tiny">${map[k].gr?"+"+jp(map[k].gr):"—"}</td></tr>`;}).join("")
     +`<tr><td><b>合計</b></td><td style="text-align:right"><b>${jp(tot)}</b></td>
+      <td style="text-align:right"><b style="color:var(--acc2)">${jp(totM)}</b></td>
       <td colspan="4"></td></tr>`
-    +`</tbody></table></div>`;
+    +`</tbody></table></div>
+    <p class="tiny" style="margin-top:8px"><b>クリア回数</b>は「＋1回 クリア！」を押した回数ぜんぶです
+      （スタートを押していなくても数えます）。<br>
+      <b>計測した回数</b>は、スタート〜終了で記録に残したぶんだけです。</p>`;
 }
 $$("#lsSumTabs [data-ls]").forEach(b=>b.onclick=()=>{ lsSumTab=b.dataset.ls; renderLsSum(); });
 
@@ -7004,6 +7290,7 @@ function lsHit(){
   if(lsRun) lsRun.count++;
   const prevAll=lsAll;
   lsAll++; saveLsAll();
+  lsDayHit();                          /* 日ごとの回数（タイマーなしでも数えます） */
   lsAddB();                            /* 見込み（基準値C）を1回ぶん進めます */
   extCall("clear");                    /* 追加の道具に知らせます */
   try{ lsCoinCheck(prevAll, lsAll); }catch(e){}   /* Prime Coin（1日の上限あり） */
@@ -8655,7 +8942,8 @@ function renderPfeed(){
   });
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>poReply(b.dataset.rep));
   box.querySelectorAll("[data-rvsee]").forEach(b=>b.onclick=()=>
-    rvDetail(b.dataset.rvsee,null,null,b.dataset.rvdo==="1"));
+    rvDetail(b.dataset.rvsee,null,null,b.dataset.rvdo==="1",
+      {cup:b.dataset.rvcup||null, handle:b.dataset.rvwho||null}));
   box.querySelectorAll("[data-achgo]").forEach(b=>b.onclick=()=>achOpenByTitle(b.dataset.achgo,false));
   box.querySelectorAll("[data-achrv]").forEach(b=>b.onclick=()=>achOpenByTitle(b.dataset.achrv,true));
 }
@@ -8687,17 +8975,29 @@ function neonHTML(p){
   /* ② チャレンジ参加・大会参加：名前と記録 */
   const cm=b.match(/#(チャレンジ参加|大会参加)\s+(.+?)\s*に記録を出しました！?\s*合計スコア\s*([0-9,]+)/);
   if(cm){
-    const canRv = myLv()>=2 && p.sub_id && p.sub_status!=="certified";
+    /* 審査の状態は submissions から来ます。
+       状態が分からない（古い投稿で sub_id が付いていない）時は、
+       「未審査」と決めつけずに「—」にします */
+    const st=p.sub_id?(p.sub_status||"pending"):null;
+    const mine=!!p.mine||(p.handle&&pro.handle&&p.handle.toLowerCase()===pro.handle.toLowerCase());
+    /* 審査できるのは：審査員以上・自分のではない・まだ認定されていない */
+    const canRv = myLv()>=2 && !!p.sub_id && !mine && st!=="certified";
+    const why = !p.sub_id ? "この投稿には記録が結びついていません"
+              : mine ? "自分の記録は審査できません"
+              : st==="certified" ? "認定済みです" : "";
     return `<div class="neon n-cup"><span class="nlab">${esc(cm[1])}</span>
       <div class="ntit">${esc(cm[2])}</div>
       <div class="nrow"><span class="nev">合計スコア</span>
         <span class="nval">${esc(cm[3])}</span>
-        <span class="sbtag ${p.sub_status||"pending"}">${SB_ST[p.sub_status]||"未審査"}</span></div>
+        ${st?`<span class="sbtag ${st}">${SB_ST[st]||"未審査"}</span>`
+            :`<span class="sbtag" style="opacity:.6">状態ふめい</span>`}</div>
       <div class="tools" style="margin-top:7px">
-        <button class="btn sm" data-rvsee="${esc(p.sub_id||"")}">記録の中身を見る</button>
-        ${myLv()>=2&&p.sub_id?(canRv
+        <button class="btn sm" data-rvsee="${esc(p.sub_id||"")}"
+          data-rvcup="${esc(p.cup_id||"")}" data-rvwho="${esc(p.handle||"")}">記録の中身を見る</button>
+        ${myLv()>=2?(canRv
           ?`<button class="btn sm pri" data-rvsee="${esc(p.sub_id||"")}" data-rvdo="1">審査する</button>`
-          :`<button class="btn sm done" disabled>審査済み</button>`):""}
+          :`<button class="btn sm done" disabled title="${esc(why)}">${
+              st==="certified"?"審査済み":(mine?"自分の記録":"審査できません")}</button>`):""}
       </div></div>`;
   }
   /* ③ アチーブメント：名前と達成条件 */
@@ -8717,18 +9017,29 @@ function neonHTML(p){
   return "";
 }
 /** タイムラインからでも、その場で記録の中身を見て審査できます */
-async function rvDetail(subId, entryId, cupId, doReview){
-  if(!subId&&!entryId) return toast("記録が見つかりません");
+async function rvDetail(subId, entryId, cupId, doReview, hint){
   let s=null;
-  try{
-    if(!RVQ.length||!RVQ.find(x=>x.id===subId)) await loadRvq();
-    s=RVQ.find(x=>x.id===subId)||null;
-  }catch(e){}
-  if(!s&&subId){
-    /* 審査待ちの一覧に無い時（認定済みなど）は、そのまま読みに行きます */
-    try{ const r=await sb(`submissions?select=*&id=eq.${encodeURIComponent(subId)}&limit=1`);
-      s=(r&&r[0])||null; }catch(e){}
+  if(subId){
+    try{
+      if(!RVQ.length||!RVQ.find(x=>x.id===subId)) await loadRvq();
+      s=RVQ.find(x=>x.id===subId)||null;
+    }catch(e){}
+    if(!s){
+      /* 審査待ちの一覧に無い時（認定済みなど）は、そのまま読みに行きます */
+      try{ const r=await sb(`submissions?select=*&id=eq.${encodeURIComponent(subId)}&limit=1`);
+        s=(r&&r[0])||null; }catch(e){}
+    }
   }
+  /* 古い投稿には提出のIDが付いていないので、大会と@IDからさがします */
+  if(!s&&hint&&hint.cup&&hint.handle){
+    try{
+      const r=await sb(`submissions?select=*&cup_id=eq.${encodeURIComponent(hint.cup)}`
+        +`&handle=eq.${encodeURIComponent(hint.handle.toLowerCase())}`
+        +`&order=created_at.desc&limit=1`);
+      s=(r&&r[0])||null; if(s) subId=s.id;
+    }catch(e){}
+  }
+  if(!s&&!entryId) return toast("記録が見つかりませんでした");
   const eid=entryId||(s&&s.entry_id), cid=cupId||(s&&s.cup_id);
   const M=modal(`<h2>記録の中身</h2>
     <div id="rdTop"></div>
@@ -8768,14 +9079,21 @@ async function rvDetail(subId, entryId, cupId, doReview){
   const links=(ent&&ent.links&&ent.links.length)?ent.links
              :(s&&s.proof_url&&s.proof_url!=="discord"&&s.proof_url!=="restored")
                ?[{url:s.proof_url,note:""}]:[];
-  const canDo = doReview && s && myLv()>=2 && s.status!=="certified" && s.handle!==(pro.handle||"");
+  const own = s && String(s.handle||"").toLowerCase()===String(pro.handle||"").toLowerCase();
+  const canDo = doReview && s && myLv()>=2 && s.status!=="certified" && !own;
   M.q("#rdAct").innerHTML=
     (links.length?`<button class="btn pri" id="rdLink">リンクに飛ぶ</button>`:"")
     +(ent&&ent.discord?`<span class="tiny">Discord に提出されています</span>`:"")
     +(canDo?`<button class="btn sm pri" data-rd="approve">承認</button>`
            +`<button class="btn sm" data-rd="fix">修正</button>`
            +`<button class="btn sm" data-rd="reject">却下</button>`:"")
-    +(doReview&&!canDo?`<span class="tiny">いま自分が審査できる段階ではありません</span>`:"");
+    +(doReview&&!canDo?`<span class="tiny">${own?"自分の記録は審査できません"
+      :(s&&s.status==="certified")?"すでに認定済みです":"いま自分が審査できる段階ではありません"}</span>`:"")
+    +(!doReview&&s&&myLv()>=2&&!own&&s.status!=="certified"
+      ?`<button class="btn sm pri" id="rdGo">この記録を審査する</button>`
+      :(!doReview&&myLv()>=2
+        ?`<button class="btn sm done" disabled>${own?"自分の記録は審査できません":"審査済み"}</button>`:""));
+  if(M.q("#rdGo")) M.q("#rdGo").onclick=()=>{ M.close(); rvDetail(s.id,null,null,true); };
   if(M.q("#rdLink")) M.q("#rdLink").onclick=()=>showProof(links);
   M.qa("[data-rd]").forEach(b=>b.onclick=async()=>{
     M.close();
@@ -13420,7 +13738,10 @@ CONCATENATE／VLOOKUP</p>
 <b style="color:#ffd45e">#みんなのアチーブメント</b> の金色タグが自動で付きます。
 公式は<b>達成した時だけ</b>流れます。設定タブで止められます。</p>`,
 
-award:`<h3>ご褒美は3種類</h3>
+award:`<h3>ランクとレート</h3>
+{{RANKTBL}}
+
+<h3 style="margin-top:16px">ご褒美は3種類</h3>
 <div class="scroll"><table><thead><tr><th></th><th>もらえる時</th><th>経験値</th><th>どこに出る</th></tr></thead><tbody>
 <tr><td><b style="color:#ffd45e">スター</b></td><td>チャレンジの期間ごとの上位3人</td><td>1個 5 XP</td><td>プロフィール右上・カード</td></tr>
 <tr><td><b>トロフィー</b></td><td>競技会で優勝した時</td><td>1個 50 XP</td><td>プロフィール右上・カード</td></tr>
@@ -13470,21 +13791,9 @@ award:`<h3>ご褒美は3種類</h3>
 
 <h3 style="margin-top:16px">Prime Coin</h3>
 <p class="tiny">応援ボタンを押し切ったあとに、続けて連打するためのコインです。</p>
-<div class="scroll"><table><thead><tr><th>もらい方</th><th>枚数</th><th>上限</th></tr></thead><tbody>
-<tr><td>ログインボーナス</td><td><span class="pcoin">P</span>×1</td><td>1日1枚だけ</td></tr>
-<tr><td>7日続けてログイン</td><td><span class="pcoin">P</span>×2</td><td>7日ごとに1回</td></tr>
-<tr><td>LSやりこみでクリアする</td><td><span class="pcoin">P</span>×1</td>
-  <td><b>100回クリアするごと・1日の上限なし</b><br>
-    <span class="tiny">あと何回でもらえるかは、LSやりこみタブの上に出ています</span></td></tr>
-<tr><td>種目の自己ベストを更新する</td><td><span class="pcoin">P</span>×1</td><td>1日3回まで</td></tr>
-<tr><td>アチーブメントを達成する</td><td><span class="pcoin">P</span>×1</td><td>1日3回まで</td></tr>
-</tbody></table></div>
-<p class="tiny"><b>もらえる枚数と1日の回数は、管理者が変えることがあります。</b>
+{{COINTBL}}
+<p class="tiny">この表は、<b>いま決まっている配り方</b>をそのまま出しています（管理者が変えると、ここも変わります）。
 いま自分が今日あと何回もらえるかは、ホームタブの Prime Coin のところに出ています。</p>
-<div class="scroll"><table><tbody>
-<tr><td>チャレンジ・競技会に記録を出す</td><td><span class="pcoin">P</span>×1</td><td>1日3枚まで</td></tr>
-<tr><td>Prime Park のアトラクションを1回遊ぶ</td><td><span class="pcoin">P</span>×1</td><td>1点以上とるか3桁以上を出した時・<b>1日3枚まで</b></td></tr>
-</tbody></table></div>
 <p class="tiny"><b>1つのアカウントにつき、ログインボーナスは1日1枚きりです。</b>
 何回開き直しても、別の端末から入っても増えません（日本時間で数えています）。</p>
 <p class="tiny">使い道は「開発者を応援する」の連打です。<b>コイン1枚で5秒間</b>連打できます。
@@ -13963,6 +14272,50 @@ Prime SNS からも見えなくなります。ただし、正しく却下した�
 </tbody></table></div>`
 };
 let helpTab="role";
+/** ランクの表（管理者が決めた中身から作ります） */
+function rankHelpTbl(){
+  const rs=RANKS.slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
+  return `<div class="scroll"><table><thead><tr><th>ランク</th><th class="n">レート</th></tr></thead><tbody>`
+    +rs.map((r,i)=>{ const nx=rs[i+1];
+      const range=nx?`${(+r.min).toFixed(1)} 〜 ${(+nx.min).toFixed(1)}`:`${(+r.min).toFixed(1)} 以上`;
+      return `<tr><td><b style="${rankCSS(r,4)}">${esc(r.n)}</b></td>
+        <td class="n mono">${esc(range)}</td></tr>`;
+    }).join("")
+    +`</tbody></table></div>
+    <p class="tiny">RATINGは <b>20.000点満点</b>です。全${jp(rs.length)}段階。
+      名前・区切り・色は運営が決めています（変わることがあります）。</p>`;
+}
+/** Prime Coin の表（いまの配り方から作ります） */
+function coinHelpTbl(){
+  const g=k=>{
+    const s=(PC&&PC.kinds&&PC.kinds[k])||null;
+    const d=(CCFG&&CCFG[k])||{};
+    return {amount:s?(+s.amount||0):(+d.amount||0),
+            cap:   s?(+s.cap||0):(d.cap==null?0:+d.cap),
+            per:   s?(+s.per||0):(+d.per||0)};
+  };
+  const lim=o=>o.cap<0?`<b style="color:var(--warn)">1日の上限なし</b>`
+    :o.cap===0?"いまは配っていません":`1日 ${jp(o.cap)} 回まで`;
+  const row=(n,o,note)=>o.amount===0
+    ? `<tr><td>${n}</td><td>—</td><td>いまは配っていません</td></tr>`
+    : `<tr><td>${n}</td><td><span class="pcoin">P</span>×${jp(o.amount)}</td>
+       <td>${lim(o)}${note?`<br><span class="tiny">${note}</span>`:""}</td></tr>`;
+  const login=(CCFG&&CCFG.login)||{amount:1}, st=(CCFG&&CCFG.streak)||{amount:2,every:7};
+  const ls=g("ls");
+  return `<div class="scroll"><table><thead><tr><th>もらい方</th><th class="n">枚数</th><th>上限</th></tr></thead><tbody>`
+    +`<tr><td>ログインボーナス</td><td><span class="pcoin">P</span>×${jp(+login.amount||1)}</td>
+        <td>1日1回だけ</td></tr>`
+    +`<tr><td>${jp(+st.every||7)}日続けてログイン</td><td><span class="pcoin">P</span>×${jp(+st.amount||2)}</td>
+        <td>${jp(+st.every||7)}日ごとに1回</td></tr>`
+    +row("チャレンジ・競技会に記録を出す",g("submit"))
+    +row("LSやりこみでクリアする",ls,
+       `${jp(ls.per||100)}回クリアするごと。あと何回でもらえるかは LSやりこみタブに出ています`)
+    +row("種目の自己ベストを更新する",g("best"))
+    +row("アチーブメントを達成する",g("ach"))
+    +row("Prime Park のアトラクションを1回遊ぶ",g("game"),
+       "1点以上とるか、3桁以上の数を出した時")
+    +`</tbody></table></div>`;
+}
 /* ヘルプの表は、管理者が決めた設定から作ります（ずれないように） */
 function moodHelpPts(){
   const tg=(MCFG.tags||[]).map(t=>"#"+t).join("・")||"#素数あつめ";
@@ -14003,6 +14356,9 @@ function renderHelp(){
   if(!HELP[helpTab]||helpTab==="moodAdmin") helpTab="role";
   $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
   let h=HELP[helpTab]||"";
+  if(helpTab==="award"){
+    h=h.replace("{{RANKTBL}}",rankHelpTbl()).replace("{{COINTBL}}",coinHelpTbl());
+  }
   if(helpTab==="mood"){
     /* まだ設定を読んでいなければ、読んでから出し直します
        （管理者が変えた中身と、ヘルプの中身がずれないようにするため） */
@@ -14860,13 +15216,24 @@ async function renderCupStat(){
   box.innerHTML=`<p class="muted">読み込み中…</p>`;
   MY_CUP=await fetchCupHistory(pro.handle);
   if(!MY_CUP){ box.innerHTML=`<p class="muted">大会成績を取得できませんでした。</p>`; return; }
+  /* チャレンジ＝出した記録の数／競技会＝出た大会の種類の数 */
+  let cc=null;
+  try{ cc=await sb("rpc/cup_counts",{method:"POST",
+    body:JSON.stringify({p_handle:(pro.handle||"").toLowerCase()})}); }catch(e){ cc=null; }
+  const chN=cc?(+cc.challenge_subs||0):0;
+  const ofN=cc?(+cc.official_cups||0):MY_CUP.played;
   box.innerHTML=`<div class="stats">
-      <div class="stat"><div class="t">参加した大会</div><div class="v">${MY_CUP.played}</div></div>
+      <div class="stat"><div class="t">チャレンジ参加回数</div><div class="v">${jp(chN)}</div>
+        <div class="s">${cc?`${jp(+cc.challenge_cups||0)} 種類に参加`:"出した記録の数"}</div></div>
+      <div class="stat"><div class="t">競技会参加回数</div><div class="v">${jp(ofN)}</div>
+        <div class="s">${cc?`出した記録は ${jp(+cc.official_subs||0)} 件`:"出た競技会の種類"}</div></div>
       <div class="stat"><div class="t">優勝</div><div class="v" style="color:var(--warn)">${MY_CUP.wins}</div>
         <div class="s">3位以内 ${MY_CUP.podium} 回</div></div>
       <div class="stat"><div class="t">3位以内</div><div class="v">${MY_CUP.podium}</div>
         <div class="s">終了した大会 ${MY_CUP.finished} 件</div></div>
     </div>
+    <p class="tiny" style="color:var(--dim2)">チャレンジ参加回数は「出した記録の数」、
+      競技会参加回数は「出た競技会の種類の数」です（同じ競技会に何回出しても1回と数えます）。</p>
     <h3>最近の結果</h3>${cupHistHTML(MY_CUP,3)}
     <div class="tools"><button class="btn" id="cupHistAll">すべての大会記録を見る</button></div>`;
   $("#cupHistAll").onclick=()=>showCupHistory({name:pro.name,handle:pro.handle,role:me?me.role:null},MY_CUP);
@@ -15056,7 +15423,10 @@ $("#updGo").onclick=()=>{ try{ save(); }catch(e){} location.reload(); };
 $("#updLater").onclick=()=>{ $("#updBanner").hidden=true; };
 setInterval(checkUpdate,5*60*1000);
 /* 管理者からのお知らせ。Supabase の設定が入ってから見に行き、そのあと5分おきに見直します */
-function ntcBoot(){ if(sbOn()) ntcLoad().then(ntcBadge); else setTimeout(ntcBoot,800); }
+function ntcBoot(){
+  if(sbOn()){ ntcLoad().then(ntcBadge); rankCfgLoad(); ccLoad(); }
+  else setTimeout(ntcBoot,800);
+}
 setTimeout(ntcBoot,300);
 setInterval(()=>{ if(document.visibilityState==="visible"&&sbOn()) ntcLoad().then(ntcBadge); },5*60*1000);
 /* 届いた申請に気づけるよう、2分おきに確認する */
