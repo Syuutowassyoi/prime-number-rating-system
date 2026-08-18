@@ -58,6 +58,11 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .ver{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;
   letter-spacing:.06em;background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;
   font-variant-numeric:tabular-nums}
+.lscoinfx{position:absolute;left:50%;top:2px;transform:translateX(-50%);font-weight:900;
+  color:var(--warn);font-size:.9rem;pointer-events:none;animation:lscfx 1.6s ease-out forwards}
+@keyframes lscfx{0%{opacity:0;transform:translate(-50%,6px)}
+  20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
+#lsCoinBox{position:relative}
 .postbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;
   width:30px;height:26px;margin-left:6px;padding:0;border-radius:8px;cursor:pointer;
   background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;vertical-align:middle}
@@ -1106,6 +1111,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div class="lsbox"><div class="t">クリア回数</div><div class="v" id="lsCount">0</div><div class="s">回</div></div>
       <div class="lsbox"><div class="t">経過時間</div><div class="v" id="lsTime">0:00:00</div>
         <div class="s" id="lsStart">未開始</div></div>
+      <div class="lsbox" id="lsCoinBox"><div class="t"><span class="pcoin">P</span> まであと</div>
+        <div class="v" id="lsCoinLeft">—</div><div class="s" id="lsCoinSub">回</div></div>
     </div>
     <div class="tools">
       <button class="btn pri" id="lsStartBtn">スタート</button>
@@ -2629,6 +2636,7 @@ const CHANGES={
     "Prime Coin の配り方を作り直した（Prime Park は1日3枚まで）",
     "LSやりこみのクリアと自己ベスト更新でも Prime Coin がもらえるようにした",
     "LSやりこみだけ、1日にもらえる枚数を無制限にした（100回クリアごとに1枚）",
+    "LSやりこみに「Prime Coin まであと何回」を表示するようにした",
     "Prime Park のチュートリアルで先に進めなくなる不具合を修正",
     "チュートリアル中にセリフが画面に重なる問題を修正",
     "電気通信事業法についての説明をヘルプに追加"],
@@ -6688,7 +6696,44 @@ function lsAnimVal(id,v,key){
   };
   el._lt=requestAnimationFrame(step);
 }
+/** あと何回クリアすると Prime Coin がもらえるか */
+function lsCoinInfo(){
+  const k=(PC&&PC.kinds&&PC.kinds.ls)||null;
+  let per;
+  if(k){
+    per=+k.per||0;
+    /* 枚数0・回数0・何回ごとが0 なら、いまは配っていません */
+    if(per<=0||(+k.amount||0)<=0||(+k.cap||0)===0) return null;
+  }else{
+    per=(CCFG&&CCFG.ls&&+CCFG.ls.per)||100;   /* まだ聞けていない時のめやす */
+  }
+  if(!(per>0)) return null;
+  let last=+(localStorage.getItem(K_LSCOIN)||0);
+  if(!(last>=0)) last=0;
+  /* 前にもらった所と、いまの回数から数えた区切り。大きいほうを起点にします */
+  const base=Math.max(last, Math.floor(lsAll/per)*per);
+  const next=base+per;
+  const left=Math.max(0, next-lsAll);
+  return {per, next, left, all:lsAll, left0:lsAll-base};
+}
+function renderLsCoin(){
+  const e=$("#lsCoinLeft"); if(!e) return;
+  const box=$("#lsCoinBox"), sub=$("#lsCoinSub");
+  const c=lsCoinInfo();
+  if(!c){ e.textContent="—"; e.style.color="";
+    if(box) box.style.borderColor="";
+    if(sub) sub.textContent="いまは配っていません"; return; }
+  e.textContent=jp(c.left);
+  const lim=coinLeft("ls");
+  if(sub) sub.textContent=`回（${jp(c.per)}回ごとに1枚）`
+    + (lim===0?"／今日はもらいきりました":"");
+  /* あと少しの時は色を変えます */
+  if(box) box.style.borderColor = c.left<=Math.max(1,Math.round(c.per*0.1))
+    ? "var(--warn)" : "";
+  e.style.color = c.left===0 ? "var(--acc2)" : "";
+}
 function renderLs(prev){
+  renderLsCoin();
   const n=lsRun?lsRun.count:0;
   const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
   const gainS=n*perS, gainR=n*perR;
@@ -12616,9 +12661,19 @@ async function lsCoinCheck(before,after){
   if(!(last>=0)) last=0;
   const base=Math.max(last, Math.floor(before/per)*per);
   const times=Math.floor((after-base)/per);
-  if(times<1) return;
+  if(times<1){ renderLsCoin(); return; }
   try{ localStorage.setItem(K_LSCOIN, String(base+times*per)); }catch(e){}
-  await coinEarn("ls", times);
+  const got=await coinEarn("ls", times);
+  renderLsCoin();
+  if(got>0) lsCoinFx(got);
+}
+/** コインがもらえた時の小さな知らせ */
+function lsCoinFx(n){
+  const box=$("#lsCoinBox"); if(!box) return;
+  const t=document.createElement("div");
+  t.className="lscoinfx"; t.innerHTML=`${COIN} +${jp(n)}`;
+  box.appendChild(t);
+  setTimeout(()=>t.remove(),1600);
 }
 
 /* ══════════ Prime Coin の配り方（管理者だけ）══════════ */
@@ -12836,6 +12891,7 @@ function renderCoins(){
   const u=$("#pcUse"); if(u) u.textContent=jp(pcUse);
   const s=$("#pcSec"); if(s) s.textContent=`＝ ${jp(pcUse*5)}秒`;
   const go=$("#pcGo"); if(go) go.disabled=(n<1);
+  try{ if(typeof renderLsCoin==="function") renderLsCoin(); }catch(e){}
   const msg=$("#pcMsg");
   if(msg) msg.innerHTML=(n<1)
     ? '<span style="color:var(--dim2)">コインがありません。ログインボーナス・記録の提出・LSやりこみ・自己ベスト更新・Prime Park でもらえます。</span>'
@@ -13169,7 +13225,8 @@ award:`<h3>ご褒美は3種類</h3>
 <tr><td>ログインボーナス</td><td><span class="pcoin">P</span>×1</td><td>1日1枚だけ</td></tr>
 <tr><td>7日続けてログイン</td><td><span class="pcoin">P</span>×2</td><td>7日ごとに1回</td></tr>
 <tr><td>LSやりこみでクリアする</td><td><span class="pcoin">P</span>×1</td>
-  <td><b>100回クリアするごと・1日の上限なし</b></td></tr>
+  <td><b>100回クリアするごと・1日の上限なし</b><br>
+    <span class="tiny">あと何回でもらえるかは、LSやりこみタブの上に出ています</span></td></tr>
 <tr><td>種目の自己ベストを更新する</td><td><span class="pcoin">P</span>×1</td><td>1日3回まで</td></tr>
 <tr><td>アチーブメントを達成する</td><td><span class="pcoin">P</span>×1</td><td>1日3回まで</td></tr>
 </tbody></table></div>
