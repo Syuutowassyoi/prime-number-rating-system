@@ -1325,7 +1325,10 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="cEnd" style="max-width:none"></div>
     </div>
     <label class="fl">説明（任意）</label>
-    <input type="text" class="txt" id="cNote" placeholder="ルールや連絡事項" style="max-width:none">
+    <textarea class="txt" id="cNote" rows="4" placeholder="ルールや連絡事項（あとから書きかえられます）"
+      style="max-width:none"></textarea>
+    <label class="pk" style="margin-top:8px;display:inline-flex">
+      <input type="checkbox" id="cIMG"> 画像でもOK（スクリーンショットで提出できます）</label>
     <div class="tools"><button class="btn pri" id="cCreate">この内容で開催する</button>
       <button class="btn" id="cCancel">やめる</button></div>
     <div id="cMsg" class="tiny"></div>
@@ -1345,6 +1348,10 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
           <textarea id="cuI" rows="5" maxlength="600" placeholder="ルールの補足や、参加する人へのお願いなどを書けます（600文字まで）"></textarea>
           <label class="pk" style="margin-top:9px;display:inline-flex">
             <input type="checkbox" id="cuNM"> ノーミスモード（全ての記録でノーミスが必要）</label>
+          <label class="pk" style="margin-top:6px;display:inline-flex">
+            <input type="checkbox" id="cuIMG"> 画像でもOK（スクリーンショットで提出できます）</label>
+          <p class="tiny" style="margin-top:4px;color:var(--dim2)">X の動画は長さの制限があるので、
+            長いチャレンジでは画像を許すと出しやすくなります。あとから変えられます。</p>
           <h3 style="margin-top:14px">ルール</h3>
           <p class="tiny" style="margin-top:-6px">種目を1つだけ入れると連続モード、2つ以上並べると順番モードになります。</p>
           <div id="cuSteps"></div>
@@ -2639,7 +2646,9 @@ const CHANGES={
     "LSやりこみに「Prime Coin まであと何回」を表示するようにした",
     "Prime Park のチュートリアルで先に進めなくなる不具合を修正",
     "チュートリアル中にセリフが画面に重なる問題を修正",
-    "電気通信事業法についての説明をヘルプに追加"],
+    "電気通信事業法についての説明をヘルプに追加",
+    "チャレンジ・競技会に「画像でもOK」を追加（スクリーンショットで提出できます）",
+    "チャレンジ・競技会の説明文をあとから書きかえられるようにした"],
   "v87":[
     "ムード値（直近7日間の平均得点）を追加",
     "Prime Mood の対象を4つにしぼった",
@@ -5218,11 +5227,13 @@ function renderProofs(boxId,events,list){
   box.querySelector("[data-pfadd]").onclick=()=>{ list.push({url:"",events:[]}); renderProofs(boxId,events,list);};
 }
 /** 入力内容を検証する。needs は証明が必要な種目 */
-function checkProofs(list,needs){
+function checkProofs(list,needs,imgOk){
   const used=list.filter(p=>p.url.trim());
   if(!used.length) return {ok:false,msg:"証明リンクを1本以上貼ってください。"};
-  const badUrl=used.filter(p=>!isXUrl(p.url));
-  if(badUrl.length) return {ok:false,msg:"X（x.com / twitter.com）以外のリンクが混ざっています。"};
+  const badUrl=used.filter(p=>!(isXUrl(p.url)||(imgOk&&isImgUrl(p.url))));
+  if(badUrl.length) return {ok:false,msg:imgOk
+    ? "X（x.com / twitter.com）か、画像のリンク以外が混ざっています。"
+    : "X（x.com / twitter.com）以外のリンクが混ざっています。"};
   const covered=new Set(); used.forEach(p=>p.events.forEach(n=>covered.add(n)));
   const miss=needs.filter(n=>!covered.has(n));
   if(miss.length) return {ok:false,msg:"次の記録を証明するリンクにチェックが入っていません：\n\n"+miss.join("\n")};
@@ -6033,30 +6044,40 @@ function renderMyCups(){
     return `<div class="cup ${ph==="live"?"live":""}">
       <h4>${esc(c.title)}</h4>
       <div class="meta">${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}　${
-        ph==="live"?"<b style='color:var(--acc2)'>開催中</b>":ph==="pre"?"開催予定":"終了"}</div>
+        ph==="live"?"<b style='color:var(--acc2)'>開催中</b>":ph==="pre"?"開催予定":"終了"}${
+        c.img_ok?"　<b style='color:var(--acc2)'>画像OK</b>":""}</div>
+      ${c.note?`<div class="tiny" style="margin-top:4px;white-space:pre-wrap">${esc(c.note)}</div>`:""}
       <div class="tools" style="margin-top:8px">
         <button class="btn sm" data-mo="${esc(c.id)}">開く</button>
-        ${ph!=="end"?`<button class="btn sm pri" data-me2="${esc(c.id)}">内容を変更</button>`
-                    :`<span class="tiny">終了した大会は変更できません</span>`}
+        <button class="btn sm ${ph!=="end"?"pri":""}" data-me2="${esc(c.id)}">${
+          ph!=="end"?"内容を変更":"説明を書きかえる"}</button>
       </div></div>`;}).join("");
   $$("[data-mo]").forEach(b=>b.onclick=()=>openCup(b.dataset.mo));
   $$("[data-me2]").forEach(b=>b.onclick=()=>editCup(b.dataset.me2));
 }
-/** 主催者が内容を変更する（終了後は不可） */
+/** 主催者が内容を変更する。
+ *  説明文と「画像でもOK」は、終わったあとでも直せます（補足を書き足せるように）。
+ *  名前と日時は、終わった大会では直せません。 */
 function editCup(id){
   const c=CUPS.find(x=>x.id===id); if(!c) return;
-  if(cupPhase(c)==="end") return toast("終了した大会は変更できません");
+  const done=cupPhase(c)==="end";
   const iso=toJstInput;
   const mask=document.createElement("div");mask.className="mask";
   mask.innerHTML=`<div class="modal"><h2>大会の内容を変更</h2>
-    <p class="muted" style="margin-top:-8px">種目と勝負の方式は、記録の公平性のため変更できません。</p>
+    <p class="muted" style="margin-top:-8px">種目と勝負の方式は、記録の公平性のため変更できません。${
+      done?'<br><span class="tiny" style="color:var(--warn)">この大会は終了しているので、'
+          +'<b>説明文と「画像でもOK」だけ</b>直せます。</span>':""}</p>
     <label class="fl">競技会の名前</label>
-    <input type="text" class="txt" id="edTitle" style="max-width:none" value="${esc(c.title)}">
-    <label class="fl">説明</label>
-    <input type="text" class="txt" id="edNote" style="max-width:none" value="${esc(c.note||"")}">
+    <input type="text" class="txt" id="edTitle" style="max-width:none" value="${esc(c.title)}"${done?" disabled":""}>
+    <label class="fl">説明（2000文字まで・改行できます）</label>
+    <textarea class="txt" id="edNote" rows="6" maxlength="2000" style="max-width:none">${esc(c.note||"")}</textarea>
+    <label class="pk" style="margin-top:8px;display:inline-flex">
+      <input type="checkbox" id="edIMG"${c.img_ok?" checked":""}> 画像でもOK（スクリーンショットで提出できます）</label>
+    <p class="tiny" style="color:var(--dim2)">X の動画は長さの制限があるので、
+      画像を許すと長い記録も出しやすくなります。すでに出された記録はそのまま残ります。</p>
     <div class="frow">
-      <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="edStart" style="max-width:none" value="${iso(c.starts_at)}"></div>
-      <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="edEnd" style="max-width:none" value="${iso(c.ends_at)}"></div>
+      <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="edStart" style="max-width:none" value="${iso(c.starts_at)}"${done?" disabled":""}></div>
+      <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="edEnd" style="max-width:none" value="${iso(c.ends_at)}"${done?" disabled":""}></div>
     </div>
     <p class="tiny">種目：${esc((c.events||[]).join("、"))}　方式：${c.mode==="score"?"スコアモード":"合計モード"}</p>
     <div class="tools"><button class="btn pri" id="edSave">保存する</button>
@@ -6068,13 +6089,17 @@ function editCup(id){
   q("#edX").onclick=close;
   q("#edSave").onclick=async()=>{
     const a=q("#edStart").value,b=q("#edEnd").value;
-    if(!q("#edTitle").value.trim()) return toast("大会名を入力してください");
-    if(!a||!b) return toast("日時を入れてください");
-    if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
+    const body={p_id:c.id,p_note:q("#edNote").value,p_img_ok:!!q("#edIMG").checked};
+    if(!done){
+      if(!q("#edTitle").value.trim()) return toast("大会名を入力してください");
+      if(!a||!b) return toast("日時を入れてください");
+      if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
+      body.p_title=q("#edTitle").value.trim();
+      body.p_starts=fromJstInput(a).toISOString();
+      body.p_ends=fromJstInput(b).toISOString();
+    }
     try{
-      await rpcTry("update_tournament",{
-        p_id:c.id,p_title:q("#edTitle").value.trim(),p_note:q("#edNote").value.trim(),
-        p_starts:fromJstInput(a).toISOString(),p_ends:fromJstInput(b).toISOString()},[]);
+      await rpcTry("update_tournament",body,[["p_img_ok"]]);
       close(); toast("変更しました"); cupCache.rows=null; await loadCups(true);
       if(cupSel&&cupSel.id===c.id) openCup(c.id);
     }catch(e){ q("#edMsg").innerHTML=`<span class="lose">失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
@@ -6169,9 +6194,10 @@ $("#cCreate").onclick=async()=>{
     await rpcTry("create_tournament",{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
-      p_note:$("#cNote").value.trim()},[["p_mode","p_weights"]]);
+      p_note:$("#cNote").value.trim(), p_img_ok:!!$("#cIMG").checked},
+      [["p_img_ok"],["p_img_ok","p_mode","p_weights"]]);
     m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
-    $("#cTitle").value="";$("#cNote").value="";
+    $("#cTitle").value="";$("#cNote").value="";$("#cIMG").checked=false;
     cupEvents=new Set(); $("#cEvents").innerHTML=""; $("#cupNew").hidden=true; renderCupNew();
     loadCups();
   }catch(e){ m.innerHTML=`<span class="lose">作成に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
@@ -6363,7 +6389,7 @@ function entryForm(c,evs,dir,mine){
     if(over.length) return toast(`理論値 ${jp(MAXSCORE)} 点を超えています：`+over.join("、"));
     /* 0点でない種目は必ず証明が要る */
     const needs=evs.filter(n=>sc[n]>0);
-    const pv=checkProofs(pfList,needs);
+    const pv=checkProofs(pfList,needs,c.img_ok);
     if(!pv.ok){ alert(pv.msg); return; }
     /* 自己ベスト更新の確認 */
     const better=evs.filter(n=>{const cur=rec[n]||0; if(!cur) return sc[n]>0;
@@ -7289,6 +7315,10 @@ function makeSmall(dataUrl){
   });
 }
 const isProofUrl=u=>/^https?:\/\/([a-z0-9-]+\.)?(x\.com|twitter\.com|youtube\.com|youtu\.be)\//i.test(String(u||""));
+/* 画像のリンク（「画像でもOK」にした大会だけで使います）。SQL の is_img_url と同じ決まりです */
+const isImgUrl=u=>/^https?:\/\/([a-z0-9-]+\.)?(pbs\.twimg\.com|imgur\.com|i\.imgur\.com|gyazo\.com|i\.gyazo\.com|cdn\.discordapp\.com|media\.discordapp\.net|drive\.google\.com|lh3\.googleusercontent\.com|photos\.app\.goo\.gl|d\.kuku\.lu|imgbb\.com|ibb\.co|postimg\.cc)\//i.test(String(u||""))
+  ||/^https?:\/\/\S+\.(png|jpe?g|gif|webp)(\?\S*)?$/i.test(String(u||""));
+const okProof=(u,img)=>isProofUrl(u)||(!!img&&isImgUrl(u));
 
 /* ---- 読み込み ---- */
 async function loadSubs(){
@@ -9204,9 +9234,10 @@ $("#cuGo").onclick=async()=>{
     }
   }
   try{
-    await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:$("#cuI").value.trim()||null,p_kind:kind},
-      [["p_kind"],["p_intro","p_kind"]]);
-    $("#cuT").value=""; $("#cuI").value="";
+    await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:$("#cuI").value.trim()||null,p_kind:kind,
+      p_img_ok:!!$("#cuIMG").checked},
+      [["p_img_ok"],["p_img_ok","p_kind"],["p_img_ok","p_intro","p_kind"]]);
+    $("#cuT").value=""; $("#cuI").value=""; $("#cuIMG").checked=false;
     msg.innerHTML='<span style="color:var(--acc2)">作りました</span>';
     await loadPcups(); renderPcups(); $$("#cupTabs button")[0].click();
   }catch(e){ msg.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
@@ -9226,9 +9257,10 @@ function renderPcups(){
         <b>${esc(c.title)}</b>
         <span class="sbtag ${c.kind==="official"?"judged":""}">${c.kind==="official"?"競技会":"チャレンジ"}</span>
         ${c.closed?'<span class="sbtag">終了</span>':'<span class="sbtag certified">受付中</span>'}
+        ${c.img_ok?'<span class="sbtag" style="border-color:var(--acc2);color:var(--acc2)">画像OK</span>':""}
         <span class="tiny" style="margin-left:auto">${esc(c.owner_name||c.owner_handle||"")}</span>
       </div>
-      ${c.intro?`<div class="tiny" style="margin-top:4px">${esc(c.intro)}</div>`:""}
+      ${c.intro?`<div class="tiny" style="margin-top:4px;white-space:pre-wrap">${esc(c.intro)}</div>`:""}
       <div class="tiny" style="margin-top:5px;color:var(--acc)">${esc(ruleText(r))}</div>
       <div class="tiny">合計 ${jp(rulePlays(r))} 回プレイ</div>
       <div class="tools" style="margin-top:8px">
@@ -9367,11 +9399,16 @@ function pcupJoin(id){
     <h3 style="margin-top:14px">提出のしかた</h3>
     <label class="pk" style="display:inline-flex"><input type="checkbox" id="jDis"> Discord に出す</label>
     <div id="jLinkWrap">
-      <label class="fl">提出する動画のリンク（X または YouTube・複数可）</label>
+      <label class="fl">${c.img_ok?"提出するリンク（X・YouTube・画像のどれでも／複数可）"
+        :"提出する動画のリンク（X または YouTube・複数可）"}</label>
       <div id="jLinks"></div>
       <div class="tools" style="margin-top:6px"><button class="btn sm" id="jAddLink">＋ リンクを増やす</button>
         <span class="tiny">「ツール」を押すと種目名をそのまま説明に入れられます</span></div>
-      <p class="tiny">提出は動画のみです。全プレイが映っている必要があります。</p>
+      <p class="tiny">${c.img_ok
+        ? `この${c.kind==="official"?"競技会":"チャレンジ"}は<b style="color:var(--acc2)">画像でもOK</b>です。
+           スクリーンショットのリンク（.png / .jpg など、X の画像、Discord・Gyazo・imgur のリンク）でも出せます。
+           結果が読み取れる画像にしてください。`
+        : "提出は動画のみです。全プレイが映っている必要があります。"}</p>
     </div>
     <div id="jDisWrap" hidden>
       <div class="hintbox" style="margin-top:10px;border-color:#a0632b;background:#2a1c10">
@@ -9432,9 +9469,9 @@ function pcupJoin(id){
   drawPages(); drawGrid(); refresh();
 
   const jLinks=[{url:"",note:""}];
-  linkEditor("jLinks",jLinks);
+  linkEditor("jLinks",jLinks,null,c.img_ok);
   M.q("#jAddLink").onclick=()=>{ if(jLinks.length>=8) return toast("リンクは8つまでです");
-    jLinks.push({url:"",note:""}); linkEditor("jLinks",jLinks); };
+    jLinks.push({url:"",note:""}); linkEditor("jLinks",jLinks,null,c.img_ok); };
   /* Discord を選んだら、サーバーに入っているかを必ず確かめます */
   M.q("#jDis").onchange=async e=>{
     if(!e.target.checked){ M.q("#jLinkWrap").hidden=false; M.q("#jDisWrap").hidden=true; return; }
@@ -9452,8 +9489,10 @@ function pcupJoin(id){
     if(dis){
       if(!dnote) return toast("どのチャンネルに書いたかを必ず入れてください");
     }else{
-      LK=cleanLinks(jLinks);
-      if(!LK.length) return toast("動画のリンクを1つ以上入れてください");
+      LK=cleanLinks(jLinks,c.img_ok);
+      if(!LK.length) return toast(c.img_ok
+        ? "動画か画像のリンクを1つ以上入れてください"
+        : "動画のリンクを1つ以上入れてください");
       pf=LK[0].url;
     }
     if(r.nomiss&&!M.q("#jN").checked) return toast("この大会はノーミスが条件です");
@@ -9480,11 +9519,11 @@ function pcupJoin(id){
 
 /* ---- 8) 複数リンクの入力欄（説明つき・種目名ボタンつき） ---- */
 let lkTool={};      /* どの行でツールを開いているか */
-function linkEditor(boxId,list,onChange){
+function linkEditor(boxId,list,onChange,imgOk){
   const box=$("#"+boxId); if(!box) return;
   if(!list.length) list.push({url:"",note:""});
   box.innerHTML=list.map((L,i)=>`<div class="lkrow" data-i="${i}">
-    <input type="text" data-u placeholder="X または YouTube のリンク" value="${esc(L.url||"")}">
+    <input type="text" data-u placeholder="${imgOk?"X・YouTube・画像のリンク":"X または YouTube のリンク"}" value="${esc(L.url||"")}">
     <textarea data-t rows="3" placeholder="このリンクの説明（改行できます。例：素因数分解・上級の1回目〜3回目）">${esc(L.note||"")}</textarea>
     <div class="tools" style="margin-top:0">
       <button class="btn sm" data-tool>ツール</button>
@@ -9508,7 +9547,7 @@ function linkEditor(boxId,list,onChange){
     });
   });
 }
-const cleanLinks=list=>(list||[]).filter(L=>L.url&&isProofUrl(L.url))
+const cleanLinks=(list,img)=>(list||[]).filter(L=>L.url&&okProof(L.url,img))
   .map(L=>({url:L.url,note:(L.note||"").slice(0,400)}));
 
 /* ---- 13/16) タグ ---- */
@@ -10366,12 +10405,14 @@ function cupMore(cid){
   const M=modal(`<h2>${esc(c.title)}</h2>
     <p class="muted" style="margin-top:-8px">${kindN}の設定です。</p>
     <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="cmEdit">説明を書きかえる</button>
       <button class="btn" id="cmClose">${c.closed?"受付を再開する":"受付を終了する"}</button>
       <button class="btn pri" id="cmRestore">過去データを自動で復元する</button>
       <button class="btn" id="cmBack">過去データを手で入れる</button>
       <button class="btn" id="cmDel" style="border-color:#7a3030;color:#ff8a8a">${kindN}を消す</button>
     </div>
     <p class="tiny">終了と削除は、画面に出る5桁の数字を入れてから実行します。</p>`,{w:600});
+  M.q("#cmEdit").onclick=()=>{ M.close(); cupEditForm(c); };
   M.q("#cmBack").onclick=()=>{ M.close(); backfillForm(c); };
   M.q("#cmRestore").onclick=()=>{ M.close(); restoreForm(c); };
   M.q("#cmClose").onclick=()=>{
@@ -10397,6 +10438,41 @@ function cupMore(cid){
       });
   };
 }
+/** 説明文と「画像でもOK」をあとから直します（作った人・ジャッジマン以上）*/
+function cupEditForm(c){
+  const kindN=c.kind==="official"?"競技会":"チャレンジ";
+  const M=modal(`<h2>${esc(c.title)} の説明を書きかえる</h2>
+    <p class="muted" style="margin-top:-8px">${kindN}の<b>説明文</b>と<b>提出のしかた</b>だけを直せます。<br>
+      <span class="tiny">名前とルールは変えられません（すでに出された記録とずれてしまうためです）。</span></p>
+    <label class="fl">説明（2000文字まで・改行できます）</label>
+    <textarea class="txt" id="ceI" rows="8" maxlength="2000" style="max-width:none"
+      placeholder="ルールの補足、注意すること、参加する人へのお願いなど">${esc(c.intro||"")}</textarea>
+    <label class="pk" style="margin-top:10px;display:inline-flex">
+      <input type="checkbox" id="ceIMG"${c.img_ok?" checked":""}> 画像でもOK（スクリーンショットで提出できます）</label>
+    <p class="tiny" style="color:var(--dim2)">X の動画は長さの制限があるので、
+      長い${kindN}では画像を許すと出しやすくなります。<br>
+      すでに出された記録は、そのまま残ります。</p>
+    <div class="tools">
+      <button class="btn pri" id="ceGo">この内容で書きかえる</button>
+      <button class="btn" id="ceNo">やめる</button>
+      <span class="tiny" id="ceMsg"></span>
+    </div>`,{w:720});
+  M.q("#ceNo").onclick=()=>M.close();
+  M.q("#ceGo").onclick=async()=>{
+    const b=M.q("#ceGo"); b.disabled=true;
+    M.q("#ceMsg").textContent="送っています…";
+    try{
+      await callRpc("update_pcup",{p_id:c.id,p_intro:M.q("#ceI").value,
+        p_img_ok:!!M.q("#ceIMG").checked},[["p_img_ok"]]);
+      await loadPcups(); renderPcups();
+      M.close(); toast("書きかえました（全員に見えています）");
+    }catch(e){
+      b.disabled=false;
+      M.q("#ceMsg").innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e).slice(0,120))+'</span>';
+    }
+  };
+}
+
 /* ---- 2) 過去データを自動で復元する ---- */
 /** 記録を出した時のタイムライン投稿から、当時の記録を作り直します */
 async function restoreForm(c){
@@ -13066,7 +13142,26 @@ role:`<h3>審査の仕組み</h3>
 <p class="tiny">却下には必ず理由が付きます。理由は提出した人だけが読めます。
 納得できない時は、その記録から不服を申し立てられます。ジャッジマンが確認します。</p>`,
 
-cup:`<h3>大会とチャレンジの違い</h3>
+cup:`<h3>提出のしかた（動画と画像）</h3>
+<p class="tiny">提出はふつう<b>動画</b>です（X・YouTube・Discord）。全プレイが映っている必要があります。</p>
+<p class="tiny">ただし、作った人が <b>「画像でもOK」</b>にしている場合は、
+<b>スクリーンショットのリンク</b>でも出せます。一覧に <span class="sbtag"
+  style="border-color:var(--acc2);color:var(--acc2)">画像OK</span> と出ているものがそれです。<br>
+X の動画は長さの制限があるので、長いチャレンジではこちらが使えます。</p>
+<div class="scroll"><table><thead><tr><th>使えるリンク</th><th>例</th></tr></thead><tbody>
+<tr><td>動画（いつでも）</td><td class="mono">x.com / twitter.com / youtube.com / youtu.be</td></tr>
+<tr><td>画像（「画像OK」のときだけ）</td><td class="mono">pbs.twimg.com・imgur・Gyazo・Discord・
+  .png / .jpg / .gif / .webp で終わるリンク</td></tr>
+</tbody></table></div>
+<p class="tiny">結果が読み取れる画像にしてください。読み取れないものは審査で却下されることがあります。</p>
+
+<h3 style="margin-top:16px">説明はあとから書きかえられます</h3>
+<p class="tiny">作った人（と管理者）は、<b>説明文</b>と<b>「画像でもOK」</b>をあとから直せます。
+チャレンジは「・・・」→<b>説明を書きかえる</b>、競技会は<b>内容を変更</b>から。<br>
+名前とルールは変えられません（すでに出された記録とずれてしまうためです）。<br>
+競技会は<b>終わったあとでも</b>説明だけは書き足せます。</p>
+
+<h3 style="margin-top:16px">大会とチャレンジの違い</h3>
 <div class="scroll"><table><thead><tr><th></th><th>チャレンジ</th><th>競技会</th></tr></thead><tbody>
 <tr><td>だれが開ける</td><td>だれでも</td><td>サポーター以上</td></tr>
 <tr><td>ルールの作り方</td><td>順番・連続・ノーミスを組み合わせる</td><td>種目と期間を決める</td></tr>
