@@ -63,6 +63,14 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 @keyframes lscfx{0%{opacity:0;transform:translate(-50%,6px)}
   20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
 #lsCoinBox{position:relative}
+.rproad{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  border:1px solid var(--line);border-radius:12px;background:#0b1220;padding:6px 0;margin-top:12px}
+.rpgrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:9px 0;
+  border-bottom:1px solid var(--line)}
+.rpgrow .rkf{display:flex;flex-direction:column;gap:3px}
+.rpgrow .rkf .fl{margin:0;font-size:.62rem}
+.rpstep{display:flex;gap:8px;align-items:center;padding:4px 0}
+.rpstep .no{width:64px;font-size:.72rem;color:var(--dim)}
 .pyrwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 @keyframes rkflow{0%{background-position:0% 50%}100%{background-position:-200% 50%}}
 @media (prefers-reduced-motion:reduce){ [style*="rkflow"]{animation:none!important} }
@@ -386,6 +394,8 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
   border:1px solid var(--line)}
 .rushbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd45e,#ff6b5e)}
 .rushleft{font-family:ui-monospace,Menlo,monospace;font-size:.9rem;color:var(--warn)}
+.rushpt{font-size:1rem;color:var(--warn);font-weight:800;margin-top:2px;letter-spacing:.04em}
+.rushpt b{font-size:1.5rem;font-family:ui-monospace,Menlo,monospace}
 #rushHit{width:100%;height:110px;margin-top:14px;border-radius:20px;font:inherit;font-size:1.4rem;
   font-weight:900;letter-spacing:.1em;color:#fff;cursor:pointer;border:1px solid #ff6b5e;
   background:linear-gradient(135deg,#c2382f,#e8574a);box-shadow:0 14px 34px -16px #ff6b5e;
@@ -920,6 +930,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <button data-tab="sns">Prime SNS</button></div>
   <div class="grp" data-g="set"><div class="ghead">設定</div>
     <button data-tab="settings">設定</button>
+    <button data-tab="rprank" id="tabRpRank" hidden>RANK</button>
     <button data-tab="rankedit" id="tabRankEdit" hidden>ランクの編集</button>
     <button data-tab="help">ヘルプ</button></div>
 </nav>
@@ -1515,16 +1526,29 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div class="lsbox"><div class="t">持っているコイン</div>
         <div class="v" id="pcHave" style="font-size:1.8rem">—</div>
         <div class="s" id="pcNote">—</div></div>
-      <div class="lsbox"><div class="t">使う枚数</div>
+      <div class="lsbox"><div class="t">連打する秒数</div>
         <div class="tools" style="margin-top:4px;justify-content:center">
           <button class="btn sm" id="pcDown">◀</button>
-          <b id="pcUse" style="font-size:1.6rem;font-family:ui-monospace,Menlo,monospace">1</b>
+          <b id="pcSecN" style="font-size:1.6rem;font-family:ui-monospace,Menlo,monospace">5</b>
           <button class="btn sm" id="pcUp">▶</button>
-          <span class="tiny" id="pcSec">＝ 5秒</span>
-        </div>
-        <div class="tools" style="justify-content:center">
-          <button class="btn pri" id="pcGo">スタート</button></div></div>
+          <span class="tiny">秒（5秒きざみ）</span>
+        </div></div>
+      <div class="lsbox"><div class="t">応援ポイントの倍率</div>
+        <div class="tools" style="margin-top:4px;justify-content:center">
+          <button class="btn sm" id="pcMDown">◀</button>
+          <b id="pcMul" style="font-size:1.6rem;font-family:ui-monospace,Menlo,monospace">1</b>
+          <button class="btn sm" id="pcMUp">▶</button>
+          <span class="tiny">倍</span>
+        </div></div>
     </div>
+    <div class="hintbox" style="margin-top:10px">
+      <div id="pcCalc" style="font-size:.95rem"></div>
+      <p class="tiny" style="margin:6px 0 0">必要な枚数 ＝（秒数 ÷ 5）× 倍率。
+        倍率をかけると、連打1回でもらえる応援ポイントも同じだけ増えます。</p>
+    </div>
+    <div class="tools" style="justify-content:center">
+      <button class="btn pri" id="pcGo">スタート</button>
+      <b id="pcUse" hidden>1</b></div>
     <p class="tiny" id="pcMsg" style="margin-top:8px"></p>
   </div>
   <div id="rushOv" hidden>
@@ -1532,11 +1556,13 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div class="rushcd" id="rushCd"></div>
       <div class="rushn" id="rushN">0</div>
       <div class="rushlab">回</div>
+      <div class="rushpt" id="rushPt">応援ポイント <b>0</b></div>
       <div class="rushbar"><i id="rushBar"></i></div>
       <div class="rushleft" id="rushLeft">—</div>
       <button id="rushHit">連打！</button>
-      <p class="tiny" id="rushHint">画面のボタンを、指で押して離してをくり返してください。
-        キーを押しっぱなしにしても増えません。</p>
+      <p class="tiny" id="rushHint">画面のボタンを、指で押して離してをくり返してください。<br>
+        パソコンは <b>スペース</b>と<b>エンター</b>を別々に数えます（左右の手で交互に押すと速いです）。
+        押しっぱなしは増えません。</p>
       <button class="btn" id="rushQuit" style="margin-top:10px">やめる</button>
     </div>
   </div>
@@ -1574,6 +1600,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <button data-hp="tool">道具の使い方</button>
       <button data-hp="etc">そのほか</button>
       <button data-hp="mood">Prime Mood</button>
+      <button data-hp="rank" id="hpRank" hidden>RANK</button>
       <button data-hp="rule">利用規約</button>
       <button data-hp="privacy">プライバシー</button>
     </div>
@@ -1821,7 +1848,81 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 </section>
 
+<section id="rprank" hidden>
+  <div class="card">
+    <h2>RANK<span class="tiny" id="rpAdmOnly" style="margin-left:8px;color:var(--warn)"></span>
+      <button class="btn sm" id="rpEditGo" hidden style="float:right">RANKを編集する</button></h2>
+    <p class="muted" style="margin-top:-8px">やりこんだ量（生成した乱数の累積・スコアの累積）で上がっていくランクです。
+      RATING とは別のものさしで、<b>上限はありません</b>。</p>
+    <div id="rpNow"></div>
+    <div id="rpRoad"></div>
+    <div id="rpNote"></div>
+  </div>
+</section>
+
 <section id="rankedit" hidden>
+  <div class="segs" id="reTabs" style="grid-template-columns:1fr 1fr;margin-bottom:12px">
+    <button data-re="rating" class="on">RATING のランク</button>
+    <button data-re="rp">RANK（やりこみ）</button>
+  </div>
+
+  <div id="reRp" hidden>
+    <div class="card" style="border-color:var(--warn)">
+      <h2>RANK の編集（管理者だけ）</h2>
+      <p class="muted" style="margin-top:-8px">RP ＝（生成した乱数の累積 × 係数）＋（スコアの累積 × 係数）。
+        必要RPの境目は、下の一覧で1つずつ決められます。</p>
+      <div class="tools" style="margin-top:0">
+        <button class="btn pri" id="rpSave">この内容で保存する</button>
+        <button class="btn" id="rpReload">保存せずに読み直す</button>
+        <button class="btn" id="rpDef">はじめの形に戻す</button>
+        <span class="tiny" id="rpMsg"></span>
+      </div>
+      <label class="pk" style="margin-top:10px;display:inline-flex">
+        <input type="checkbox" id="rpOn"> 全員に見せる（オフのあいだは管理者だけ）</label>
+    </div>
+
+    <div class="card">
+      <h2>見本（あなたの記録で）</h2>
+      <div id="rpPrev"></div>
+      <label class="fl">試しに動かす（RP）</label>
+      <input type="range" id="rpTry" min="0" max="100" value="0" style="max-width:none">
+      <p class="tiny" id="rpTryV"></p>
+    </div>
+
+    <div class="card">
+      <h2>RP の計算</h2>
+      <div class="tools" style="margin-top:0">
+        <span class="tiny">生成した乱数の累積 ×</span>
+        <input type="number" class="txt" id="rpFR" step="0.001" style="max-width:130px">
+        <span class="tiny">＋ スコアの累積 ×</span>
+        <input type="number" class="txt" id="rpFS" step="0.001" style="max-width:130px">
+      </div>
+      <p class="tiny" id="rpFormula" style="margin-top:6px"></p>
+    </div>
+
+    <div class="card">
+      <h2>グレード（色分け）</h2>
+      <div id="rpGrades"></div>
+      <div class="tools"><button class="btn sm" id="rpGAdd">＋ グレードを増やす</button></div>
+    </div>
+
+    <div class="card">
+      <h2>ランクの境目（必要な累計RP）</h2>
+      <p class="muted" style="margin-top:-8px">まとめて作ってから、1つずつ直せます。</p>
+      <div class="tools" style="margin-top:0">
+        <span class="tiny">RANK 2 に必要なRP</span>
+        <input type="number" class="txt" id="rpBase" step="1" style="max-width:180px">
+        <span class="tiny">1ランクごとに ×</span>
+        <input type="number" class="txt" id="rpMult" step="0.01" style="max-width:100px">
+        <span class="tiny">最大ランク</span>
+        <input type="number" class="txt" id="rpN" min="2" max="500" step="1" style="max-width:90px">
+        <button class="btn" id="rpGen">この決まりで作り直す</button>
+      </div>
+      <div id="rpSteps" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div id="reRating">
   <div class="card" style="border-color:var(--warn)">
     <h2>ランクとレートの編集（管理者だけ）</h2>
     <p class="muted" style="margin-top:-8px">ここで決めた名前・レートの区切り・色は、
@@ -1860,6 +1961,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   <div class="card">
     <h2>ピラミッドの見え方</h2>
     <div id="rkPyr"></div>
+  </div>
   </div>
 </section>
 
@@ -2111,7 +2213,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v91";
+const APP_VERSION = "v92";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2758,6 +2860,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v92":[
+    "応援の連打に「秒数」と「倍率」を追加（必要な枚数＝秒数÷5×倍率）",
+    "連打中に、いま何点たまっているかを表示",
+    "スペースとエンターを別々に数えるようにして、速く連打できるようにした",
+    "RANK（やりこみのランク）を追加。RP で上がる1本道の表示（いまは管理者だけ）",
+    "RANK のグレード名・色・グラデーション・光の強さ・境目を管理者が編集できるようにした"],
   "v91":[
     "ランクが多い時にピラミッドの文字が重なる不具合を修正（字の大きさと間かくが自動で決まります）",
     "ランクの編集で、1文字打つと入力中がはずれる不具合を修正"],
@@ -4286,6 +4394,327 @@ if($("#rkSave")) $("#rkSave").onclick=async()=>{
   b.disabled=false;
 };
 
+/* ══════════════════════════════════════════════════════════
+   RANK（RP）── やりこみの累積で上がるランク
+   ・RP ＝（生成した乱数の累積 × 係数）＋（スコアの累積 × 係数）
+   ・境目（必要な累計RP）とグレードは管理者が決めます
+   ・on が false のあいだは、管理者にしか見えません
+   ══════════════════════════════════════════════════════════ */
+const RP_DEF={
+  on:false,
+  formula:{rand:0.01,score:1},
+  gen:{base:1e12,mult:1.35,n:40},
+  steps:[],
+  grades:[{from:1,n:"STONE",c:"#8ba0bd",c2:null,glow:0},
+          {from:6,n:"IRON",c:"#b7c4d6",c2:null,glow:0},
+          {from:11,n:"COPPER",c:"#c98a52",c2:null,glow:0},
+          {from:16,n:"SILVER",c:"#dfe7f2",c2:null,glow:3},
+          {from:21,n:"GOLD",c:"#f0c04a",c2:null,glow:5},
+          {from:26,n:"PLATINUM",c:"#7fe6d4",c2:null,glow:6},
+          {from:31,n:"PRIME",c:"#a98bff",c2:"#7fd8ff",glow:8},
+          {from:36,n:"COSMOS",c:"#ff7b8a",c2:"#ffd45e",glow:12}]};
+let RPCFG=JSON.parse(JSON.stringify(RP_DEF)), RPEDIT=null, RP_AT=0;
+/** 境目が空なら、決まりから作ります */
+function rpSteps(cfg){
+  const c=cfg||RPCFG;
+  if(Array.isArray(c.steps)&&c.steps.length) return c.steps.map(Number);
+  const g=c.gen||RP_DEF.gen;
+  const out=[0]; let v=+g.base||1e12;
+  for(let i=1;i<Math.max(2,Math.min(500,+g.n||40));i++){ out.push(Math.round(v)); v*=(+g.mult||1.35); }
+  return out;
+}
+/** いまの RP */
+function rpOf(rc){
+  const r=rc||rec, f=(RPCFG.formula||RP_DEF.formula);
+  return (+r[RAND]||0)*(+f.rand||0) + (+r[SCORE]||0)*(+f.score||0);
+}
+/** RP からランクとグレードを出します */
+function rpRank(rp,cfg){
+  const st=rpSteps(cfg), c=cfg||RPCFG;
+  let k=0;
+  for(let i=0;i<st.length;i++) if(rp>=st[i]) k=i;
+  const rank=k+1, next=st[k+1]!=null?st[k+1]:null;
+  const gs=(c.grades||[]).slice().sort((a,b)=>(+a.from||1)-(+b.from||1));
+  let gr=gs[0]||{n:"—",c:"#8ba0bd"};
+  gs.forEach(g=>{ if(rank>=(+g.from||1)) gr=g; });
+  const base=st[k]||0;
+  const pct=next!=null&&next>base?Math.min(1,(rp-base)/(next-base)):1;
+  return {rank,grade:gr,base,next,pct,max:st.length};
+}
+/** 大きな数を読みやすく */
+function rpFmt(v){
+  const n=Math.round(+v||0);
+  if(n<1e4) return jp(n);
+  const u=[[1e16,"京"],[1e12,"兆"],[1e8,"億"],[1e4,"万"]];
+  for(const [d,name] of u) if(n>=d) return (n/d).toFixed(n/d<100?2:0)+name;
+  return jp(n);
+}
+/** グレードの見た目（光の強さは数字で持ちます） */
+const rpCSS=g=>rankCSS({c:g.c,c2:g.c2,glow:(+g.glow||0)>0,anim:!!g.anim},Math.max(3,+g.glow||0));
+
+/** 1本道（横スクロール）を描きます */
+function rpRoad(rp,cfg){
+  const c=cfg||RPCFG, st=rpSteps(c);
+  const cur=rpRank(rp,c);
+  const SEG=88, H=132, padL=20;
+  const W=padL*2+SEG*(st.length-1)+140;
+  const gs=(c.grades||[]).slice().sort((a,b)=>(+a.from||1)-(+b.from||1));
+  const gradeOf=r=>{ let g=gs[0]||{n:"—",c:"#8ba0bd"}; gs.forEach(x=>{ if(r>=(+x.from||1)) g=x; }); return g; };
+  let defs="", g="";
+  gs.forEach((x,i)=>{ if(x.c2) defs+=rankGrad({c:x.c,c2:x.c2,anim:!!x.anim},"rpg"+i); });
+  const gid=x=>{ const i=gs.indexOf(x); return (x.c2&&i>=0)?`url(#rpg${i})`:(x.c||"#8ba0bd"); };
+  /* 道 */
+  for(let i=0;i<st.length-1;i++){
+    const x0=padL+SEG*i, rank=i+1, gr=gradeOf(rank);
+    const done=rp>=st[i+1], here=cur.rank===rank;
+    g+=`<rect x="${x0}" y="56" width="${SEG-3}" height="26" rx="4"
+      fill="${gr.c}${done?"66":here?"33":"14"}" stroke="${gr.c}${here?"":"55"}"
+      stroke-width="${here?2:1}"/>`;
+    /* 境目の線 */
+    g+=`<line x1="${x0}" y1="46" x2="${x0}" y2="92" stroke="${gr.c}" stroke-width="1" opacity=".55"/>`;
+    g+=`<text x="${x0+2}" y="104" fill="#8ba0bd" style="font:400 10px ui-monospace,monospace">${
+      esc(rpFmt(st[i]))}</text>`;
+    g+=`<text x="${x0+(SEG-3)/2}" y="73" text-anchor="middle" fill="${gid(gr)}"
+      style="font:800 12px ui-sans-serif,system-ui${
+        (+gr.glow||0)>0?`;filter:drop-shadow(0 0 ${gr.glow}px ${gr.c2||gr.c})`:""}">${rank}</text>`;
+    /* グレードが変わるところに名前 */
+    if(gs.some(x=>(+x.from||1)===rank))
+      g+=`<text x="${x0+2}" y="40" fill="${gid(gr)}"
+        style="font:800 13px ui-sans-serif,system-ui;letter-spacing:.06em${
+          (+gr.glow||0)>0?`;filter:drop-shadow(0 0 ${gr.glow}px ${gr.c2||gr.c})`:""}">${esc(gr.n)}</text>`;
+  }
+  /* いまの場所 */
+  const i=cur.rank-1, x=padL+SEG*i+(cur.next!=null?(SEG-3)*cur.pct:0);
+  g+=`<path d="M ${x} 50 l -7 -10 h 14 z" fill="var(--warn)"/>`;
+  g+=`<text x="${x}" y="34" text-anchor="middle" fill="#ffd45e"
+    style="font:800 11px ui-sans-serif,system-ui">いまここ</text>`;
+  g+=`<line x1="${x}" y1="82" x2="${x}" y2="118" stroke="#ffd45e" stroke-width="1" stroke-dasharray="3 3"/>`;
+  g+=`<text x="${x}" y="128" text-anchor="middle" fill="#ffd45e"
+    style="font:400 10px ui-monospace,monospace">${esc(rpFmt(rp))} RP</text>`;
+  return `<div class="rproad"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"
+    style="display:block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RANK の道">
+    <defs>${defs}</defs>${g}</svg></div>`;
+}
+async function rpLoad(){
+  if(TEST){ RP_AT=Date.now(); return RPCFG; }
+  if(!sbOn()) return RPCFG;
+  try{
+    const r=await sb("rpc/rp_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object"){
+      RPCFG=Object.assign(JSON.parse(JSON.stringify(RP_DEF)),r);
+      RP_AT=Date.now();
+      rpShow();
+    }
+  }catch(e){}
+  return RPCFG;
+}
+/** 見せるかどうか（公開前は管理者だけ） */
+const rpVisible=()=>!!(RPCFG.on||isAdmin());
+function rpShow(){
+  const t=$("#tabRpRank"); if(t) t.hidden=!rpVisible();
+  const b=$("#rpEditGo"); if(b) b.hidden=!isAdmin();
+  const o=$("#rpAdmOnly"); if(o) o.textContent=RPCFG.on?"":"（いまは管理者だけに見えています）";
+}
+function rpEnter(){
+  if(!rpVisible()){ goTab("profile"); return; }
+  rpShow();
+  const rp=rpOf(), d=rpRank(rp);
+  $("#rpNow").innerHTML=`<div class="lsgrid2">
+      <div class="lsbox big"><div class="t">いまのランク</div>
+        <div class="v big" style="${rpCSS(d.grade)}">RANK ${jp(d.rank)}</div>
+        <div class="s" style="${rpCSS(d.grade)}">${esc(d.grade.n||"")}</div></div>
+      <div class="lsbox big"><div class="t">RP</div>
+        <div class="v big" style="font-size:1.7rem">${esc(rpFmt(rp))}</div>
+        <div class="s">${d.next!=null
+          ? `次まで あと ${esc(rpFmt(d.next-rp))}（${Math.floor(d.pct*100)}%）`
+          : "いちばん上です"}</div></div>
+    </div>
+    <div class="mdbar" style="margin-top:10px"><i style="width:${(d.pct*100).toFixed(1)}%"></i>
+      <span>RANK ${jp(d.rank)} → ${d.next!=null?jp(d.rank+1):"—"}</span></div>`;
+  $("#rpRoad").innerHTML=rpRoad(rp);
+  const f=RPCFG.formula||RP_DEF.formula;
+  $("#rpNote").innerHTML=`<p class="tiny" style="margin-top:10px">
+      RP ＝（生成した乱数の累積 × ${f.rand}）＋（スコアの累積 × ${f.score}）<br>
+      あなたの内わけ：乱数 ${esc(rpFmt((+rec[RAND]||0)*(+f.rand||0)))}
+      ／ スコア ${esc(rpFmt((+rec[SCORE]||0)*(+f.score||0)))}</p>
+    <p class="tiny" style="color:var(--dim2)">道は横にスクロールできます。色が変わるところがグレードの境目です。</p>`;
+  /* いまの場所が見えるように、少しスクロールしておきます */
+  const road=$("#rpRoad .rproad");
+  if(road){ const i=d.rank-1; road.scrollLeft=Math.max(0,20+88*i-road.clientWidth/2); }
+}
+
+/* ══════════ RANK の編集（管理者だけ）══════════ */
+let reTab="rating";
+function reSwitch(k){
+  reTab=k;
+  $$("#reTabs [data-re]").forEach(b=>b.classList.toggle("on",b.dataset.re===k));
+  $("#reRating").hidden=(k!=="rating");
+  $("#reRp").hidden=(k!=="rp");
+  if(k==="rp"&&!RPEDIT) rpEditEnter();
+}
+$$("#reTabs [data-re]").forEach(b=>b.onclick=()=>reSwitch(b.dataset.re));
+function rpEditEnter(){
+  if(!isAdmin()) return;
+  RPEDIT=JSON.parse(JSON.stringify(RPCFG));
+  if(!Array.isArray(RPEDIT.steps)||!RPEDIT.steps.length) RPEDIT.steps=rpSteps(RPEDIT);
+  rpEditDraw();
+}
+function rpEditDraw(){
+  if(!RPEDIT) return;
+  const f=RPEDIT.formula||{rand:0.01,score:1};
+  $("#rpOn").checked=!!RPEDIT.on;
+  $("#rpFR").value=f.rand; $("#rpFS").value=f.score;
+  const my=rpOf.call(null)!==undefined?( (+rec[RAND]||0)*(+f.rand||0)+(+rec[SCORE]||0)*(+f.score||0) ):0;
+  $("#rpFormula").innerHTML=`あなたの記録だと <b>${esc(rpFmt(my))}</b> RP になります`
+    +`<br><span class="tiny">乱数の累積 ${jp(+rec[RAND]||0)} ／ スコアの累積 ${jp(+rec[SCORE]||0)}</span>`;
+  /* グレード */
+  const gs=(RPEDIT.grades||[]).slice().sort((a,b)=>(+a.from||1)-(+b.from||1));
+  RPEDIT.grades=gs;
+  $("#rpGrades").innerHTML=gs.map((g,i)=>`
+    <div class="rpgrow">
+      <div class="rkf"><label class="fl">RANK</label>
+        <input type="number" class="txt" data-pg="${i}.from" min="1" max="500" step="1"
+          value="${+g.from||1}" style="max-width:90px"></div>
+      <div class="rkf"><label class="fl">グレード名</label>
+        <input type="text" class="txt" data-pg="${i}.n" maxlength="14"
+          value="${esc(g.n||"")}" style="max-width:170px"></div>
+      <div class="rkf"><label class="fl">色</label>
+        <input type="color" data-pg="${i}.c" value="${esc(g.c||"#8ba0bd")}"></div>
+      <div class="rkf"><label class="fl">グラデーション</label>
+        <label class="pk"><input type="checkbox" data-pgg="${i}"${g.c2?" checked":""}> つける</label>
+        ${g.c2?`<input type="color" data-pg="${i}.c2" value="${esc(g.c2)}">`:""}</div>
+      <div class="rkf"><label class="fl">動かす</label>
+        <label class="pk"><input type="checkbox" data-pga="${i}"${g.anim?" checked":""}
+          ${g.c2?"":"disabled"}> 流れる</label></div>
+      <div class="rkf"><label class="fl">光の強さ ${jp(+g.glow||0)}</label>
+        <input type="range" data-pg="${i}.glow" min="0" max="20" step="1"
+          value="${+g.glow||0}" style="width:120px"></div>
+      <div class="rkf"><label class="fl">　</label>
+        <button class="btn sm del" data-pgx="${i}"${gs.length<2?" disabled":""}>消す</button></div>
+      <div class="rkp" style="${rpCSS(g)};margin-left:auto;font-weight:900;font-size:1.15rem">${
+        esc(g.n||"（名前なし）")}</div>
+    </div>`).join("");
+  $$("#rpGrades [data-pg]").forEach(e=>{
+    e.oninput=()=>{
+      const [i,k]=e.dataset.pg.split(".");
+      const g=RPEDIT.grades[+i];
+      g[k]=(k==="from"||k==="glow")?Math.max(k==="from"?1:0,+e.value||0):e.value;
+      const row=e.closest(".rpgrow"), p=row&&row.querySelector(".rkp");
+      if(p){ p.textContent=g.n||"（名前なし）"; p.style.cssText=rpCSS(g)+";margin-left:auto;font-weight:900;font-size:1.15rem"; }
+      if(k==="glow"){ const lb=e.previousElementSibling; if(lb) lb.textContent="光の強さ "+jp(+e.value||0); }
+      rpPrevDraw();
+    };
+    if(e.dataset.pg.endsWith(".from")) e.onchange=()=>rpEditDraw();
+  });
+  $$("#rpGrades [data-pgg]").forEach(e=>e.onchange=()=>{
+    const g=RPEDIT.grades[+e.dataset.pgg];
+    g.c2=e.checked?(g.c2||"#7fd8ff"):null; if(!g.c2) g.anim=false; rpEditDraw();
+  });
+  $$("#rpGrades [data-pga]").forEach(e=>e.onchange=()=>{
+    RPEDIT.grades[+e.dataset.pga].anim=e.checked; rpEditDraw();
+  });
+  $$("#rpGrades [data-pgx]").forEach(b=>b.onclick=()=>{
+    if(RPEDIT.grades.length<2) return;
+    RPEDIT.grades.splice(+b.dataset.pgx,1); rpEditDraw();
+  });
+  /* 境目 */
+  const g2=RPEDIT.gen||RP_DEF.gen;
+  $("#rpBase").value=g2.base; $("#rpMult").value=g2.mult; $("#rpN").value=RPEDIT.steps.length;
+  const st=RPEDIT.steps;
+  $("#rpSteps").innerHTML=`<div class="scroll" style="max-height:44vh">`
+    +st.map((v,i)=>i===0?`<div class="rpstep"><span class="no">RANK 1</span>
+        <span class="tiny" style="color:var(--dim2)">いつも 0 から</span></div>`
+      :`<div class="rpstep"><span class="no">RANK ${i+1}</span>
+        <input type="number" class="txt" data-ps="${i}" step="1" value="${v}" style="max-width:220px">
+        <span class="tiny">${esc(rpFmt(v))}${st[i-1]>0?`　×${(v/st[i-1]).toFixed(2)}`:""}</span></div>`).join("")
+    +`</div>`;
+  $$("#rpSteps [data-ps]").forEach(e=>{
+    e.oninput=()=>{ RPEDIT.steps[+e.dataset.ps]=Math.max(0,+e.value||0); rpPrevDraw(); };
+    e.onchange=()=>rpEditDraw();
+  });
+  rpPrevDraw();
+}
+function rpPrevDraw(){
+  if(!RPEDIT) return;
+  const st=RPEDIT.steps, top=st[st.length-1]||1e12;
+  const sl=$("#rpTry");
+  const my=rpOf({[RAND]:+rec[RAND]||0,[SCORE]:+rec[SCORE]||0});
+  if(!sl.dataset.set){ sl.max=1000; sl.value=Math.round(Math.min(1,my/top)*1000); sl.dataset.set="1"; }
+  const rp=Math.round(top*Math.pow(+sl.value/1000,1));
+  const d=rpRank(rp,RPEDIT);
+  $("#rpPrev").innerHTML=`<div class="lsgrid2">
+      <div class="lsbox big"><div class="t">見本のランク</div>
+        <div class="v big" style="${rpCSS(d.grade)}">RANK ${jp(d.rank)}</div>
+        <div class="s" style="${rpCSS(d.grade)}">${esc(d.grade.n||"")}</div></div>
+      <div class="lsbox big"><div class="t">あなたのいま</div>
+        <div class="v big" style="font-size:1.5rem">RANK ${jp(rpRank(my,RPEDIT).rank)}</div>
+        <div class="s">${esc(rpFmt(my))} RP</div></div>
+    </div>`+rpRoad(rp,RPEDIT);
+  $("#rpTryV").innerHTML=`見本の RP：<b>${esc(rpFmt(rp))}</b>`
+    +`　／　全 ${jp(st.length)} ランク　／　いちばん上は ${esc(rpFmt(top))} RP`;
+}
+if($("#rpTry")) $("#rpTry").oninput=rpPrevDraw;
+if($("#rpOn")) $("#rpOn").onchange=e=>{ if(RPEDIT) RPEDIT.on=e.target.checked; };
+["rpFR","rpFS"].forEach(id=>{ const e=$("#"+id); if(e) e.oninput=()=>{
+  if(!RPEDIT) return;
+  RPEDIT.formula={rand:+$("#rpFR").value||0, score:+$("#rpFS").value||0};
+  rpEditDraw();
+};});
+if($("#rpGAdd")) $("#rpGAdd").onclick=()=>{
+  if(!RPEDIT) return;
+  const mx=RPEDIT.grades.reduce((a,g)=>Math.max(a,+g.from||1),1);
+  RPEDIT.grades.push({from:mx+5,n:"NEW",c:"#8ba0bd",c2:null,glow:0});
+  rpEditDraw();
+};
+if($("#rpGen")) $("#rpGen").onclick=()=>{
+  if(!RPEDIT) return;
+  const base=+$("#rpBase").value||1e12, mult=+$("#rpMult").value||1.35,
+        n=Math.max(2,Math.min(500,+$("#rpN").value||40));
+  RPEDIT.gen={base,mult,n};
+  const out=[0]; let v=base;
+  for(let i=1;i<n;i++){ out.push(Math.round(v)); v*=mult; }
+  RPEDIT.steps=out;
+  rpEditDraw();
+  toast(`${jp(n)} ランクぶん作りました`);
+};
+if($("#rpDef")) $("#rpDef").onclick=()=>{
+  RPEDIT=JSON.parse(JSON.stringify(RP_DEF));
+  RPEDIT.steps=rpSteps(RPEDIT); rpEditDraw();
+  toast("はじめの形に戻しました（保存はまだです）");
+};
+if($("#rpReload")) $("#rpReload").onclick=async()=>{ await rpLoad(); rpEditEnter(); toast("読み直しました"); };
+if($("#rpSave")) $("#rpSave").onclick=async()=>{
+  if(!RPEDIT) return;
+  const st=(RPEDIT.steps||[]).map(v=>Math.max(0,Math.round(+v||0)));
+  st[0]=0;
+  for(let i=1;i<st.length;i++) if(st[i]<=st[i-1]) return toast(`RANK ${i+1} の RP が、前より小さいか同じです`);
+  const cfg={on:!!RPEDIT.on,
+    formula:{rand:+$("#rpFR").value||0, score:+$("#rpFS").value||0},
+    gen:RPEDIT.gen||RP_DEF.gen, steps:st,
+    grades:RPEDIT.grades.map(g=>({from:Math.max(1,+g.from||1),n:String(g.n||"").trim().slice(0,14),
+      c:g.c||"#8ba0bd", c2:g.c2||null, glow:Math.max(0,Math.min(20,+g.glow||0)),
+      anim:!!(g.c2&&g.anim)})).sort((a,b)=>a.from-b.from)};
+  if(cfg.grades.some(g=>!g.n)) return toast("名前が空のグレードがあります");
+  if(!await askYN("この内容で保存しますか？",
+    cfg.on?"<b>全員に見えるようになります。</b>":"まだ管理者だけに見えます（あとで公開できます）。",
+    "保存する")) return;
+  const b=$("#rpSave"); b.disabled=true; $("#rpMsg").textContent="送っています…";
+  try{
+    await sbAuth("rpc/rp_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
+    await rpLoad();
+    const srv=await sb("rpc/rp_cfg",{method:"POST",body:"{}"});
+    const ok=srv&&JSON.stringify((srv.steps||[]).slice(0,5))===JSON.stringify(cfg.steps.slice(0,5))
+             &&(!!srv.on===!!cfg.on);
+    rpEditEnter();
+    $("#rpMsg").innerHTML=ok
+      ? `<span style="color:var(--acc2)">保存しました${cfg.on?"。全員に見えています":"（まだ管理者だけ）"}</span>`
+      : `<span style="color:var(--bad)">保存しましたが、確認できませんでした</span>`;
+    try{ if(!$("#help").hidden) renderHelp(); }catch(e){}
+  }catch(e){ $("#rpMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</span>`; }
+  b.disabled=false;
+};
+if($("#rpEditGo")) $("#rpEditGo").onclick=()=>{ goTab("rankedit"); setTimeout(()=>reSwitch("rp"),60); };
+
 function renderPyramid(){
   const c=compute(rec);
   $("#pyramid").innerHTML=drawPyramid(c.total,c.complete);
@@ -4772,7 +5201,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","plan","analysis","hist","mood","ls","card","input","sns","settings","rankedit","help","cheer"]
+  ["profile","pgbc","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -4785,7 +5214,8 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
 
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); }
-  if(b.dataset.tab==="rankedit") rkEnter();
+  if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
+  if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
   if(b.dataset.tab==="hist"){ histEnter(); }
   if(b.dataset.tab==="mood"){ moodEnter(); }
@@ -6103,6 +6533,7 @@ const ADMIN_HINT="syuuto5107@gmail.com";
 const isAdmin=()=>!!(me&&me.role==="admin");
 /** 管理者だけに見せるものを出し入れします */
 function admShow(){
+  if(typeof rpShow==="function") rpShow();
   if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
@@ -13170,6 +13601,9 @@ async function cheerEnter(){
 /* ═══════════════ Prime Coin ═══════════════ */
 const COIN='<span class="pcoin">P</span>';
 let PC=null, PCCAL=[], pcUse=1;
+/* 連打する秒数と、応援ポイントの倍率。必要な枚数は（秒数÷5）×倍率です */
+let pcSecs=5, pcMult=1;
+const pcCost=()=>Math.max(1,Math.round(pcSecs/5)*pcMult);
 const K_LB="sa-lb-v1";                 /* この端末で今日カレンダーを見せたか */
 /** いまの枚数などを取りに行きます */
 async function loadCoins(){
@@ -13535,35 +13969,46 @@ function renderCoins(){
         : `今日の記録ぶん あと ${jp(+PC.submits_left||0)} 回まで`;
     }
   }
-  pcUse=Math.max(1,Math.min(Math.max(1,n),pcUse));
-  const u=$("#pcUse"); if(u) u.textContent=jp(pcUse);
-  const s=$("#pcSec"); if(s) s.textContent=`＝ ${jp(pcUse*5)}秒`;
-  const go=$("#pcGo"); if(go) go.disabled=(n<1);
+  /* 必要な枚数 ＝（秒数 ÷ 5）× 倍率 */
+  pcUse=pcCost();
+  const sn=$("#pcSecN"); if(sn) sn.textContent=jp(pcSecs);
+  const mu=$("#pcMul");  if(mu) mu.textContent=jp(pcMult);
+  const ca=$("#pcCalc");
+  if(ca) ca.innerHTML=`（${jp(pcSecs)} ÷ 5）× ${jp(pcMult)} ＝ `
+    +`<b style="color:${n>=pcUse?"var(--acc2)":"var(--bad)"};font-size:1.3rem">${jp(pcUse)}</b> 枚`
+    +`　<span class="tiny">${n>=pcUse?`（持っているのは ${jp(n)} 枚）`
+      :`<span style="color:var(--bad)">${jp(pcUse-n)} 枚たりません</span>`}</span>`;
+  const go=$("#pcGo"); if(go) go.disabled=(n<pcUse);
   try{ if(typeof renderLsCoin==="function") renderLsCoin(); }catch(e){}
   const msg=$("#pcMsg");
   if(msg) msg.innerHTML=(n<1)
     ? '<span style="color:var(--dim2)">コインがありません。ログインボーナス・記録の提出・LSやりこみ・自己ベスト更新・Prime Park でもらえます。</span>'
     : "";
 }
-if($("#pcUp"))   $("#pcUp").onclick  =()=>{ pcUse=Math.min(PC?(+PC.coins||0):1,pcUse+1); renderCoins(); };
-if($("#pcDown")) $("#pcDown").onclick=()=>{ pcUse=Math.max(1,pcUse-1); renderCoins(); };
+if($("#pcUp"))   $("#pcUp").onclick  =()=>{ pcSecs=Math.min(600,pcSecs+5); renderCoins(); };
+if($("#pcDown")) $("#pcDown").onclick=()=>{ pcSecs=Math.max(5,pcSecs-5); renderCoins(); };
+if($("#pcMUp"))  $("#pcMUp").onclick =()=>{ pcMult=Math.min(20,pcMult+1); renderCoins(); };
+if($("#pcMDown"))$("#pcMDown").onclick=()=>{ pcMult=Math.max(1,pcMult-1); renderCoins(); };
 if($("#pcGo"))   $("#pcGo").onclick  =()=>rushStart();
 
 /** 連打モード。キーの押しっぱなしでは増えません */
 let RUSH=null;
 async function rushStart(){
   const n=PC?(+PC.coins||0):0;
-  if(n<pcUse) return toast("コインが足りません");
-  let secs=pcUse*5;
+  const cost=pcCost();
+  if(n<cost) return toast(`コインが ${jp(cost-n)} 枚たりません`);
+  let secs=pcSecs, mult=pcMult;
   if(!TEST){
-    try{ const r=await sbAuth("rpc/coin_spend",{method:"POST",body:JSON.stringify({p_n:pcUse})});
-      PC=r; secs=+r.seconds||secs; }
+    try{ const r=await callRpc("coin_spend",{p_n:cost,p_mult:pcMult},[["p_mult"]]);
+      PC=r; secs=+r.seconds||secs; mult=+r.mult||mult; }
     catch(e){ return toast(String(e.message||e).slice(0,90)); }
-  }else{ PC=Object.assign({},PC,{coins:n-pcUse}); }
+  }else{ PC=Object.assign({},PC,{coins:n-cost}); }
   renderCoins();
   const ov=$("#rushOv"); ov.hidden=false; ov.classList.add("on");
-  RUSH={n:0,secs:secs,used:pcUse,t0:0,end:0,down:false,raf:0,started:false};
+  RUSH={n:0,secs:secs,mult:mult,used:cost,t0:0,end:0,keys:{},down:false,raf:0,started:false};
   $("#rushN").textContent="0";
+  if($("#rushPt")) $("#rushPt").innerHTML=`応援ポイント <b>0</b>`
+    +(mult>1?` <span class="tiny">（1回 ${jp(mult)}点）</span>`:"");
   $("#rushBar").style.width="100%";
   $("#rushHit").disabled=true;
   $("#rushLeft").textContent="—";
@@ -13600,21 +14045,24 @@ function rushHit(){
   if(performance.now()>RUSH.end) return;
   RUSH.n++;
   $("#rushN").textContent=jp(RUSH.n);
+  const m=+RUSH.mult||1;
+  if($("#rushPt")) $("#rushPt").innerHTML=`応援ポイント <b>${jp(RUSH.n*m)}</b>`
+    +(m>1?` <span class="tiny">（1回 ${jp(m)}点）</span>`:"");
   const b=$("#rushHit"); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
 }
 async function rushEnd(){
   if(!RUSH) return;
   cancelAnimationFrame(RUSH.raf);
-  const n=RUSH.n, secs=RUSH.secs;
+  const n=RUSH.n, secs=RUSH.secs, mult=+RUSH.mult||1, pt=n*mult;
   RUSH.started=false;
   $("#rushOv").classList.remove("on"); $("#rushOv").hidden=true;
   RUSH=null;
   /* 応援ポイントに反映します */
-  if(n>0){
-    chAdd(n); renderCheer();
+  if(pt>0){
+    chAdd(pt); renderCheer();
     if(!TEST&&sess&&sbOn()){
       try{ const r=await sbAuth("rpc/cheer",
-        {method:"POST",body:JSON.stringify({p_n:n,p_src:"rush"})});
+        {method:"POST",body:JSON.stringify({p_n:pt,p_src:"rush"})});
         const x=Array.isArray(r)?r[0]:r;
         if(x){ CH.total=+x.total; CH.today=+x.today; } }
       catch(e){ toast("応援ポイントを入れられませんでした："+String(e.message||e).slice(0,50)); }
@@ -13627,11 +14075,14 @@ async function rushEnd(){
     <div class="lsgrid2" style="margin-top:6px">
       <div class="lsbox"><div class="t">連打した回数</div>
         <div class="v" style="font-size:2.2rem">${jp(n)}</div><div class="s">回</div></div>
+      <div class="lsbox"><div class="t">獲得した応援ポイント</div>
+        <div class="v" style="font-size:2.2rem;color:var(--warn)">${jp(pt)}</div>
+        <div class="s">${mult>1?`${jp(n)} 回 × ${jp(mult)} 倍`:"1回 1点"}</div></div>
       <div class="lsbox"><div class="t">連打した秒数</div>
         <div class="v" style="font-size:2.2rem">${secs.toFixed(2)}</div><div class="s">秒</div></div>
     </div>
     <p class="tiny" style="margin-top:8px">1秒あたり <b>${per.toFixed(2)}</b> 回　／
-      応援ポイントに <b>＋${jp(n)}</b> 入りました。</p>`,{w:520});
+      応援ポイントに <b>＋${jp(pt)}</b> 入りました${mult>1?`（${jp(mult)}倍）`:""}。</p>`,{w:560});
 }
 /* 押して離すの1組で1回。キーの長押し（repeat）は数えません */
 (function(){
@@ -13642,16 +14093,28 @@ async function rushEnd(){
   b.addEventListener("pointerup",up);
   b.addEventListener("pointercancel",up);
   b.addEventListener("pointerleave",up);
-  /* キーボードでも遊べますが、押しっぱなしは1回だけです */
+  /* キーボード：スペースとエンターを「別々に」数えます。
+     片方を押したまま、もう片方を押しても、それぞれ1回として入ります。
+     押しっぱなし（自動くり返し）だけは、今までどおり数えません。 */
+  const RKEY={Space:1,Enter:1,NumpadEnter:1};
   document.addEventListener("keydown",e=>{
     if(!RUSH||!RUSH.started) return;
-    if(e.code!=="Space"&&e.code!=="Enter") return;
+    if(!RKEY[e.code]) return;
     e.preventDefault();
-    if(e.repeat) return;                 /* ← 長押しの自動くり返しは数えません */
-    if(RUSH.kdown) return;
-    RUSH.kdown=true; rushHit();
+    if(e.repeat) return;                       /* 長押しの自動くり返しは数えません */
+    RUSH.keys=RUSH.keys||{};
+    if(RUSH.keys[e.code]) return;              /* そのキーは、まだ離していません */
+    RUSH.keys[e.code]=true;
+    rushHit();
   },true);
-  document.addEventListener("keyup",e=>{ if(RUSH) RUSH.kdown=false; },true);
+  document.addEventListener("keyup",e=>{
+    if(!RUSH) return;
+    if(!RKEY[e.code]){ return; }
+    RUSH.keys=RUSH.keys||{};
+    RUSH.keys[e.code]=false;
+  },true);
+  /* 画面から目を離した時などに、押しっぱなしの印を消しておきます */
+  window.addEventListener("blur",()=>{ if(RUSH) RUSH.keys={}; });
   const q=$("#rushQuit"); if(q) q.onclick=()=>{ if(RUSH){ RUSH.end=0; rushEnd(); } };
 })();
 /** 記録を出したら3ポイント。クラッカーの回数とは別勘定なので、押し切っていても入ります */
@@ -13838,6 +14301,11 @@ CONCATENATE／VLOOKUP</p>
 <b style="color:#ffd45e">#みんなのアチーブメント</b> の金色タグが自動で付きます。
 公式は<b>達成した時だけ</b>流れます。設定タブで止められます。</p>`,
 
+rank:`<h3>RANK（やりこみのランク）</h3>
+{{RPINTRO}}
+{{RPTBL}}
+{{RPSTEPS}}`,
+
 award:`<h3>ランクとレート</h3>
 {{RANKTBL}}
 
@@ -13899,7 +14367,18 @@ award:`<h3>ランクとレート</h3>
 <p class="tiny">使い道は「開発者を応援する」の連打です。<b>コイン1枚で5秒間</b>連打できます。
 何枚でもまとめて使えます（3枚なら15秒）。「スタート」を押すと3秒のカウントダウンのあと始まり、
 終わると連打した回数と秒数が出ます。押した回数がそのまま応援ポイントに入ります。</p>
-<p class="tiny">キーを押しっぱなしにしても増えません。<b>押して離す</b>をくり返してください。</p>`,
+<p class="tiny">キーを押しっぱなしにしても増えません。<b>押して離す</b>をくり返してください。<br>
+パソコンでは <b>スペース</b>と<b>エンター</b>が別々に数えられます。
+片方を押したまま、もう片方を押しても入るので、<b>左右の手で交互に叩く</b>と速く押せます。</p>
+
+<h3 style="margin-top:16px">倍率（まとめて使うと応援ポイントが増えます）</h3>
+<p class="tiny">連打する<b>秒数</b>と、応援ポイントの<b>倍率</b>を選べます。</p>
+<div class="scroll"><table><tbody>
+<tr><td>必要な枚数</td><td class="mono">（秒数 ÷ 5）× 倍率</td></tr>
+<tr><td>例：15秒 × 3倍</td><td class="mono">（15 ÷ 5）× 3 ＝ 9枚</td></tr>
+<tr><td>もらえる点</td><td>連打1回につき <b>倍率ぶん</b>（3倍なら1回3点）</td></tr>
+</tbody></table></div>
+<p class="tiny">連打中は、回数の下に「いま何点たまっているか」が出ます。</p>`,
 
 tool:`<h3>画面の地図</h3>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
@@ -14426,6 +14905,44 @@ function moodHelpPts(){
     +`</tbody></table></div>`;
 }
 /** いまの設定（満点・タグ・文字の形・更新時刻）を、そのまま表にします */
+/** RANK のヘルプ（いまの設定から作ります） */
+function rpHelpIntro(){
+  const f=RPCFG.formula||RP_DEF.formula, st=rpSteps();
+  return `<p class="tiny">やりこんだ量で上がっていくランクです。RATING とは別のものさしで、
+    <b>上限はありません</b>。上手さではなく、積み上げた量が出ます。</p>
+    <div class="scroll"><table><tbody>
+      <tr><td>RP の出し方</td><td class="mono">（生成した乱数の累積 × ${f.rand}）＋（スコアの累積 × ${f.score}）</td></tr>
+      <tr><td>ランクの数</td><td>${jp(st.length)} 段階</td></tr>
+      <tr><td>いちばん上</td><td class="mono">${esc(rpFmt(st[st.length-1]||0))} RP</td></tr>
+    </tbody></table></div>
+    ${RPCFG.on?"":`<p class="tiny" style="color:var(--warn)">
+      いまは<b>管理者だけ</b>に見えています。全員に見せるかどうかは、まだ決めていません。</p>`}`;
+}
+function rpHelpGrades(){
+  const gs=(RPCFG.grades||[]).slice().sort((a,b)=>(+a.from||1)-(+b.from||1));
+  const st=rpSteps();
+  return `<h3 style="margin-top:16px">グレード</h3>
+    <div class="scroll"><table><thead><tr><th>グレード</th><th class="n">RANK</th>
+      <th class="n">必要な RP</th></tr></thead><tbody>`
+    +gs.map((g,i)=>{ const nx=gs[i+1];
+      const need=st[(+g.from||1)-1];
+      return `<tr><td><b style="${rpCSS(g)}">${esc(g.n)}</b></td>
+        <td class="n">${jp(+g.from||1)}${nx?` 〜 ${jp((+nx.from||1)-1)}`:" 〜"}</td>
+        <td class="n mono">${need!=null?esc(rpFmt(need)):"—"}</td></tr>`;}).join("")
+    +`</tbody></table></div>`;
+}
+function rpHelpSteps(){
+  const st=rpSteps();
+  const show=st.map((v,i)=>({r:i+1,v})).filter(x=>x.r===1||x.r%5===0||x.r===st.length);
+  return `<h3 style="margin-top:16px">ランクの境目（5ランクごと）</h3>
+    <div class="scroll" style="max-height:40vh"><table><thead><tr>
+      <th class="n">RANK</th><th class="n">必要な累計 RP</th></tr></thead><tbody>`
+    +show.map(x=>`<tr><td class="n">${jp(x.r)}</td>
+      <td class="n mono">${esc(rpFmt(x.v))}</td></tr>`).join("")
+    +`</tbody></table></div>
+    <p class="tiny">RP は減りません。記録を入れ直しても、いちど上がったランクは下がりません
+      （累積の値を小さく直した時だけ下がります）。</p>`;
+}
 function moodHelpNow(){
   const f=(MOOD_FONTS.find(x=>x.k===(MCFG.font||"mono"))||MOOD_FONTS[0]).n;
   const tg=(MCFG.tags||[]).map(t=>"#"+t).join("　")||"—";
@@ -14453,11 +14970,18 @@ function moodHelpWords(){
 function renderHelp(){
   const b=$("#helpBox"); if(!b) return;
   extCall("help");
+  const hr=$("#hpRank"); if(hr) hr.hidden=!rpVisible();
   if(!HELP[helpTab]||helpTab==="moodAdmin") helpTab="role";
+  if(helpTab==="rank"&&!rpVisible()) helpTab="role";
   $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
   let h=HELP[helpTab]||"";
   if(helpTab==="award"){
     h=h.replace("{{RANKTBL}}",rankHelpTbl()).replace("{{COINTBL}}",coinHelpTbl());
+  }
+  if(helpTab==="rank"){
+    h=h.replace("{{RPINTRO}}",rpHelpIntro())
+       .replace("{{RPTBL}}",rpHelpGrades())
+       .replace("{{RPSTEPS}}",rpHelpSteps());
   }
   if(helpTab==="mood"){
     /* まだ設定を読んでいなければ、読んでから出し直します
@@ -15524,7 +16048,7 @@ $("#updLater").onclick=()=>{ $("#updBanner").hidden=true; };
 setInterval(checkUpdate,5*60*1000);
 /* 管理者からのお知らせ。Supabase の設定が入ってから見に行き、そのあと5分おきに見直します */
 function ntcBoot(){
-  if(sbOn()){ ntcLoad().then(ntcBadge); rankCfgLoad(); ccLoad(); }
+  if(sbOn()){ ntcLoad().then(ntcBadge); rankCfgLoad(); ccLoad(); rpLoad(); }
   else setTimeout(ntcBoot,800);
 }
 setTimeout(ntcBoot,300);
@@ -15711,6 +16235,7 @@ function normalize(j){
     try{ await claimParkCoins(); }catch(e){} }
   $("#devBtn").hidden=!isAdmin();
   if($("#devCard")) $("#devCard").hidden=!isAdmin();
+  try{ admShow(); }catch(e){}          /* 管理者だけに見せるタブなど */
   try{ await extLoad(); }catch(e){}
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
