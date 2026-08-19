@@ -2253,7 +2253,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v94";
+const APP_VERSION = "v95";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2900,6 +2900,10 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v95":[
+    "値の記入がいらないアチーブメントを提出できなかった不具合を修正",
+    "提出の前に、必ず確認のメッセージを出すようにした（入れた値も出ます）",
+    "値なしのみんなのアチーブメントは「提出したら達成」に固定した"],
   "v94":[
     "プロフィールとプロフィールカードに RANK とグレードを表示",
     "ランキングに RANK の列と、RANK での並べかえを追加",
@@ -11271,9 +11275,17 @@ function achForm(id){
     const ra=M.q("#afRuleAdd"); if(ra) ra.disabled=nv;
     const ad=M.q("#afAdd"), sh=M.q("#afSheet");
     if(ad) ad.disabled=nv; if(sh) sh.disabled=nv;
+    /* みんなのアチーブメントで値が無い場合は、判定するものが無いので
+       「提出したら達成」に固定します（そうしないと誰も達成できません）*/
+    const au=M.q("#afAuto");
+    if(au){
+      if(nv){ au.checked=true; au.disabled=true; }
+      else au.disabled=false;
+    }
     const m2=M.q("#afNoValM");
     if(m2) m2.innerHTML=nv
       ? "記入してもらう値はありません。ランキングは作れませんが、提出者と達成者は並びます。"
+        +(au?"<br><b>値がないので「提出したら達成にする」になります。</b>":"")
       : "";
   };
   if(M.q("#afNoVal")) M.q("#afNoVal").onchange=noValSync;
@@ -11292,7 +11304,7 @@ function achForm(id){
       p_no_val:noVal,
       p_rules:(off||noVal)?[]:rules.filter(r=>r.k&&r.v!=null),
       p_trophy:off?(M.q("#afTro")||{}).value||null:null,
-      p_auto_done:off?false:!!(M.q("#afAuto")&&M.q("#afAuto").checked),
+      p_auto_done:off?false:(noVal?true:!!(M.q("#afAuto")&&M.q("#afAuto").checked)),
       p_keep:off?"best":((M.qa('input[name="afK"]').find(x=>x.checked)||{}).value||"best"),
       p_section:(M.q("#afSec")||{}).value||null};
     /* 達成基準を変えた時は、必ず再審査してもらいます */
@@ -11441,8 +11453,10 @@ function achSubmit(a){
       <span class="tiny" style="white-space:pre-wrap">${esc(a.how)}</span></div>`:""}
     <p class="tiny">出せるのは ${a.need==="video"?"<b>動画</b>のリンクだけ":a.need==="image"?"<b>画像</b>のリンクだけ":"動画でも画像でも構いません"}
       （X または YouTube）。</p>
-    <h3>値を記入する</h3>
+    ${fs.length?`<h3>値を記入する</h3>`:""}
     <div id="asVals"></div>
+    ${fs.length?"":`<p class="tiny" style="color:var(--dim2)">
+      このアチーブメントは、値の記入はいりません。証明のリンクだけ入れてください。</p>`}
     ${a.sheet&&a.sheet.picks?`<div class="hintbox" style="margin-top:10px" id="asCalc"></div>`:""}
     <h3 style="margin-top:14px">証明のリンク（複数可）</h3>
     <div id="asLinks"></div>
@@ -11490,9 +11504,21 @@ function achSubmit(a){
     const LK=cleanLinks(links);
     if(!LK.length) return toast("証明のリンクを1つ以上入れてください");
     const c=calc();
-    const main=(a.sheet&&a.sheet.main)?(+c[a.sheet.main]||0):(+v[fs[0].key]||0);
+    /* 値の欄がないアチーブメントもあるので、無い時は 0 として出します */
+    const main=(a.sheet&&a.sheet.main)?(+c[a.sheet.main]||0)
+      :(fs.length?(+v[fs[0].key]||0):0);
+    /* 提出の前に、必ず確認します */
+    const lines=fs.length
+      ? fs.map(f=>`${esc(f.key)}${f.label?"（"+esc(f.label)+"）":""}　<b>${jp(+v[f.key]||0)}</b>`).join("<br>")
+      : `<span class="tiny">値の記入はいらないアチーブメントです</span>`;
     if(!await askYN("この内容で提出しますか？",
-      `<b>${esc(a.title)}</b><br>記録 <b>${jp(Math.round(main*1000)/1000)}</b>`,"提出する")) return;
+      `<b>${esc(a.title)}</b><br>${lines}`
+      +(fs.length?`<br>記録（メインの値）<b>${jp(Math.round(main*1000)/1000)}</b>`:"")
+      +`<br><span class="tiny">証明のリンク ${jp(LK.length)} 本`
+      +(a.kind==="official"?"／このあと審査員の審査を受けます"
+        :(a.auto_done?"／出すとすぐ達成になります"
+          :(a.rules&&a.rules.length?"／条件を満たしていれば達成になります":"")))
+      +`</span>`,"提出する")) return;
     try{
       await callRpc("ach_submit",{p_ach:a.id,p_vals:v,p_main:main,p_links:LK,
         p_computed:(a.sheet?c:null),p_note:M.q("#asNote").value.trim()||null},
