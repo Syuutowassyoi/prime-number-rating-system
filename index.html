@@ -1182,7 +1182,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     </div>
     <div class="tools" style="margin-top:0" data-lsv="all">
       <button class="btn sm" id="lsResetAll">「現在まで」をリセット</button>
-      <span class="tiny">リセットするまで、クリアするたびに足し続けます。累積の見込みはこの値を使います。</span>
+      <span class="tiny">リセットするまで、クリアするたびに足し続けます。累積の見込みはこの値を使います。<br>
+        リセットしても、<b>クリアの総数と Prime Coin の進み具合は残ります</b>。</span>
     </div>
     <div class="lsgoals" data-lsv="goal">
       <div><h3 style="margin:16px 0 8px">スコアの累積</h3><div id="lsScoreNext"></div></div>
@@ -2253,7 +2254,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v95";
+const APP_VERSION = "v96";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2900,6 +2901,10 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v96":[
+    "「現在まで」をリセットすると Prime Coin の「あと何回」が戻ってしまう不具合を修正",
+    "累積を入力した時に、見込みが二重に足されることがある不具合を修正",
+    "端末をまたいだ同期で、古い回数が復活しないようにした"],
   "v95":[
     "値の記入がいらないアチーブメントを提出できなかった不具合を修正",
     "提出の前に、必ず確認のメッセージを出すようにした（入れた値も出ます）",
@@ -3703,11 +3708,14 @@ function stFlush(){
    ══════════════════════════════════════════════════════════════ */
 const K_LSREV="sa-lsrev-v1";
 /* このまとまりを、ひとつの入れものとして扱います */
-const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1","sa-lsday-v1"];
+const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1","sa-lsday-v1",
+  "sa-lscoin-v1"];
 /** 追加の道具が足したものも、いっしょに持ちます */
 const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
 /* 設定のように「新しいほうが正しい」もの */
 const LS_NEW=["sa-ls-v1"];
+/* 「新しいほうが勝ち」で混ぜるもの（基準・コインの進み具合） */
+const LS_NEWEST=["sa-lsbase-v1","sa-lsb-v1","sa-lscoin-v1"];
 let lsRev=+ls(K_LSREV,0)||0, lsBusy=false, lsT=null, lsTick=null, lsState="";
 const lsSaveRev=()=>{ try{ localStorage.setItem(K_LSREV,JSON.stringify(lsRev)); }catch(e){} };
 function lsMark(t){
@@ -3777,6 +3785,12 @@ function lsMerge(mine, theirs){
     if(a===undefined){ out[k]=b; return; }
     if(b===undefined){ out[k]=a; return; }
     if(LS_NEW.indexOf(k)>=0){ out[k]=a; return; }   /* 設定はこの端末のものを */
+    /* ★ 基準やコインの進み具合は「大きいほう」ではなく「新しいほう」を残します。
+       大きいほうを残すと、リセットや入力のあとに古い数が復活してしまうためです */
+    if(LS_NEWEST.indexOf(k)>=0){
+      const ta=+((a||{}).at)||0, tb=+((b||{}).at)||0;
+      out[k]=(tb>ta)?b:a; return;
+    }
     const fn=(EXT.merge||{})[k];
     out[k]=fn?fn(a,b):keepMost(a,b);
   });
@@ -3838,8 +3852,8 @@ function lsReload(){
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
     if(typeof lsDay!=="undefined") lsDay=ls(K_LSDAY,{});
-    if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null});
-    if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0});
+    if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
+    if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
     extCall("reload");
     if(typeof renderLs==="function"&&$("#ls")&&!$("#ls").hidden){ renderLs(); renderLsSum(); }
     extCall("renderLs");
@@ -3995,7 +4009,8 @@ function stReload(quiet){
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
-    if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null});
+    if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
+    if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
     if(typeof autoPost!=="undefined") autoPost=ls(K_AUTOPOST,{rec:true,cup:true,ach:true});
     if(typeof HK!=="undefined"){ HK=Object.assign(HK,ls(K_HK,{}));
       if(HK.startAt&&!(HK.startAt instanceof Date)) HK.startAt=new Date(HK.startAt); }
@@ -4152,17 +4167,7 @@ function render(){
   $("#phandle").innerHTML=(pro.handle?"@"+esc(pro.handle):"")+
     (pro.x_url?` 　<a href="${esc(pro.x_url)}" target="_blank" rel="noopener" class="tiny">記録の証明 ↗</a>`:"");
   $("#ratingWrap").innerHTML=ratingHTML(c.complete?c.total:null);
-  /* RANK（やりこみ）のバッジ */
-  const rpb=$("#rpBadge");
-  if(rpb){
-    if(rpVisible()){
-      const d=rpRank(rpOf());
-      rpb.hidden=false;
-      rpb.textContent=`RANK ${jp(d.rank)}　${d.grade.n||""}`;
-      rpb.style.cssText=rpCSS(d.grade)+`border-color:${rankC(d.grade)}66`;
-      rpb.title=`RP ${rpFmt(rpOf())}`;
-    }else rpb.hidden=true;
-  }
+  try{ rpBadgeDraw(); }catch(e){}
   const rk=c.complete?rankOf(c.total):null, rb=$("#rankBadge");
   rb.textContent=rk?rk.n:"—";
   rb.className="badge";
@@ -4608,7 +4613,7 @@ async function rpLoad(){
       RPCFG=Object.assign(JSON.parse(JSON.stringify(RP_DEF)),r);
       RP_AT=Date.now();
       rpShow();
-      try{ rpHome(); }catch(e){}
+      try{ rpHome(); rpBadgeDraw(); }catch(e){}
       try{ if($("#ls")&&!$("#ls").hidden) lsRpDraw(); }catch(e){}
     }
   }catch(e){}
@@ -4623,6 +4628,16 @@ function rpShow(){
   try{ lsViewApply(); }catch(e){}
   const b=$("#rpEditGo"); if(b) b.hidden=!isAdmin();
   const o=$("#rpAdmOnly"); if(o) o.textContent=RPCFG.on?"":"（いまは管理者だけに見えています）";
+}
+/** プロフィールの RANK バッジ */
+function rpBadgeDraw(){
+  const rpb=$("#rpBadge"); if(!rpb) return;
+  if(!rpVisible()){ rpb.hidden=true; return; }
+  const rp=rpOf(), d=rpRank(rp);
+  rpb.hidden=false;
+  rpb.textContent=`RANK ${jp(d.rank)}　${d.grade.n||""}`;
+  rpb.style.cssText=rpCSS(d.grade)+`border-color:${rankC(d.grade)}66`;
+  rpb.title=`RP ${rpFmt(rp)}`;
 }
 /** ホームの RANK カード */
 function rpHome(){
@@ -7697,10 +7712,13 @@ const K_LSBASE="sa-lsbase-v1";
 /* 基準値B＝手で書き換えた「累積」の値。そこから何回クリアしたかも一緒に覚えます。
    見込み（基準値C）＝ 基準値B ＋ クリア回数 × 1回あたりの増加量 */
 const K_LSB="sa-lsb-v1";
-let lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0});
-const saveLsCB=()=>{try{localStorage.setItem(K_LSB,JSON.stringify(lsCB));}catch(e){}
+let lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
+const saveLsCB=()=>{ lsCB.at=Date.now();
+  try{localStorage.setItem(K_LSB,JSON.stringify(lsCB));}catch(e){}
   try{ lsSoon(); }catch(e){}};
-/** 「累積」の欄が手で書き換えられていたら、そこを新しい基準値Bにします */
+/** 「累積」の欄が手で書き換えられていたら、そこを新しい基準値Bにします。
+ *  この時、クリア回数（n）は0に戻します。入力した値には、
+ *  それまでのクリアぶんがもう入っているからです。 */
 function lsSyncB(){
   const S=rec[SCORE]||0, R=rec[RAND]||0;
   let moved=false;
@@ -7710,14 +7728,15 @@ function lsSyncB(){
 }
 /** クリア1回ぶんを基準値Cに足します */
 function lsAddB(){ lsCB.nS=(lsCB.nS||0)+1; lsCB.nR=(lsCB.nR||0)+1; saveLsCB(); }
-let lsBase=ls(K_LSBASE,{score:null,rand:null});
-const saveLsBase=()=>{try{localStorage.setItem(K_LSBASE,JSON.stringify(lsBase));}catch(e){}
+let lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
+const saveLsBase=()=>{ lsBase.at=Date.now();
+  try{localStorage.setItem(K_LSBASE,JSON.stringify(lsBase));}catch(e){}
   try{ lsSoon(); }catch(e){}};
-/** リセット直後は、いまの累積を基準として覚えます */
+/** はじめて使う時だけ、いまの累積を「メモ（基準A）」として覚えます。
+ *  いちど決まったあとは、「現在まで」をリセットした時にだけ動かします。 */
 function lsSyncBase(){
   const S=rec[SCORE]||0, R=rec[RAND]||0;
-  if(lsAll===0){
-    /* 手で累積を書き換えたぶんを「現在まで」に取り込みます */
+  if(lsBase.score===null||lsBase.rand===null){
     if(lsBase.score===null) lsBase.score=S;
     if(lsBase.rand===null)  lsBase.rand=R;
     saveLsBase();
@@ -7832,13 +7851,8 @@ function lsCoinInfo(){
     per=(CCFG&&CCFG.ls&&+CCFG.ls.per)||100;   /* まだ聞けていない時のめやす */
   }
   if(!(per>0)) return null;
-  let last=+(localStorage.getItem(K_LSCOIN)||0);
-  if(!(last>=0)) last=0;
-  /* 前にもらった所と、いまの回数から数えた区切り。大きいほうを起点にします */
-  const base=Math.max(last, Math.floor(lsAll/per)*per);
-  const next=base+per;
-  const left=Math.max(0, next-lsAll);
-  return {per, next, left, all:lsAll, left0:lsAll-base};
+  const prog=Math.min(lsCoinProg(),per);
+  return {per, prog, left:Math.max(0,per-prog), all:lsAll};
 }
 function renderLsCoin(){
   const e=$("#lsCoinLeft"); if(!e) return;
@@ -7849,7 +7863,7 @@ function renderLsCoin(){
     if(sub) sub.textContent="いまは配っていません"; return; }
   e.textContent=jp(c.left);
   const lim=coinLeft("ls");
-  if(sub) sub.textContent=`回（${jp(c.per)}回ごとに1枚）`
+  if(sub) sub.textContent=`回（${jp(c.per)}回ごとに1枚・いま ${jp(c.prog)}/${jp(c.per)}）`
     + (lim===0?"／今日はもらいきりました":"");
   /* あと少しの時は色を変えます */
   if(box) box.style.borderColor = c.left<=Math.max(1,Math.round(c.per*0.1))
@@ -8109,12 +8123,11 @@ function lsHit(){
   lsCool=now;
   const prev=lsRun?lsRun.count:0;
   if(lsRun) lsRun.count++;
-  const prevAll=lsAll;
   lsAll++; saveLsAll();
   lsDayHit();                          /* 日ごとの回数（タイマーなしでも数えます） */
   lsAddB();                            /* 見込み（基準値C）を1回ぶん進めます */
   extCall("clear");                    /* 追加の道具に知らせます */
-  try{ lsCoinCheck(prevAll, lsAll); }catch(e){}   /* Prime Coin（1日の上限あり） */
+  try{ lsCoinCheck(1); }catch(e){}      /* Prime Coin（1日の上限あり） */
   const big=lsCrossed(lsAll-1,lsAll);
   lsFlash(big); lsBeep(big,lsRun?lsRun.count:1);
   $("#lsHit").disabled=true;
@@ -8384,10 +8397,13 @@ $("#lsReset").onclick=async()=>{
 $("#lsHit").onclick=lsHit;
 $("#lsResetAll").onclick=async()=>{
   if(!await askYN("「現在まで」をリセットしますか？",
-    "足し続けてきたぶんを0に戻し、<b>いまの累積を新しい基準</b>にします。","リセットする")) return;
-  lsAll=0; saveLsAll();
-  lsBase={score:rec[SCORE]||0, rand:rec[RAND]||0}; saveLsBase();
-  lsCB={bS:rec[SCORE]||0, bR:rec[RAND]||0, nS:0, nR:0}; saveLsCB();
+    "足し続けてきたぶんを0に戻し、<b>いまの累積を新しい基準</b>にします。<br>"
+    +"<span class='tiny'>クリアの総数と Prime Coin の進み具合は、そのまま残ります。</span>",
+    "リセットする")) return;
+  /* ★ クリアの総数（lsAll）はそのままにします。
+     ここを0に戻すと、Prime Coin の「あと何回」がずれてしまうためです。 */
+  lsBase={score:rec[SCORE]||0, rand:rec[RAND]||0, at:Date.now()}; saveLsBase();
+  lsCB={bS:rec[SCORE]||0, bR:rec[RAND]||0, nS:0, nR:0, at:Date.now()}; saveLsCB();
   renderLs(); toast("リセットしました（いまの累積が基準になりました）");
 };
 /* 休憩用のストップ。時計を止めるだけで、数えた回数は残ります */
@@ -14046,17 +14062,36 @@ const coinPer=k=>{
   return o?(+o.per||0):0;
 };
 
-/* LSやりこみ：決まった回数クリアするごとに1枚（既定は100回に1枚） */
+/* LSやりこみ：決まった回数クリアするごとに1枚（既定は100回に1枚）
+   ★「次の1枚まであと何回か」だけを覚えます。
+     クリアの総数（lsAll）とは切り離してあるので、
+     「現在まで」をリセットしても、コインの数え方はずれません。 */
 const K_LSCOIN="sa-lscoin-v1";
-async function lsCoinCheck(before,after){
-  const per=coinPer("ls")||100;
-  if(!(per>0)) return;
-  let last=+(localStorage.getItem(K_LSCOIN)||0);
-  if(!(last>=0)) last=0;
-  const base=Math.max(last, Math.floor(before/per)*per);
-  const times=Math.floor((after-base)/per);
+/** いまの進み具合（0〜per-1）。昔の形（総クリア数）で入っていたら直します */
+function lsCoinProg(){
+  let v=null;
+  try{ v=JSON.parse(localStorage.getItem(K_LSCOIN)); }catch(e){ v=null; }
+  if(v&&typeof v==="object") return Math.max(0,+v.p||0);
+  /* 昔の形（数字＝もらった時点の総クリア数）から、進み具合に直します */
+  const per=coinPer("ls")||((CCFG&&CCFG.ls&&+CCFG.ls.per)||100);
+  const last=+v||0;
+  const prog=(per>0&&lsAll>last)?((lsAll-last)%per):0;
+  lsCoinSet(prog);
+  return prog;
+}
+function lsCoinSet(p){
+  try{ localStorage.setItem(K_LSCOIN, JSON.stringify({p:Math.max(0,Math.round(p)),at:Date.now()})); }catch(e){}
+  try{ lsSoon(); }catch(e){}
+}
+/** クリア n 回ぶん進めます。区切りに届いたらコインをもらいます */
+async function lsCoinCheck(n){
+  const per=coinPer("ls")||((CCFG&&CCFG.ls&&+CCFG.ls.per)||100);
+  if(!(per>0)){ renderLsCoin(); return; }
+  let p=lsCoinProg()+Math.max(1,+n||1);
+  const times=Math.floor(p/per);
+  p-=times*per;
+  lsCoinSet(p);
   if(times<1){ renderLsCoin(); return; }
-  try{ localStorage.setItem(K_LSCOIN, String(base+times*per)); }catch(e){}
   const got=await coinEarn("ls", times);
   renderLsCoin();
   if(got>0) lsCoinFx(got);
