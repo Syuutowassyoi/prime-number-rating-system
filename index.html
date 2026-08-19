@@ -1032,6 +1032,12 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div id="homeFriends"></div>
   </div>
 
+<div class="card" id="rpHomeCard" hidden>
+    <h2>RANK<span class="tiny" id="rpHomeNote" style="margin-left:8px;color:var(--warn)"></span>
+      <button class="btn sm" id="rpHomeGo" style="float:right">くわしく見る</button></h2>
+    <div id="rpHome"></div>
+  </div>
+
 <div class="card">
     <h2>大会成績</h2>
     <div id="cupStat"></div>
@@ -1170,6 +1176,21 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div><h3 style="margin:16px 0 8px">スコアの累積</h3><div id="lsScoreNext"></div></div>
       <div><h3 style="margin:16px 0 8px">生成した乱数の累積</h3><div id="lsRandNext"></div></div>
     </div>
+    <div class="card" id="lsRpCard" style="margin:16px 0 0;padding:12px 14px" hidden>
+      <h3 style="margin:0 0 8px">RANK の見込み</h3>
+      <div class="lsgrid2">
+        <div class="lsbox big"><div class="t">推定ランク</div>
+          <div class="v big" id="lsRpRank">—</div>
+          <div class="s" id="lsRpGrade">—</div></div>
+        <div class="lsbox big"><div class="t">RP の推定値</div>
+          <div class="v big" id="lsRpVal" style="font-size:1.5rem">—</div>
+          <div class="s" id="lsRpAdd">—</div></div>
+      </div>
+      <div class="mdbar" style="margin-top:10px"><i id="lsRpBar" style="width:0%"></i>
+        <span id="lsRpBarT">—</span></div>
+      <p class="tiny" id="lsRpNote" style="margin-top:6px"></p>
+    </div>
+
     <div class="lsgrid2">
       <div class="lsbox"><div class="t">S値の予測</div><div class="v lsval" id="lsSv">—</div>
         <div class="s" id="lsSvNext">—</div>
@@ -1914,10 +1935,17 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
         <input type="number" class="txt" id="rpBase" step="1" style="max-width:180px">
         <span class="tiny">1ランクごとに ×</span>
         <input type="number" class="txt" id="rpMult" step="0.01" style="max-width:100px">
-        <span class="tiny">最大ランク</span>
+        <span class="tiny">倍率で作るランク数</span>
         <input type="number" class="txt" id="rpN" min="2" max="500" step="1" style="max-width:90px">
         <button class="btn" id="rpGen">この決まりで作り直す</button>
       </div>
+      <label class="fl" style="margin-top:12px">そのあと（値固定）</label>
+      <div class="tools" style="margin-top:0">
+        <span class="tiny">RANK <b id="rpFlatFrom">40</b> から先は、1ランクごとに</span>
+        <input type="number" class="txt" id="rpFlat" step="1" min="0" style="max-width:200px">
+        <span class="tiny">RP ずつ（0 なら打ち止め）</span>
+      </div>
+      <div id="rpFlatNote" class="tiny" style="margin-top:6px"></div>
       <div id="rpSteps" style="margin-top:10px"></div>
     </div>
   </div>
@@ -2213,7 +2241,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v92";
+const APP_VERSION = "v93";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2860,6 +2888,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v93":[
+    "ホームとLSやりこみに RANK を追加（LSは見込みの累積から推定）",
+    "LSやりこみで、1回クリアするごとに RP がアニメーションで増えるようにした",
+    "次のランクまでのメーターを追加",
+    "RP を1の位まで全部表示するようにした",
+    "ランクの境目に「値固定」を追加（そこから先は一定量ごと・上限なし）"],
   "v92":[
     "応援の連打に「秒数」と「倍率」を追加（必要な枚数＝秒数÷5×倍率）",
     "連打中に、いま何点たまっているかを表示",
@@ -4132,6 +4166,7 @@ function render(){
     console.error(name,e);
     const b=$("#errBanner"); if(b){ b.hidden=false;
       $("#errMsg").textContent=`「${name}」の表示でエラーが起きました：${e.message||e}`; } } };
+  try{ rpHome(); }catch(e){}
   if($("#cupStat")&&pro.handle!==lastCupHandle){ lastCupHandle=pro.handle; step("大会成績",renderCupStat); }
   step("フレンド一覧",renderFriends);
   step("ランクとレートの仕組み",renderPyramid);
@@ -4403,7 +4438,7 @@ if($("#rkSave")) $("#rkSave").onclick=async()=>{
 const RP_DEF={
   on:false,
   formula:{rand:0.01,score:1},
-  gen:{base:1e12,mult:1.35,n:40},
+  gen:{base:1e12,mult:1.35,n:40,flat:0},
   steps:[],
   grades:[{from:1,n:"STONE",c:"#8ba0bd",c2:null,glow:0},
           {from:6,n:"IRON",c:"#b7c4d6",c2:null,glow:0},
@@ -4428,23 +4463,49 @@ function rpOf(rc){
   const r=rc||rec, f=(RPCFG.formula||RP_DEF.formula);
   return (+r[RAND]||0)*(+f.rand||0) + (+r[SCORE]||0)*(+f.score||0);
 }
-/** RP からランクとグレードを出します */
+/** RP からランクとグレードを出します。
+ *  倍率で作ったところ（RANK 1〜n）を過ぎたあとは、
+ *  「1ランクごとに一定量（flat）」で、どこまでも上がります。
+ *    ランク ＝ n ＋ floor（(いまのRP − RANK n に必要なRP) ÷ flat）
+ */
 function rpRank(rp,cfg){
   const st=rpSteps(cfg), c=cfg||RPCFG;
-  let k=0;
-  for(let i=0;i<st.length;i++) if(rp>=st[i]) k=i;
-  const rank=k+1, next=st[k+1]!=null?st[k+1]:null;
+  const flat=Math.max(0,+((c.gen||{}).flat)||0);
+  const lastN=st.length, lastRP=st[lastN-1]||0;
+  let rank, base, next;
+  if(flat>0&&rp>=lastRP){
+    const over=rp-lastRP, ex=Math.floor(over/flat);
+    rank=lastN+ex; base=lastRP+ex*flat; next=base+flat;
+  }else{
+    let k=0;
+    for(let i=0;i<st.length;i++) if(rp>=st[i]) k=i;
+    rank=k+1; base=st[k]||0; next=st[k+1]!=null?st[k+1]:null;
+  }
   const gs=(c.grades||[]).slice().sort((a,b)=>(+a.from||1)-(+b.from||1));
   let gr=gs[0]||{n:"—",c:"#8ba0bd"};
   gs.forEach(g=>{ if(rank>=(+g.from||1)) gr=g; });
-  const base=st[k]||0;
-  const pct=next!=null&&next>base?Math.min(1,(rp-base)/(next-base)):1;
-  return {rank,grade:gr,base,next,pct,max:st.length};
+  const pct=(next!=null&&next>base)?Math.min(1,(rp-base)/(next-base)):1;
+  return {rank,grade:gr,base,next,pct,max:flat>0?Infinity:st.length,flat,lastN,lastRP};
 }
-/** 大きな数を読みやすく */
+/** 道に描くための境目の一覧（値固定のぶんも、必要なだけ足します） */
+function rpDisp(cfg,upto){
+  const st=rpSteps(cfg).slice();
+  const flat=Math.max(0,+(((cfg||RPCFG).gen||{}).flat)||0);
+  if(flat>0){
+    const want=Math.max(upto||0, st.length+5);
+    let v=st[st.length-1]||0;
+    while(st.length<want){ v+=flat; st.push(v); }
+  }
+  return st;
+}
+/** RP は1の位まで全部出します（3桁ごとにカンマ） */
 function rpFmt(v){
   const n=Math.round(+v||0);
-  if(n<1e4) return jp(n);
+  return n.toLocaleString("en-US");
+}
+/** せまい所むけの、短い言い方（説明文だけに使います） */
+function rpShort(v){
+  const n=Math.round(+v||0);
   const u=[[1e16,"京"],[1e12,"兆"],[1e8,"億"],[1e4,"万"]];
   for(const [d,name] of u) if(n>=d) return (n/d).toFixed(n/d<100?2:0)+name;
   return jp(n);
@@ -4454,10 +4515,13 @@ const rpCSS=g=>rankCSS({c:g.c,c2:g.c2,glow:(+g.glow||0)>0,anim:!!g.anim},Math.ma
 
 /** 1本道（横スクロール）を描きます */
 function rpRoad(rp,cfg){
-  const c=cfg||RPCFG, st=rpSteps(c);
+  const c=cfg||RPCFG;
   const cur=rpRank(rp,c);
-  const SEG=88, H=132, padL=20;
-  const W=padL*2+SEG*(st.length-1)+140;
+  const st=rpDisp(c,cur.rank+4);
+  /* 数字を1の位まで出すので、いちばん長い数に合わせて1区画の幅を決めます */
+  const wide=st.reduce((a,v)=>Math.max(a,rpFmt(v).length),1);
+  const SEG=Math.max(96,wide*6.2+16), H=132, padL=20;
+  const W=padL*2+SEG*(st.length-1)+160;
   const gs=(c.grades||[]).slice().sort((a,b)=>(+a.from||1)-(+b.from||1));
   const gradeOf=r=>{ let g=gs[0]||{n:"—",c:"#8ba0bd"}; gs.forEach(x=>{ if(r>=(+x.from||1)) g=x; }); return g; };
   let defs="", g="";
@@ -4483,8 +4547,15 @@ function rpRoad(rp,cfg){
         style="font:800 13px ui-sans-serif,system-ui;letter-spacing:.06em${
           (+gr.glow||0)>0?`;filter:drop-shadow(0 0 ${gr.glow}px ${gr.c2||gr.c})`:""}">${esc(gr.n)}</text>`;
   }
+  /* 値固定になったところに、しるしを付けます */
+  if(cur.flat>0&&cur.lastN<st.length){
+    const xf=padL+SEG*(cur.lastN-1);
+    g+=`<line x1="${xf}" y1="20" x2="${xf}" y2="112" stroke="#7fd8ff" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    g+=`<text x="${xf+4}" y="20" fill="#7fd8ff" style="font:700 10px ui-sans-serif,system-ui">`
+      +`ここから ${esc(rpShort(cur.flat))} RP ごと（上限なし）</text>`;
+  }
   /* いまの場所 */
-  const i=cur.rank-1, x=padL+SEG*i+(cur.next!=null?(SEG-3)*cur.pct:0);
+  const i=Math.min(cur.rank-1,st.length-1), x=padL+SEG*i+(cur.next!=null?(SEG-3)*cur.pct:0);
   g+=`<path d="M ${x} 50 l -7 -10 h 14 z" fill="var(--warn)"/>`;
   g+=`<text x="${x}" y="34" text-anchor="middle" fill="#ffd45e"
     style="font:800 11px ui-sans-serif,system-ui">いまここ</text>`;
@@ -4504,6 +4575,8 @@ async function rpLoad(){
       RPCFG=Object.assign(JSON.parse(JSON.stringify(RP_DEF)),r);
       RP_AT=Date.now();
       rpShow();
+      try{ rpHome(); }catch(e){}
+      try{ if($("#ls")&&!$("#ls").hidden) lsRpDraw(); }catch(e){}
     }
   }catch(e){}
   return RPCFG;
@@ -4512,9 +4585,73 @@ async function rpLoad(){
 const rpVisible=()=>!!(RPCFG.on||isAdmin());
 function rpShow(){
   const t=$("#tabRpRank"); if(t) t.hidden=!rpVisible();
+  const hc=$("#rpHomeCard"); if(hc) hc.hidden=!rpVisible();
+  const lc=$("#lsRpCard"); if(lc) lc.hidden=!rpVisible();
   const b=$("#rpEditGo"); if(b) b.hidden=!isAdmin();
   const o=$("#rpAdmOnly"); if(o) o.textContent=RPCFG.on?"":"（いまは管理者だけに見えています）";
 }
+/** ホームの RANK カード */
+function rpHome(){
+  const card=$("#rpHomeCard"); if(!card) return;
+  card.hidden=!rpVisible();
+  if(!rpVisible()) return;
+  const n=$("#rpHomeNote"); if(n) n.textContent=RPCFG.on?"":"（いまは管理者だけに見えています）";
+  const rp=rpOf(), d=rpRank(rp);
+  $("#rpHome").innerHTML=`<div class="lsgrid2">
+      <div class="lsbox big"><div class="t">いまのランク</div>
+        <div class="v big" style="${rpCSS(d.grade)}">RANK ${jp(d.rank)}</div>
+        <div class="s" style="${rpCSS(d.grade)}">${esc(d.grade.n||"")}</div></div>
+      <div class="lsbox big"><div class="t">RP</div>
+        <div class="v big" style="font-size:1.35rem;word-break:break-all">${esc(rpFmt(rp))}</div>
+        <div class="s">${d.next!=null?`次まで あと ${esc(rpFmt(d.next-rp))}`:"いちばん上です"}</div></div>
+    </div>
+    <div class="mdbar" style="margin-top:10px"><i style="width:${(d.pct*100).toFixed(1)}%"></i>
+      <span>RANK ${jp(d.rank)} → ${jp(d.rank+1)}（${Math.floor(d.pct*100)}%）</span></div>`;
+}
+if($("#rpHomeGo")) $("#rpHomeGo").onclick=()=>goTab("rprank");
+
+/* ══════════ LSやりこみの中の RANK（見込み）══════════ */
+let LSRP=null;                 /* 前に出した RP。アニメの始まりに使います */
+/** 見込みの累積（基準＋現在までの増加）から、RP と ランクを出します */
+function lsRpDraw(prevRp){
+  const card=$("#lsRpCard"); if(!card) return;
+  card.hidden=!rpVisible();
+  if(!rpVisible()) return;
+  const G=lsGain();
+  const totS=G.baseS+G.s, totR=G.baseR+G.r;      /* スコアの累積・乱数の累積の見込み */
+  const f=RPCFG.formula||RP_DEF.formula;
+  const rp=totR*(+f.rand||0)+totS*(+f.score||0);
+  const d=rpRank(rp);
+  const from=(prevRp==null?(LSRP==null?rp:LSRP):prevRp);
+  countTo($("#lsRpVal"),from,rp,v=>rpFmt(v),700);
+  const up=rp-from;
+  $("#lsRpAdd").innerHTML=up>0
+    ? `<span style="color:var(--acc2)">＋${esc(rpFmt(up))}</span>`
+    : `1回クリアすると増えます`;
+  const r=$("#lsRpRank");
+  if(r){ r.textContent="RANK "+jp(d.rank); r.style.cssText=rpCSS(d.grade); }
+  const g=$("#lsRpGrade");
+  if(g){ g.textContent=d.grade.n||""; g.style.cssText=rpCSS(d.grade); }
+  const bar=$("#lsRpBar");
+  if(bar) bar.style.width=(d.pct*100).toFixed(1)+"%";
+  const bt=$("#lsRpBarT");
+  if(bt) bt.textContent=d.next!=null
+    ? `RANK ${jp(d.rank)} → ${jp(d.rank+1)}　あと ${rpFmt(d.next-rp)}（${Math.floor(d.pct*100)}%）`
+    : `いちばん上です`;
+  $("#lsRpNote").innerHTML=`見込みの累積から出しています。`
+    +`乱数 ${esc(rpFmt(totR))} ／ スコア ${esc(rpFmt(totS))}`
+    +(d.flat>0&&d.rank>=d.lastN?`　／　いまは ${esc(rpFmt(d.flat))} RP ごとに1ランクです`:"");
+  /* ランクが上がった時は、少し知らせます */
+  if(LSRP!=null){
+    const before=rpRank(LSRP).rank;
+    if(d.rank>before){
+      toast(`RANK ${jp(d.rank)}（${d.grade.n||""}）に上がりました`);
+      card.animate?card.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:500}):0;
+    }
+  }
+  LSRP=rp;
+}
+
 function rpEnter(){
   if(!rpVisible()){ goTab("profile"); return; }
   rpShow();
@@ -4537,6 +4674,8 @@ function rpEnter(){
       RP ＝（生成した乱数の累積 × ${f.rand}）＋（スコアの累積 × ${f.score}）<br>
       あなたの内わけ：乱数 ${esc(rpFmt((+rec[RAND]||0)*(+f.rand||0)))}
       ／ スコア ${esc(rpFmt((+rec[SCORE]||0)*(+f.score||0)))}</p>
+    ${d.flat>0?`<p class="tiny">RANK ${jp(d.lastN)} までは、1つ上がるごとに必要な量が増えます。
+      そこから先は <b>${esc(rpFmt(d.flat))} RP ごとに1ランク</b>で、<b>上限はありません</b>。</p>`:""}
     <p class="tiny" style="color:var(--dim2)">道は横にスクロールできます。色が変わるところがグレードの境目です。</p>`;
   /* いまの場所が見えるように、少しスクロールしておきます */
   const road=$("#rpRoad .rproad");
@@ -4620,6 +4759,9 @@ function rpEditDraw(){
   /* 境目 */
   const g2=RPEDIT.gen||RP_DEF.gen;
   $("#rpBase").value=g2.base; $("#rpMult").value=g2.mult; $("#rpN").value=RPEDIT.steps.length;
+  $("#rpFlat").value=+g2.flat||0;
+  $("#rpFlatFrom").textContent=jp(RPEDIT.steps.length);
+  rpFlatNote();
   const st=RPEDIT.steps;
   $("#rpSteps").innerHTML=`<div class="scroll" style="max-height:44vh">`
     +st.map((v,i)=>i===0?`<div class="rpstep"><span class="no">RANK 1</span>
@@ -4634,13 +4776,36 @@ function rpEditDraw(){
   });
   rpPrevDraw();
 }
+/** 値固定の説明と、計算式を出します */
+function rpFlatNote(){
+  const e=$("#rpFlatNote"); if(!e||!RPEDIT) return;
+  const st=RPEDIT.steps||[], n=st.length, last=st[n-1]||0;
+  const flat=Math.max(0,+((RPEDIT.gen||{}).flat)||0);
+  if(!(flat>0)){
+    e.innerHTML=`<span style="color:var(--dim2)">いまは RANK ${jp(n)} で打ち止めです。`
+      +`0 より大きい数を入れると、そこから先が「一定の量で1ランクずつ」になり、上限がなくなります。</span>`;
+    return;
+  }
+  const my=(+rec[RAND]||0)*(+(RPEDIT.formula||{}).rand||0)+(+rec[SCORE]||0)*(+(RPEDIT.formula||{}).score||0);
+  const d=rpRank(my,RPEDIT);
+  e.innerHTML=`<b>計算のしかた</b><br>
+    <span class="mono">RANK ${jp(n)} に必要なRP ＝ ${esc(rpFmt(last))}</span><br>
+    <span class="mono">ランク ＝ ${jp(n)} ＋ 切り捨て（（いまのRP − ${esc(rpFmt(last))}）÷ ${esc(rpFmt(flat))}）</span><br>
+    <span class="tiny">例：RP が ${esc(rpFmt(last+flat*3+Math.floor(flat/2)))} なら、
+      （${esc(rpFmt(flat*3+Math.floor(flat/2)))} ÷ ${esc(rpFmt(flat))}）＝ 3 あまり →
+      <b>RANK ${jp(n+3)}</b></span><br>
+    <span class="tiny">あなたのいまの RP は ${esc(rpFmt(my))} なので <b>RANK ${jp(d.rank)}</b> です。
+      1年で RP が10倍になるとすると、${jp(Math.floor((my*9)/flat))} ランク上がります。</span>`;
+}
 function rpPrevDraw(){
   if(!RPEDIT) return;
-  const st=RPEDIT.steps, top=st[st.length-1]||1e12;
+  const st=RPEDIT.steps, flat=Math.max(0,+((RPEDIT.gen||{}).flat)||0);
+  const top=(st[st.length-1]||1e12)+(flat>0?flat*10:0);   /* 値固定のぶんも見られるように */
   const sl=$("#rpTry");
-  const my=rpOf({[RAND]:+rec[RAND]||0,[SCORE]:+rec[SCORE]||0});
+  const f=RPEDIT.formula||{rand:0.01,score:1};
+  const my=(+rec[RAND]||0)*(+f.rand||0)+(+rec[SCORE]||0)*(+f.score||0);
   if(!sl.dataset.set){ sl.max=1000; sl.value=Math.round(Math.min(1,my/top)*1000); sl.dataset.set="1"; }
-  const rp=Math.round(top*Math.pow(+sl.value/1000,1));
+  const rp=Math.round(top*(+sl.value/1000));
   const d=rpRank(rp,RPEDIT);
   $("#rpPrev").innerHTML=`<div class="lsgrid2">
       <div class="lsbox big"><div class="t">見本のランク</div>
@@ -4651,7 +4816,9 @@ function rpPrevDraw(){
         <div class="s">${esc(rpFmt(my))} RP</div></div>
     </div>`+rpRoad(rp,RPEDIT);
   $("#rpTryV").innerHTML=`見本の RP：<b>${esc(rpFmt(rp))}</b>`
-    +`　／　全 ${jp(st.length)} ランク　／　いちばん上は ${esc(rpFmt(top))} RP`;
+    +`　／　倍率のぶん ${jp(st.length)} ランク`
+    +(flat>0?`　／　そのあとは ${esc(rpFmt(flat))} RP ごと（上限なし）`
+            :`　／　いちばん上は ${esc(rpFmt(st[st.length-1]||0))} RP`);
 }
 if($("#rpTry")) $("#rpTry").oninput=rpPrevDraw;
 if($("#rpOn")) $("#rpOn").onchange=e=>{ if(RPEDIT) RPEDIT.on=e.target.checked; };
@@ -4666,11 +4833,16 @@ if($("#rpGAdd")) $("#rpGAdd").onclick=()=>{
   RPEDIT.grades.push({from:mx+5,n:"NEW",c:"#8ba0bd",c2:null,glow:0});
   rpEditDraw();
 };
+if($("#rpFlat")) $("#rpFlat").oninput=()=>{
+  if(!RPEDIT) return;
+  RPEDIT.gen=Object.assign({},RPEDIT.gen||RP_DEF.gen,{flat:Math.max(0,+$("#rpFlat").value||0)});
+  rpFlatNote(); rpPrevDraw();
+};
 if($("#rpGen")) $("#rpGen").onclick=()=>{
   if(!RPEDIT) return;
   const base=+$("#rpBase").value||1e12, mult=+$("#rpMult").value||1.35,
         n=Math.max(2,Math.min(500,+$("#rpN").value||40));
-  RPEDIT.gen={base,mult,n};
+  RPEDIT.gen={base,mult,n,flat:Math.max(0,+$("#rpFlat").value||0)};
   const out=[0]; let v=base;
   for(let i=1;i<n;i++){ out.push(Math.round(v)); v*=mult; }
   RPEDIT.steps=out;
@@ -4690,7 +4862,8 @@ if($("#rpSave")) $("#rpSave").onclick=async()=>{
   for(let i=1;i<st.length;i++) if(st[i]<=st[i-1]) return toast(`RANK ${i+1} の RP が、前より小さいか同じです`);
   const cfg={on:!!RPEDIT.on,
     formula:{rand:+$("#rpFR").value||0, score:+$("#rpFS").value||0},
-    gen:RPEDIT.gen||RP_DEF.gen, steps:st,
+    gen:Object.assign({},RPEDIT.gen||RP_DEF.gen,{flat:Math.max(0,+$("#rpFlat").value||0),n:st.length}),
+    steps:st,
     grades:RPEDIT.grades.map(g=>({from:Math.max(1,+g.from||1),n:String(g.n||"").trim().slice(0,14),
       c:g.c||"#8ba0bd", c2:g.c2||null, glow:Math.max(0,Math.min(20,+g.glow||0)),
       anim:!!(g.c2&&g.anim)})).sort((a,b)=>a.from-b.from)};
@@ -7569,6 +7742,7 @@ function renderLsCoin(){
 }
 function renderLs(prev){
   renderLsCoin();
+  try{ lsRpDraw(); }catch(e){}
   const n=lsRun?lsRun.count:0;
   const perS=lsCfg.perScore||0, perR=lsCfg.perRand||0;
   const gainS=n*perS, gainR=n*perR;
@@ -14933,6 +15107,8 @@ function rpHelpGrades(){
 }
 function rpHelpSteps(){
   const st=rpSteps();
+  const flat=Math.max(0,+((RPCFG.gen||{}).flat)||0);
+  const last=st[st.length-1]||0;
   const show=st.map((v,i)=>({r:i+1,v})).filter(x=>x.r===1||x.r%5===0||x.r===st.length);
   return `<h3 style="margin-top:16px">ランクの境目（5ランクごと）</h3>
     <div class="scroll" style="max-height:40vh"><table><thead><tr>
@@ -14940,6 +15116,12 @@ function rpHelpSteps(){
     +show.map(x=>`<tr><td class="n">${jp(x.r)}</td>
       <td class="n mono">${esc(rpFmt(x.v))}</td></tr>`).join("")
     +`</tbody></table></div>
+    ${flat>0?`<h3 style="margin-top:16px">RANK ${jp(st.length)} から先</h3>
+      <p class="tiny">ここから先は、<b>${esc(rpFmt(flat))} RP ふえるごとに1ランク</b>です。
+        だんだん重くなることはありません。<b>上限もありません。</b></p>
+      <div class="scroll"><table><tbody>
+        <tr><td>いまのランク</td><td class="mono">${jp(st.length)} ＋ 切り捨て（（RP − ${esc(rpFmt(last))}）÷ ${esc(rpFmt(flat))}）</td></tr>
+      </tbody></table></div>`:""}
     <p class="tiny">RP は減りません。記録を入れ直しても、いちど上がったランクは下がりません
       （累積の値を小さく直した時だけ下がります）。</p>`;
 }
