@@ -74,6 +74,24 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .pyrwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 @keyframes rkflow{0%{background-position:0% 50%}100%{background-position:-200% 50%}}
 @media (prefers-reduced-motion:reduce){ [style*="rkflow"]{animation:none!important} }
+.richwrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:6px;background:#0d1524}
+.richbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 8px;
+  background:#101a2c;border-bottom:1px solid var(--line)}
+.richbar .btn{padding:2px 8px;font-size:.76rem}
+.richbar select{height:26px;font-size:.74rem;max-width:110px}
+.richbar input[type=color]{width:26px;height:24px;padding:0;border-radius:5px}
+.richsep{width:1px;height:18px;background:var(--line);margin:0 3px}
+.richcol{width:18px;height:18px;border-radius:50%;border:1px solid #ffffff33;cursor:pointer;padding:0}
+.richcol:hover{transform:scale(1.15)}
+.richbox{min-height:110px;max-height:40vh;overflow:auto;padding:10px 12px;font-size:.9rem;
+  line-height:1.75;outline:none;color:var(--tx)}
+.richbox:empty:before{content:attr(data-ph);color:var(--dim2)}
+.rich{line-height:1.75;word-break:break-word;white-space:pre-wrap}
+.rich div,.rich p,.rich li,.rich ul,.rich ol{white-space:normal}
+.notebox{background:#ffffff08;border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
+  padding:8px 12px;margin:8px 0;max-height:none;overflow:visible;-webkit-line-clamp:none}
+.rich a{color:#5aa9ff;text-decoration:underline}
+.rich ul,.rich ol{margin:4px 0 4px 20px}
 .rkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 0;
   border-bottom:1px solid var(--line)}
 .rkrow .rkno{width:26px;height:26px;border-radius:50%;background:#16233a;color:var(--dim);
@@ -1383,9 +1401,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="cStart" style="max-width:none"></div>
       <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="cEnd" style="max-width:none"></div>
     </div>
-    <label class="fl">説明（任意）</label>
-    <textarea class="txt" id="cNote" rows="4" placeholder="ルールや連絡事項（あとから書きかえられます）"
-      style="max-width:none"></textarea>
+    <label class="fl">説明（任意・色や太字が使えます）</label>
+    <div id="cNoteWrap"></div>
     <label class="pk" style="margin-top:8px;display:inline-flex">
       <input type="checkbox" id="cIMG"> 画像でもOK（スクリーンショットで提出できます）</label>
     <div id="cPrizeWrap"></div>
@@ -1404,8 +1421,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
             <div><label class="fl">ループ回数</label>
               <input type="number" id="cuLoop" min="1" max="50" value="1" style="max-width:none"></div>
           </div>
-          <label class="fl">説明</label>
-          <textarea id="cuI" rows="5" maxlength="600" placeholder="ルールの補足や、参加する人へのお願いなどを書けます（600文字まで）"></textarea>
+          <label class="fl">説明（色や太字が使えます）</label>
+          <div id="cuIWrap"></div>
           <label class="pk" style="margin-top:9px;display:inline-flex">
             <input type="checkbox" id="cuNM"> ノーミスモード（全ての記録でノーミスが必要）</label>
           <label class="pk" style="margin-top:6px;display:inline-flex">
@@ -2295,7 +2312,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v98";
+const APP_VERSION = "v99";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2942,6 +2959,10 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v99":[
+    "競技会・チャレンジの説明文が、途中で切れてしまう問題を直した（8000文字まで書けます）",
+    "説明文に、文字の色・太字・下線・大きさ・箇条書き・リンクを使えるようにした",
+    "書いた説明は、安全な形に直してから表示しています"],
   "v98":[
     "プロフィールから、その人の Prime Coin と応援ポイントを見られるようにした（管理者だけ）",
     "競技会・チャレンジを作る画面で、賞品と参加賞を一緒に決められるようにした",
@@ -7204,7 +7225,7 @@ function renderMyCups(){
       <div class="meta">${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}　${
         ph==="live"?"<b style='color:var(--acc2)'>開催中</b>":ph==="pre"?"開催予定":"終了"}${
         c.img_ok?"　<b style='color:var(--acc2)'>画像OK</b>":""}</div>
-      ${c.note?`<div class="tiny" style="margin-top:4px;white-space:pre-wrap">${esc(c.note)}</div>`:""}
+      ${c.note?`<div class="tiny" style="margin-top:4px">${richHTML(c.note)}</div>`:""}
       <div class="tools" style="margin-top:8px">
         <button class="btn sm" data-mo="${esc(c.id)}">開く</button>
         <button class="btn sm ${ph!=="end"?"pri":""}" data-me2="${esc(c.id)}">${
@@ -7227,8 +7248,8 @@ function editCup(id){
           +'<b>説明文と「画像でもOK」だけ</b>直せます。</span>':""}</p>
     <label class="fl">競技会の名前</label>
     <input type="text" class="txt" id="edTitle" style="max-width:none" value="${esc(c.title)}"${done?" disabled":""}>
-    <label class="fl">説明（2000文字まで・改行できます）</label>
-    <textarea class="txt" id="edNote" rows="6" maxlength="2000" style="max-width:none">${esc(c.note||"")}</textarea>
+    <label class="fl">説明（色や太字が使えます）</label>
+    ${richEditHTML("edNoteEd","ルールの補足、注意すること、参加する人へのお願いなど")}
     <label class="pk" style="margin-top:8px;display:inline-flex">
       <input type="checkbox" id="edIMG"${c.img_ok?" checked":""}> 画像でもOK（スクリーンショットで提出できます）</label>
     <p class="tiny" style="color:var(--dim2)">X の動画は長さの制限があるので、
@@ -7248,10 +7269,11 @@ function editCup(id){
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   q("#edX").onclick=close;
   let edPrizeGet=null;
+  const edNoteGet=richEditInit(q("#edNoteEd"),c.note||"");
   if(isAdmin()&&q("#edPrize")) edPrizeGet=prizeEditInit(q("#edPrize"),"cup",c.prize||null);
   q("#edSave").onclick=async()=>{
     const a=q("#edStart").value,b=q("#edEnd").value;
-    const body={p_id:c.id,p_note:q("#edNote").value,p_img_ok:!!q("#edIMG").checked};
+    const body={p_id:c.id,p_note:edNoteGet(),p_img_ok:!!q("#edIMG").checked};
     if(!done){
       if(!q("#edTitle").value.trim()) return toast("大会名を入力してください");
       if(!a||!b) return toast("日時を入れてください");
@@ -7354,7 +7376,7 @@ function updateCupHint(){
           `<br><span class="tiny">例：比重2なら、その種目の記録が2倍として扱われます。</span>`
         : (d==="low" ? `合計タイムが<b>短い</b>ほど上位になります。` : `合計スコアが<b>高い</b>ほど上位になります。`));
 }
-let cPrizeGet=null, cuPrizeGet=null;
+let cPrizeGet=null, cuPrizeGet=null, cNoteGet=null, cuNoteGet=null;
 /** 作る画面に、賞品の編集欄を用意します（管理者だけ） */
 function prizeFormMount(wrapId,formId,kind){
   const w=$("#"+wrapId); if(!w) return null;
@@ -7364,6 +7386,9 @@ function prizeFormMount(wrapId,formId,kind){
 }
 $("#cupNewBtn").onclick=()=>{ $("#cupNew").hidden=!$("#cupNew").hidden;
   if(!$("#cupNew").hidden){ renderCupNew(); cPrizeGet=prizeFormMount("cPrizeWrap","cPrizeForm","cup");
+    if(!cNoteGet){ $("#cNoteWrap").innerHTML=richEditHTML("cNoteEd",
+      "ルールや連絡事項（あとから書きかえられます）");
+      cNoteGet=richEditInit($("#cNoteEd"),""); }
     $("#cupNew").scrollIntoView({behavior:"smooth"}); } };
 $("#cCancel").onclick=()=>{ $("#cupNew").hidden=true; };
 $("#mdSum").onclick=()=>{cupMode="sum";$$("#cupNew .toggle button").forEach(b=>b.classList.remove("on"));
@@ -7393,11 +7418,12 @@ $("#cCreate").onclick=async()=>{
     const newId=await rpcTry("create_tournament",{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
-      p_note:$("#cNote").value.trim(), p_img_ok:!!$("#cIMG").checked},
+      p_note:cNoteGet?cNoteGet():"", p_img_ok:!!$("#cIMG").checked},
       [["p_img_ok"],["p_img_ok","p_mode","p_weights"]]);
     if(cPrizeGet){ const pz=cPrizeGet(); if(pz) await prizeSend("cup",newId,pz); }
     m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
-    $("#cTitle").value="";$("#cNote").value="";$("#cIMG").checked=false;
+    $("#cTitle").value="";$("#cIMG").checked=false;
+    if($("#cNoteEd")) cNoteGet=richEditInit($("#cNoteEd"),"");
     cupEvents=new Set(); $("#cEvents").innerHTML=""; $("#cupNew").hidden=true; renderCupNew();
     loadCups();
   }catch(e){ m.innerHTML=`<span class="lose">作成に失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
@@ -7432,7 +7458,7 @@ async function openCup(id){
         .map((x,i)=>`<tr class="${i===0?"used":""}"><td>${i+1}</td><td>${esc(x.n)}</td>`+
           `<td><b style="color:var(--warn)">×${x.w}</b></td></tr>`).join("")+
       `</tbody></table></div>`:""}
-    ${c.note?`<p class="tiny">${esc(c.note)}</p>`:""}
+    ${c.note?`<div class="tiny notebox">${richHTML(c.note)}</div>`:""}
     <div style="margin:10px 0"><span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
       <span class="tiny">　${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</span></div>
     ${ph==="live"?(sess?`<div class="tools"><button class="btn pri" id="openEnt">記録を提出する</button></div>
@@ -10508,11 +10534,12 @@ $("#cuGo").onclick=async()=>{
     }
   }
   try{
-    const newId=await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:$("#cuI").value.trim()||null,
+    const newId=await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:(cuNoteGet?cuNoteGet():"")||null,
       p_kind:kind, p_img_ok:!!$("#cuIMG").checked},
       [["p_img_ok"],["p_img_ok","p_kind"],["p_img_ok","p_intro","p_kind"]]);
     if(cuPrizeGet){ const pz=cuPrizeGet(); if(pz) await prizeSend("pcup",newId,pz); }
-    $("#cuT").value=""; $("#cuI").value=""; $("#cuIMG").checked=false;
+    $("#cuT").value=""; $("#cuIMG").checked=false;
+    if($("#cuIEd")) cuNoteGet=richEditInit($("#cuIEd"),"");
     msg.innerHTML='<span style="color:var(--acc2)">作りました</span>';
     await loadPcups(); renderPcups(); $$("#cupTabs button")[0].click();
   }catch(e){ msg.innerHTML='<span style="color:var(--bad)">'+esc(String(e.message||e))+'</span>'; }
@@ -10535,7 +10562,7 @@ function renderPcups(){
         ${c.img_ok?'<span class="sbtag" style="border-color:var(--acc2);color:var(--acc2)">画像OK</span>':""}
         <span class="tiny" style="margin-left:auto">${esc(c.owner_name||c.owner_handle||"")}</span>
       </div>
-      ${c.intro?`<div class="tiny" style="margin-top:4px;white-space:pre-wrap">${esc(c.intro)}</div>`:""}
+      ${c.intro?`<div class="tiny notebox" style="margin-top:4px">${richHTML(c.intro)}</div>`:""}
       <div class="tiny" style="margin-top:5px;color:var(--acc)">${esc(ruleText(r))}</div>
       <div class="tiny">合計 ${jp(rulePlays(r))} 回プレイ</div>
       <div class="tools" style="margin-top:8px">
@@ -11741,9 +11768,8 @@ function cupEditForm(c){
   const M=modal(`<h2>${esc(c.title)} の説明を書きかえる</h2>
     <p class="muted" style="margin-top:-8px">${kindN}の<b>説明文</b>と<b>提出のしかた</b>だけを直せます。<br>
       <span class="tiny">名前とルールは変えられません（すでに出された記録とずれてしまうためです）。</span></p>
-    <label class="fl">説明（2000文字まで・改行できます）</label>
-    <textarea class="txt" id="ceI" rows="8" maxlength="2000" style="max-width:none"
-      placeholder="ルールの補足、注意すること、参加する人へのお願いなど">${esc(c.intro||"")}</textarea>
+    <label class="fl">説明（色や太字が使えます）</label>
+    ${richEditHTML("ceIEd","ルールの補足、注意すること、参加する人へのお願いなど")}
     <label class="pk" style="margin-top:10px;display:inline-flex">
       <input type="checkbox" id="ceIMG"${c.img_ok?" checked":""}> 画像でもOK（スクリーンショットで提出できます）</label>
     <p class="tiny" style="color:var(--dim2)">X の動画は長さの制限があるので、
@@ -11757,6 +11783,7 @@ function cupEditForm(c){
       <span class="tiny" id="ceMsg"></span>
     </div>`,{w:720});
   M.q("#ceNo").onclick=()=>M.close();
+  const ceNoteGet=richEditInit(M.q("#ceIEd"),c.intro||"");
   let cePrizeGet=null;
   if(isAdmin()&&M.q("#cePrize"))
     cePrizeGet=prizeEditInit(M.q("#cePrize"),c.kind==="official"?"cup":"pcup",c.prize||null);
@@ -11764,7 +11791,7 @@ function cupEditForm(c){
     const b=M.q("#ceGo"); b.disabled=true;
     M.q("#ceMsg").textContent="送っています…";
     try{
-      await callRpc("update_pcup",{p_id:c.id,p_intro:M.q("#ceI").value,
+      await callRpc("update_pcup",{p_id:c.id,p_intro:ceNoteGet(),
         p_img_ok:!!M.q("#ceIMG").checked},[["p_img_ok"]]);
       if(cePrizeGet) await prizeSend("pcup",c.id,cePrizeGet());
       await loadPcups(); renderPcups();
@@ -14222,6 +14249,178 @@ function lsCoinFx(n){
   setTimeout(()=>t.remove(),1600);
 }
 
+/* ══════════════════════════════════════════════════════════
+   かんたんな文字かざり（太字・色・大きさなど）
+   ・書いた人が付けられるのは、下の決まった飾りだけです
+   ・出す時は必ず「安全な形に直して」から出します
+     （知らないタグや、あぶない書き方はぜんぶ捨てます）
+   ══════════════════════════════════════════════════════════ */
+const RICH_TAGS={B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,BR:1,DIV:1,P:1,SPAN:1,
+  UL:1,OL:1,LI:1,A:1,H3:1,H4:1,CODE:1,FONT:1,MARK:1,SMALL:1,BIG:1};
+const RICH_DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,SVG:1,MATH:1,
+  FORM:1,INPUT:1,BUTTON:1,TEXTAREA:1,SELECT:1,LINK:1,META:1,BASE:1,TEMPLATE:1,NOSCRIPT:1,TITLE:1};
+const RICH_CSS=["color","backgroundColor","fontSize","fontWeight","fontStyle",
+  "textDecoration","textDecorationLine","textAlign"];
+/** 書かれた飾りを、安全な形に直します */
+function sanitizeRich(html){
+  const src=document.createElement("div");
+  src.innerHTML=String(html||"");
+  const out=document.createElement("div");
+  const tmp=document.createElement("div");
+  const walk=(from,to,depth)=>{
+    if(depth>20) return;
+    [...from.childNodes].forEach(n=>{
+      if(n.nodeType===3){ to.appendChild(document.createTextNode(n.nodeValue)); return; }
+      if(n.nodeType!==1) return;
+      const tag=n.tagName;
+      if(RICH_DROP[tag]) return;                            /* あぶないタグは、中身ごと捨てます */
+      if(!RICH_TAGS[tag]){ walk(n,to,depth+1); return; }    /* 知らないタグは、中身だけ残します */
+      const name=(tag==="FONT"||tag==="BIG")?"SPAN":tag;
+      const el=document.createElement(name);
+      /* 見た目の指定は、決めたものだけを写します */
+      tmp.removeAttribute("style");
+      try{ tmp.setAttribute("style",n.getAttribute("style")||""); }catch(e){}
+      RICH_CSS.forEach(k=>{
+        let v=tmp.style[k];
+        if(!v) return;
+        if(/url\(|expression|javascript:|@import/i.test(v)) return;
+        if(k==="fontSize"){
+          const m=String(v).match(/^([\d.]+)(px|pt|em|rem|%)$/);
+          if(!m) return;
+          const n2=+m[1];
+          if(m[2]==="px"&&n2>44) v="44px";
+          if((m[2]==="em"||m[2]==="rem")&&n2>3) v="3em";
+          if(m[2]==="%"&&n2>300) v="300%";
+          if(m[2]==="pt"&&n2>34) v="34pt";
+        }
+        try{ el.style[k]=v; }catch(e){}
+      });
+      if(tag==="FONT"){
+        const c=n.getAttribute("color"); if(c&&!/[^#\w(),.% ]/.test(c)){ try{ el.style.color=c; }catch(e){} }
+        const sz=n.getAttribute("size");
+        if(sz) el.style.fontSize=({1:"12px",2:"14px",3:"16px",4:"20px",5:"26px",6:"32px",7:"40px"}[sz]||"16px");
+      }
+      if(tag==="BIG") el.style.fontSize="1.3em";
+      if(tag==="A"){
+        const href=n.getAttribute("href")||"";
+        if(/^https?:\/\//i.test(href)){
+          el.setAttribute("href",href);
+          el.setAttribute("target","_blank");
+          el.setAttribute("rel","noopener noreferrer");
+        }else{ walk(n,to,depth+1); return; }   /* あぶないリンクは、ただの文字にします */
+      }
+      to.appendChild(el);
+      walk(n,el,depth+1);
+    });
+  };
+  walk(src,out,0);
+  return out.innerHTML;
+}
+/** 説明文を画面に出す形にします（飾りが無ければ、そのまま文字として出します） */
+function richHTML(v){
+  const t=String(v||"");
+  if(!t) return "";
+  if(/<[a-z][\s\S]*>/i.test(t)) return `<div class="rich">${sanitizeRich(t)}</div>`;
+  return `<div class="rich">${esc(t)}</div>`;
+}
+/* 文字かざりの道具箱 */
+const RICH_COLORS=["#eef3fa","#ffd45e","#ff8fb3","#7fd8ff","#5ee6a8","#a98bff","#ff6b5e","#8ba0bd"];
+function richEditHTML(id,ph){
+  return `<div class="richwrap" id="${id}">
+    <div class="richbar">
+      <button type="button" class="btn sm" data-rc="bold" title="太字"><b>B</b></button>
+      <button type="button" class="btn sm" data-rc="italic" title="斜め"><i>I</i></button>
+      <button type="button" class="btn sm" data-rc="underline" title="下線"><u>U</u></button>
+      <button type="button" class="btn sm" data-rc="strikeThrough" title="取り消し線"><s>S</s></button>
+      <span class="richsep"></span>
+      ${RICH_COLORS.map(c=>`<button type="button" class="richcol" data-rcol="${c}"
+        style="background:${c}" title="この色にする"></button>`).join("")}
+      <input type="color" data-rcolx title="好きな色" value="#ffd45e">
+      <span class="richsep"></span>
+      <select data-rsize title="文字の大きさ">
+        <option value="">大きさ</option>
+        <option value="12px">小さい</option>
+        <option value="16px">ふつう</option>
+        <option value="22px">大きい</option>
+        <option value="30px">とても大きい</option>
+      </select>
+      <span class="richsep"></span>
+      <button type="button" class="btn sm" data-rc="insertUnorderedList" title="箇条書き">・一覧</button>
+      <button type="button" class="btn sm" data-ralign="center" title="中央ぞろえ">中央</button>
+      <button type="button" class="btn sm" data-ralign="left" title="左ぞろえ">左</button>
+      <button type="button" class="btn sm" data-rlink title="リンクを付ける">リンク</button>
+      <button type="button" class="btn sm" data-rclear title="飾りを消す">飾りを消す</button>
+    </div>
+    <div class="richbox" contenteditable="true" data-rbox
+      data-ph="${esc(ph||"ここに説明を書きます。文字を選んでから、上のボタンで色や太さを変えられます。")}"></div>
+  </div>`;
+}
+/** 文字かざりの編集を動かします。書いた中身を返す関数をわたします */
+function richEditInit(root,initial){
+  if(!root) return ()=>"";
+  const box=root.querySelector("[data-rbox]");
+  box.innerHTML=/<[a-z][\s\S]*>/i.test(String(initial||""))
+    ? sanitizeRich(initial)
+    : esc(String(initial||"")).replace(/\n/g,"<br>");
+  try{ document.execCommand("styleWithCSS",false,true); }catch(e){}
+  const run=(cmd,val)=>{
+    box.focus();
+    try{ document.execCommand("styleWithCSS",false,true); }catch(e){}
+    try{ document.execCommand(cmd,false,val==null?null:val); }catch(e){}
+  };
+  root.querySelectorAll("[data-rc]").forEach(b=>b.onclick=e=>{ e.preventDefault(); run(b.dataset.rc); });
+  root.querySelectorAll("[data-rcol]").forEach(b=>b.onclick=e=>{ e.preventDefault(); run("foreColor",b.dataset.rcol); });
+  const cx=root.querySelector("[data-rcolx]");
+  if(cx) cx.oninput=()=>run("foreColor",cx.value);
+  const sz=root.querySelector("[data-rsize]");
+  if(sz) sz.onchange=()=>{
+    if(!sz.value) return;
+    box.focus();
+    try{ document.execCommand("fontSize",false,7); }catch(e){}
+    /* fontSize=7 で作られた font タグを、決めた大きさに直します */
+    box.querySelectorAll('font[size="7"]').forEach(f=>{
+      const sp=document.createElement("span");
+      sp.style.fontSize=sz.value; sp.innerHTML=f.innerHTML;
+      f.replaceWith(sp);
+    });
+    sz.value="";
+  };
+  root.querySelectorAll("[data-ralign]").forEach(b=>b.onclick=e=>{ e.preventDefault();
+    run(b.dataset.ralign==="center"?"justifyCenter":"justifyLeft"); });
+  const lk=root.querySelector("[data-rlink]");
+  if(lk) lk.onclick=async e=>{
+    e.preventDefault();
+    const sel=String(window.getSelection?window.getSelection().toString():"");
+    if(!sel) return toast("先に、リンクにしたい文字を選んでください");
+    const M=modal(`<h2>リンクを付ける</h2>
+      <p class="muted" style="margin-top:-8px">「${esc(sel.slice(0,40))}」にリンクを付けます。</p>
+      <label class="fl">リンク先</label>
+      <input type="text" class="txt" id="rlU" placeholder="https://…" style="max-width:none">
+      <div class="tools"><button class="btn pri" id="rlGo">付ける</button>
+        <button class="btn" id="rlNo">やめる</button></div>`,{w:520});
+    M.q("#rlNo").onclick=()=>M.close();
+    M.q("#rlGo").onclick=()=>{
+      const u=M.q("#rlU").value.trim();
+      if(!/^https?:\/\//i.test(u)) return toast("https:// で始まるリンクを入れてください");
+      M.close(); run("createLink",u);
+    };
+  };
+  const cl=root.querySelector("[data-rclear]");
+  if(cl) cl.onclick=e=>{ e.preventDefault(); run("removeFormat"); };
+  /* 貼り付けは、文字だけにします（よそのページの飾りを持ちこませないため） */
+  box.addEventListener("paste",e=>{
+    e.preventDefault();
+    const t=(e.clipboardData||window.clipboardData).getData("text/plain");
+    try{ document.execCommand("insertText",false,t); }catch(e2){}
+  });
+  return ()=>{
+    const html=sanitizeRich(box.innerHTML);
+    /* 中身が空っぽ（改行だけ）なら、空文字にします */
+    const tx=document.createElement("div"); tx.innerHTML=html;
+    return (tx.textContent||"").trim()?html:"";
+  };
+}
+
 /* ══════════ 大会ごとの賞品を、その場で編集する部品 ══════════
    ・作る画面と、あとから直す画面の両方で同じものを使います
    ・管理者だけに出ます。大会が終わるまで、いつでも直せます */
@@ -16029,6 +16228,9 @@ $$("#cupTabs button").forEach(b=>b.onclick=()=>{
     const ob=$("#mkOfBtn"); if(ob) ob.hidden=!canOfficial();
     /* チャレンジを作る画面にも、賞品の欄を用意します（管理者だけ） */
     if(!cuPrizeGet) cuPrizeGet=prizeFormMount("cuPrizeWrap","cuPrizeForm","pcup");
+    if(!cuNoteGet){ $("#cuIWrap").innerHTML=richEditHTML("cuIEd",
+      "ルールの補足や、参加する人へのお願いなどを書けます");
+      cuNoteGet=richEditInit($("#cuIEd"),""); }
   }
 });
 /* チャレンジ（新しい作り方）と 大会（従来の作り方）の切り替え */
