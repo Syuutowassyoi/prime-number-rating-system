@@ -1,4 +1,4 @@
 {
-  "version": "v99",
+  "version": "v100",
   "_readme": "index.html を更新したら、この version も index.html 冒頭の APP_VERSION と同じ値に書き換えてください。遊んでいる人の画面に「新しい版が公開されました」と出て、再読み込みを促せます。"
 }

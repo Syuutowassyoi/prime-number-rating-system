@@ -86,6 +86,14 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .richbox{min-height:110px;max-height:40vh;overflow:auto;padding:10px 12px;font-size:.9rem;
   line-height:1.75;outline:none;color:var(--tx)}
 .richbox:empty:before{content:attr(data-ph);color:var(--dim2)}
+table.rtin td,table.rtin th{vertical-align:middle}
+table.rtin input{width:100%;min-width:7em}
+table.rtin .rtpt{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.rtin tfoot td{border-top:2px solid var(--line)}
+.bdform{background:#ffffff08;border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
+  padding:10px 13px;margin:10px 0;line-height:1.9}
+.bdform code{background:#0d1524;border:1px solid var(--line);border-radius:5px;
+  padding:1px 6px;font-size:.86em}
 .rich{line-height:1.75;word-break:break-word;white-space:pre-wrap}
 .rich div,.rich p,.rich li,.rich ul,.rich ol{white-space:normal}
 .notebox{background:#ffffff08;border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
@@ -1397,6 +1405,14 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <label class="fl">対象種目（複数選ぶと合計で勝負）</label>
     <div id="cEvents" class="picks"></div>
     <div id="cEvHint" class="hintbox" hidden></div>
+    <div id="cWkWrap" hidden>
+      <label class="fl">適用するボーダーライン（レートモード）</label>
+      <select id="cWk" style="max-width:none"></select>
+      <p class="tiny" style="margin-top:4px;color:var(--dim2)">
+        1週間より長い大会だと、とちゅうでボーダーラインが変わってしまいます。
+        ここで決めた週の写しをこの大会に持たせるので、先に出した人と後から出した人が同じものさしで並びます。
+        開催中でも、管理者ならあとから変えられます。</p>
+    </div>
     <div class="frow">
       <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="cStart" style="max-width:none"></div>
       <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="cEnd" style="max-width:none"></div>
@@ -2312,7 +2328,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v99";
+const APP_VERSION = "v100";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2464,14 +2480,15 @@ function interp(x,nodes,pct){
   const span=nodes[k+1]-nodes[k];
   return {r: span===0?pct[k] : pct[k]+(pct[k+1]-pct[k])*(x-nodes[k])/span, k};
 }
-const indNodes=n=>{const B=DATA().borders[n],low=LOW.has(n);
+const indNodes=(n,W)=>{const B=((W||DATA()).borders||{})[n],low=LOW.has(n);
   return [0].concat(IND_RANKS.map(r=>low?1/B[r]:B[r]));};
 const totNodes=()=>[0].concat(TOT_RANKS.map(r=>DATA().totalBorders[r]));
 
-function eventRate(n,raw){
-  if(!(raw>0)||!DATA().borders[n]) return {r:0,band:"—",k:-1};
+function eventRate(n,raw,W){
+  const D=W||DATA();
+  if(!(raw>0)||!(D.borders||{})[n]) return {r:0,band:"—",k:-1};
   const x=LOW.has(n)?1/raw:raw;
-  const {r,k}=interp(x,indNodes(n),IND_PCT);
+  const {r,k}=interp(x,indNodes(n,D),IND_PCT);
   return {r,band:IND_BAND[k],k};
 }
 function totalRate(raw){
@@ -2959,6 +2976,11 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v100":[
+    "レートモードの記録入力を「種目名／入力欄／換算得点」の3列にして、打ちながら点数が見えるようにした",
+    "レートモードの点数は、いつも小数第3位まで表示（10 → 10.000）",
+    "1週間より長い競技会のために、使うボーダーラインの週を固定できるようにした（管理者のみ・開催中でも変更可）",
+    "「今回適用されたボーダーラインを閲覧する」ボタンを追加。換算得点の計算式も全員が見られます"],
   "v99":[
     "競技会・チャレンジの説明文が、途中で切れてしまう問題を直した（8000文字まで書けます）",
     "説明文に、文字の色・太字・下線・大きさ・箇条書き・リンクを使えるようにした",
@@ -7352,12 +7374,78 @@ function syncWeightInputs(){
    ・タイムの種目は「短いほど高い」に自動でそろいます（LOW の種目）*/
 const MODE_N=m=>m==="score"?"スコアモード":m==="rate"?"レートモード":"合計モード";
 const RATE_PT=1000;
-function ratePoints(n,v){
+
+/* ══════════════════════════════════════════════════════════
+   レートモードで「どの週のボーダーラインを使うか」
+   ──────────────────────────────────────────────────────────
+   ボーダーラインは毎週動きます。1週間より長い大会だと、とちゅうで
+   ものさしが変わってしまい、先に出した人と後から出した人で不公平に
+   なります。そこで「この大会はこの週のボーダーで採点する」と
+   決めておき、その写しを大会そのものに持たせます。
+   ══════════════════════════════════════════════════════════ */
+/** 週まるごとの写しを作ります（あとで data.json が変わってもずれません） */
+function weekSnap(w,evs){
+  if(!w) return null;
+  const bd={};
+  (evs&&evs.length?evs:Object.keys(w.borders||{})).forEach(n=>{
+    if((w.borders||{})[n]) bd[n]=Object.assign({},w.borders[n]);
+  });
+  return {date:w.date||"", borders:bd, totalBorders:Object.assign({},w.totalBorders||{})};
+}
+/** この大会が使うボーダーライン。決めていなければ「今の最新」を使います */
+function cupWeek(c){
+  if(c&&c.rate_bd&&c.rate_bd.borders) return c.rate_bd;
+  return DATA();
+}
+/** ボーダーラインが「大会に固定されている」かどうか */
+const cupWeekPinned=c=>!!(c&&c.rate_bd&&c.rate_bd.borders);
+/** 大会に表示する、ボーダーラインの名札 */
+function cupWeekLabel(c){
+  const w=cupWeek(c);
+  return (c&&c.rate_week)||(w&&w.date)||"最新";
+}
+/** 大会が1週間より長いか（長いと、とちゅうでボーダーが変わります） */
+function cupLong(c){
+  if(!c||!c.starts_at||!c.ends_at) return false;
+  return (new Date(c.ends_at)-new Date(c.starts_at)) > 7*24*3600*1000;
+}
+/** その種目の1種目ぶんの点（0〜1000点）。W は使うボーダーラインの週 */
+function ratePoints(n,v,W){
   if(!(v>0)) return 0;
-  const e=eventRate(n,v);
+  const e=eventRate(n,v,W);
   return Math.round((e.r||0)*RATE_PT*1000)/1000;
 }
+/** レートの点は、いつも小数第3位まで出します（10 → 10.000）*/
+const rate3=v=>{
+  const x=+v;
+  if(!isFinite(x)) return "0.000";
+  return x.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
+};
+/** その大会での合計点。レートモードは、固定したボーダーで計算し直します
+    （とちゅうでボーダーを変えても、全員が同じものさしで並びます）*/
+function cupTotal(c,scores,evs){
+  const list=evs||(c&&c.events)||[];
+  const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
+  const sc=scores||{};
+  if(c&&c.mode==="rate"){
+    const D=cupWeek(c);
+    return Math.round(list.reduce((a,n)=>
+      a+ratePoints(n,+sc[n]||0,D)*(W?(+W[n]||1):1),0)*1000)/1000;
+  }
+  return list.reduce((a,n)=>a+(+sc[n]||0)*(W?(+W[n]||1):1),0);
+}
+/** 作る画面の「週えらび」を、レートモードのときだけ見せます */
+function cupWkFill(){
+  const w=$("#cWkWrap"); if(!w) return;
+  w.hidden=(cupMode!=="rate");
+  const sel=$("#cWk"); if(!sel||sel.dataset.done) return;
+  sel.innerHTML=WEEKS.map((x,i)=>`<option value="${esc(x.date||"")}"${
+    i===WEEKS.length-1?" selected":""}>${esc(x.date||"（日付なし）")}${
+    i===WEEKS.length-1?"（最新）":""}</option>`).join("");
+  sel.dataset.done="1";
+}
 function updateCupHint(){
+  cupWkFill();
   const evs=[...cupEvents], d=cupDir(evs), hb=$("#cEvHint");
   if(!evs.length){hb.hidden=true;return;}
   hb.hidden=false;
@@ -7412,14 +7500,23 @@ $("#cCreate").onclick=async()=>{
   const a=$("#cStart").value, b=$("#cEnd").value;
   if(!a||!b) return toast("開始と終了の日時を入れてください");
   if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
+  /* レートモードなら、使う週のボーダーラインの写しを一緒に保存します */
+  let wkPick={date:null,bd:null};
+  if(cupMode==="rate"){
+    const d=$("#cWk")?$("#cWk").value:"";
+    const wk=WEEKS.find(x=>(x.date||"")===d)||WEEKS[WEEKS.length-1];
+    if(wk) wkPick={date:wk.date||"",bd:weekSnap(wk,evs)};
+  }
   try{
     const w={}; evs.forEach(n=>{const el=$(`[data-cw="${CSS.escape(n)}"]`);
       w[n]=((cupMode==="score"||cupMode==="rate")&&el)?Math.max(num(el.value)||1,0.01):1;});
     const newId=await rpcTry("create_tournament",{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
-      p_note:cNoteGet?cNoteGet():"", p_img_ok:!!$("#cIMG").checked},
-      [["p_img_ok"],["p_img_ok","p_mode","p_weights"]]);
+      p_note:cNoteGet?cNoteGet():"", p_img_ok:!!$("#cIMG").checked,
+      p_week:wkPick.date, p_bd:wkPick.bd},
+      [["p_week","p_bd"],["p_week","p_bd","p_img_ok"],
+       ["p_week","p_bd","p_img_ok","p_mode","p_weights"]]);
     if(cPrizeGet){ const pz=cPrizeGet(); if(pz) await prizeSend("cup",newId,pz); }
     m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
     $("#cTitle").value="";$("#cIMG").checked=false;
@@ -7438,10 +7535,13 @@ async function openCup(id){
   catch(e){ box.innerHTML=`<div class="card"><p class="muted">記録の読み込みに失敗しました。</p>
     <p class="tiny">${esc(String(e.message||e)).slice(0,300)}</p></div>`; return; }
   const c=cupSel, ph=cupPhase(c), evs=c.events||[], dir=cupDir(evs);
-  ent.sort((x,y)=>dir==="low"?(x.total-y.total):(y.total-x.total));
+  /* レートモードは、この大会に固定したボーダーで計算し直します。
+     こうすると、とちゅうでボーダーを変えても全員が同じものさしで並びます */
+  ent.forEach(e=>{ e._tot=(c.mode==="rate")?cupTotal(c,e.scores,evs):(+e.total||0); });
+  ent.sort((x,y)=>dir==="low"?(x._tot-y._tot):(y._tot-x._tot));
   /* 同点は同順位。次の順位は飛ばす */
   let rank=0,prev=null;
-  ent.forEach((e,i)=>{ if(prev===null||e.total!==prev){rank=i+1;prev=e.total;} e._rank=rank; });
+  ent.forEach((e,i)=>{ if(prev===null||e._tot!==prev){rank=i+1;prev=e._tot;} e._rank=rank; });
   const mine=sess?ent.find(e=>e.user_id===sess.user.id):null;
   const owner=sess&&(c.owner_id===sess.user.id||isAdmin());
 
@@ -7459,6 +7559,17 @@ async function openCup(id){
           `<td><b style="color:var(--warn)">×${x.w}</b></td></tr>`).join("")+
       `</tbody></table></div>`:""}
     ${c.note?`<div class="tiny notebox">${richHTML(c.note)}</div>`:""}
+    ${c.mode==="rate"?`<div class="hintbox">
+      この競技会は<b>レートモード</b>です。記録は各種目のボーダーラインと見くらべて
+      <b>0〜${jp(RATE_PT)}点</b>に直してから合計します（1位ボーダーで ${rate3(RATE_PT)}点）。<br>
+      適用しているボーダーライン：<b style="color:var(--acc2)">${esc(cupWeekLabel(c))}</b>
+      ${cupWeekPinned(c)?'<span class="tiny">（この大会に固定ずみ）</span>'
+        :`<span class="tiny">（固定されていないので、いつも最新の週を使います${
+          cupLong(c)?"。<b style=\'color:var(--warn)\'>1週間より長い大会なので、固定をおすすめします</b>":""}）</span>`}
+      <div class="tools" style="margin-top:8px">
+        <button class="btn sm pri" id="cupBd">今回適用されたボーダーラインを閲覧する</button>
+        ${isAdmin()?`<button class="btn sm" id="cupWk">適用する週を変更（管理者）</button>`:""}
+      </div></div>`:""}
     <div style="margin:10px 0"><span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
       <span class="tiny">　${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</span></div>
     ${ph==="live"?(sess?`<div class="tools"><button class="btn pri" id="openEnt">記録を提出する</button></div>
@@ -7472,7 +7583,8 @@ async function openCup(id){
       ent.map((e,ix)=>`<tr class="${sess&&e.user_id===sess.user.id?"me":""}">`+
         `<td>${e._rank}${e._rank===1?" 🏆":""}</td>`+
         `<td>${nameHTML(e.name||e.handle||"",e.role)}</td>`+
-        `<td><b>${nice(e.total)}</b>${(c.mode==="score"||c.mode==="rate")?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
+        `<td><b>${c.mode==="rate"?rate3(e._tot):nice(e._tot)}</b>${
+          (c.mode==="score"||c.mode==="rate")?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
         `<td>${proofsHTML(e.proofs,e.proof_url)}</td>`+
         `<td><button class="btn sm" data-dt="${ix}">詳細データ</button></td></tr>`).join("")+
       `</tbody></table></div>`
@@ -7484,6 +7596,8 @@ async function openCup(id){
     </div>
   </div>`;
   tickCups(); wireProofs();
+  if($("#cupBd")) $("#cupBd").onclick=()=>showBorders(c);
+  if($("#cupWk")) $("#cupWk").onclick=()=>cupWeekPicker(c,()=>openCup(c.id));
   if(ph==="live"&&sess){
     $("#openEnt").onclick=()=>{ entryForm(c,evs,dir,mine);
       $("#entForm").scrollIntoView({behavior:"smooth",block:"start"}); };
@@ -7519,24 +7633,42 @@ function proofLinks(u){
 /** 詳細データ（比重の前後を並べる） */
 function showEntryDetail(c,evs,e,owner,reload){
   const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
+  const isRate=c.mode==="rate", D=isRate?cupWeek(c):null;
+  const tot=isRate?cupTotal(c,e.scores,evs):(+e.total||0);
   const M=modal(`<h2>${esc(e.name||e.handle||"")} の詳細データ</h2>
-    <div class="scroll"><table><thead><tr><th>種目</th>`+
-      (W?`<th>比重</th><th>比重後</th><th>元の記録</th>`:`<th>記録</th>`)+
+    ${isRate?`<p class="muted" style="margin-top:-8px">レートモード　／　
+      使ったボーダーライン <b style="color:var(--acc2)">${esc(cupWeekLabel(c))}</b></p>`:""}
+    <div class="scroll"><table><thead><tr><th>素数ゲームの名前</th>`+
+      (isRate?`<th>記録</th><th>換算得点</th>${W?`<th>比重</th><th>比重後</th>`:""}<th>順位帯</th>`
+        :W?`<th>比重</th><th>比重後</th><th>元の記録</th>`:`<th>記録</th>`)+
       `</tr></thead><tbody>`+
       evs.map(n=>{const v=(e.scores&&e.scores[n])||0, w=W?(+W[n]||1):1;
+        if(isRate){
+          const pt=ratePoints(n,v,D);
+          return `<tr><td><b>${esc(n)}</b>${LOW.has(n)?'<br><span class="tiny">(秒)</span>':""}</td>`+
+            `<td class="tiny">${v?fmtRec(n,v):"—"}</td>`+
+            `<td><b>${rate3(pt)}</b></td>`+
+            (W?`<td class="tiny">×${w}</td><td><b style="color:var(--acc)">${rate3(pt*w)}</b></td>`:"")+
+            `<td class="tiny">${v>0?esc(eventRate(n,v,D).band||"—"):"—"}</td></tr>`;
+        }
         return `<tr><td>${esc(n)}${LOW.has(n)?' <span class="tiny">(秒)</span>':""}</td>`+
           (W?`<td class="tiny">×${w}</td><td><b>${nice(v*w)}</b></td><td class="tiny">${v?nice(v):"—"}</td>`
              :`<td><b>${v?nice(v):"—"}</b></td>`)+`</tr>`;}).join("")+
       `<tr style="border-top:2px solid var(--line)"><td><b>合計</b></td>`+
-      (W?`<td></td><td><b style="color:var(--acc2)">${nice(e.total)}</b></td>`+
+      (isRate?`<td class="tiny">${nice(rawSum(e,evs))}</td>`+
+          `<td${W?"":' colspan="2"'}><b style="color:var(--acc2)">${rate3(tot)}</b></td>`+
+          (W?`<td></td><td><b style="color:var(--acc2)">${rate3(tot)}</b></td><td></td>`:"")
+        :W?`<td></td><td><b style="color:var(--acc2)">${nice(tot)}</b></td>`+
           `<td class="tiny">${nice(rawSum(e,evs))}</td>`
-         :`<td><b style="color:var(--acc2)">${nice(e.total)}</b></td>`)+`</tr>`+
+         :`<td><b style="color:var(--acc2)">${nice(tot)}</b></td>`)+`</tr>`+
       `</tbody></table></div>
+    ${isRate?`<div class="tools"><button class="btn sm" id="dtBd">今回適用されたボーダーラインを閲覧する</button></div>`:""}
     <p class="tiny">証明：${proofsHTML(e.proofs,e.proof_url)}　／　提出 ${jstFull(e.updated_at)} (JST)</p>
     ${owner?`<div class="tools"><button class="btn pri" id="edEnt">記録を編集</button>
       <button class="btn" id="dlEnt">記録を削除</button></div>`:""}
     <div class="tools"><button class="btn" id="clEnt">閉じる</button></div>`);
   M.q("#clEnt").onclick=M.close;
+  if(M.q("#dtBd")) M.q("#dtBd").onclick=()=>showBorders(c);
   if(owner){
     M.q("#dlEnt").onclick=()=>{
       const C=modal(`<h2>記録を削除しますか？</h2>
@@ -7555,15 +7687,25 @@ function showEntryDetail(c,evs,e,owner,reload){
         <div class="frow">${evs.map(n=>
           `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}${W?` <span class="tiny">×${(+W[n]||1)}</span>`:""}</label>
            <input type="text" inputmode="decimal" data-ed="${esc(n)}" style="max-width:none"
-             value="${(e.scores&&e.scores[n]!=null)?e.scores[n]:""}"></div>`).join("")}</div>
-        <div id="edTot" class="lsbox" style="margin-top:12px"><div class="t">合計${W?"（比重後）":""}</div>
+             value="${(e.scores&&e.scores[n]!=null)?e.scores[n]:""}">${
+             c.mode==="rate"?`<div class="tiny" style="text-align:right">換算得点
+               <b data-edp="${esc(n)}" style="color:var(--acc)">0.000</b> 点</div>`:""}</div>`).join("")}</div>
+        <div id="edTot" class="lsbox" style="margin-top:12px"><div class="t">合計${
+          c.mode==="rate"?"（レート点）":W?"（比重後）":""}</div>
           <div class="v" id="edTotV">—</div></div>
         <div class="tools"><button class="btn pri" id="edGo">この内容で保存</button>
           <button class="btn" id="edNo">やめる</button></div>
         <div id="edM" class="tiny"></div>`,{sticky:true});
-      const calc=()=>{ let t=0;
-        evs.forEach(n=>{ t+=num(E.q(`[data-ed="${CSS.escape(n)}"]`).value)*(W?(+W[n]||1):1); });
-        E.q("#edTotV").textContent=nice(t); return t; };
+      const calc=()=>{
+        const sc={}; evs.forEach(n=>sc[n]=num(E.q(`[data-ed="${CSS.escape(n)}"]`).value));
+        const t=cupTotal(c,sc,evs);
+        E.q("#edTotV").textContent=(c.mode==="rate")?rate3(t):nice(t);
+        if(c.mode==="rate"){
+          const D=cupWeek(c);
+          evs.forEach(n=>{ const cell=E.q(`[data-edp="${CSS.escape(n)}"]`);
+            if(cell) cell.textContent=rate3(ratePoints(n,sc[n],D)*(W?(+W[n]||1):1)); });
+        }
+        return t; };
       E.qa("[data-ed]").forEach(el=>el.oninput=calc); calc();
       E.q("#edNo").onclick=E.close;
       E.q("#edGo").onclick=async()=>{
@@ -7576,23 +7718,170 @@ function showEntryDetail(c,evs,e,owner,reload){
     };
   }
 }
+/* ══════════════════════════════════════════════════════════
+   今回のボーダーラインを、みんなに見せる
+   ══════════════════════════════════════════════════════════ */
+/** 換算得点の出しかたを、ことばと式で説明します（全員が見られます）*/
+function rateFormulaHTML(){
+  const rows=IND_RANKS.map((r,i)=>({r,p:IND_PCT[i+1]}));
+  return `<div class="bdform">
+    <b>換算得点の出しかた</b><br>
+    <span class="tiny">むずかしさのちがう種目や、スコアとタイムを混ぜても公平になるようにします。</span><br><br>
+    <b>1.</b> その種目のボーダーライン（何位で何点か）を、下の表のとおりに並べます。<br>
+    <b>2.</b> あなたの記録が、どのボーダーとどのボーダーの間にあるかを見ます。<br>
+    <b>3.</b> その間を<b>まっすぐに割りふって</b>、0〜1 の「すごさ」を出します。<br>
+    <code>すごさ ＝ 下の割合 ＋（上の割合 − 下の割合）×（記録 − 下のボーダー）÷（上のボーダー − 下のボーダー）</code><br>
+    <b>4.</b> それを ${jp(RATE_PT)} 倍したものが<b>換算得点</b>です。<br>
+    <code>換算得点 ＝ すごさ × ${jp(RATE_PT)}</code>（小数第3位まで）<br>
+    <b>5.</b> 比重があるときは、そのあとに比重を掛けます。<br>
+    <code>その種目の点 ＝ 換算得点 × 比重</code><br>
+    <b>6.</b> ぜんぶの種目の点をたしたものが、順位表の<b>合計</b>です。<br><br>
+    <b>それぞれのボーダーで、いくつになるか</b><br>
+    <span class="tiny">記録なし（0）＝ <b>0.000点</b>${
+      rows.map(x=>`　／　${x.r}位ボーダー ＝ <b>${rate3(x.p*RATE_PT)}点</b>`).join("")}</span><br>
+    <span class="tiny">1位ボーダーを超えても、上限は ${rate3(RATE_PT)}点 です。
+      タイムの種目（秒）は「短いほど高い」に自動でそろえています
+      （記録の代わりに 1÷記録 でくらべます）。</span></div>`;
+}
+/** この大会で使っているボーダーラインの表を出します（だれでも見られます）*/
+function showBorders(c){
+  const W=cupWeek(c), evs=(c.events||[]).filter(n=>(W.borders||{})[n]);
+  const pinned=cupWeekPinned(c);
+  const M=modal(`<h2>今回適用されたボーダーライン</h2>
+    <p class="muted" style="margin-top:-8px">
+      <b>${esc(c.title)}</b> の採点に使っているボーダーラインです。<br>
+      使う週：<b style="color:var(--acc2)">${esc(cupWeekLabel(c))}</b>
+      ${pinned?'<span class="tiny">（この大会に固定されています。とちゅうで週が変わっても点数はずれません）</span>'
+              :'<span class="tiny">（固定されていないので、いつも最新の週を使います）</span>'}</p>
+    ${rateFormulaHTML()}
+    <h3>種目ごとのボーダーライン</h3>
+    ${evs.length?`<div class="scroll"><table><thead><tr><th>素数ゲームの名前</th>`+
+      IND_RANKS.slice().reverse().map(r=>`<th>${r}位</th>`).join("")+
+      `</tr></thead><tbody>`+
+      evs.map(n=>`<tr><td><b>${esc(n)}</b>${LOW.has(n)?'<br><span class="tiny">(秒)</span>':""}</td>`+
+        IND_RANKS.slice().reverse().map(r=>{
+          const v=(W.borders[n]||{})[r];
+          return `<td class="tiny">${v>0?fmtRec(n,v):"—"}<br>`+
+            `<span style="color:var(--acc)">${rate3(IND_PCT[IND_RANKS.indexOf(r)+1]*RATE_PT)}点</span></td>`;
+        }).join("")+`</tr>`).join("")+
+      `</tbody></table></div>`
+      :`<p class="muted">この大会の種目には、ボーダーラインのデータがありません。</p>`}
+    <p class="tiny" style="color:var(--dim2)">表の上の段が「その順位のボーダー記録」、
+      下の段が「ちょうどその記録だったときの換算得点」です。</p>
+    <div class="tools"><button class="btn" id="bdX">閉じる</button></div>`,{w:860});
+  M.q("#bdX").onclick=M.close;
+}
+/** 使うボーダーラインの週を差し替えます（管理者だけ・開催中でもできます）*/
+function cupWeekPicker(c,after){
+  const cur=(c.rate_week||"")||(WEEKS.length?WEEKS[WEEKS.length-1].date:"");
+  const M=modal(`<h2>適用するボーダーラインを選ぶ</h2>
+    <p class="muted" style="margin-top:-8px">
+      <b>${esc(c.title)}</b> の採点に使う週を決めます。<br>
+      <span class="tiny">1週間より長い大会だと、とちゅうでボーダーラインが変わってしまいます。
+      ここで週を決めておくと、先に出した人と後から出した人が同じものさしで並びます。</span></p>
+    ${cupLong(c)?`<div class="hintbox">この大会は<b>1週間より長い</b>ので、週を決めておくことを強くおすすめします。</div>`:""}
+    <label class="fl">使う週</label>
+    <select id="wkSel" style="max-width:none">
+      ${WEEKS.map((w,i)=>`<option value="${esc(w.date||"")}"${(w.date===cur)?" selected":""}>${
+        esc(w.date||"（日付なし）")}${i===WEEKS.length-1?"（最新）":""}</option>`).join("")}
+    </select>
+    <p class="tiny" style="margin-top:8px">選んだ週のボーダーラインは、この大会に<b>写しとして保存</b>されます。
+      あとから data.json が変わっても、この大会の点数はずれません。</p>
+    <div class="hintbox" style="border-color:var(--warn)">
+      週を変えると、<b>すでに提出されている記録の点数も計算し直されます</b>（全員が同じものさしになります）。</div>
+    <div class="tools"><button class="btn pri" id="wkGo">この週にする</button>
+      <button class="btn" id="wkFree">固定をやめる（いつも最新）</button>
+      <button class="btn" id="wkNo">やめる</button></div>
+    <div id="wkM" class="tiny"></div>`,{w:640});
+  M.q("#wkNo").onclick=M.close;
+  const send=async(week,bd)=>{
+    const b=M.q("#wkGo"); b.disabled=true; M.q("#wkM").textContent="送っています…";
+    try{
+      await callRpc("cup_set_week",{p_id:c.id,p_week:week,p_bd:bd});
+      /* 提出ずみの記録も、新しいボーダーで入れ直します。
+         こうしないと、賞品を配るときの順位が古いままになってしまいます */
+      M.q("#wkM").textContent="提出ずみの記録を計算し直しています…";
+      const c2=Object.assign({},c,{rate_week:week,rate_bd:bd});
+      let fixed=0;
+      try{
+        const ent=await sb(`entries?select=id,scores&tournament_id=eq.${encodeURIComponent(c.id)}`);
+        if(ent&&ent.length){
+          const map={};
+          ent.forEach(e=>{ map[e.id]=cupTotal(c2,e.scores,c.events||[]); });
+          fixed=await callRpc("cup_fix_totals",{p_id:c.id,p_totals:map});
+        }
+      }catch(e2){ /* 古い SQL のときは、画面の中だけ計算し直します */ }
+      M.close();
+      toast(`ボーダーラインを変えました（記録 ${jp(+fixed||0)} 件を計算し直しました）`);
+      cupCache.rows=null; await loadCups(true); if(after) after();
+    }catch(e){ b.disabled=false;
+      M.q("#wkM").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e)).slice(0,160)}</span>`; }
+  };
+  M.q("#wkGo").onclick=()=>{
+    const d=M.q("#wkSel").value;
+    const w=WEEKS.find(x=>(x.date||"")===d)||WEEKS[WEEKS.length-1];
+    send(d,weekSnap(w,c.events||[]));
+  };
+  M.q("#wkFree").onclick=()=>send("",null);
+}
 function entryForm(c,evs,dir,mine){
   const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
   $("#entForm").innerHTML=`<h3>記録を提出${mine?"／更新":""}</h3>
     <p class="tiny" style="margin-top:-4px">期間中は何度でも更新できます。X（Twitter）の投稿リンクの添付が必須です。
     ${W?`この${MODE_N(c.mode)}では 比重 ${evs.map(n=>`${esc(n)}×${(+W[n]||1)}`).join("　")} を掛けた合計で競います。`:""}
     ${c.mode==="rate"?`<br>レートモードなので、記録は「その種目の中でのすごさ」に直してから合計します
-      （1位ボーダーで ${jp(RATE_PT)}点）。`:""}</p>
-    <div class="frow">${evs.map(n=>
+      （1位ボーダーで ${jp(RATE_PT)}点）。使うボーダーライン：<b>${esc(cupWeekLabel(c))}</b>`:""}</p>
+    ${c.mode==="rate"
+      ? `<div class="scroll"><table class="rtin"><thead><tr>
+          <th>素数ゲームの名前</th><th>記録を入れる</th><th>換算得点</th></tr></thead><tbody>`+
+        evs.map(n=>`<tr>
+          <td><b>${esc(n)}</b>${LOW.has(n)?'<br><span class="tiny">タイム（秒）・短いほど高得点</span>':""}
+            ${W&&(+W[n]||1)!==1?`<br><span class="tiny">比重 ×${(+W[n]||1)}</span>`:""}</td>
+          <td><input type="text" inputmode="decimal" data-en="${esc(n)}" style="max-width:none"
+            value="${mine&&mine.scores&&mine.scores[n]!=null?mine.scores[n]:""}"></td>
+          <td class="rtpt"><b data-rp="${esc(n)}">0.000</b> <span class="tiny">点</span>
+            <br><span class="tiny" data-rb="${esc(n)}">—</span></td></tr>`).join("")+
+        `</tbody><tfoot><tr>
+          <td><b>合計（レート点）</b></td><td class="tiny">入力すると、すぐに計算されます</td>
+          <td class="rtpt"><b id="enTot" style="color:var(--acc2)">0.000</b> <span class="tiny">点</span></td>
+        </tr></tfoot></table></div>
+        <div class="tools" style="margin-top:6px">
+          <button class="btn sm" id="enBd">今回適用されたボーダーラインを閲覧する</button></div>`
+      : `<div class="frow">${evs.map(n=>
       `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}</label>
        <input type="text" inputmode="decimal" data-en="${esc(n)}" style="max-width:none"
-        value="${mine&&mine.scores&&mine.scores[n]!=null?mine.scores[n]:""}"></div>`).join("")}</div>
+        value="${mine&&mine.scores&&mine.scores[n]!=null?mine.scores[n]:""}"></div>`).join("")}</div>`}
     <label class="fl">記録の証明リンク（必須・複数可）</label>
     <div id="enProofs"></div>
     <div class="tools"><button class="btn pri" id="enSend">${mine?"記録を更新する":"記録を提出する"}</button></div>
     <div id="enMsg" class="tiny"></div>`;
   const pfList=normProofs(mine&&mine.proofs,mine&&mine.proof_url);
   renderProofs("enProofs",evs,pfList);
+  /* レートモードは、打っているそばから換算得点を出します */
+  if(c.mode==="rate"){
+    const D=cupWeek(c);
+    const live=()=>{
+      let t=0;
+      evs.forEach(n=>{
+        const el=$(`[data-en="${CSS.escape(n)}"]`); if(!el) return;
+        const v=num(el.value), pt=ratePoints(n,v,D), w=W?(+W[n]||1):1;
+        const cell=$(`[data-rp="${CSS.escape(n)}"]`);
+        if(cell){
+          cell.textContent=rate3(pt*w);
+          cell.style.color=pt>=RATE_PT?"var(--acc2)":pt>0?"var(--tx)":"var(--dim2)";
+        }
+        const bd=$(`[data-rb="${CSS.escape(n)}"]`);
+        if(bd) bd.textContent=v>0
+          ? (eventRate(n,v,D).band||"—")+(w!==1?`（素点 ${rate3(pt)} ×${w}）`:"")
+          : "記録を入れてください";
+        t+=pt*w;
+      });
+      const tot=$("#enTot"); if(tot) tot.textContent=rate3(Math.round(t*1000)/1000);
+    };
+    $$("[data-en]").forEach(el=>el.oninput=live);
+    live();
+    if($("#enBd")) $("#enBd").onclick=()=>showBorders(c);
+  }
   $("#enSend").onclick=async()=>{
     const sc={}; const blanks=[];
     evs.forEach(n=>{const el=$(`[data-en="${CSS.escape(n)}"]`);
@@ -7633,10 +7922,7 @@ function entryForm(c,evs,dir,mine){
         "はい、更新する","大会の記録だけにする");
       if(upd){ better.forEach(n=>rec[n]=sc[n]); fillInputs(); render(); }
     }
-    const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
-    const tot=(c.mode==="rate")
-      ? Math.round(evs.reduce((a,n)=>a+ratePoints(n,sc[n])*(W?(+W[n]||1):1),0)*1000)/1000
-      : evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
+    const tot=cupTotal(c,sc,evs);
     try{
       await rpcTry("submit_entry",{
         p_tid:c.id,p_scores:sc,p_total:tot,
