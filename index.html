@@ -719,6 +719,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .awbox{float:right;display:flex;gap:16px;text-align:center;margin:-4px 0 6px 12px}
 .awn{font-family:Impact,"Arial Black",sans-serif;font-size:2rem;line-height:1;color:#eaf3ff}
 .awl{font-size:.66rem;color:var(--dim2);margin-top:2px}
+.awbtn{margin-top:4px;font-size:.62rem;padding:1px 7px;border:1px solid var(--line);
+  border-radius:999px;background:#0d1524;color:var(--dim);cursor:pointer;white-space:nowrap}
+.awbtn:hover{color:var(--tx);border-color:var(--acc)}
 /* 部屋 */
 .roomgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
 .room{position:relative;aspect-ratio:1/1;background:linear-gradient(180deg,#1a2437ee,#141d2cee);
@@ -942,7 +945,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 <nav class="tabs" id="tabs" hidden>
   <div class="grp" data-g="home"><div class="ghead">ホーム</div>
     <button data-tab="profile" class="on">ホーム</button>
-    <button data-tab="pgbc">PGBC</button></div>
+    <button data-tab="pgbc">PGBC</button>
+    <button data-tab="stats">統計情報</button></div>
   <div class="grp" data-g="me"><div class="ghead">個人データ</div>
     <button data-tab="card">カード</button>
     <button data-tab="input">個人データ入力</button></div>
@@ -1684,6 +1688,26 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 </section>
 
+<section id="stats" hidden>
+  <div class="card">
+    <h2>統計情報</h2>
+    <p class="muted" style="margin-top:-8px">乱数累積・スコア累積の全体ボーダーと、参加している人の数です。
+      <span class="tiny">「比較」は、先週からどれだけ増えたかを表しています。</span></p>
+    <div id="stBody"></div>
+  </div>
+  <div class="card" id="stAdmin" hidden>
+    <h2>統計情報を取り込む（管理者）</h2>
+    <p class="muted" style="margin-top:-8px">集めた表をそのままコピーして、下に貼り付けてください。
+      読み取った内容を確かめてから data.json に書き込めます。</p>
+    <label class="fl">貼り付け欄</label>
+    <textarea id="stPaste" style="min-height:170px" placeholder="乱数累積&#9;&#9;&#9;比較&#10;&#9;1位&#9;1,745,874,875,931&#9;17,642,185,784&#9;完全制覇&#9;1,765人&#9;2人&#10;&#9;5位&#9;965,864,434,629&#9;0&#10;…"></textarea>
+    <div class="tools"><button class="btn pri" id="stRead">読み取る</button>
+      <button class="btn" id="stClear">消す</button></div>
+    <div id="stMsg" class="tiny"></div>
+    <div id="stPrev"></div>
+  </div>
+</section>
+
 <section id="analysis" hidden>
   <div class="card">
     <h2>記録更新の難易度</h2>
@@ -2115,15 +2139,6 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 
 
 <section id="settings" hidden>
-<div class="card" id="devCard" hidden>
-    <h2>開発者メニュー</h2>
-    <p class="muted" style="margin-top:-8px">管理者だけに出ています。
-      ボーダーの更新、GitHubへの反映、追加の道具の登録はここからです。</p>
-    <div class="tools" style="margin-top:0">
-      <button class="btn pri" id="devOpen">開発者メニューを開く</button>
-      <span class="tiny">ページの一番下にある ⚙ からも開けます</span>
-    </div>
-  </div>
 <div class="card">
     <h2>ほかの端末との同期</h2>
     <p class="muted" style="margin-top:-8px">ログインしていると、
@@ -2240,6 +2255,23 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <h2>サポーター</h2>
     <div id="supBox"></div>
   </div>
+  <!-- ここから下は、管理者だけが使う機能です。1つのボタンの中にまとめています -->
+  <div class="card" id="admGate" hidden>
+    <h2>管理者メニュー</h2>
+    <p class="muted" style="margin-top:-8px">管理者だけが使う機能を、ここにまとめています。</p>
+    <div class="tools"><button class="btn pri" id="admToggle">管理者メニューを開く</button>
+      <span class="tiny" id="admNote"></span></div>
+  </div>
+  <div id="admWrap" hidden>
+  <div class="card" id="devCard" hidden data-adm="1">
+    <h2>開発者メニュー</h2>
+    <p class="muted" style="margin-top:-8px">管理者だけに出ています。
+      ボーダーの更新、GitHubへの反映、追加の道具の登録はここからです。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="devOpen">開発者メニューを開く</button>
+      <span class="tiny">ページの一番下にある ⚙ からも開けます</span>
+    </div>
+  </div>
   <div class="card" id="coinCard" hidden>
     <h2>Prime Coin の配り方（管理者だけ）</h2>
     <p class="muted" style="margin-top:-8px">「1回に何枚」と「1日に何回まで」を種類ごとに決められます。
@@ -2292,9 +2324,10 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 
   <div class="card" id="adminCard" hidden>
-    <h2>管理者メニュー</h2>
+    <h2>管理者のしごと</h2>
     <div id="adminBox"></div>
   </div>
+  </div><!-- /admWrap -->
 </section>
 
 <footer>
@@ -2328,7 +2361,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v100";
+const APP_VERSION = "v101";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2381,9 +2414,26 @@ const RENAME={
   "乱数累積":RAND,
   "スコア累積":SCORE
 };
-/** 前の名前のキーを、新しい名前に付け替えます */
+/* 種目名の「ゆれ」を吸収します。
+   スペースの有無、大文字小文字、（）や・のちがい、全角半角……
+   どれで保存されていても、同じ種目として読めるようにします。
+   これをしないと、昔の名前で保存した人の記録が「—」のままになってしまいます。 */
+const normKey=s=>String(s??"")
+  .normalize("NFKC")            /* 全角の英数字や記号を半角にそろえます */
+  .toLowerCase()
+  .replace(/[\s\u3000]/g,"")    /* スペース（半角・全角）を消します */
+  .replace(/[（）()［］\[\]・･、,．]/g,"");  /* かっこ・中黒・句読点を消します */
+/** 正しい種目名の一覧を、ゆれを消した形で引けるようにします */
+const CANON=(()=>{
+  const m={};
+  ORDER.forEach(n=>{ m[normKey(n)]=n; });
+  Object.keys(RENAME).forEach(old=>{ m[normKey(old)]=RENAME[old]; });
+  return m;
+})();
+/** 前の名前や、書き方のちがうキーを、正しい名前に付け替えます */
 function fixNames(o){
   if(!o||typeof o!=="object") return o;
+  /* 1) はっきり分かっている旧名から直します */
   Object.keys(RENAME).forEach(old=>{
     if(Object.prototype.hasOwnProperty.call(o,old)){
       const nu=RENAME[old];
@@ -2391,7 +2441,21 @@ function fixNames(o){
       delete o[old];
     }
   });
+  /* 2) 書き方がちがうだけのキーも、正しい名前に寄せます */
+  Object.keys(o).forEach(k=>{
+    const nu=CANON[normKey(k)];
+    if(!nu||nu===k) return;
+    if(o[nu]===undefined||o[nu]===null||o[nu]==="") o[nu]=o[k];
+    delete o[k];
+  });
   return o;
+}
+/** サーバーから来た記録を、そのまま安全に読める形にします */
+const fixRec=r=>(r&&typeof r==="object")?fixNames(Object.assign({},r)):r;
+/** 一覧の中の records を、まとめて直します */
+function fixRows(rows){
+  (rows||[]).forEach(r=>{ if(r&&r.records) r.records=fixRec(r.records); });
+  return rows;
 }
 /** 種目名の単位。タイムアタック系は秒 */
 const UNIT=n=>LOW.has(n)?"秒":(n==="1から順にEX"?"点":"");
@@ -2976,6 +3040,13 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v101":[
+    "「入力したのにランキングに反映されない」不具合を修正（昔の種目名で保存されたデータが読めていませんでした）",
+    "競技会の記録にも 審査 → 審査員審査 → スーパーバイザー審査 を追加。審査画面では換算前の元の記録が必ず見えます",
+    "レートモードのランキングと合計から、意味のない「元の点数」表示を削除",
+    "プロフィールに「トロフィー詳細」「スター詳細」ボタンを追加",
+    "「統計情報」タブを追加。乱数累積・スコア累積の全体ボーダーと参加人数が見られます",
+    "設定にあった管理者だけの機能を「管理者メニュー」1つにまとめました"],
   "v100":[
     "レートモードの記録入力を「種目名／入力欄／換算得点」の3列にして、打ちながら点数が見えるようにした",
     "レートモードの点数は、いつも小数第3位まで表示（10 → 10.000）",
@@ -5577,7 +5648,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
+  ["profile","pgbc","stats","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -5601,9 +5672,228 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="sns") snsEnter();
   if(b.dataset.tab==="help") renderHelp();
   if(b.dataset.tab==="pgbc") pgRender();
+  if(b.dataset.tab==="stats") stEnter();
   if(b.dataset.tab==="cheer") cheerEnter();
   saveWhere();
   scrollTo({top:0,behavior:"smooth"});});
+
+/* ══════════════════════════════════════════════════════════
+   統計情報
+   ──────────────────────────────────────────────────────────
+   乱数累積・スコア累積の全体ボーダーと、参加している人の数です。
+   管理者は集めた表を貼り付けるだけで data.json に書き込めます。
+   ══════════════════════════════════════════════════════════ */
+const ST_RANKS=[1,5,10,25,50,100,250,500,1000];
+/** 数字だけを取り出します（カンマや「人」は落とします）*/
+const stNum=t=>{
+  const x=String(t||"").replace(/[,\s　人]/g,"");
+  if(!/^-?\d+(\.\d+)?$/.test(x)) return null;
+  return +x;
+};
+/** 貼り付けた表を読み取ります。行ごとに見ていくので、空の欄があってもずれません */
+function stParse(text){
+  const out={rand:{bd:{},diff:{}}, score:{bd:{},diff:{}}, gem:null, gemsp:null,
+             warn:[], hit:0};
+  let sec=null;          /* いま読んでいるのが乱数累積か、スコア累積か */
+  let want=null;         /* 「完全制覇」「参加人数」の数字を待っている状態 */
+  const lines=String(text||"").split(/\r?\n/);
+  lines.forEach(line=>{
+    if(!line.trim()) return;
+    const cells=line.split(/\t/);
+    const flat=cells.map(c=>String(c).trim());
+    /* どちらの表かを見ます */
+    flat.forEach(c=>{
+      if(/^乱数(の)?累積/.test(c)) sec="rand";
+      else if(/^スコア(の)?累積/.test(c)) sec="score";
+    });
+    /* ジェムの行 */
+    const gi=flat.findIndex(c=>/^ジェム(SP|ｓｐ|sp)?による乱数の個数$/i.test(c));
+    if(gi>=0){
+      const key=/SP|ｓｐ|sp/i.test(flat[gi])?"gemsp":"gem";
+      const ns=flat.slice(gi+1).map(stNum).filter(v=>v!==null);
+      if(ns.length){ out[key]={n:ns[0], d:ns.length>1?ns[1]:0}; out.hit++; }
+      return;
+    }
+    /* 「完全制覇」「参加人数」の見出しを見つけたら、数字を待ちます */
+    flat.forEach(c=>{
+      if(/^完全制覇/.test(c)) want={sec,key:"perfect",got:[]};
+      else if(/^参加人数/.test(c)) want={sec,key:"players",got:[]};
+    });
+    /* 「○○人」と書かれた数字は、待っている見出しのものです */
+    flat.forEach(c=>{
+      if(!/人$/.test(c)) return;
+      const v=stNum(c); if(v===null||!want) return;
+      want.got.push(v);
+      if(want.got.length>=2){
+        const t=want.sec||sec||"rand";
+        out[t]=out[t]||{bd:{},diff:{}};
+        out[t][want.key]={n:want.got[0], d:want.got[1]};
+        out.hit++; want=null;
+      }
+    });
+    /* 「N位」の行 */
+    const ri=flat.findIndex(c=>/^\d+\s*位$/.test(c));
+    if(ri<0) return;
+    const rank=+flat[ri].replace(/[^\d]/g,"");
+    if(!ST_RANKS.includes(rank)){ out.warn.push(`${rank}位 は使わないので飛ばしました`); return; }
+    const t=sec||"rand";
+    /* その行の、順位より右にある数字だけを見ます（「○○人」は別あつかい）*/
+    const ns=[];
+    for(let i=ri+1;i<flat.length;i++){
+      if(/人$/.test(flat[i])) continue;
+      if(flat[i]==="") continue;
+      const v=stNum(flat[i]);
+      if(v===null) continue;
+      ns.push(v);
+      if(ns.length>=2) break;
+    }
+    if(!ns.length) return;
+    out[t].bd[rank]=ns[0];
+    out[t].diff[rank]=ns.length>1?ns[1]:0;
+    out.hit++;
+  });
+  /* 待ちっぱなしの見出しがあれば、1つだけでも入れておきます */
+  if(want&&want.got.length===1){
+    const t=want.sec||"rand";
+    out[t][want.key]={n:want.got[0], d:0};
+    out.hit++;
+  }
+  return out;
+}
+/** 読み取った内容を、data.json に入れる形にそろえます */
+function stPack(r){
+  const one=o=>({borders:o.bd||{}, diff:o.diff||{},
+    perfect:o.perfect||null, players:o.players||null});
+  return {rand:one(r.rand||{}), score:one(r.score||{}),
+    gem:r.gem||null, gemsp:r.gemsp||null};
+}
+/** いま見ている週の統計情報 */
+const stOf=w=>((w||DATA())||{}).stats||null;
+/** 増えた数の見た目（増えたら緑・減ったら赤）*/
+function stDiff(v){
+  const x=+v||0;
+  if(!x) return '<span class="pgd z">-</span>';
+  return `<span class="pgd ${x>0?"p":"m"}">${x>0?"+":""}${jp(x)}</span>`;
+}
+function stTable(title,o){
+  if(!o) return "";
+  const bd=o.borders||{}, df=o.diff||{};
+  const has=ST_RANKS.some(r=>+bd[r]>0);
+  if(!has) return "";
+  return `<h3>${esc(title)}</h3>
+    <div class="scroll"><table><thead><tr><th>順位</th><th>ボーダー</th><th>先週からの増加</th></tr></thead><tbody>`+
+    ST_RANKS.map(r=>(+bd[r]>0)?`<tr><td class="tiny">${jp(r)}位</td>`+
+      `<td><b>${jp(+bd[r])}</b></td><td class="tiny">${stDiff(df[r])}</td></tr>`:"").join("")+
+    `</tbody></table></div>
+    <div class="stats" style="margin-top:8px">
+      ${o.players?`<div class="stat"><div class="t">参加人数</div>
+        <div class="v">${jp(o.players.n)}<span class="tiny"> 人</span></div>
+        <div class="s">${stDiff(o.players.d)}</div></div>`:""}
+      ${o.perfect?`<div class="stat"><div class="t">完全制覇</div>
+        <div class="v">${jp(o.perfect.n)}<span class="tiny"> 人</span></div>
+        <div class="s">${stDiff(o.perfect.d)}</div></div>`:""}
+    </div>`;
+}
+function stRender(st){
+  const box=$("#stBody"); if(!box) return;
+  const w=DATA();
+  if(!st){
+    box.innerHTML=`<p class="muted">この週の統計情報は、まだ入っていません。</p>
+      ${isAdmin()?'<p class="tiny">下の「統計情報を取り込む」から入れられます。</p>':""}`;
+    return;
+  }
+  box.innerHTML=`<p class="tiny" style="color:var(--dim2)">見ている週：<b>${esc(w.date||"—")}</b></p>`+
+    stTable("生成した乱数の累積", st.rand)+
+    stTable("スコアの累積", st.score)+
+    ((st.gem||st.gemsp)?`<h3>ジェムから出た乱数</h3>
+      <div class="stats">
+        ${st.gem?`<div class="stat"><div class="t">ジェムによる乱数の個数</div>
+          <div class="v">${jp(st.gem.n)}</div><div class="s">${stDiff(st.gem.d)}</div></div>`:""}
+        ${st.gemsp?`<div class="stat"><div class="t">ジェムSPによる乱数の個数</div>
+          <div class="v">${jp(st.gemsp.n)}</div><div class="s">${stDiff(st.gemsp.d)}</div></div>`:""}
+      </div>`:"");
+}
+let ST_DRAFT=null;   /* 読み取ったけれど、まだ保存していない内容 */
+function stEnter(){
+  stRender(stOf(DATA()));
+  const ad=$("#stAdmin"); if(ad) ad.hidden=!isAdmin();
+  if(!isAdmin()) return;
+  const rd=$("#stRead"); if(rd&&!rd.dataset.on){ rd.dataset.on="1"; rd.onclick=stReadPaste; }
+  const cl=$("#stClear"); if(cl&&!cl.dataset.on){ cl.dataset.on="1";
+    cl.onclick=()=>{ $("#stPaste").value=""; $("#stPrev").innerHTML=""; $("#stMsg").textContent=""; ST_DRAFT=null; }; }
+}
+function stReadPaste(){
+  const r=stParse($("#stPaste").value);
+  const msg=$("#stMsg");
+  if(!r.hit){
+    msg.innerHTML='<span style="color:var(--bad)">読み取れませんでした。表をそのままコピーして貼り付けてください。</span>';
+    $("#stPrev").innerHTML=""; ST_DRAFT=null; return;
+  }
+  ST_DRAFT=stPack(r);
+  msg.innerHTML=`<span style="color:var(--acc2)">${jp(r.hit)} か所を読み取りました。</span>`+
+    (r.warn.length?`<br><span style="color:var(--warn)">${esc(r.warn.join(" ／ "))}</span>`:"");
+  $("#stPrev").innerHTML=`<div class="hintbox" style="margin-top:10px">
+      <b>この内容で合っていますか？</b> 下をよく見てから保存してください。</div>`+
+    stTable("生成した乱数の累積", ST_DRAFT.rand)+
+    stTable("スコアの累積", ST_DRAFT.score)+
+    ((ST_DRAFT.gem||ST_DRAFT.gemsp)?`<h3>ジェムから出た乱数</h3>
+      <div class="stats">
+        ${ST_DRAFT.gem?`<div class="stat"><div class="t">ジェムによる乱数の個数</div>
+          <div class="v">${jp(ST_DRAFT.gem.n)}</div><div class="s">${stDiff(ST_DRAFT.gem.d)}</div></div>`:""}
+        ${ST_DRAFT.gemsp?`<div class="stat"><div class="t">ジェムSPによる乱数の個数</div>
+          <div class="v">${jp(ST_DRAFT.gemsp.n)}</div><div class="s">${stDiff(ST_DRAFT.gemsp.d)}</div></div>`:""}
+      </div>`:"")+
+    `<div class="tools" style="margin-top:10px">
+      <button class="btn pri" id="stGh">この内容で data.json に書き込む</button>
+      <button class="btn" id="stLocal">この端末だけに反映</button></div>
+     <div id="stGhMsg" class="tiny"></div>`;
+  $("#stLocal").onclick=()=>{
+    const w=DATA(); if(!w) return;
+    w.stats=ST_DRAFT; stRender(w.stats);
+    toast("この端末だけに反映しました（まだ全員には届いていません）");
+  };
+  $("#stGh").onclick=stPublish;
+}
+/** data.json の、いま見ている週に統計情報を書き込みます（管理者だけ）*/
+async function stPublish(){
+  const msg=$("#stGhMsg");
+  if(!isAdmin()){ msg.innerHTML='<span style="color:var(--bad)">管理者だけが書き込めます。</span>'; return; }
+  if(!ST_DRAFT){ msg.innerHTML='<span style="color:var(--bad)">先に「読み取る」を押してください。</span>'; return; }
+  if(typeof ghReady!=="function"||!ghReady()){
+    msg.innerHTML='<span style="color:var(--bad)">GitHub連携が未設定です。'
+      +'「データ編集」の「GitHub連携の設定」から入れてください。</span>'; return; }
+  const w=DATA(); const date=(w&&w.date)||"";
+  msg.textContent="いま GitHub にあるものを読んでいます…";
+  let remote=null;
+  try{ remote=await ghGetJson(gh.path); }
+  catch(e){ msg.innerHTML=`<span style="color:var(--bad)">GitHub を読めませんでした：${
+    esc(String(e.message||e)).slice(0,200)}</span>`; return; }
+  const rw=(remote&&normalize(remote.json))||[];
+  const map={}; rw.forEach(x=>{ if(x&&x.date) map[x.date]=x; });
+  /* 今この画面で見ている週と同じ日付のところに入れます */
+  if(!map[date]) map[date]=JSON.parse(JSON.stringify(w||{date}));
+  map[date].stats=ST_DRAFT;
+  const weeks=Object.keys(map).sort().map(k=>map[k]);
+  const out={current:weeks[weeks.length-1].date,weeks};
+  if(!await askYN("統計情報を data.json に書き込みますか？",
+    `${esc(gh.owner)}/${esc(gh.repo)} の <b>${esc(gh.path)}</b> の<br>`+
+    `<b>${esc(date)}</b> の週に、統計情報を入れます。<br><br>`+
+    `<span class="tiny">ボーダーや他の週のデータは、そのまま残ります。</span>`,
+    "書き込む")) { msg.textContent=""; return; }
+  msg.textContent="送っています…";
+  try{
+    await ghPut(gh.path, JSON.stringify(out,null,2),
+      `統計情報を更新（${date}）`);
+    if(w) w.stats=ST_DRAFT;
+    stRender(ST_DRAFT);
+    msg.innerHTML='<span style="color:var(--acc2)">書き込みました。'
+      +'公開サイトに出るまで、少し時間がかかることがあります。</span>';
+    toast("data.json に書き込みました");
+  }catch(e){
+    msg.innerHTML=`<span style="color:var(--bad)">書き込めませんでした：${
+      esc(String(e.message||e)).slice(0,200)}</span>`;
+  }
+}
 
 /* =========================================================
    7. 目標プラン
@@ -6645,6 +6935,7 @@ async function loadRanking(force){
         }
       }
       if(lastErr) throw lastErr;
+      fixRows(rows);   /* 昔の名前で保存されている記録も読めるようにします */
       rkCache={key:ck,at:Date.now(),rows};
     }
     const evName=byEv?rkSortKey.slice(3):null;
@@ -6723,7 +7014,7 @@ async function loadRanking(force){
         }catch(e){}
       }
       if(!r||typeof r!=="object"){ toast("記録を取得できませんでした。通信を確かめてもう一度どうぞ"); return null; }
-      return r;};
+      return fixRec(r);};
     $$("[data-rp]").forEach(a=>a.onclick=async e=>{
       e.preventDefault();
       const r=RANK_ROWS[+a.dataset.rp];
@@ -7060,7 +7351,31 @@ function renderSettings(){
   if($("#coinAdmCard")) $("#coinAdmCard").hidden=!isAdmin();
   if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
+  admGate();
   if(isAdmin()){ renderAdmin(); ccEnter(); pzEnter(); }
+}
+/* 管理者だけの機能は、1つのボタンの中にまとめています。
+   管理者でない人には、ボタンも中身もそもそも出しません。 */
+let admOpen=false;
+function admGate(){
+  const gate=$("#admGate"), wrap=$("#admWrap");
+  const ok=isAdmin();
+  if(gate) gate.hidden=!ok;
+  if(wrap) wrap.hidden=!(ok&&admOpen);
+  if(!ok){ admOpen=false; return; }
+  const b=$("#admToggle");
+  if(b){
+    b.textContent=admOpen?"管理者メニューを閉じる":"管理者メニューを開く";
+    if(!b.dataset.on){ b.dataset.on="1";
+      b.onclick=()=>{ admOpen=!admOpen; admGate();
+        if(admOpen){ renderAdmin(); ccEnter(); pzEnter();
+          const el=$("#admWrap");
+          if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); } }; }
+  }
+  const note=$("#admNote");
+  if(note) note.textContent=admOpen
+    ? "開発者メニュー・Prime Coin の配り方・大会の賞品・コインと応援ポイントの管理・管理者のしごと"
+    : "";
 }
 function renderSupporter(){
   const b=$("#supBox");
@@ -7538,6 +7853,9 @@ async function openCup(id){
   /* レートモードは、この大会に固定したボーダーで計算し直します。
      こうすると、とちゅうでボーダーを変えても全員が同じものさしで並びます */
   ent.forEach(e=>{ e._tot=(c.mode==="rate")?cupTotal(c,e.scores,evs):(+e.total||0); });
+  /* 却下された記録は、順位に入れません（あとで下にまとめて出します）*/
+  const ngEnt=ent.filter(e=>e.status==="rejected");
+  ent=ent.filter(e=>e.status!=="rejected");
   ent.sort((x,y)=>dir==="low"?(x._tot-y._tot):(y._tot-x._tot));
   /* 同点は同順位。次の順位は飛ばす */
   let rank=0,prev=null;
@@ -7582,13 +7900,20 @@ async function openCup(id){
       `<th>合計${c.mode==="score"?"（比重後）":c.mode==="rate"?"（レート点）":""}</th><th>証明</th><th></th></tr></thead><tbody>`+
       ent.map((e,ix)=>`<tr class="${sess&&e.user_id===sess.user.id?"me":""}">`+
         `<td>${e._rank}${e._rank===1?" 🏆":""}</td>`+
-        `<td>${nameHTML(e.name||e.handle||"",e.role)}</td>`+
+        `<td>${nameHTML(e.name||e.handle||"",e.role)}${cupStTag(e)}</td>`+
         `<td><b>${c.mode==="rate"?rate3(e._tot):nice(e._tot)}</b>${
-          (c.mode==="score"||c.mode==="rate")?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
+          c.mode==="score"?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
         `<td>${proofsHTML(e.proofs,e.proof_url)}</td>`+
         `<td><button class="btn sm" data-dt="${ix}">詳細データ</button></td></tr>`).join("")+
       `</tbody></table></div>`
       :`<p class="muted">まだ記録がありません。</p>`}
+    ${ngEnt.length?`<h3>却下された記録（${ngEnt.length}人）</h3>
+      <p class="tiny" style="color:var(--dim2)">審査で認められなかった記録です。順位と賞品には入りません。</p>
+      <div class="scroll"><table><tbody>`+
+      ngEnt.map(e=>`<tr><td>${nameHTML(e.name||e.handle||"",e.role)}</td>`+
+        `<td class="tiny">${c.mode==="rate"?rate3(e._tot):nice(e._tot)}</td>`+
+        `<td class="tiny" style="color:var(--warn)">${esc((e.jm_note||e.sv_note||e.judge_note||"").slice(0,60))}</td>`+
+        `</tr>`).join("")+`</tbody></table></div>`:""}
     <div class="tools">
       ${owner&&ph!=="end"?`<button class="btn pri" id="cupEdit">内容を変更</button>`:""}
       ${owner&&ph==="live"?`<button class="btn" id="cupEnd">今すぐ終了する</button>`:""}
@@ -7620,6 +7945,15 @@ async function openCup(id){
       catch(e){ toast("削除に失敗しました"); }};
   }
   $$("[data-dt]").forEach(b=>b.onclick=()=>showEntryDetail(c,evs,ent[+b.dataset.dt],owner,()=>openCup(id)));
+}
+/** 記録の審査がどこまで進んだかの、小さな札 */
+function cupStTag(e){
+  const st=e&&e.status;
+  if(!st||st==="pending") return ' <span class="sbtag">未審査</span>';
+  if(st==="judged")    return ' <span class="sbtag judged">審査ずみ</span>';
+  if(st==="certified") return ' <span class="sbtag certified">認定済み</span>';
+  if(st==="rejected")  return ' <span class="sbtag rejected">却下</span>';
+  return "";
 }
 /** 比重をかける前の素点合計 */
 function rawSum(e,evs){ return evs.reduce((a,n)=>a+((e.scores&&e.scores[n])||0),0); }
@@ -7655,9 +7989,9 @@ function showEntryDetail(c,evs,e,owner,reload){
           (W?`<td class="tiny">×${w}</td><td><b>${nice(v*w)}</b></td><td class="tiny">${v?nice(v):"—"}</td>`
              :`<td><b>${v?nice(v):"—"}</b></td>`)+`</tr>`;}).join("")+
       `<tr style="border-top:2px solid var(--line)"><td><b>合計</b></td>`+
-      (isRate?`<td class="tiny">${nice(rawSum(e,evs))}</td>`+
-          `<td${W?"":' colspan="2"'}><b style="color:var(--acc2)">${rate3(tot)}</b></td>`+
-          (W?`<td></td><td><b style="color:var(--acc2)">${rate3(tot)}</b></td><td></td>`:"")
+      (isRate?`<td class="tiny">—</td>`+
+          `<td><b style="color:var(--acc2)">${rate3(cupTotal(Object.assign({},c,{weights:null}),e.scores,evs))}</b></td>`+
+          (W?`<td></td><td><b style="color:var(--acc2)">${rate3(tot)}</b></td>`:"")+`<td></td>`
         :W?`<td></td><td><b style="color:var(--acc2)">${nice(tot)}</b></td>`+
           `<td class="tiny">${nice(rawSum(e,evs))}</td>`
          :`<td><b style="color:var(--acc2)">${nice(tot)}</b></td>`)+`</tr>`+
@@ -7958,6 +8292,7 @@ async function loadMedals(handle){
   }catch(e){ return null; }
 }
 function showPlayer(p,rc){
+  rc=fixRec(rc)||{};      /* 昔の名前で保存されていても読めるようにします */
   const c=compute(rc), rk=c.complete?rankOf(c.total):null;
   const mask=document.createElement("div");mask.className="mask";
   mask.innerHTML=`<div class="modal">
@@ -7973,8 +8308,10 @@ function showPlayer(p,rc){
             title="RP ${esc(rpFmt(rpOf(rc)))}">RANK ${jp(d.rank)}　${esc(d.grade.n||"")}</span>`;})():""}</div></div>
     </div>
     <div class="awbox">
-      <div><div class="awn">${jp(+p.trophies||0)}</div><div class="awl">トロフィー</div></div>
-      <div><div class="awn" style="color:#ffd45e">${jp(+p.stars||0)}</div><div class="awl">スター</div></div>
+      <div><div class="awn">${jp(+p.trophies||0)}</div><div class="awl">トロフィー</div>
+        ${p.handle?`<button class="awbtn" data-awd="trophy">トロフィー詳細</button>`:""}</div>
+      <div><div class="awn" style="color:#ffd45e">${jp(+p.stars||0)}</div><div class="awl">スター</div>
+        ${p.handle?`<button class="awbtn" data-awd="star">スター詳細</button>`:""}</div>
     </div>
     ${medalCount(p)}
     ${(p.rate!=null||p.checked_n>0)?`<p class="tiny" style="margin-top:8px">
@@ -8013,6 +8350,8 @@ function showPlayer(p,rc){
       <button class="btn" id="mpX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
   const q=x=>mask.querySelector(x), close=()=>mask.remove();
+  mask.querySelectorAll("[data-awd]").forEach(b=>b.onclick=()=>
+    showAwards(p.handle||"",b.dataset.awd));
   /* ジャッジマン以上は、この画面から直接その人を任命できます */
   if(myLv()>=4 && p.handle){
     const cur=p.role||"user";
@@ -8848,6 +9187,7 @@ $("#lsPause").onclick=()=>{
    10e. 記録提出と審査（審査員 → スーパーバイザー → ジャッジマン）
    ========================================================= */
 let SUBS=[], RVQ=[], MYSTAT=null, RREQ=[], REPQ=[], AQ=[], ADONE=[], rvTab="j", rvMode="do";
+let CVQ=[];   /* 競技会に出された記録の、審査待ち一覧 */
 const SB_ST={pending:"未審査",judged:"審査員承認",certified:"認定済み",rejected:"却下"};
 /** テスト中は役職ごとに別人として扱います。
  *  審査員として承認 → スーパーバイザーに切り替え、で「別の人の審査」として見えます。 */
@@ -8886,6 +9226,8 @@ async function loadRvq(){
   if(TEST){ RVQ=myLv()>=2?TDB.subs.slice():[]; return; }
   if(!(sess&&sbOn())||myLv()<2){ RVQ=[]; return; }
   try{ RVQ=await sbAuth("review_queue?order=created_at.asc&limit=300"); }catch(e){ RVQ=[]; }
+  /* 競技会の記録も、同じように3段階で確かめます */
+  try{ CVQ=await sbAuth("cup_review_queue?order=updated_at.asc&limit=300"); }catch(e){ CVQ=[]; }
 }
 async function loadMyStat(){
   if(TEST){ MYSTAT=tstStat(); return; }
@@ -9011,7 +9353,13 @@ function rvLists(){
     dj:RVQ.filter(x=>x.judge_id===my),
     ds:RVQ.filter(x=>x.sv_id===my),
     dm:RVQ.filter(x=>x.jm_id===my),
-    da:ADONE.slice()
+    da:ADONE.slice(),
+    /* ── 競技会の記録 ── */
+    cj :CVQ.filter(x=>!x.judge_id&&x.status==="pending"&&x.user_id!==my),
+    cs :lv<3?[]:CVQ.filter(x=>x.judge_id&&!x.sv_id&&x.status!=="rejected"&&x.judge_id!==my&&x.user_id!==my),
+    cm :lv<4?[]:CVQ.filter(x=>x.sv_id&&!x.jm_id&&x.status!=="rejected"
+        &&x.sv_id!==my&&x.judge_id!==my&&x.user_id!==my),
+    dcj:CVQ.filter(x=>x.judge_id===my||x.sv_id===my||x.jm_id===my)
   };
 }
 /** 表示するタブ。審査員には審査員審査もスーパーバイザー審査も見せません */
@@ -9020,10 +9368,14 @@ function rvTabDefs(L){
   const lv=myLv();
   if(rvMode==="see")
     return [{k:"dj",n:"審査"},{k:"ds",n:"審査員審査"},
-            {k:"dm",n:"スーパーバイザー審査"},{k:"da",n:"アチーブメント審査"}];
+            {k:"dm",n:"スーパーバイザー審査"},{k:"da",n:"アチーブメント審査"},
+            {k:"dcj",n:"競技会審査"}];
   const t=[{k:"j",n:"審査"}];
   if(lv>=3) t.push({k:"s",n:"審査員審査"});
   if(lv>=4||L.m.length) t.push({k:"m",n:"スーパーバイザー審査"});
+  t.push({k:"cj",n:"競技会 審査"});
+  if(lv>=3) t.push({k:"cs",n:"競技会 審査員審査"});
+  if(lv>=4) t.push({k:"cm",n:"競技会 SV審査"});
   t.push({k:"ach",n:"アチーブメント審査"},{k:"msg",n:"メッセージ審査"});
   return t;
 }
@@ -9042,7 +9394,11 @@ const RV_HINT={
   dj:"自分が審査した記録です。承認・修正・却下のすべてが残ります。上位者のチェック結果も見られます。",
   ds:"自分が審査員審査した記録です。",
   dm:"自分がスーパーバイザー審査した記録です。",
-  da:"自分が審査したアチーブメントの提出です。"
+  da:"自分が審査したアチーブメントの提出です。",
+  cj:"競技会に出された記録です。証明のリンクと、種目ごとの『元の記録』を見くらべてください。レートモードでも、換算する前の記録がそのまま出ています。",
+  cs:"審査員の審査が正しかったかを見ます。ここでも『元の記録』がそのまま出ています。",
+  cm:"スーパーバイザーの審査員審査をチェックします。ここで認定すると、その記録は確定します。",
+  dcj:"自分が審査に関わった、競技会の記録です。"
 };
 function renderRvq(){
   const card=$("#rvCard"), no=$("#rvNo"); if(!card) return;
@@ -9072,6 +9428,9 @@ function renderRvq(){
   if(L.m.length) waits.push("スーパーバイザー審査 "+L.m.length+"件");
   if(L.msg.length) waits.push("メッセージ審査 "+L.msg.length+"件");
   if(L.ach.length) waits.push("アチーブメント審査 "+L.ach.length+"件");
+  if(L.cj.length) waits.push("競技会 審査 "+L.cj.length+"件");
+  if(L.cs.length) waits.push("競技会 審査員審査 "+L.cs.length+"件");
+  if(L.cm.length) waits.push("競技会 SV審査 "+L.cm.length+"件");
   al.hidden=!waits.length;
   if(waits.length) al.innerHTML="<span>まだ手がついていない記録があります　—　<b>"
     +waits.join("</b>　<b>")+"</b></span>";
@@ -9141,6 +9500,17 @@ function renderRvq(){
       rvVote(b.closest(".tools").dataset.id,b.dataset.vote==="1"));
     return;
   }
+  if(rvTab==="cj"||rvTab==="cs"||rvTab==="cm"||rvTab==="dcj"){
+    const stage=rvTab==="cs"?"sv":rvTab==="cm"?"jm":"judge";
+    box.innerHTML=list.slice(0,40).map(x=>cupRvRow(x,rvTab)).join("");
+    box.querySelectorAll("[data-cvd]").forEach(b=>b.onclick=()=>
+      cupRvDetail(b.dataset.cvd,rvTab==="dcj"?null:stage));
+    box.querySelectorAll("[data-cvp]").forEach(b=>b.onclick=()=>{
+      const x=CVQ.find(y=>y.id===b.dataset.cvp);
+      showProof(normProofs(x&&x.proofs,x&&x.proof_url));});
+    box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openProfile(b.dataset.open));
+    return;
+  }
   box.innerHTML=list.slice(0,60).map(x=>rvRow(x)).join("");
   box.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>
     rvAct(b.closest(".tools").dataset.id,b.dataset.act));
@@ -9153,6 +9523,100 @@ function renderRvq(){
     const t=b.closest(".sbrow"); const w=t&&t.querySelector("[data-id]");
     rvDetail(w?w.dataset.id:null,eid,cid,false);
   });
+}
+/* ══════════════════════════════════════════════════════════
+   競技会に出された記録の審査（審査 → 審査員審査 → SV審査）
+   審査する人には、レートモードでも「換算する前の元の記録」を
+   かならず出します。映像と見くらべるのに、それが要るからです。
+   ══════════════════════════════════════════════════════════ */
+const CST_N={pending:"未審査",judged:"審査ずみ",certified:"認定済み",rejected:"却下"};
+/** 審査待ちの1件ぶんの見た目 */
+function cupRvRow(x,tab){
+  const evs=x.events||[];
+  const isRate=x.mode==="rate";
+  const st=x.status||"pending";
+  const who=[];
+  if(x.judge_handle||x.judge_name) who.push("審査："+byWho(x.judge_handle,x.judge_name,x.judge_role));
+  if(x.sv_handle||x.sv_name)       who.push("審査員審査："+byWho(x.sv_handle,x.sv_name,x.sv_role));
+  if(x.jm_handle||x.jm_name)       who.push("SV審査："+byWho(x.jm_handle,x.jm_name,x.jm_role));
+  return `<div class="sbrow">
+    <div class="sbtop"><b>${esc(x.name||x.handle||"")}</b>
+      <span class="sbev">${esc(x.title||"")}</span>
+      <span class="sbtag">${esc(MODE_N(x.mode))}</span>
+      <span class="sbval st-${st==="certified"?"certified":st==="rejected"?"rejected":st==="judged"?"judged":"pending"}">${
+        esc(CST_N[st]||st)}</span>
+      <span class="tiny" style="margin-left:auto">${jstShort(x.updated_at)}</span></div>
+    <div class="tiny" style="margin-top:5px">元の記録：${
+      evs.map(n=>`<b>${esc(n)}</b> ${((x.scores||{})[n]>0)?fmtRec(n,x.scores[n]):"—"}`).join("　／　")}</div>
+    ${isRate?`<div class="tiny" style="color:var(--dim2)">
+      ボーダー ${esc(x.rate_week||"最新")}　／　換算後の合計 ${rate3(cupTotal(x,x.scores,evs))} 点</div>`:""}
+    ${who.length?`<div class="tiny" style="color:var(--dim2)">${who.join("　／　")}</div>`:""}
+    ${(x.judge_note||x.sv_note||x.jm_note)?`<div class="tiny" style="color:var(--warn)">理由：${
+      esc(x.jm_note||x.sv_note||x.judge_note||"")}</div>`:""}
+    <div class="tools">
+      <button class="btn sm pri" data-cvd="${esc(x.id)}">${tab==="dcj"?"中身を見る":"審査する"}</button>
+      <button class="btn sm" data-cvp="${esc(x.id)}">証明を見る</button>
+    </div></div>`;
+}
+/** 審査の画面。元の記録を種目ごとに並べます */
+function cupRvDetail(id,stage){
+  const x=CVQ.find(y=>y.id===id); if(!x) return;
+  const evs=x.events||[];
+  const isRate=x.mode==="rate";
+  const W=((x.mode==="score"||x.mode==="rate")&&x.weights)?x.weights:null;
+  const D=isRate?cupWeek(x):null;
+  const stN=stage==="judge"?"審査":stage==="sv"?"審査員審査":stage==="jm"?"スーパーバイザー審査":"";
+  const M=modal(`<h2>${esc(x.title||"")}　の記録を確かめる</h2>
+    <p class="muted" style="margin-top:-8px">
+      <b>${esc(x.name||x.handle||"")}</b> さんの記録　／　${esc(MODE_N(x.mode))}
+      ${isRate?`　／　ボーダー <b>${esc(x.rate_week||"最新")}</b>`:""}<br>
+      <span class="tiny">提出 ${jstFull(x.updated_at)} (JST)　いまの状態：${esc(CST_N[x.status]||x.status)}</span></p>
+    <div class="hintbox">映像や画像と、下の<b>「元の記録」</b>が合っているかを見てください。${
+      isRate?"レートモードでも、換算する前の記録をそのまま出しています。":""}</div>
+    <h3>種目ごとの記録</h3>
+    <div class="scroll"><table><thead><tr>
+      <th>素数ゲームの名前</th><th>元の記録</th>${isRate?`<th>換算得点</th>${W?"<th>比重後</th>":""}`:W?"<th>比重後</th>":""}
+      </tr></thead><tbody>`+
+      evs.map(n=>{
+        const v=(x.scores||{})[n]||0, w=W?(+W[n]||1):1;
+        const pt=isRate?ratePoints(n,v,D):0;
+        return `<tr><td><b>${esc(n)}</b>${LOW.has(n)?'<br><span class="tiny">(秒)</span>':""}</td>`+
+          `<td><b style="font-size:1.05rem">${v>0?fmtRec(n,v):"—"}</b></td>`+
+          (isRate?`<td class="tiny">${rate3(pt)}</td>${W?`<td class="tiny">${rate3(pt*w)}</td>`:""}`
+                 :W?`<td class="tiny">${nice(v*w)}</td>`:"")+`</tr>`;}).join("")+
+      `</tbody></table></div>
+    ${isRate?`<p class="tiny" style="color:var(--dim2)">換算後の合計 <b>${rate3(cupTotal(x,x.scores,evs))}</b> 点</p>`:""}
+    <p class="tiny">証明：${proofsHTML(x.proofs,x.proof_url)}</p>
+    ${stage?`<label class="fl">${esc(stN)}のメモ（却下する時は必ず理由を書いてください）</label>
+      <textarea id="cvN" rows="3" placeholder="例：動画の3分12秒の表示と一致しています"></textarea>
+      <div class="tools">
+        <button class="btn pri" id="cvOK">${stage==="judge"?"承認する":"認定する"}</button>
+        <button class="btn" id="cvNG" style="border-color:#7a3030;color:#ff8a8a">却下する</button>
+        <button class="btn" id="cvX">閉じる</button></div>
+      <div id="cvM" class="tiny"></div>`
+      :`<div class="tools"><button class="btn" id="cvX">閉じる</button></div>`}`,{w:760});
+  M.q("#cvX").onclick=M.close;
+  if(!stage) return;
+  const go=async ok=>{
+    const note=M.q("#cvN").value.trim();
+    if(!ok&&!note) return toast("却下する時は理由が必要です");
+    if(!await askYN(ok?"この記録を認めますか？":"この記録を却下しますか？",
+      `<b>${esc(x.name||x.handle||"")}</b> さんの <b>${esc(x.title||"")}</b> の記録です。`+
+      (ok?"":"<br><br>却下すると、この記録は順位表と賞品から外れます。"),
+      ok?"はい":"却下する")) return;
+    M.q("#cvOK").disabled=true; M.q("#cvNG").disabled=true;
+    M.q("#cvM").textContent="送っています…";
+    try{
+      await callRpc("cup_review",{p_id:x.id,p_stage:stage,p_ok:ok,p_note:note||null});
+      M.close(); toast(ok?"認めました":"却下しました");
+      await loadRvq(); renderRvq();
+    }catch(e){
+      M.q("#cvOK").disabled=false; M.q("#cvNG").disabled=false;
+      M.q("#cvM").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e)).slice(0,160)}</span>`;
+    }
+  };
+  M.q("#cvOK").onclick=()=>go(true);
+  M.q("#cvNG").onclick=()=>go(false);
 }
 async function rvVote(id,del){
   const p=REPQ.find(x=>x.post_id===id);
@@ -9355,14 +9819,75 @@ async function subsEnter(){
   await Promise.all([loadSubs(),loadRvq(),loadReports(),loadAchQ(),loadAchDone(),loadMyStat()]);
   renderSubs(); renderMyStat(); renderRvq(); renderMeCards();
 }
+/* ══════════════════════════════════════════════════════════
+   トロフィー・スターの明細
+   「いつ・なんの大会で・何個もらったか」を並べます
+   ══════════════════════════════════════════════════════════ */
+const AW_KIND={trophy:"トロフィー",star:"順位の賞",join:"参加賞"};
+const AW_PERIOD={all:"競技会",cup:"競技会",day:"デイリー",week:"ウィークリー",month:"マンスリー"};
+/** 賞をもらった時の「何回目か」を、期間のキーから読みます */
+function awWhen(a){
+  const p=a.period||"all";
+  if(p==="all"||p==="cup") return "";
+  const k=a.period_key||"";
+  return k?`（${esc(k)}）`:"";
+}
+async function showAwards(handle,kind){
+  const label=kind==="trophy"?"トロフィー":"スター";
+  const M=modal(`<h2>${esc(label)}の詳細</h2>
+    <p class="muted" style="margin-top:-8px">${handle?"@"+esc(handle):""} さんが
+      いつ・なんの大会で・何個もらったかの一覧です。</p>
+    <div id="awBox"><p class="muted">読み込み中…</p></div>
+    <div class="tools"><button class="btn" id="awX">閉じる</button></div>`,{w:780});
+  M.q("#awX").onclick=M.close;
+  let rows=[];
+  try{ rows=await callRpc("award_history",{p_handle:handle})||[]; }
+  catch(e){
+    M.q("#awBox").innerHTML=`<p class="muted">明細を読み込めませんでした。</p>
+      <p class="tiny">${esc(String(e.message||e)).slice(0,200)}</p>`;
+    return;
+  }
+  /* トロフィーは kind='trophy'、スターは star が1つ以上ついたものを出します */
+  const list=(rows||[]).filter(a=>kind==="trophy"
+    ? a.kind==="trophy"
+    : (+a.stars||0)>0);
+  if(!list.length){
+    M.q("#awBox").innerHTML=`<p class="muted">まだ ${esc(label)} をもらっていません。</p>`;
+    return;
+  }
+  const total=list.reduce((t,a)=>t+(kind==="trophy"?1:(+a.stars||0)),0);
+  M.q("#awBox").innerHTML=`
+    <div class="lsbox" style="margin-bottom:10px">
+      <div class="t">もらった ${esc(label)} の合計</div>
+      <div class="v" style="color:${kind==="trophy"?"#eaf3ff":"#ffd45e"}">${jp(total)}</div></div>
+    <div class="scroll"><table><thead><tr>
+      <th>もらった日</th><th>大会・チャレンジ</th><th>種類</th><th>順位</th>
+      <th>${esc(label)}</th>${kind==="star"?"<th>Prime Coin</th>":""}<th>XP</th>
+    </tr></thead><tbody>`+
+    list.map(a=>`<tr>
+      <td class="tiny">${jstShort(a.at)}</td>
+      <td><b>${esc(a.ref_title||"（名前なし）")}</b>${awWhen(a)}</td>
+      <td class="tiny">${esc(AW_PERIOD[a.period]||a.period||"")}
+        ${a.kind==="join"?'<span class="sbtag">参加賞</span>':""}
+        ${a.kind==="trophy"?'<span class="sbtag certified">優勝</span>':""}</td>
+      <td class="tiny">${(+a.rank>0)?jp(+a.rank)+"位":"—"}</td>
+      <td><b style="color:${kind==="trophy"?"#eaf3ff":"#ffd45e"}">${
+        kind==="trophy"?"1":jp(+a.stars||0)}</b></td>
+      ${kind==="star"?`<td class="tiny">${(+a.coins>0)?jp(+a.coins):"—"}</td>`:""}
+      <td class="tiny">${jp(+a.xp||0)}</td></tr>`).join("")+
+    `</tbody></table></div>
+    <p class="tiny" style="color:var(--dim2)">新しいものから順に、最大500件まで出しています。</p>`;
+}
 /* ---- プロフィール画面 ---- */
 function renderMeCards(){
   const h=$("#meHead"); if(!h) return;
   const c=compute(rec), rk=c.complete?rankOf(c.total):null;
   const lv=MYSTAT?(+MYSTAT.lv||0):0;
   h.innerHTML=`<div class="awbox">
-      <div><div class="awn">${jp(MY_AW.trophies||0)}</div><div class="awl">トロフィー</div></div>
-      <div><div class="awn" style="color:#ffd45e">${jp(MY_AW.stars||0)}</div><div class="awl">スター</div></div>
+      <div><div class="awn">${jp(MY_AW.trophies||0)}</div><div class="awl">トロフィー</div>
+        <button class="awbtn" data-awd="trophy">トロフィー詳細</button></div>
+      <div><div class="awn" style="color:#ffd45e">${jp(MY_AW.stars||0)}</div><div class="awl">スター</div>
+        <button class="awbtn" data-awd="star">スター詳細</button></div>
     </div>
     ${medalCount({medals:MY_MEDALS})}
     <div class="prof">
@@ -9375,6 +9900,8 @@ function renderMeCards(){
         ${ratingHTML(c.complete?c.total:null,.75)}</div>
       ${rk?`<span class="badge" style="color:${rk.c};border-color:${rk.c}66">${rk.n}</span>`:""}</div>
     </div></div>`;
+  h.querySelectorAll("[data-awd]").forEach(b=>b.onclick=()=>
+    showAwards(pro.handle||"",b.dataset.awd));
   const d=$("#meData");
   if(d){
     d.innerHTML=radarPair(rec)+`<div class="stats">
@@ -10471,7 +10998,7 @@ async function openProfile(handle){
       }catch(e){}
     }
     pr.medals=await loadMedals(handle);
-    showPlayer(pr,rc||{});
+    showPlayer(pr,fixRec(rc)||{});
   }catch(e){ toast("プロフィールを開けませんでした"); }
 }
 /** 「・・・」を押した時のメニュー。一般ユーザーは通報だけ、審査員以上は削除も出ます */
@@ -16843,7 +17370,9 @@ function devEditor(box,close){
       if(a&&num(a.value)>0) lr[r]=num(a.value);
       if(c2&&num(c2.value)>0) lsc[r]=num(c2.value);
     }
-    return {date:today,borders:b,totalBorders:t,lsBorders:{rand:lr,score:lsc}};};
+    /* 統計情報は、この画面では触らないので、そのまま持ち越します */
+    return {date:today,borders:b,totalBorders:t,lsBorders:{rand:lr,score:lsc},
+            stats:(w&&w.stats)||null};};
   const build=mode=>{
     const wk=collect(), arr=WEEKS.slice();
     if(mode==="add"){ const i=arr.findIndex(x=>x.date===wk.date);
