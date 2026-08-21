@@ -1388,6 +1388,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       style="max-width:none"></textarea>
     <label class="pk" style="margin-top:8px;display:inline-flex">
       <input type="checkbox" id="cIMG"> 画像でもOK（スクリーンショットで提出できます）</label>
+    <div id="cPrizeWrap"></div>
     <div class="tools"><button class="btn pri" id="cCreate">この内容で開催する</button>
       <button class="btn" id="cCancel">やめる</button></div>
     <div id="cMsg" class="tiny"></div>
@@ -1419,6 +1420,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
             <span class="tiny" id="cuSum" style="margin-left:auto"></span>
           </div>
           <div class="hintbox" id="cuPrev" style="margin-top:12px"></div>
+          <div id="cuPrizeWrap"></div>
           <div class="tools"><button class="btn pri" id="cuGo">この内容で開く</button>
             <span class="tiny" id="cuMsg"></span></div>
         </div>
@@ -2253,12 +2255,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <button class="btn pri" id="caGo">この人を調べる</button>
       <span class="tiny" id="caMsg"></span>
     </div>
-    <div id="caSum" style="margin-top:10px"></div>
-    <div class="segs" id="caTabs" style="grid-template-columns:1fr 1fr;margin-top:10px" hidden>
-      <button data-ca="coin" class="on">Prime Coin</button>
-      <button data-ca="cheer">応援ポイント</button>
-    </div>
-    <div id="caBox" style="margin-top:10px"></div>
+    <div id="caRoot" data-caroot style="margin-top:10px"></div>
   </div>
 
   <div class="card" id="adminCard" hidden>
@@ -2298,7 +2295,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v97";
+const APP_VERSION = "v98";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2945,6 +2942,11 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v98":[
+    "プロフィールから、その人の Prime Coin と応援ポイントを見られるようにした（管理者だけ）",
+    "競技会・チャレンジを作る画面で、賞品と参加賞を一緒に決められるようにした",
+    "賞品は大会が終わるまで、いつでも直せます",
+    "ランキングのところに、その大会の賞品と参加賞を表示するようにした"],
   "v97":[
     "競技会に「レートモード」を追加。むずかしさの違う種目や、スコアとタイムを混ぜても公平に順位が付きます",
     "順位ごとの賞品（スター・Prime Coin）と参加賞を、管理者が決められるようにした",
@@ -7236,6 +7238,8 @@ function editCup(id){
       <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="edEnd" style="max-width:none" value="${iso(c.ends_at)}"${done?" disabled":""}></div>
     </div>
     <p class="tiny">種目：${esc((c.events||[]).join("、"))}　方式：${MODE_N(c.mode)}</p>
+    ${(isAdmin()&&!done)?prizeEditHTML("edPrize"):
+      (isAdmin()?`<p class="tiny" style="color:var(--dim2)">終わった大会の賞品は変えられません。</p>`:"")}
     <div class="tools"><button class="btn pri" id="edSave">保存する</button>
       <button class="btn" id="edX">やめる</button></div>
     <div id="edMsg" class="tiny"></div></div>`;
@@ -7243,6 +7247,8 @@ function editCup(id){
   const q=x=>mask.querySelector(x), close=()=>mask.remove();
   mask.addEventListener("click",e=>{if(e.target===mask)close();});
   q("#edX").onclick=close;
+  let edPrizeGet=null;
+  if(isAdmin()&&q("#edPrize")) edPrizeGet=prizeEditInit(q("#edPrize"),"cup",c.prize||null);
   q("#edSave").onclick=async()=>{
     const a=q("#edStart").value,b=q("#edEnd").value;
     const body={p_id:c.id,p_note:q("#edNote").value,p_img_ok:!!q("#edIMG").checked};
@@ -7256,6 +7262,7 @@ function editCup(id){
     }
     try{
       await rpcTry("update_tournament",body,[["p_img_ok"]]);
+      if(edPrizeGet) await prizeSend("cup",c.id,edPrizeGet());
       close(); toast("変更しました"); cupCache.rows=null; await loadCups(true);
       if(cupSel&&cupSel.id===c.id) openCup(c.id);
     }catch(e){ q("#edMsg").innerHTML=`<span class="lose">失敗しました：${esc(String(e.message||e)).slice(0,200)}</span>`; }
@@ -7347,8 +7354,17 @@ function updateCupHint(){
           `<br><span class="tiny">例：比重2なら、その種目の記録が2倍として扱われます。</span>`
         : (d==="low" ? `合計タイムが<b>短い</b>ほど上位になります。` : `合計スコアが<b>高い</b>ほど上位になります。`));
 }
+let cPrizeGet=null, cuPrizeGet=null;
+/** 作る画面に、賞品の編集欄を用意します（管理者だけ） */
+function prizeFormMount(wrapId,formId,kind){
+  const w=$("#"+wrapId); if(!w) return null;
+  if(!isAdmin()){ w.innerHTML=""; return null; }
+  w.innerHTML=prizeEditHTML(formId);
+  return prizeEditInit($("#"+formId),kind,null);
+}
 $("#cupNewBtn").onclick=()=>{ $("#cupNew").hidden=!$("#cupNew").hidden;
-  if(!$("#cupNew").hidden){ renderCupNew(); $("#cupNew").scrollIntoView({behavior:"smooth"}); } };
+  if(!$("#cupNew").hidden){ renderCupNew(); cPrizeGet=prizeFormMount("cPrizeWrap","cPrizeForm","cup");
+    $("#cupNew").scrollIntoView({behavior:"smooth"}); } };
 $("#cCancel").onclick=()=>{ $("#cupNew").hidden=true; };
 $("#mdSum").onclick=()=>{cupMode="sum";$$("#cupNew .toggle button").forEach(b=>b.classList.remove("on"));
   $("#mdSum").classList.add("on");
@@ -7374,11 +7390,12 @@ $("#cCreate").onclick=async()=>{
   try{
     const w={}; evs.forEach(n=>{const el=$(`[data-cw="${CSS.escape(n)}"]`);
       w[n]=((cupMode==="score"||cupMode==="rate")&&el)?Math.max(num(el.value)||1,0.01):1;});
-    await rpcTry("create_tournament",{
+    const newId=await rpcTry("create_tournament",{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
       p_note:$("#cNote").value.trim(), p_img_ok:!!$("#cIMG").checked},
       [["p_img_ok"],["p_img_ok","p_mode","p_weights"]]);
+    if(cPrizeGet){ const pz=cPrizeGet(); if(pz) await prizeSend("cup",newId,pz); }
     m.textContent=""; toast("大会を作成しました"); cupCache.rows=null;
     $("#cTitle").value="";$("#cNote").value="";$("#cIMG").checked=false;
     cupEvents=new Set(); $("#cEvents").innerHTML=""; $("#cupNew").hidden=true; renderCupNew();
@@ -7422,6 +7439,7 @@ async function openCup(id){
       <div id="entForm"></div>`
       :`<div class="hintbox">記録を提出するにはログインが必要です（設定タブから）。順位表の閲覧は誰でもできます。</div>`):""}
     ${ph==="pre"?`<div class="hintbox">まだ開始していません。開始時刻になると記録を提出できます。</div>`:""}
+    ${prizeBox(c,"cup","競技会")}
     <h3>順位表（${ent.length}人）</h3>
     ${ent.length?`<div class="scroll"><table><thead><tr><th>順位</th><th>プレイヤー</th>`+
       `<th>合計${c.mode==="score"?"（比重後）":c.mode==="rate"?"（レート点）":""}</th><th>証明</th><th></th></tr></thead><tbody>`+
@@ -7677,6 +7695,8 @@ function showPlayer(p,rc){
     <div id="mpRole"></div>
     <div class="tools"><button class="btn pri" id="mpFr"></button>
       <button class="btn" id="mpCup">大会の記録</button>
+      ${isAdmin()&&p.handle?`<button class="btn" id="mpCoin"
+        style="border-color:#7a5a30;color:#ffc861">Prime Coin を見る</button>`:""}
       <button class="btn" id="mpCmp">自分と比較</button>
       <button class="btn" id="mpX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
@@ -7717,6 +7737,7 @@ function showPlayer(p,rc){
     const h=await fetchCupHistory(p.handle);
     q("#mpCup").disabled=false;
     showCupHistory(p,h||{rows:[],played:0,wins:0,podium:0,finished:0});};
+  if(q("#mpCoin")) q("#mpCoin").onclick=()=>coinAdminOpen(p.handle);
   q("#mpCmp").onclick=()=>{ close(); goTab("friends");
     renderCompare({pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc}); };
 }
@@ -10487,9 +10508,10 @@ $("#cuGo").onclick=async()=>{
     }
   }
   try{
-    await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:$("#cuI").value.trim()||null,p_kind:kind,
-      p_img_ok:!!$("#cuIMG").checked},
+    const newId=await callRpc("create_pcup",{p_title:t,p_rule:r,p_intro:$("#cuI").value.trim()||null,
+      p_kind:kind, p_img_ok:!!$("#cuIMG").checked},
       [["p_img_ok"],["p_img_ok","p_kind"],["p_img_ok","p_intro","p_kind"]]);
+    if(cuPrizeGet){ const pz=cuPrizeGet(); if(pz) await prizeSend("pcup",newId,pz); }
     $("#cuT").value=""; $("#cuI").value=""; $("#cuIMG").checked=false;
     msg.innerHTML='<span style="color:var(--acc2)">作りました</span>';
     await loadPcups(); renderPcups(); $$("#cupTabs button")[0].click();
@@ -10566,8 +10588,8 @@ function pcupTable(rows,cup){
     +["all","day","week","month"].map(k=>
       `<button data-pd="${k}" data-cid="${cup.id}" class="${k===pd?"on":""}">${PERIOD_N[k]}</button>`).join("")
     +`</div><p class="tiny" style="color:var(--acc);font-weight:700">${esc(periodTitle(cup,pd))}</p>`
-    +(pd!=="all"?`<p class="tiny" data-cd="${pd}">順位が決まるまで 残り <b>${periodLeft(pd)}</b>
-        　（${STAR_N[pd]||""}のスターがもらえます）</p>`:"")
+    +(pd!=="all"?`<p class="tiny" data-cd="${pd}">順位が決まるまで 残り <b>${periodLeft(pd)}</b></p>`
+        +prizeBox(cup,pd,PERIOD_N[pd]):"")
     +`<div class="tools" style="margin-top:6px">
         <button class="btn sm" data-past="${cup.id}">過去のランキングを閲覧する</button>
         <button class="btn sm" data-champ="${cup.id}">歴代チャンピオン</button></div>`;
@@ -11727,18 +11749,24 @@ function cupEditForm(c){
     <p class="tiny" style="color:var(--dim2)">X の動画は長さの制限があるので、
       長い${kindN}では画像を許すと出しやすくなります。<br>
       すでに出された記録は、そのまま残ります。</p>
+    ${(isAdmin()&&!c.closed)?prizeEditHTML("cePrize"):
+      (isAdmin()?`<p class="tiny" style="color:var(--dim2)">受付を終えたので、賞品は変えられません。</p>`:"")}
     <div class="tools">
       <button class="btn pri" id="ceGo">この内容で書きかえる</button>
       <button class="btn" id="ceNo">やめる</button>
       <span class="tiny" id="ceMsg"></span>
     </div>`,{w:720});
   M.q("#ceNo").onclick=()=>M.close();
+  let cePrizeGet=null;
+  if(isAdmin()&&M.q("#cePrize"))
+    cePrizeGet=prizeEditInit(M.q("#cePrize"),c.kind==="official"?"cup":"pcup",c.prize||null);
   M.q("#ceGo").onclick=async()=>{
     const b=M.q("#ceGo"); b.disabled=true;
     M.q("#ceMsg").textContent="送っています…";
     try{
       await callRpc("update_pcup",{p_id:c.id,p_intro:M.q("#ceI").value,
         p_img_ok:!!M.q("#ceIMG").checked},[["p_img_ok"]]);
+      if(cePrizeGet) await prizeSend("pcup",c.id,cePrizeGet());
       await loadPcups(); renderPcups();
       M.close(); toast("書きかえました（全員に見えています）");
     }catch(e){
@@ -14194,6 +14222,136 @@ function lsCoinFx(n){
   setTimeout(()=>t.remove(),1600);
 }
 
+/* ══════════ 大会ごとの賞品を、その場で編集する部品 ══════════
+   ・作る画面と、あとから直す画面の両方で同じものを使います
+   ・管理者だけに出ます。大会が終わるまで、いつでも直せます */
+function prizeEditHTML(id){
+  return `<div id="${id}" class="lockbox" style="margin-top:12px">
+    <b>賞品（管理者だけ）</b>
+    <p class="tiny" style="margin:4px 0 6px">順位ごとにもらえる<b>スター</b>と<b>Prime Coin</b>、
+      それに<b>参加賞</b>を決められます。空のままにすると、共通の設定が使われます。</p>
+    <div data-pe="tabs" class="segs" style="grid-template-columns:repeat(4,1fr)" hidden>
+      <button data-pek="day" class="on">Daily</button>
+      <button data-pek="week">Weekly</button>
+      <button data-pek="month">Monthly</button>
+      <button data-pek="all" hidden></button>
+    </div>
+    <div data-pe="box" style="margin-top:8px"></div>
+    <div class="tools" style="margin-top:6px">
+      <button class="btn sm" data-pe="add">＋ 順位を増やす</button>
+      <button class="btn sm" data-pe="std">共通の設定を入れる</button>
+      <button class="btn sm" data-pe="clr">賞品を付けない（共通にまかせる）</button>
+    </div>
+  </div>`;
+}
+/** 編集部品を動かします。kind="cup"（競技会）か "pcup"（チャレンジ）*/
+function prizeEditInit(root,kind,init){
+  const box=root.querySelector('[data-pe="box"]');
+  const tabs=root.querySelector('[data-pe="tabs"]');
+  let cur=init?JSON.parse(JSON.stringify(init)):null;      /* null＝共通にまかせる */
+  let key=(kind==="cup")?"cup":"day";
+  if(kind!=="cup") tabs.hidden=false;
+  const blank=()=>({ranks:[{pos:1,star:0,coin:0}],join:{star:0,coin:0}});
+  const get=()=>{
+    if(!cur) return null;
+    if(!cur[key]) cur[key]=blank();
+    return cur[key];
+  };
+  const draw=()=>{
+    root.querySelectorAll("[data-pek]").forEach(b=>b.classList.toggle("on",b.dataset.pek===key));
+    const c=get();
+    if(!c){ box.innerHTML=`<p class="tiny" style="color:var(--dim2)">共通の設定を使います。`
+      +`「共通の設定を入れる」を押すと、この大会だけの内容にできます。</p>`; return; }
+    c.ranks=(c.ranks||[]).slice().sort((a,b)=>(+a.pos||0)-(+b.pos||0));
+    box.innerHTML=`<div class="scroll" style="max-height:none"><table><thead><tr>
+        <th>順位</th><th class="n">スター</th><th class="n"><span class="pcoin">P</span></th><th></th>
+      </tr></thead><tbody>`
+      +c.ranks.map((r,i)=>`<tr>
+        <td><input type="number" class="txt" data-per="${i}.pos" min="1" max="100" step="1"
+          value="${+r.pos||1}" style="max-width:76px"> 位</td>
+        <td class="n"><input type="number" class="txt" data-per="${i}.star" min="0" max="9999" step="1"
+          value="${+r.star||0}" style="max-width:84px"></td>
+        <td class="n"><input type="number" class="txt" data-per="${i}.coin" min="0" max="9999" step="1"
+          value="${+r.coin||0}" style="max-width:84px"></td>
+        <td><button class="btn sm del" data-pex="${i}">消す</button></td></tr>`).join("")
+      +`<tr><td><b>参加賞</b></td>
+        <td class="n"><input type="number" class="txt" data-pej="star" min="0" max="9999" step="1"
+          value="${+((c.join||{}).star)||0}" style="max-width:84px"></td>
+        <td class="n"><input type="number" class="txt" data-pej="coin" min="0" max="9999" step="1"
+          value="${+((c.join||{}).coin)||0}" style="max-width:84px"></td><td></td></tr>`
+      +`</tbody></table></div>`;
+    box.querySelectorAll("[data-per]").forEach(e=>e.oninput=()=>{
+      const [i,f]=e.dataset.per.split(".");
+      c.ranks[+i][f]=Math.max(0,Math.min(9999,+e.value||0));
+    });
+    box.querySelectorAll("[data-pej]").forEach(e=>e.oninput=()=>{
+      c.join=c.join||{}; c.join[e.dataset.pej]=Math.max(0,Math.min(9999,+e.value||0));
+    });
+    box.querySelectorAll("[data-pex]").forEach(b=>b.onclick=()=>{ c.ranks.splice(+b.dataset.pex,1); draw(); });
+  };
+  root.querySelectorAll("[data-pek]").forEach(b=>b.onclick=()=>{ key=b.dataset.pek; draw(); });
+  root.querySelector('[data-pe="add"]').onclick=()=>{
+    if(!cur) cur=(kind==="cup")?{cup:blank()}:{day:blank(),week:blank(),month:blank()};
+    const c=get(); const mx=c.ranks.reduce((a,r)=>Math.max(a,+r.pos||0),0);
+    c.ranks.push({pos:mx+1,star:0,coin:0}); draw();
+  };
+  root.querySelector('[data-pe="std"]').onclick=()=>{
+    cur=(kind==="cup")?{cup:JSON.parse(JSON.stringify((PZCFG||{}).cup||blank()))}
+      :{day:JSON.parse(JSON.stringify((PZCFG||{}).day||blank())),
+        week:JSON.parse(JSON.stringify((PZCFG||{}).week||blank())),
+        month:JSON.parse(JSON.stringify((PZCFG||{}).month||blank()))};
+    draw();
+  };
+  root.querySelector('[data-pe="clr"]').onclick=()=>{ cur=null; draw(); };
+  draw();
+  return ()=>{
+    if(!cur) return null;
+    const fix=c=>({ranks:(c.ranks||[]).map(r=>({pos:Math.max(1,+r.pos||1),
+        star:Math.max(0,+r.star||0),coin:Math.max(0,+r.coin||0)})).sort((a,b)=>a.pos-b.pos),
+      join:{star:Math.max(0,+((c.join||{}).star)||0),coin:Math.max(0,+((c.join||{}).coin)||0)}});
+    const out={};
+    Object.keys(cur).forEach(k=>{ if(cur[k]) out[k]=fix(cur[k]); });
+    return out;
+  };
+}
+/** 大会ごとの賞品を送ります（管理者だけ・失敗しても大会作成は続けます） */
+async function prizeSend(kind,id,prize){
+  if(!isAdmin()||!id) return;
+  try{
+    await sbAuth("rpc/cup_prize_set",{method:"POST",
+      body:JSON.stringify({p_kind:kind==="cup"?"tournament":"pcup",p_id:id,p_prize:prize})});
+  }catch(e){ toast("賞品を保存できませんでした："+String(e.message||e).slice(0,60)); }
+}
+
+/** この大会・この期間の賞品（大会ごとの上書きがあればそちら） */
+function cupPrize(cup,key){
+  const own=(cup&&cup.prize)||null;
+  if(own){
+    if(own[key]) return own[key];
+    if(own.ranks) return own;          /* 期間で分けていない形 */
+  }
+  return (PZCFG||{})[key]||{ranks:[],join:{star:0,coin:0}};
+}
+/** 賞品を、ランキングのところに出す小さな表 */
+function prizeBox(cup,key,label){
+  const pz=cupPrize(cup,key);
+  const rs=(pz.ranks||[]).slice().sort((a,b)=>(+a.pos||0)-(+b.pos||0))
+    .filter(r=>(+r.star||0)>0||(+r.coin||0)>0);
+  const j=pz.join||{};
+  const cell=r=>[(+r.star||0)>0?`<b style="color:#ffd45e">★${jp(+r.star)}</b>`:"",
+    (+r.coin||0)>0?`<span class="pcoin">P</span>${jp(+r.coin)}`:""].filter(Boolean).join("　");
+  const jj=cell(j);
+  if(!rs.length&&!jj) return `<p class="tiny" style="color:var(--dim2)">この${label||""}に賞品はありません。</p>`;
+  return `<div class="hintbox" style="margin-top:8px">
+    <b>もらえるもの${label?`（${esc(label)}）`:""}</b>
+    <div class="tools" style="margin-top:6px;gap:10px;flex-wrap:wrap">
+      ${rs.map(r=>`<span class="sbtag" style="border-color:#ffd45e55">${jp(+r.pos)}位　${cell(r)}</span>`).join("")}
+      ${jj?`<span class="sbtag" style="border-color:var(--acc2)">参加賞　${jj}</span>`:""}
+    </div>
+    <p class="tiny" style="margin:6px 0 0;color:var(--dim2)">スターは1個 5XP になります。
+      ${cup&&cup.prize?"この大会だけの特別な賞品です。":"共通の設定です。"}</p></div>`;
+}
+
 /* ══════════════════════════════════════════════════════════
    大会の賞品（管理者だけ）
    ・順位ごとのスター・Prime Coin と、参加賞を決めます
@@ -14322,36 +14480,57 @@ if($("#pzCupClr")) $("#pzCupClr").onclick=async()=>{
 /* ══════════════════════════════════════════════════════════
    Prime Coin・応援ポイントの管理（管理者だけ）
    ══════════════════════════════════════════════════════════ */
-let CA_H="", CA_TAB="coin", CA_COIN=[], CA_CHEER=[], CA_SUM=null;
+let CA_TAB="coin";
 const COIN_SRC={login:"ログインボーナス",streak:"連続ログイン",submit:"記録の提出",
   game:"Prime Park",ls:"LSやりこみ",best:"自己ベスト更新",ach:"アチーブメント達成",
   prize:"大会の賞品",mood:"今週の目標",spend:"応援の連打（使用）",admin:"管理者による修正"};
-async function caLoad(h){
-  CA_H=String(h||"").replace(/^@/,"").trim().toLowerCase();
-  if(!CA_H) return toast("@ID を入れてください");
-  $("#caMsg").textContent="読み込み中…";
+/** その人の Prime Coin と応援ポイントを、どこにでも出せる部品として描きます。
+ *  root … 中身を入れる場所（設定タブのカードでも、小窓でも同じものが出ます）*/
+async function caRender(root,handle){
+  if(!root) return;
+  if(!isAdmin()){ root.innerHTML=`<p class="muted">管理者だけが見られます。</p>`; return; }
+  const h=String(handle||"").replace(/^@/,"").trim().toLowerCase();
+  if(!h){ root.innerHTML=`<p class="muted">@ID を入れてください。</p>`; return; }
+  root.innerHTML=`<p class="muted">読み込み中…</p>`;
+  let sum=null,coin=[],cheer=[];
   try{
-    CA_SUM=await sbAuth("rpc/coin_summary",{method:"POST",body:JSON.stringify({p_handle:CA_H})});
-    CA_COIN=await sbAuth("rpc/coin_history",{method:"POST",body:JSON.stringify({p_handle:CA_H,p_limit:300})})||[];
-    CA_CHEER=await sbAuth("rpc/cheer_history",{method:"POST",body:JSON.stringify({p_handle:CA_H,p_limit:300})})||[];
-    $("#caMsg").textContent="";
-    $("#caTabs").hidden=false;
-    caDraw();
+    sum  =await sbAuth("rpc/coin_summary",{method:"POST",body:JSON.stringify({p_handle:h})});
+    coin =await sbAuth("rpc/coin_history",{method:"POST",body:JSON.stringify({p_handle:h,p_limit:300})})||[];
+    cheer=await sbAuth("rpc/cheer_history",{method:"POST",body:JSON.stringify({p_handle:h,p_limit:300})})||[];
   }catch(e){
-    $("#caMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</span>`;
-    $("#caSum").innerHTML=""; $("#caBox").innerHTML=""; $("#caTabs").hidden=true;
+    root.innerHTML=`<p class="tiny" style="color:var(--bad)">${esc(String(e.message||e).slice(0,110))}</p>`;
+    return;
   }
-}
-function caDraw(){
-  $$("#caTabs [data-ca]").forEach(b=>b.classList.toggle("on",b.dataset.ca===CA_TAB));
-  const sum=CA_SUM||{};
-  const byk=sum.by_kind||{};
-  const cheerPt=CA_CHEER.reduce((a,x)=>a+(+x.points||0),0);
-  const taps=CA_CHEER.reduce((a,x)=>a+(+x.taps||0),0);
-  $("#caSum").innerHTML=`<div class="lsgrid2">
+  const byk=(sum&&sum.by_kind)||{};
+  const cheerPt=cheer.reduce((a,x)=>a+(+x.points||0),0);
+  const taps=cheer.reduce((a,x)=>a+(+x.taps||0),0);
+  const list=(CA_TAB==="coin")
+    ? (coin.length?`<div class="scroll" style="max-height:44vh"><table><thead><tr>
+        <th>日時</th><th>どうやって</th><th class="n">枚数</th><th class="n">その時の合計</th><th>メモ</th>
+        </tr></thead><tbody>`
+        +coin.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
+          <td class="tiny">${esc(COIN_SRC[r.kind]||r.kind)}</td>
+          <td class="n"><b style="color:${(+r.amount)<0?"var(--bad)":"var(--acc2)"}">${(+r.amount)>0?"+":""}${jp(+r.amount||0)}</b></td>
+          <td class="n mono">${jp(+r.balance||0)}</td>
+          <td class="tiny">${esc(r.note||"")}</td></tr>`).join("")
+        +`</tbody></table></div>`
+      :`<p class="muted">記録がありません。</p>`)
+    : (cheer.length?`<div class="scroll" style="max-height:44vh"><table><thead><tr>
+        <th>日時</th><th>どこから</th><th class="n">ポイント</th><th class="n">連打</th><th></th>
+        </tr></thead><tbody>`
+        +cheer.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
+          <td class="tiny">${esc(r.src==="rush"?"連打":r.src==="submit"?"記録の提出":"応援ボタン")}</td>
+          <td class="n"><b>${jp(+r.points||0)}</b></td>
+          <td class="n tiny">${(+r.taps)>0?jp(+r.taps)+" 回":"—"}</td>
+          <td><button class="btn sm" data-chfix="${esc(r.id)}">直す</button>
+            <button class="btn sm del" data-chdel="${esc(r.id)}">消す</button></td></tr>`).join("")
+        +`</tbody></table></div>`
+      :`<p class="muted">記録がありません。</p>`);
+  root.innerHTML=`<p class="tiny">@${esc(h)} の記録です。</p>
+    <div class="lsgrid2">
       <div class="lsbox big"><div class="t">いまの Prime Coin</div>
-        <div class="v big">${jp(+sum.coins||0)}</div>
-        <div class="s">記録 ${jp(+sum.rows||0)} 件</div></div>
+        <div class="v big">${jp(+((sum||{}).coins)||0)}</div>
+        <div class="s">記録 ${jp(+((sum||{}).rows)||0)} 件</div></div>
       <div class="lsbox big"><div class="t">応援ポイント（この記録から）</div>
         <div class="v big" style="color:var(--warn)">${jp(cheerPt)}</div>
         <div class="s">連打 ${jp(taps)} 回</div></div>
@@ -14360,76 +14539,67 @@ function caDraw(){
       ? Object.keys(byk).map(k=>`${esc(COIN_SRC[k]||k)} <b>${jp(byk[k])}</b>`).join("　／　")
       : "—"}</p>
     <div class="tools" style="margin-top:8px">
-      <input type="number" class="txt" id="caFixN" style="max-width:120px" placeholder="枚数">
-      <button class="btn" id="caFixSet">ちょうどこの枚数にする</button>
-      <button class="btn" id="caFixAdd">この枚数を足す（マイナスも可）</button>
-      <input type="text" class="txt" id="caFixNote" style="max-width:220px" placeholder="理由（任意）">
-    </div>`;
+      <input type="number" class="txt" data-cafix="n" style="max-width:120px" placeholder="枚数">
+      <button class="btn" data-cafix="set">ちょうどこの枚数にする</button>
+      <button class="btn" data-cafix="add">この枚数を足す（マイナスも可）</button>
+      <input type="text" class="txt" data-cafix="note" style="max-width:200px" placeholder="理由（任意）">
+    </div>
+    <div class="segs" data-catabs style="grid-template-columns:1fr 1fr;margin-top:10px">
+      <button data-ca="coin" class="${CA_TAB==="coin"?"on":""}">Prime Coin</button>
+      <button data-ca="cheer" class="${CA_TAB==="cheer"?"on":""}">応援ポイント</button>
+    </div>
+    <div style="margin-top:10px">${list}</div>`;
+  const q=sel=>root.querySelector(sel), qa=sel=>[...root.querySelectorAll(sel)];
+  qa("[data-ca]").forEach(b=>b.onclick=()=>{ CA_TAB=b.dataset.ca; caRender(root,h); });
   const fix=async mode=>{
-    const n=+$("#caFixN").value;
+    const n=+q('[data-cafix="n"]').value;
     if(!Number.isFinite(n)) return toast("枚数を入れてください");
     if(!await askYN("コインの枚数を直しますか？",
-      `@${esc(CA_H)} のコインを ${mode==="set"?`<b>ちょうど ${jp(n)} 枚</b>に`:`<b>${n>=0?"+":""}${jp(n)} 枚</b>`}します。`,
+      `@${esc(h)} のコインを ${mode==="set"?`<b>ちょうど ${jp(n)} 枚</b>に`:`<b>${n>=0?"+":""}${jp(n)} 枚</b>`}します。`,
       "直す")) return;
     try{
       const r=await sbAuth("rpc/coin_admin_fix",{method:"POST",
-        body:JSON.stringify({p_handle:CA_H,p_n:n,p_mode:mode,p_note:$("#caFixNote").value.trim()||null})});
-      toast(`いま ${jp(+r.coins||0)} 枚です`); await caLoad(CA_H);
+        body:JSON.stringify({p_handle:h,p_n:n,p_mode:mode,p_note:q('[data-cafix="note"]').value.trim()||null})});
+      toast(`いま ${jp(+r.coins||0)} 枚です`); caRender(root,h);
     }catch(e){ toast(String(e.message||e).slice(0,90)); }
   };
-  $("#caFixSet").onclick=()=>fix("set");
-  $("#caFixAdd").onclick=()=>fix("add");
-
-  if(CA_TAB==="coin"){
-    $("#caBox").innerHTML=CA_COIN.length?`<div class="scroll" style="max-height:46vh"><table><thead><tr>
-        <th>日時</th><th>どうやって</th><th class="n">枚数</th><th class="n">その時の合計</th><th>メモ</th>
-      </tr></thead><tbody>`
-      +CA_COIN.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
-        <td class="tiny">${esc(COIN_SRC[r.kind]||r.kind)}</td>
-        <td class="n"><b style="color:${(+r.amount)<0?"var(--bad)":"var(--acc2)"}">${(+r.amount)>0?"+":""}${jp(+r.amount||0)}</b></td>
-        <td class="n mono">${jp(+r.balance||0)}</td>
-        <td class="tiny">${esc(r.note||"")}</td></tr>`).join("")
-      +`</tbody></table></div>`
-      :`<p class="muted">記録がありません。</p>`;
-  }else{
-    $("#caBox").innerHTML=CA_CHEER.length?`<div class="scroll" style="max-height:46vh"><table><thead><tr>
-        <th>日時</th><th>どこから</th><th class="n">ポイント</th><th class="n">連打</th><th></th>
-      </tr></thead><tbody>`
-      +CA_CHEER.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
-        <td class="tiny">${esc(r.src==="rush"?"連打":r.src==="submit"?"記録の提出":"応援ボタン")}</td>
-        <td class="n"><b>${jp(+r.points||0)}</b></td>
-        <td class="n tiny">${(+r.taps)>0?jp(+r.taps)+" 回":"—"}</td>
-        <td><button class="btn sm" data-chfix="${esc(r.id)}">直す</button>
-          <button class="btn sm del" data-chdel="${esc(r.id)}">消す</button></td></tr>`).join("")
-      +`</tbody></table></div>`
-      :`<p class="muted">記録がありません。</p>`;
-    $$("#caBox [data-chfix]").forEach(b=>b.onclick=async()=>{
-      const row=CA_CHEER.find(x=>String(x.id)===b.dataset.chfix);
-      const M=modal(`<h2>応援ポイントを直す</h2>
-        <p class="muted" style="margin-top:-8px">${esc(jstStamp(row.at))} の記録です。</p>
-        <label class="fl">ポイント</label>
-        <input type="number" class="txt" id="chN" value="${+row.points||0}" style="max-width:160px">
-        <div class="tools"><button class="btn pri" id="chGo">直す</button>
-          <button class="btn" id="chNo">やめる</button></div>`,{w:520});
-      M.q("#chNo").onclick=()=>M.close();
-      M.q("#chGo").onclick=async()=>{
-        try{ await sbAuth("rpc/cheer_fix",{method:"POST",
-          body:JSON.stringify({p_id:row.id,p_points:+M.q("#chN").value||0})});
-          M.close(); toast("直しました"); await caLoad(CA_H);
-        }catch(e){ toast(String(e.message||e).slice(0,90)); }
-      };
-    });
-    $$("#caBox [data-chdel]").forEach(b=>b.onclick=async()=>{
-      if(!await askYN("この記録を消しますか？","元には戻せません。","消す")) return;
-      try{ await sbAuth("rpc/cheer_del",{method:"POST",body:JSON.stringify({p_id:b.dataset.chdel})});
-        toast("消しました"); await caLoad(CA_H);
+  q('[data-cafix="set"]').onclick=()=>fix("set");
+  q('[data-cafix="add"]').onclick=()=>fix("add");
+  qa("[data-chfix]").forEach(b=>b.onclick=()=>{
+    const row=cheer.find(x=>String(x.id)===b.dataset.chfix);
+    const M=modal(`<h2>応援ポイントを直す</h2>
+      <p class="muted" style="margin-top:-8px">${esc(jstStamp(row.at))} の記録です（連打 ${jp(+row.taps||0)} 回）。</p>
+      <label class="fl">ポイント</label>
+      <input type="number" class="txt" id="chN" value="${+row.points||0}" style="max-width:160px">
+      <div class="tools"><button class="btn pri" id="chGo">直す</button>
+        <button class="btn" id="chNo">やめる</button></div>`,{w:520});
+    M.q("#chNo").onclick=()=>M.close();
+    M.q("#chGo").onclick=async()=>{
+      try{ await sbAuth("rpc/cheer_fix",{method:"POST",
+        body:JSON.stringify({p_id:row.id,p_points:+M.q("#chN").value||0})});
+        M.close(); toast("直しました"); caRender(root,h);
       }catch(e){ toast(String(e.message||e).slice(0,90)); }
-    });
-  }
+    };
+  });
+  qa("[data-chdel]").forEach(b=>b.onclick=async()=>{
+    if(!await askYN("この記録を消しますか？","元には戻せません。","消す")) return;
+    try{ await sbAuth("rpc/cheer_del",{method:"POST",body:JSON.stringify({p_id:b.dataset.chdel})});
+      toast("消しました"); caRender(root,h);
+    }catch(e){ toast(String(e.message||e).slice(0,90)); }
+  });
 }
-$$("#caTabs [data-ca]").forEach(b=>b.onclick=()=>{ CA_TAB=b.dataset.ca; caDraw(); });
-if($("#caGo")) $("#caGo").onclick=()=>caLoad($("#caHandle").value);
-if($("#caHandle")) $("#caHandle").onkeydown=e=>{ if(e.key==="Enter") caLoad($("#caHandle").value); };
+/** プロフィールなどから、小窓で開きます（管理者だけ） */
+function coinAdminOpen(handle){
+  if(!isAdmin()) return toast("管理者だけが使えます");
+  const M=modal(`<h2>@${esc(String(handle||"").toLowerCase())} の Prime Coin・応援ポイント</h2>
+    <div id="caModal"></div>
+    <div class="tools"><button class="btn" id="caX">閉じる</button></div>`,{w:860});
+  M.q("#caX").onclick=()=>M.close();
+  caRender(M.q("#caModal"),handle);
+}
+if($("#caGo")) $("#caGo").onclick=()=>caRender($("#caRoot"),$("#caHandle").value);
+if($("#caHandle")) $("#caHandle").onkeydown=e=>{
+  if(e.key==="Enter") caRender($("#caRoot"),$("#caHandle").value); };
 
 /* ══════════ Prime Coin の配り方（管理者だけ）══════════ */
 const CC_ITEMS=[
@@ -15855,7 +16025,11 @@ $$("#cupTabs button").forEach(b=>b.onclick=()=>{
   $$("#cupTabs button").forEach(x=>x.classList.toggle("on",x===b));
   $("#cvJoin").hidden=b.dataset.cv!=="join";
   $("#cvMake").hidden=b.dataset.cv!=="make";
-  if(b.dataset.cv==="make"){ const ob=$("#mkOfBtn"); if(ob) ob.hidden=!canOfficial(); }
+  if(b.dataset.cv==="make"){
+    const ob=$("#mkOfBtn"); if(ob) ob.hidden=!canOfficial();
+    /* チャレンジを作る画面にも、賞品の欄を用意します（管理者だけ） */
+    if(!cuPrizeGet) cuPrizeGet=prizeFormMount("cuPrizeWrap","cuPrizeForm","pcup");
+  }
 });
 /* チャレンジ（新しい作り方）と 大会（従来の作り方）の切り替え */
 $$("#mkTabs button").forEach(b=>b.onclick=()=>{
