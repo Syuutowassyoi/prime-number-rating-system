@@ -1373,7 +1373,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <input type="text" class="txt" id="cTitle" placeholder="例：第1回 素因数分解競技会" style="max-width:none">
     <label class="fl">勝負の方式</label>
     <div class="toggle" style="display:inline-flex;gap:4px;background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:3px">
-      <button id="mdSum" class="on">合計モード</button><button id="mdScore">スコアモード（比重付き）</button>
+      <button id="mdSum" class="on">合計モード</button><button id="mdScore">スコアモード（比重付き）</button><button id="mdRate">レートモード（種目をそろえる）</button>
     </div>
     <p class="tiny" id="mdNote">選んだ種目の記録をそのまま合計します。</p>
     <label class="fl">対象種目（複数選ぶと合計で勝負）</label>
@@ -2217,6 +2217,50 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <span class="tiny" id="ccMsg"></span>
     </div>
   </div>
+  <div class="card" id="prizeCard" hidden>
+    <h2>大会の賞品（管理者だけ）</h2>
+    <p class="muted" style="margin-top:-8px">順位ごとにもらえる<b>スター</b>と<b>Prime Coin</b>、
+      それに<b>参加賞</b>を決められます。ここで決めた内容は、次に賞が配られる時から使われます。</p>
+    <div class="segs" id="pzTabs" style="grid-template-columns:repeat(4,1fr)">
+      <button data-pz="cup" class="on">競技会</button>
+      <button data-pz="day">チャレンジ Daily</button>
+      <button data-pz="week">Weekly</button>
+      <button data-pz="month">Monthly</button>
+    </div>
+    <div id="pzBox" style="margin-top:10px"></div>
+    <div class="tools">
+      <button class="btn pri" id="pzSave">この賞品で保存する（全員に反映）</button>
+      <button class="btn" id="pzReload">保存せずに読み直す</button>
+      <button class="btn" id="pzDef">はじめの形に戻す</button>
+      <span class="tiny" id="pzMsg"></span>
+    </div>
+    <h3 style="margin-top:18px">この大会だけ変える</h3>
+    <p class="tiny" style="margin-top:-6px">選んだ大会だけ、上の共通の設定より優先されます。</p>
+    <div class="tools" style="margin-top:0">
+      <select id="pzCup" style="max-width:340px"></select>
+      <button class="btn" id="pzCupSet">いまの内容をこの大会に入れる</button>
+      <button class="btn" id="pzCupClr">この大会の上書きを消す</button>
+    </div>
+    <p class="tiny" id="pzCupMsg"></p>
+  </div>
+
+  <div class="card" id="coinAdmCard" hidden>
+    <h2>Prime Coin・応援ポイントの管理（管理者だけ）</h2>
+    <p class="muted" style="margin-top:-8px">だれが、いつ、何枚、どうやって手に入れたかを見られます。
+      おかしな数があれば直せます。</p>
+    <div class="tools" style="margin-top:0">
+      <input type="text" class="txt" id="caHandle" placeholder="@ID（例：syuuto）" style="max-width:220px">
+      <button class="btn pri" id="caGo">この人を調べる</button>
+      <span class="tiny" id="caMsg"></span>
+    </div>
+    <div id="caSum" style="margin-top:10px"></div>
+    <div class="segs" id="caTabs" style="grid-template-columns:1fr 1fr;margin-top:10px" hidden>
+      <button data-ca="coin" class="on">Prime Coin</button>
+      <button data-ca="cheer">応援ポイント</button>
+    </div>
+    <div id="caBox" style="margin-top:10px"></div>
+  </div>
+
   <div class="card" id="adminCard" hidden>
     <h2>管理者メニュー</h2>
     <div id="adminBox"></div>
@@ -2254,7 +2298,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v96";
+const APP_VERSION = "v97";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2901,6 +2945,15 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v97":[
+    "競技会に「レートモード」を追加。むずかしさの違う種目や、スコアとタイムを混ぜても公平に順位が付きます",
+    "順位ごとの賞品（スター・Prime Coin）と参加賞を、管理者が決められるようにした",
+    "チャレンジの Daily・Weekly・Monthly も、順位ごとの賞と参加賞を設定できます",
+    "大会ごとに賞品を上書きできるようにした",
+    "「大会の記録」でチャレンジの記録（第何回・順位）も見られるようにした",
+    "管理者だけが使える機能をサーバー側でも毎回たしかめるようにした",
+    "Prime Coin と応援ポイントの履歴を管理者が見て直せるようにした",
+    "ヘルプの経験値の数字を、ほんとうの値に直した"],
   "v96":[
     "「現在まで」をリセットすると Prime Coin の「あと何回」が戻ってしまう不具合を修正",
     "累積を入力した時に、見込みが二重に足されることがある不具合を修正",
@@ -6835,6 +6888,8 @@ const isAdmin=()=>!!(me&&me.role==="admin");
 /** 管理者だけに見せるものを出し入れします */
 function admShow(){
   if(typeof rpShow==="function") rpShow();
+  if($("#prizeCard")) $("#prizeCard").hidden=!isAdmin();
+  if($("#coinAdmCard")) $("#coinAdmCard").hidden=!isAdmin();
   if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
@@ -6956,9 +7011,11 @@ function renderSettings(){
   renderSupporter();
   $("#adminCard").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
+  if($("#prizeCard")) $("#prizeCard").hidden=!isAdmin();
+  if($("#coinAdmCard")) $("#coinAdmCard").hidden=!isAdmin();
   if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
-  if(isAdmin()){ renderAdmin(); ccEnter(); }
+  if(isAdmin()){ renderAdmin(); ccEnter(); pzEnter(); }
 }
 function renderSupporter(){
   const b=$("#supBox");
@@ -7178,7 +7235,7 @@ function editCup(id){
       <div><label class="fl">開始日時</label><input type="datetime-local" class="txt" id="edStart" style="max-width:none" value="${iso(c.starts_at)}"${done?" disabled":""}></div>
       <div><label class="fl">終了日時</label><input type="datetime-local" class="txt" id="edEnd" style="max-width:none" value="${iso(c.ends_at)}"${done?" disabled":""}></div>
     </div>
-    <p class="tiny">種目：${esc((c.events||[]).join("、"))}　方式：${c.mode==="score"?"スコアモード":"合計モード"}</p>
+    <p class="tiny">種目：${esc((c.events||[]).join("、"))}　方式：${MODE_N(c.mode)}</p>
     <div class="tools"><button class="btn pri" id="edSave">保存する</button>
       <button class="btn" id="edX">やめる</button></div>
     <div id="edMsg" class="tiny"></div></div>`;
@@ -7215,7 +7272,7 @@ function renderCupList(){
     h+=`<div class="gsec">${label}（${list.length}）</div>`;
     h+=list.map(c=>`<div class="cup ${ph==="live"?"live":""}">
       <h4>${esc(c.title)}</h4>
-      <div class="meta">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"（不明）")}</b>${c.owner_handle?` <span class="tiny">@${esc(c.owner_handle)}</span>`:""}　${c.mode==="score"?"<b style=\"color:var(--warn)\">スコアモード</b>　":""}種目 ${esc((c.events||[]).join("、"))}</div>
+      <div class="meta">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"（不明）")}</b>${c.owner_handle?` <span class="tiny">@${esc(c.owner_handle)}</span>`:""}　${c.mode!=="sum"?`<b style="color:var(--warn)">${MODE_N(c.mode)}</b>　`:""}種目 ${esc((c.events||[]).join("、"))}</div>
       <div class="meta">${fmtDT(c.starts_at)} 〜 ${fmtDT(c.ends_at)}</div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
         <span class="cd ${ph}" data-cd="${esc(c.id)}"></span>
@@ -7258,14 +7315,33 @@ function renderCupNew(){
   syncWeightInputs();
 }
 function syncWeightInputs(){
-  $$("[data-cw]").forEach(el=>{ el.style.display=(cupMode==="score")?"inline-block":"none"; });
+  $$("[data-cw]").forEach(el=>{ el.style.display=(cupMode==="score"||cupMode==="rate")?"inline-block":"none"; });
+}
+/* レートモードの1種目ぶんの点。
+   その種目のボーダー（1位・5位・10位…）と見くらべて 0〜1000 点に直します。
+   ・むずかしい種目でも、やさしい種目でも「1位なら1000点」でそろいます
+   ・タイムの種目は「短いほど高い」に自動でそろいます（LOW の種目）*/
+const MODE_N=m=>m==="score"?"スコアモード":m==="rate"?"レートモード":"合計モード";
+const RATE_PT=1000;
+function ratePoints(n,v){
+  if(!(v>0)) return 0;
+  const e=eventRate(n,v);
+  return Math.round((e.r||0)*RATE_PT*1000)/1000;
 }
 function updateCupHint(){
   const evs=[...cupEvents], d=cupDir(evs), hb=$("#cEvHint");
   if(!evs.length){hb.hidden=true;return;}
   hb.hidden=false;
+  if(cupMode==="rate"){
+    hb.innerHTML=`各種目の記録を <b>0〜${jp(RATE_PT)}点</b> に直してから合計します`
+      +`（1位ボーダーで ${jp(RATE_PT)}点）。<br>`
+      +`<span class="tiny">世界記録が9万点の種目と8.5万点の種目でも、同じものさしになります。`
+      +`スコアとタイムを混ぜても大丈夫です。比重をかけることもできます。</span>`
+      +`<br><span class="tiny">選んだ種目：${esc(evs.join("、"))}</span>`;
+    return;
+  }
   hb.innerHTML = d==="mixed"
-    ? `<b style="color:var(--bad)">スコア系とタイム系は混ぜられません。</b>どちらかに揃えてください。`
+    ? `<b style="color:var(--bad)">スコア系とタイム系は混ぜられません。</b>レートモードなら混ぜられます。`
     : (cupMode==="score"
         ? `各種目に比重をかけて合計します。`+
           `<br><span class="tiny">例：比重2なら、その種目の記録が2倍として扱われます。</span>`
@@ -7274,22 +7350,30 @@ function updateCupHint(){
 $("#cupNewBtn").onclick=()=>{ $("#cupNew").hidden=!$("#cupNew").hidden;
   if(!$("#cupNew").hidden){ renderCupNew(); $("#cupNew").scrollIntoView({behavior:"smooth"}); } };
 $("#cCancel").onclick=()=>{ $("#cupNew").hidden=true; };
-$("#mdSum").onclick=()=>{cupMode="sum";$("#mdSum").classList.add("on");$("#mdScore").classList.remove("on");
+$("#mdSum").onclick=()=>{cupMode="sum";$$("#cupNew .toggle button").forEach(b=>b.classList.remove("on"));
+  $("#mdSum").classList.add("on");
   $("#mdNote").textContent="選んだ種目の記録をそのまま合計します。";syncWeightInputs();updateCupHint();};
-$("#mdScore").onclick=()=>{cupMode="score";$("#mdScore").classList.add("on");$("#mdSum").classList.remove("on");
+$("#mdScore").onclick=()=>{cupMode="score";$$("#cupNew .toggle button").forEach(b=>b.classList.remove("on"));
+  $("#mdScore").classList.add("on");
   $("#mdNote").textContent="種目ごとに比重を設定できます。重要な種目に大きい数字を入れてください。";syncWeightInputs();updateCupHint();};
+$("#mdRate").onclick=()=>{cupMode="rate";$$("#cupNew .toggle button").forEach(b=>b.classList.remove("on"));
+  $("#mdRate").classList.add("on");
+  $("#mdNote").innerHTML="記録を「その種目の中でどのくらいすごいか」に置きかえてから合計します。"
+    +"<br>むずかしさの違う種目や、スコアとタイムを<b>混ぜても公平</b>に順位が付きます。";
+  syncWeightInputs();updateCupHint();};
 $("#cCreate").onclick=async()=>{
   const evs=[...cupEvents], m=$("#cMsg");
   if(!sess) return toast("ログインが必要です");
   if(!$("#cTitle").value.trim()) return toast("大会名を入力してください");
   if(!evs.length) return toast("種目を1つ以上選んでください");
-  if(cupDir(evs)==="mixed") return toast("スコア系とタイム系は混ぜられません");
+  if(cupMode!=="rate"&&cupDir(evs)==="mixed")
+    return toast("スコア系とタイム系は混ぜられません（レートモードなら混ぜられます）");
   const a=$("#cStart").value, b=$("#cEnd").value;
   if(!a||!b) return toast("開始と終了の日時を入れてください");
   if(fromJstInput(b)<=fromJstInput(a)) return toast("終了は開始より後にしてください");
   try{
     const w={}; evs.forEach(n=>{const el=$(`[data-cw="${CSS.escape(n)}"]`);
-      w[n]=(cupMode==="score"&&el)?Math.max(num(el.value)||1,0.01):1;});
+      w[n]=((cupMode==="score"||cupMode==="rate")&&el)?Math.max(num(el.value)||1,0.01):1;});
     await rpcTry("create_tournament",{
       p_title:$("#cTitle").value.trim(), p_events:evs, p_mode:cupMode, p_weights:w,
       p_starts:fromJstInput(a).toISOString(), p_ends:fromJstInput(b).toISOString(),
@@ -7322,7 +7406,9 @@ async function openCup(id){
     <h2>${esc(c.title)}</h2>
     <p class="muted" style="margin-top:-8px">主催 <b style="color:var(--tx)">${esc(c.owner_name||c.owner_handle||"（不明）")}</b>
       ${c.owner_handle?`<span class="tiny">@${esc(c.owner_handle)}</span>`:""}　／　種目 ${esc(evs.join("、"))}
-      （${c.mode==="score"?"スコアモード：比重付き合計":dir==="low"?"合計タイムが短いほど上位":"合計スコアが高いほど上位"}）</p>
+      （${c.mode==="rate"?`レートモード：各種目を0〜${jp(RATE_PT)}点にそろえて合計`
+      :c.mode==="score"?"スコアモード：比重付き合計"
+      :dir==="low"?"合計タイムが短いほど上位":"合計スコアが高いほど上位"}）</p>
     ${c.mode==="score"?`<h3>比重リスト（倍率の高い順）</h3>
       <div class="scroll"><table><thead><tr><th>順</th><th>種目</th><th>比重</th><th>影響</th></tr></thead><tbody>`+
       evs.map(n=>({n,w:+(c.weights&&c.weights[n])||1})).sort((a,b)=>b.w-a.w)
@@ -7338,11 +7424,11 @@ async function openCup(id){
     ${ph==="pre"?`<div class="hintbox">まだ開始していません。開始時刻になると記録を提出できます。</div>`:""}
     <h3>順位表（${ent.length}人）</h3>
     ${ent.length?`<div class="scroll"><table><thead><tr><th>順位</th><th>プレイヤー</th>`+
-      `<th>合計${c.mode==="score"?"（比重後）":""}</th><th>証明</th><th></th></tr></thead><tbody>`+
+      `<th>合計${c.mode==="score"?"（比重後）":c.mode==="rate"?"（レート点）":""}</th><th>証明</th><th></th></tr></thead><tbody>`+
       ent.map((e,ix)=>`<tr class="${sess&&e.user_id===sess.user.id?"me":""}">`+
         `<td>${e._rank}${e._rank===1?" 🏆":""}</td>`+
         `<td>${nameHTML(e.name||e.handle||"",e.role)}</td>`+
-        `<td><b>${nice(e.total)}</b>${c.mode==="score"?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
+        `<td><b>${nice(e.total)}</b>${(c.mode==="score"||c.mode==="rate")?`<br><span class="tiny">元 ${nice(rawSum(e,evs))}</span>`:""}</td>`+
         `<td>${proofsHTML(e.proofs,e.proof_url)}</td>`+
         `<td><button class="btn sm" data-dt="${ix}">詳細データ</button></td></tr>`).join("")+
       `</tbody></table></div>`
@@ -7388,7 +7474,7 @@ function proofLinks(u){
 }
 /** 詳細データ（比重の前後を並べる） */
 function showEntryDetail(c,evs,e,owner,reload){
-  const W=(c.mode==="score"&&c.weights)?c.weights:null;
+  const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
   const M=modal(`<h2>${esc(e.name||e.handle||"")} の詳細データ</h2>
     <div class="scroll"><table><thead><tr><th>種目</th>`+
       (W?`<th>比重</th><th>比重後</th><th>元の記録</th>`:`<th>記録</th>`)+
@@ -7447,10 +7533,12 @@ function showEntryDetail(c,evs,e,owner,reload){
   }
 }
 function entryForm(c,evs,dir,mine){
-  const W=(c.mode==="score"&&c.weights)?c.weights:null;
+  const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
   $("#entForm").innerHTML=`<h3>記録を提出${mine?"／更新":""}</h3>
     <p class="tiny" style="margin-top:-4px">期間中は何度でも更新できます。X（Twitter）の投稿リンクの添付が必須です。
-    ${W?`このスコアモードでは 比重 ${evs.map(n=>`${esc(n)}×${(+W[n]||1)}`).join("　")} を掛けた合計で競います。`:""}</p>
+    ${W?`この${MODE_N(c.mode)}では 比重 ${evs.map(n=>`${esc(n)}×${(+W[n]||1)}`).join("　")} を掛けた合計で競います。`:""}
+    ${c.mode==="rate"?`<br>レートモードなので、記録は「その種目の中でのすごさ」に直してから合計します
+      （1位ボーダーで ${jp(RATE_PT)}点）。`:""}</p>
     <div class="frow">${evs.map(n=>
       `<div><label class="fl">${esc(n)}${LOW.has(n)?"（秒）":""}</label>
        <input type="text" inputmode="decimal" data-en="${esc(n)}" style="max-width:none"
@@ -7501,8 +7589,10 @@ function entryForm(c,evs,dir,mine){
         "はい、更新する","大会の記録だけにする");
       if(upd){ better.forEach(n=>rec[n]=sc[n]); fillInputs(); render(); }
     }
-    const W=(c.mode==="score"&&c.weights)?c.weights:null;
-    const tot=evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
+    const W=((c.mode==="score"||c.mode==="rate")&&c.weights)?c.weights:null;
+    const tot=(c.mode==="rate")
+      ? Math.round(evs.reduce((a,n)=>a+ratePoints(n,sc[n])*(W?(+W[n]||1):1),0)*1000)/1000
+      : evs.reduce((a,n)=>a+sc[n]*(W?(+W[n]||1):1),0);
     try{
       await rpcTry("submit_entry",{
         p_tid:c.id,p_scores:sc,p_total:tot,
@@ -7586,7 +7676,7 @@ function showPlayer(p,rc){
     `</tbody></table></div>
     <div id="mpRole"></div>
     <div class="tools"><button class="btn pri" id="mpFr"></button>
-      <button class="btn" id="mpCup">競技会の記録</button>
+      <button class="btn" id="mpCup">大会の記録</button>
       <button class="btn" id="mpCmp">自分と比較</button>
       <button class="btn" id="mpX">閉じる</button></div></div>`;
   document.body.appendChild(mask);
@@ -7626,8 +7716,7 @@ function showPlayer(p,rc){
     q("#mpCup").disabled=true;
     const h=await fetchCupHistory(p.handle);
     q("#mpCup").disabled=false;
-    if(!h) return toast("大会記録を取得できませんでした");
-    showCupHistory(p,h);};
+    showCupHistory(p,h||{rows:[],played:0,wins:0,podium:0,finished:0});};
   q("#mpCmp").onclick=()=>{ close(); goTab("friends");
     renderCompare({pro:{name:p.name,handle:p.handle,img:"",role:p.role},rec:rc}); };
 }
@@ -14105,6 +14194,243 @@ function lsCoinFx(n){
   setTimeout(()=>t.remove(),1600);
 }
 
+/* ══════════════════════════════════════════════════════════
+   大会の賞品（管理者だけ）
+   ・順位ごとのスター・Prime Coin と、参加賞を決めます
+   ・共通の設定と、大会ごとの上書きの2つがあります
+   ══════════════════════════════════════════════════════════ */
+const PZ_KEYS=[["cup","競技会"],["day","チャレンジ Daily"],["week","Weekly"],["month","Monthly"]];
+const PZ_DEF={
+  cup:{ranks:[{pos:1,star:30,coin:10},{pos:2,star:20,coin:5},{pos:3,star:10,coin:3}],join:{star:1,coin:1}},
+  day:{ranks:[{pos:1,star:5,coin:0},{pos:2,star:3,coin:0},{pos:3,star:1,coin:0}],join:{star:0,coin:0}},
+  week:{ranks:[{pos:1,star:15,coin:0},{pos:2,star:10,coin:0},{pos:3,star:5,coin:0}],join:{star:0,coin:0}},
+  month:{ranks:[{pos:1,star:30,coin:0},{pos:2,star:20,coin:0},{pos:3,star:10,coin:0}],join:{star:0,coin:0}}
+};
+let PZCFG=JSON.parse(JSON.stringify(PZ_DEF)), PZEDIT=null, pzTab="cup";
+async function pzLoad(){
+  if(TEST||!sbOn()) return PZCFG;
+  try{
+    const r=await sb("rpc/prize_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object") PZCFG=Object.assign(JSON.parse(JSON.stringify(PZ_DEF)),r);
+  }catch(e){}
+  return PZCFG;
+}
+async function pzEnter(){
+  if(!isAdmin()) return;
+  await pzLoad();
+  PZEDIT=JSON.parse(JSON.stringify(PZCFG));
+  pzDraw(); pzCups();
+}
+function pzDraw(){
+  const b=$("#pzBox"); if(!b||!PZEDIT) return;
+  $$("#pzTabs [data-pz]").forEach(x=>x.classList.toggle("on",x.dataset.pz===pzTab));
+  const cur=PZEDIT[pzTab]||(PZEDIT[pzTab]={ranks:[],join:{star:0,coin:0}});
+  cur.ranks=(cur.ranks||[]).slice().sort((a,b2)=>(+a.pos||0)-(+b2.pos||0));
+  const num=(i,f,v)=>`<input type="number" class="txt" data-pzr="${i}.${f}" min="0" max="9999" step="1"
+    value="${+v||0}" style="max-width:90px">`;
+  b.innerHTML=`<div class="scroll" style="max-height:none"><table><thead><tr>
+      <th>順位</th><th class="n">スター</th><th class="n"><span class="pcoin">P</span> コイン</th><th></th>
+    </tr></thead><tbody>`
+    +cur.ranks.map((r,i)=>`<tr>
+      <td><input type="number" class="txt" data-pzr="${i}.pos" min="1" max="100" step="1"
+        value="${+r.pos||1}" style="max-width:80px"> 位</td>
+      <td class="n">${num(i,"star",r.star)}</td>
+      <td class="n">${num(i,"coin",r.coin)}</td>
+      <td><button class="btn sm del" data-pzx="${i}">消す</button></td></tr>`).join("")
+    +`<tr><td><b>参加賞</b><br><span class="tiny">出した人みんな</span></td>
+      <td class="n"><input type="number" class="txt" data-pzj="star" min="0" max="9999" step="1"
+        value="${+((cur.join||{}).star)||0}" style="max-width:90px"></td>
+      <td class="n"><input type="number" class="txt" data-pzj="coin" min="0" max="9999" step="1"
+        value="${+((cur.join||{}).coin)||0}" style="max-width:90px"></td><td></td></tr>`
+    +`</tbody></table></div>
+    <div class="tools" style="margin-top:8px">
+      <button class="btn sm" id="pzAdd">＋ 順位を増やす</button>
+      <span class="tiny">スターは1個 5XP になります。0 にすると、その順位には何も配りません。</span>
+    </div>`;
+  $$("#pzBox [data-pzr]").forEach(e=>e.oninput=()=>{
+    const [i,f]=e.dataset.pzr.split(".");
+    cur.ranks[+i][f]=Math.max(0,Math.min(9999,+e.value||0));
+  });
+  $$("#pzBox [data-pzj]").forEach(e=>e.oninput=()=>{
+    cur.join=cur.join||{}; cur.join[e.dataset.pzj]=Math.max(0,Math.min(9999,+e.value||0));
+  });
+  $$("#pzBox [data-pzx]").forEach(x=>x.onclick=()=>{ cur.ranks.splice(+x.dataset.pzx,1); pzDraw(); });
+  $("#pzAdd").onclick=()=>{
+    const mx=cur.ranks.reduce((a,r)=>Math.max(a,+r.pos||0),0);
+    cur.ranks.push({pos:mx+1,star:0,coin:0}); pzDraw();
+  };
+}
+$$("#pzTabs [data-pz]").forEach(b=>b.onclick=()=>{ pzTab=b.dataset.pz; pzDraw(); });
+const pzMsg=(t,ok)=>{ const e=$("#pzMsg"); if(e) e.innerHTML=
+  `<span style="color:${ok===false?"var(--bad)":"var(--acc2)"}">${esc(t)}</span>`; };
+if($("#pzSave")) $("#pzSave").onclick=async()=>{
+  if(!PZEDIT) return;
+  const cfg={};
+  PZ_KEYS.forEach(([k])=>{
+    const c=PZEDIT[k]||{};
+    cfg[k]={ranks:(c.ranks||[]).map(r=>({pos:Math.max(1,+r.pos||1),
+        star:Math.max(0,+r.star||0),coin:Math.max(0,+r.coin||0)}))
+        .sort((a,b)=>a.pos-b.pos),
+      join:{star:Math.max(0,+((c.join||{}).star)||0),coin:Math.max(0,+((c.join||{}).coin)||0)}};
+  });
+  pzMsg("送っています…");
+  try{
+    await sbAuth("rpc/prize_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
+    await pzLoad();
+    const srv=await sb("rpc/prize_cfg",{method:"POST",body:"{}"});
+    const same=JSON.stringify((srv||{}).cup)===JSON.stringify(cfg.cup);
+    PZEDIT=JSON.parse(JSON.stringify(PZCFG)); pzDraw();
+    pzMsg(same?"保存しました。全員に反映されました":"保存しましたが、確認できませんでした",same);
+  }catch(e){ pzMsg(String(e.message||e).slice(0,90),false); }
+};
+if($("#pzReload")) $("#pzReload").onclick=async()=>{ await pzEnter(); pzMsg("読み直しました"); };
+if($("#pzDef")) $("#pzDef").onclick=()=>{ PZEDIT=JSON.parse(JSON.stringify(PZ_DEF)); pzDraw();
+  pzMsg("はじめの形に戻しました（保存はまだです）"); };
+/** 大会ごとの上書き */
+async function pzCups(){
+  const sel=$("#pzCup"); if(!sel) return;
+  const out=[];
+  try{ (CUPS||[]).forEach(c=>out.push(["tournament|"+c.id,"競技会："+c.title])); }catch(e){}
+  try{ (PCUPS||[]).forEach(c=>out.push(["pcup|"+c.id,
+    (c.kind==="official"?"競技会：":"チャレンジ：")+c.title])); }catch(e){}
+  sel.innerHTML=out.length?out.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join("")
+    :`<option value="">（大会がありません）</option>`;
+}
+if($("#pzCupSet")) $("#pzCupSet").onclick=async()=>{
+  const v=$("#pzCup").value; if(!v) return;
+  const [kind,id]=v.split("|");
+  const cur=PZEDIT[pzTab];
+  /* 競技会は cup、チャレンジは day/week/month をまとめて入れます */
+  const body=(kind==="tournament")?{cup:cur}
+    :{day:PZEDIT.day,week:PZEDIT.week,month:PZEDIT.month};
+  try{
+    const r=await sbAuth("rpc/cup_prize_set",{method:"POST",
+      body:JSON.stringify({p_kind:kind,p_id:id,p_prize:body})});
+    $("#pzCupMsg").innerHTML=`<span style="color:var(--acc2)">「${esc((r&&r.title)||"")}」に入れました</span>`;
+  }catch(e){ $("#pzCupMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</span>`; }
+};
+if($("#pzCupClr")) $("#pzCupClr").onclick=async()=>{
+  const v=$("#pzCup").value; if(!v) return;
+  const [kind,id]=v.split("|");
+  try{
+    const r=await sbAuth("rpc/cup_prize_set",{method:"POST",
+      body:JSON.stringify({p_kind:kind,p_id:id,p_prize:null})});
+    $("#pzCupMsg").innerHTML=`<span style="color:var(--acc2)">「${esc((r&&r.title)||"")}」の上書きを消しました</span>`;
+  }catch(e){ $("#pzCupMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</span>`; }
+};
+
+/* ══════════════════════════════════════════════════════════
+   Prime Coin・応援ポイントの管理（管理者だけ）
+   ══════════════════════════════════════════════════════════ */
+let CA_H="", CA_TAB="coin", CA_COIN=[], CA_CHEER=[], CA_SUM=null;
+const COIN_SRC={login:"ログインボーナス",streak:"連続ログイン",submit:"記録の提出",
+  game:"Prime Park",ls:"LSやりこみ",best:"自己ベスト更新",ach:"アチーブメント達成",
+  prize:"大会の賞品",mood:"今週の目標",spend:"応援の連打（使用）",admin:"管理者による修正"};
+async function caLoad(h){
+  CA_H=String(h||"").replace(/^@/,"").trim().toLowerCase();
+  if(!CA_H) return toast("@ID を入れてください");
+  $("#caMsg").textContent="読み込み中…";
+  try{
+    CA_SUM=await sbAuth("rpc/coin_summary",{method:"POST",body:JSON.stringify({p_handle:CA_H})});
+    CA_COIN=await sbAuth("rpc/coin_history",{method:"POST",body:JSON.stringify({p_handle:CA_H,p_limit:300})})||[];
+    CA_CHEER=await sbAuth("rpc/cheer_history",{method:"POST",body:JSON.stringify({p_handle:CA_H,p_limit:300})})||[];
+    $("#caMsg").textContent="";
+    $("#caTabs").hidden=false;
+    caDraw();
+  }catch(e){
+    $("#caMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e).slice(0,90))}</span>`;
+    $("#caSum").innerHTML=""; $("#caBox").innerHTML=""; $("#caTabs").hidden=true;
+  }
+}
+function caDraw(){
+  $$("#caTabs [data-ca]").forEach(b=>b.classList.toggle("on",b.dataset.ca===CA_TAB));
+  const sum=CA_SUM||{};
+  const byk=sum.by_kind||{};
+  const cheerPt=CA_CHEER.reduce((a,x)=>a+(+x.points||0),0);
+  const taps=CA_CHEER.reduce((a,x)=>a+(+x.taps||0),0);
+  $("#caSum").innerHTML=`<div class="lsgrid2">
+      <div class="lsbox big"><div class="t">いまの Prime Coin</div>
+        <div class="v big">${jp(+sum.coins||0)}</div>
+        <div class="s">記録 ${jp(+sum.rows||0)} 件</div></div>
+      <div class="lsbox big"><div class="t">応援ポイント（この記録から）</div>
+        <div class="v big" style="color:var(--warn)">${jp(cheerPt)}</div>
+        <div class="s">連打 ${jp(taps)} 回</div></div>
+    </div>
+    <p class="tiny" style="margin-top:8px">内わけ：${Object.keys(byk).length
+      ? Object.keys(byk).map(k=>`${esc(COIN_SRC[k]||k)} <b>${jp(byk[k])}</b>`).join("　／　")
+      : "—"}</p>
+    <div class="tools" style="margin-top:8px">
+      <input type="number" class="txt" id="caFixN" style="max-width:120px" placeholder="枚数">
+      <button class="btn" id="caFixSet">ちょうどこの枚数にする</button>
+      <button class="btn" id="caFixAdd">この枚数を足す（マイナスも可）</button>
+      <input type="text" class="txt" id="caFixNote" style="max-width:220px" placeholder="理由（任意）">
+    </div>`;
+  const fix=async mode=>{
+    const n=+$("#caFixN").value;
+    if(!Number.isFinite(n)) return toast("枚数を入れてください");
+    if(!await askYN("コインの枚数を直しますか？",
+      `@${esc(CA_H)} のコインを ${mode==="set"?`<b>ちょうど ${jp(n)} 枚</b>に`:`<b>${n>=0?"+":""}${jp(n)} 枚</b>`}します。`,
+      "直す")) return;
+    try{
+      const r=await sbAuth("rpc/coin_admin_fix",{method:"POST",
+        body:JSON.stringify({p_handle:CA_H,p_n:n,p_mode:mode,p_note:$("#caFixNote").value.trim()||null})});
+      toast(`いま ${jp(+r.coins||0)} 枚です`); await caLoad(CA_H);
+    }catch(e){ toast(String(e.message||e).slice(0,90)); }
+  };
+  $("#caFixSet").onclick=()=>fix("set");
+  $("#caFixAdd").onclick=()=>fix("add");
+
+  if(CA_TAB==="coin"){
+    $("#caBox").innerHTML=CA_COIN.length?`<div class="scroll" style="max-height:46vh"><table><thead><tr>
+        <th>日時</th><th>どうやって</th><th class="n">枚数</th><th class="n">その時の合計</th><th>メモ</th>
+      </tr></thead><tbody>`
+      +CA_COIN.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
+        <td class="tiny">${esc(COIN_SRC[r.kind]||r.kind)}</td>
+        <td class="n"><b style="color:${(+r.amount)<0?"var(--bad)":"var(--acc2)"}">${(+r.amount)>0?"+":""}${jp(+r.amount||0)}</b></td>
+        <td class="n mono">${jp(+r.balance||0)}</td>
+        <td class="tiny">${esc(r.note||"")}</td></tr>`).join("")
+      +`</tbody></table></div>`
+      :`<p class="muted">記録がありません。</p>`;
+  }else{
+    $("#caBox").innerHTML=CA_CHEER.length?`<div class="scroll" style="max-height:46vh"><table><thead><tr>
+        <th>日時</th><th>どこから</th><th class="n">ポイント</th><th class="n">連打</th><th></th>
+      </tr></thead><tbody>`
+      +CA_CHEER.map(r=>`<tr><td class="tiny mono">${esc(jstStamp(r.at))}</td>
+        <td class="tiny">${esc(r.src==="rush"?"連打":r.src==="submit"?"記録の提出":"応援ボタン")}</td>
+        <td class="n"><b>${jp(+r.points||0)}</b></td>
+        <td class="n tiny">${(+r.taps)>0?jp(+r.taps)+" 回":"—"}</td>
+        <td><button class="btn sm" data-chfix="${esc(r.id)}">直す</button>
+          <button class="btn sm del" data-chdel="${esc(r.id)}">消す</button></td></tr>`).join("")
+      +`</tbody></table></div>`
+      :`<p class="muted">記録がありません。</p>`;
+    $$("#caBox [data-chfix]").forEach(b=>b.onclick=async()=>{
+      const row=CA_CHEER.find(x=>String(x.id)===b.dataset.chfix);
+      const M=modal(`<h2>応援ポイントを直す</h2>
+        <p class="muted" style="margin-top:-8px">${esc(jstStamp(row.at))} の記録です。</p>
+        <label class="fl">ポイント</label>
+        <input type="number" class="txt" id="chN" value="${+row.points||0}" style="max-width:160px">
+        <div class="tools"><button class="btn pri" id="chGo">直す</button>
+          <button class="btn" id="chNo">やめる</button></div>`,{w:520});
+      M.q("#chNo").onclick=()=>M.close();
+      M.q("#chGo").onclick=async()=>{
+        try{ await sbAuth("rpc/cheer_fix",{method:"POST",
+          body:JSON.stringify({p_id:row.id,p_points:+M.q("#chN").value||0})});
+          M.close(); toast("直しました"); await caLoad(CA_H);
+        }catch(e){ toast(String(e.message||e).slice(0,90)); }
+      };
+    });
+    $$("#caBox [data-chdel]").forEach(b=>b.onclick=async()=>{
+      if(!await askYN("この記録を消しますか？","元には戻せません。","消す")) return;
+      try{ await sbAuth("rpc/cheer_del",{method:"POST",body:JSON.stringify({p_id:b.dataset.chdel})});
+        toast("消しました"); await caLoad(CA_H);
+      }catch(e){ toast(String(e.message||e).slice(0,90)); }
+    });
+  }
+}
+$$("#caTabs [data-ca]").forEach(b=>b.onclick=()=>{ CA_TAB=b.dataset.ca; caDraw(); });
+if($("#caGo")) $("#caGo").onclick=()=>caLoad($("#caHandle").value);
+if($("#caHandle")) $("#caHandle").onkeydown=e=>{ if(e.key==="Enter") caLoad($("#caHandle").value); };
+
 /* ══════════ Prime Coin の配り方（管理者だけ）══════════ */
 const CC_ITEMS=[
   {k:"login", n:"ログインボーナス",     cap:false, note:"1日1回。必ず1回だけです"},
@@ -14408,8 +14734,7 @@ async function rushEnd(){
   if(pt>0){
     chAdd(pt); renderCheer();
     if(!TEST&&sess&&sbOn()){
-      try{ const r=await sbAuth("rpc/cheer",
-        {method:"POST",body:JSON.stringify({p_n:pt,p_src:"rush"})});
+      try{ const r=await callRpc("cheer",{p_n:pt,p_src:"rush",p_taps:n},[["p_taps"]]);
         const x=Array.isArray(r)?r[0]:r;
         if(x){ CH.total=+x.total; CH.today=+x.today; } }
       catch(e){ toast("応援ポイントを入れられませんでした："+String(e.message||e).slice(0,50)); }
@@ -14504,9 +14829,10 @@ role:`<h3>審査の仕組み</h3>
 <h3 style="margin-top:16px">経験値とレベル</h3>
 <div class="scroll"><table><thead><tr><th>したこと</th><th>もらえる経験値</th><th>通ったら追加</th></tr></thead><tbody>
 <tr><td>記録の提出</td><td>50 XP</td><td>＋25 XP</td></tr>
-<tr><td>審査</td><td>25 XP</td><td>＋25 XP</td></tr>
-<tr><td>審査員審査</td><td>50 XP</td><td>＋50 XP</td></tr>
-<tr><td>スーパーバイザー審査</td><td>100 XP</td><td>—</td></tr>
+<tr><td>審査（審査員）</td><td>10 XP</td><td>＋10 XP</td></tr>
+<tr><td>審査員審査（スーパーバイザー）</td><td>20 XP</td><td>＋20 XP</td></tr>
+<tr><td>スーパーバイザー審査（ジャッジマン）</td><td>30 XP</td><td>—</td></tr>
+<tr><td>アチーブメントの審査</td><td>10 / 20 / 30 XP</td><td>記録の審査と同じ</td></tr>
 <tr><td>タイムラインへのつぶやき</td><td>1 XP</td><td>—</td></tr>
 <tr><td>自動で流れた投稿</td><td>0 XP</td><td>—</td></tr>
 </tbody></table></div>
@@ -14542,6 +14868,21 @@ X の動画は長さの制限があるので、長いチャレンジではこち
 チャレンジは「・・・」→<b>説明を書きかえる</b>、競技会は<b>内容を変更</b>から。<br>
 名前とルールは変えられません（すでに出された記録とずれてしまうためです）。<br>
 競技会は<b>終わったあとでも</b>説明だけは書き足せます。</p>
+
+<h3 style="margin-top:16px">競技会の3つの決め方</h3>
+<div class="scroll"><table><thead><tr><th>方式</th><th>どう決まるか</th><th>向いている場合</th></tr></thead><tbody>
+<tr><td><b>合計モード</b></td><td>選んだ種目の記録を、そのまま足します</td><td>同じ種類の種目だけを集めた時</td></tr>
+<tr><td><b>スコアモード</b></td><td>種目ごとに比重をかけて足します</td><td>特定の種目を重くしたい時</td></tr>
+<tr><td><b>レートモード</b></td><td>記録を「その種目の中でのすごさ」に直してから足します</td>
+  <td><b>むずかしさの違う種目や、スコアとタイムを混ぜる時</b></td></tr>
+</tbody></table></div>
+<p class="tiny"><b>レートモードのしくみ</b><br>
+その種目のボーダー（1位・5位・10位…200位）と見くらべて、記録を <b>0〜1,000点</b> に直します。
+1位ボーダーちょうどで 1,000点、200位ボーダーで少しの点、という具合です。<br>
+世界記録が9万点の種目でも8.5万点の種目でも、<b>「1位なら1,000点」</b>でそろうので、
+どの種目が得意でも公平に競えます。タイムの種目は「短いほど高い点」に自動で直ります。</p>
+<p class="tiny">18種目ぜんぶを1つずつ計算する必要はありません。種目を選ぶだけで、
+アプリがボーダーを見て自動でそろえます。比重をかけることもできます。</p>
 
 <h3 style="margin-top:16px">大会とチャレンジの違い</h3>
 <div class="scroll"><table><thead><tr><th></th><th>チャレンジ</th><th>競技会</th></tr></thead><tbody>
@@ -14653,7 +14994,10 @@ rank:`<h3>RANK（やりこみのランク）</h3>
 {{RPTBL}}
 {{RPSTEPS}}`,
 
-award:`<h3>ランクとレート</h3>
+award:`<h3>大会の賞品</h3>
+{{PRIZETBL}}
+
+<h3 style="margin-top:16px">ランクとレート</h3>
 {{RANKTBL}}
 
 <h3 style="margin-top:16px">ご褒美は3種類</h3>
@@ -15154,7 +15498,22 @@ privacy:`<h3>プライバシーポリシー</h3>
 <p class="tiny">このページは、必要に応じて直します。</p>
 <p class="tiny" style="margin-top:12px;color:var(--dim2)">最後に直した日：2026年8月　／　運営：syuuto（個人）</p>`,
 
-etc:`<h3>管理者からのお知らせ</h3>
+etc:`<h3>管理者だけができること</h3>
+<p class="tiny">次のことは、<b>管理者だけ</b>ができます。画面に出ないだけでなく、
+<b>サーバー側でも毎回たしかめて</b>います。ほかの人が直接呼び出しても断られます。
+だれが何をしたかは、すべて記録に残ります。</p>
+<div class="scroll"><table><thead><tr><th>できること</th><th>どこから</th></tr></thead><tbody>
+<tr><td>ランクの名前・色・レートの区切り</td><td>ランクの編集</td></tr>
+<tr><td>RANK（やりこみ）の設定・公開</td><td>ランクの編集 → RANK</td></tr>
+<tr><td>Prime Coin の配り方</td><td>設定タブ</td></tr>
+<tr><td>大会の賞品・参加賞</td><td>設定タブ</td></tr>
+<tr><td>Prime Coin と応援ポイントの修正</td><td>設定タブ</td></tr>
+<tr><td>Prime Mood の設定・集計</td><td>Prime Mood</td></tr>
+<tr><td>お知らせを出す</td><td>ポストマーク</td></tr>
+<tr><td>サイトの一時停止</td><td>開発者メニュー</td></tr>
+</tbody></table></div>
+
+<h3 style="margin-top:16px">管理者からのお知らせ</h3>
 <p class="tiny">画面の一番上、バージョン名（${"v"}…）の隣にある<b>封筒のマーク</b>を押すと、
 アップデートの内容や大切な連絡が読めます。<br>
 まだ読んでいないお知らせがある時は、マークの右上に<span style="color:#ff2d55">赤い点</span>が付きます。</p>
@@ -15198,6 +15557,29 @@ Prime SNS からも見えなくなります。ただし、正しく却下した�
 </tbody></table></div>`
 };
 let helpTab="role";
+/** 大会の賞品の表（いまの設定から作ります） */
+function prizeHelpTbl(){
+  const box=k=>{
+    const c=(PZCFG||{})[k]||{};
+    const rs=(c.ranks||[]).slice().sort((a,b)=>(+a.pos||0)-(+b.pos||0))
+      .filter(r=>(+r.star||0)>0||(+r.coin||0)>0);
+    const j=c.join||{};
+    const cell=r=>[(+r.star||0)>0?`<b style="color:#ffd45e">★${jp(+r.star)}</b>`:"",
+      (+r.coin||0)>0?`<span class="pcoin">P</span>${jp(+r.coin)}`:""].filter(Boolean).join("　")||"—";
+    return rs.map(r=>`<tr><td>${jp(+r.pos)}位</td><td>${cell(r)}</td></tr>`).join("")
+      +`<tr><td>参加賞</td><td>${cell(j)}</td></tr>`;
+  };
+  return `<p class="tiny">順位ごとにもらえる<b>スター</b>と<b>Prime Coin</b>です。
+    スターは1個 5XP になります。大会ごとに変わることもあります。</p>`
+    +`<div class="scroll"><table><thead><tr><th>競技会</th><th>もらえるもの</th></tr></thead>
+      <tbody>${box("cup")}</tbody></table></div>`
+    +`<div class="scroll" style="margin-top:8px"><table><thead><tr>
+      <th>チャレンジ Daily</th><th>もらえるもの</th></tr></thead><tbody>${box("day")}</tbody></table></div>`
+    +`<div class="scroll" style="margin-top:8px"><table><thead><tr>
+      <th>Weekly</th><th>もらえるもの</th></tr></thead><tbody>${box("week")}</tbody></table></div>`
+    +`<div class="scroll" style="margin-top:8px"><table><thead><tr>
+      <th>Monthly</th><th>もらえるもの</th></tr></thead><tbody>${box("month")}</tbody></table></div>`;
+}
 /** ランクの表（管理者が決めた中身から作ります） */
 function rankHelpTbl(){
   const rs=RANKS.slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
@@ -15331,7 +15713,8 @@ function renderHelp(){
   $$("#helpTabs button").forEach(x=>x.classList.toggle("on",x.dataset.hp===helpTab));
   let h=HELP[helpTab]||"";
   if(helpTab==="award"){
-    h=h.replace("{{RANKTBL}}",rankHelpTbl()).replace("{{COINTBL}}",coinHelpTbl());
+    h=h.replace("{{RANKTBL}}",rankHelpTbl()).replace("{{COINTBL}}",coinHelpTbl())
+       .replace("{{PRIZETBL}}",prizeHelpTbl());
   }
   if(helpTab==="rank"){
     h=h.replace("{{RPINTRO}}",rpHelpIntro())
@@ -16214,19 +16597,87 @@ async function renderCupStat(){
     <p class="tiny" style="color:var(--dim2)">チャレンジ参加回数は「出した記録の数」、
       競技会参加回数は「出た競技会の種類の数」です（同じ競技会に何回出しても1回と数えます）。</p>
     <h3>最近の結果</h3>${cupHistHTML(MY_CUP,3)}
-    <div class="tools"><button class="btn" id="cupHistAll">すべての大会記録を見る</button></div>`;
+    <div class="tools"><button class="btn" id="cupHistAll">大会の記録</button></div>`;
   $("#cupHistAll").onclick=()=>showCupHistory({name:pro.name,handle:pro.handle,role:me?me.role:null},MY_CUP);
 }
+/** 大会の記録（競技会とチャレンジをまとめて見ます） */
 function showCupHistory(p,h){
-  const mask=document.createElement("div");mask.className="mask";
-  mask.innerHTML=`<div class="modal"><h2>${esc(p.name||p.handle)} の大会記録</h2>
-    <p class="muted" style="margin-top:-8px">参加 ${h.played} 件／優勝 ${h.wins} 回／3位以内 ${h.podium} 回</p>
-    ${cupHistHTML(h)}
-    <div class="tools"><button class="btn" id="chX">閉じる</button></div></div>`;
-  document.body.appendChild(mask);
-  const close=()=>mask.remove();
-  mask.addEventListener("click",e=>{if(e.target===mask)close();});
-  mask.querySelector("#chX").onclick=close;
+  const M=modal(`<h2>${esc(p.name||p.handle)} の大会の記録</h2>
+    <p class="muted" style="margin-top:-8px">競技会 参加 ${h?h.played:0} 件／優勝 ${h?h.wins:0} 回／3位以内 ${h?h.podium:0} 回</p>
+    <div class="segs" id="chTabs2" style="grid-template-columns:repeat(4,1fr)">
+      <button data-ch="cup" class="on">競技会</button>
+      <button data-ch="day">チャレンジ Daily</button>
+      <button data-ch="week">Weekly</button>
+      <button data-ch="month">Monthly</button>
+    </div>
+    <div id="chBody" style="margin-top:10px"><p class="muted">読み込み中…</p></div>
+    <div class="tools"><button class="btn" id="chX">閉じる</button></div>`,{w:860});
+  M.q("#chX").onclick=()=>M.close();
+  let tab="cup", cache={};
+  const draw=async()=>{
+    M.qa("#chTabs2 [data-ch]").forEach(b=>b.classList.toggle("on",b.dataset.ch===tab));
+    if(tab==="cup"){ M.q("#chBody").innerHTML=cupHistHTML(h); return; }
+    if(!cache[tab]){
+      M.q("#chBody").innerHTML=`<p class="muted">読み込み中…</p>`;
+      try{
+        cache[tab]=await sb("rpc/my_cup_log",{method:"POST",
+          body:JSON.stringify({p_handle:(p.handle||"").toLowerCase(),p_period:tab})})||[];
+      }catch(e){ cache[tab]=[]; }
+    }
+    const rows=(cache[tab]||[]).filter(r=>r.kind==="challenge");
+    M.q("#chBody").innerHTML=rows.length
+      ? `<p class="tiny">その期間の中で<b>いちばん良かった記録</b>と、その時の順位です。</p>
+        <div class="scroll" style="max-height:52vh"><table><thead><tr>
+        <th>チャレンジ</th><th>回</th><th>順位</th><th class="n">記録</th><th>日時</th>
+        </tr></thead><tbody>`
+        +rows.map(r=>{
+          const cup=(PCUPS||[]).find(c=>c.id===r.cup_id);
+          const kai=cup?pkeyKai(cup,r.pkey,tab):"";
+          return `<tr><td>${esc(r.title)}</td>
+            <td class="tiny">${esc(pkeyLabel(r.pkey,tab))}${kai?`<br><span class="tiny" style="color:var(--dim2)">${esc(kai)}</span>`:""}</td>
+            <td><b>${jp(+r.pos||0)}位</b>${(+r.pos)===1?" 🏆":""}
+              <span class="tiny"> / ${jp(+r.players||0)}人</span></td>
+            <td class="n"><b>${jp(+r.total||0)}</b></td>
+            <td class="tiny">${esc(jstStamp(r.at))}</td></tr>`;}).join("")
+        +`</tbody></table></div>`
+      : `<p class="muted">この期間のチャレンジの記録はありません。</p>`;
+  };
+  M.qa("#chTabs2 [data-ch]").forEach(b=>b.onclick=()=>{ tab=b.dataset.ch; draw(); });
+  draw();
+}
+/** その期間が「第何回」かを、期間のキーから数えます
+ *  （いまの日付ではなく、その記録が出た期間で数えます） */
+function pkeyKai(cup,pkey,kind){
+  try{
+    const st=new Date(new Date(cup.created_at).toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+    const s0=new Date(st.getFullYear(),st.getMonth(),st.getDate());
+    const mon=x=>{ const w=(x.getDay()+6)%7; const r=new Date(x); r.setDate(x.getDate()-w); return r; };
+    if(kind==="day"){
+      const m=String(pkey).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return "";
+      const d=new Date(+m[1],+m[2]-1,+m[3]);
+      return `第${Math.floor((d-s0)/86400000)+1}回`;
+    }
+    if(kind==="week"){
+      const m=String(pkey).match(/^(\d{4})-W(\d+)$/); if(!m) return "";
+      /* ISO週の月曜を出します */
+      const jan4=new Date(+m[1],0,4);
+      const w1=mon(jan4);
+      const d=new Date(w1.getTime()+(+m[2]-1)*7*86400000);
+      return `第${Math.floor((mon(d)-mon(s0))/(7*86400000))+1}回`;
+    }
+    if(kind==="month"){
+      const m=String(pkey).match(/^(\d{4})-(\d{2})$/); if(!m) return "";
+      return `第${(+m[1]-st.getFullYear())*12+(+m[2]-1-st.getMonth())+1}回`;
+    }
+  }catch(e){}
+  return "";
+}
+/** 期間のキー（2026-08-19 / 2026-W34 / 2026-08）を読みやすくします */
+function pkeyLabel(k,kind){
+  k=String(k||"");
+  if(kind==="week"){ const m=k.match(/^(\d{4})-W(\d+)$/); return m?`${m[1]}年 第${+m[2]}週`:k; }
+  if(kind==="month"){ const m=k.match(/^(\d{4})-(\d{2})$/); return m?`${m[1]}年${+m[2]}月`:k; }
+  return k.replace(/-/g,"/");
 }
 
 /* ---- ホーム画面 ---- */
