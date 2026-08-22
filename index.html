@@ -2379,7 +2379,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v103";
+const APP_VERSION = "v104";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3058,11 +3058,13 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v104":[
+    "くらべる表に、管理者だけが使う項目が出ていたのを修正"],
   "v103":[
-    "箱根駅伝のデータが同期されず、さらに消えてしまう不具合を修正（道具の読み込みが同期より後になっていました）",
+    "追加の道具のデータが同期されず、さらに消えてしまう不具合を修正（道具の読み込みが同期より後になっていました）",
     "「1回あたりの増加量」が他の端末に届かない不具合を修正（この端末を優先する設定になっていました）",
     "くらべる表で、やりこんだ回数と Prime Coin の進みが「—」になっていた表示の誤りを修正",
-    "くらべる表に「1回あたりの増加」「箱根駅伝のデータ」を追加。0 は 0 と表示します"],
+    "くらべる表に「1回あたりの増加」を追加。0 は 0 と表示します"],
   "v102":[
     "LSやりこみの一番上に「サーバーに全記録を送信する」「送信された記録を読み込む」を追加",
     "押す前に、この端末と預けてある記録を見くらべられます（ちがうところに色がつきます）",
@@ -3916,7 +3918,7 @@ const LS_NEW=[];
 /* 「新しいほうが勝ち」で混ぜるもの（増加量の設定・基準・コインの進み具合） */
 const LS_NEWEST=["sa-ls-v1","sa-lsbase-v1","sa-lsb-v1","sa-lscoin-v1"];
 let lsRev=+ls(K_LSREV,0)||0, lsBusy=false, lsT=null, lsTick=null, lsState="";
-/* ★ 追加の道具（箱根駅伝など）がまだ読み込まれていないと、
+/* ★ 追加の道具がまだ読み込まれていないと、
    その道具のデータが LS_ALL() に入らず、送る時にごっそり消えていました。
    サーバーにあって、この端末がまだ知らないものは、ここに預かって必ず送り返します。 */
 let lsExtra={};
@@ -4107,7 +4109,8 @@ function lsBrief(o){
     logN: Array.isArray(log)?log.length:(log&&typeof log==="object"?Object.keys(log).length:0),
     perS: num(cfg.perScore), perR: num(cfg.perRand),
     coinP: (coin&&typeof coin==="object")?num(coin.p):num(coin),
-    ext:  Object.keys(o).filter(k=>/^sa-hakone/.test(k)).length
+    /* 本体が持っているもの以外の数。どの道具かは、ここでは分かりません */
+    ext:  Object.keys(o).filter(k=>LS_OWN.indexOf(k)<0).length
   };
 }
 /** くらべる表を作ります */
@@ -4131,7 +4134,8 @@ function lsCmpHTML(a,b,an,bn){
     row("1回あたりの増加（乱数）",A.perR,B.perR)+
     row("残っている記録の数",A.logN,B.logN)+
     row("Prime Coin の進み",A.coinP,B.coinP)+
-    row("箱根駅伝のデータ",A.ext,B.ext,v=>v?jp(v)+" 件":"なし")+
+    ((typeof isAdmin==="function"&&isAdmin())
+      ? row("追加の道具のデータ",A.ext,B.ext,v=>v?jp(v)+" 件":"なし") : "")+
     row("預かっている項目の数",A.kazu,B.kazu)+
     `</tbody></table></div>`;
 }
@@ -18455,7 +18459,7 @@ function normalize(j){
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
   /* 見はりは、あとからログインしても効くように、いつでも用意しておきます */
   try{ stWatch(); }catch(e){}
-  /* ★ 追加の道具（箱根駅伝など）は、LSやりこみをそろえる前に読み込みます。
+  /* ★ 追加の道具は、LSやりこみをそろえる前に読み込みます。
      あとにすると、その道具のデータが「知らないもの」あつかいになり、
      送る時にサーバーから消えてしまいます。 */
   try{ await extLoad(); }catch(e){}
