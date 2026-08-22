@@ -2379,7 +2379,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v102";
+const APP_VERSION = "v103";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3058,6 +3058,11 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v103":[
+    "箱根駅伝のデータが同期されず、さらに消えてしまう不具合を修正（道具の読み込みが同期より後になっていました）",
+    "「1回あたりの増加量」が他の端末に届かない不具合を修正（この端末を優先する設定になっていました）",
+    "くらべる表で、やりこんだ回数と Prime Coin の進みが「—」になっていた表示の誤りを修正",
+    "くらべる表に「1回あたりの増加」「箱根駅伝のデータ」を追加。0 は 0 と表示します"],
   "v102":[
     "LSやりこみの一番上に「サーバーに全記録を送信する」「送信された記録を読み込む」を追加",
     "押す前に、この端末と預けてある記録を見くらべられます（ちがうところに色がつきます）",
@@ -3903,11 +3908,42 @@ const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1",
   "sa-lscoin-v1"];
 /** 追加の道具が足したものも、いっしょに持ちます */
 const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
-/* 設定のように「新しいほうが正しい」もの */
-const LS_NEW=["sa-ls-v1"];
-/* 「新しいほうが勝ち」で混ぜるもの（基準・コインの進み具合） */
-const LS_NEWEST=["sa-lsbase-v1","sa-lsb-v1","sa-lscoin-v1"];
+/* ★ 以前はここに "sa-ls-v1"（1回あたりの増加量）を入れて
+   「いつもこの端末のものを使う」にしていました。
+   そのせいで、ほかの端末で登録した増加量が永久に届きませんでした。
+   いまは下の LS_NEWEST に移して、新しく変えたほうが勝つようにしています。 */
+const LS_NEW=[];
+/* 「新しいほうが勝ち」で混ぜるもの（増加量の設定・基準・コインの進み具合） */
+const LS_NEWEST=["sa-ls-v1","sa-lsbase-v1","sa-lsb-v1","sa-lscoin-v1"];
 let lsRev=+ls(K_LSREV,0)||0, lsBusy=false, lsT=null, lsTick=null, lsState="";
+/* ★ 追加の道具（箱根駅伝など）がまだ読み込まれていないと、
+   その道具のデータが LS_ALL() に入らず、送る時にごっそり消えていました。
+   サーバーにあって、この端末がまだ知らないものは、ここに預かって必ず送り返します。 */
+let lsExtra={};
+function lsKeepExtra(theirs){
+  const known=new Set(LS_ALL());
+  const keep={};
+  Object.keys(theirs||{}).forEach(k=>{ if(!known.has(k)) keep[k]=theirs[k]; });
+  lsExtra=keep;
+  return keep;
+}
+/** 道具があとから読み込まれたら、預かっていたぶんをこの端末に入れます */
+function lsApplyExtra(){
+  const known=new Set(LS_ALL());
+  let n=0;
+  Object.keys(lsExtra).forEach(k=>{
+    if(!known.has(k)) return;                 /* まだ知らないものは、預かったまま */
+    const v=lsExtra[k];
+    const next=(typeof v==="string")?v:JSON.stringify(v);
+    if(localStorage.getItem(k)!==next){
+      stKeep(k,localStorage.getItem(k));
+      try{ localStorage.setItem(k,next); n++; }catch(e){}
+    }
+    delete lsExtra[k];
+  });
+  if(n){ try{ lsReload(); }catch(e){} }
+  return n;
+}
 const lsSaveRev=()=>{ try{ localStorage.setItem(K_LSREV,JSON.stringify(lsRev)); }catch(e){} };
 function lsMark(t){
   lsState=t;
@@ -3992,7 +4028,8 @@ async function lsSync(showToast){
   if(lsBusy||!stCan()) return false;
   lsBusy=true; lsMark("そろえています…");
   try{
-    let mine=lsPack();
+    /* まだ知らない道具のデータも、いっしょに送り返します（消さないため）*/
+    let mine=Object.assign({},lsExtra,lsPack());
     for(let tryN=0; tryN<3; tryN++){
       const r=await sbAuth("rpc/ls_put",{method:"POST",
         body:JSON.stringify({p_data:mine,p_rev:(lsRev||null)})});
@@ -4007,7 +4044,8 @@ async function lsSync(showToast){
       }
       if(r&&r.conflict){
         /* ほかの端末が先に書いていた → 混ぜて、もう一度 */
-        mine=lsMerge(mine, r.data||{});
+        lsKeepExtra(r.data||{});
+        mine=Object.assign({},lsExtra,lsMerge(mine, r.data||{}));
         lsRev=+r.rev||0; lsSaveRev();
         continue;
       }
@@ -4026,6 +4064,7 @@ async function lsStart(){
   try{
     const g=await sbAuth("rpc/ls_get",{method:"POST",body:"{}"});
     if(g){
+      lsKeepExtra(g.data||{});     /* まだ知らないものを預かっておきます */
       const mine=lsPack(), theirs=g.data||{};
       const merged=lsMerge(mine, theirs);
       const changed=[];
@@ -4050,25 +4089,33 @@ function lsBrief(o){
   o=o||{};
   const g=k=>{ const v=o[k]; if(v===undefined||v===null) return null;
     return (typeof v==="string")?(()=>{try{return JSON.parse(v);}catch(e){return v;}})():v; };
-  const all=g("sa-lsall-v1")||{};
+  /* ★ やりこんだ回数は「ただの数字」で入っています（{n:…} ではありません）*/
+  const all=g("sa-lsall-v1");
   const log=g("sa-lslog-v1");
-  const base=g("sa-lsbase-v1")||{};
-  const coin=g("sa-lscoin-v1")||{};
-  const n=k=>{ const v=+((all&&all[k])||0); return v>0?v:0; };
+  const cb=g("sa-lsb-v1")||{};        /* 基準B：bS/bR が基準、nS/nR がそこからの増加 */
+  const base=g("sa-lsbase-v1")||{};   /* 基準A：score/rand */
+  const coin=g("sa-lscoin-v1");
+  const cfg=g("sa-ls-v1")||{};
+  const num=v=>{ const x=+v; return isFinite(x)?x:0; };
+  /* 累積は「基準 ＋ そこからの増加」で見ます */
+  const score=(cb.bS!=null||cb.nS!=null)?num(cb.bS)+num(cb.nS):num(base.score);
+  const rand =(cb.bR!=null||cb.nR!=null)?num(cb.bR)+num(cb.nR):num(base.rand);
   return {
-    kazu: Object.keys(o).filter(k=>LS_ALL().indexOf(k)>=0).length,
-    kai:  (all&&+all.n)||0,
-    score:n("score"), rand:n("rand"),
+    kazu: Object.keys(o).length,
+    kai:  num(typeof all==="object"&&all?all.n:all),
+    score, rand,
     logN: Array.isArray(log)?log.length:(log&&typeof log==="object"?Object.keys(log).length:0),
-    baseAt: (+base.at)||0,
-    coinP: (+coin.p)||0
+    perS: num(cfg.perScore), perR: num(cfg.perRand),
+    coinP: (coin&&typeof coin==="object")?num(coin.p):num(coin),
+    ext:  Object.keys(o).filter(k=>/^sa-hakone/.test(k)).length
   };
 }
 /** くらべる表を作ります */
 function lsCmpHTML(a,b,an,bn){
   const A=lsBrief(a), B=lsBrief(b);
+  /* ★ 0 も「—」ではなく 0 と出します（無いのか 0 なのか分かるように）*/
   const row=(name,x,y,fmt)=>{
-    const f=fmt||(v=>v?jp(v):"—");
+    const f=fmt||(v=>(v===null||v===undefined)?"—":jp(v));
     const same=String(x)===String(y);
     return `<tr><td>${esc(name)}</td>`+
       `<td style="text-align:right">${f(x)}</td>`+
@@ -4080,8 +4127,11 @@ function lsCmpHTML(a,b,an,bn){
     row("やりこんだ回数",A.kai,B.kai)+
     row("スコアの累積",A.score,B.score)+
     row("生成した乱数の累積",A.rand,B.rand)+
+    row("1回あたりの増加（スコア）",A.perS,B.perS)+
+    row("1回あたりの増加（乱数）",A.perR,B.perR)+
     row("残っている記録の数",A.logN,B.logN)+
     row("Prime Coin の進み",A.coinP,B.coinP)+
+    row("箱根駅伝のデータ",A.ext,B.ext,v=>v?jp(v)+" 件":"なし")+
     row("預かっている項目の数",A.kazu,B.kazu)+
     `</tbody></table></div>`;
 }
@@ -4099,7 +4149,8 @@ async function lsPushAll(){
   let srv;
   try{ srv=await lsFetch(); }
   catch(e){ return lsSaveMsg("読めませんでした："+esc(String(e.message||e)).slice(0,120),"bad"); }
-  const mine=lsPack();
+  lsKeepExtra(srv.data||{});
+  const mine=Object.assign({},lsExtra,lsPack());
   const ok=await askYN("この端末の記録を、まるごと送信しますか？",
     `<b>預けてある記録は、この端末の記録に置きかわります。</b><br>
      <span class="tiny">下の2つをよく見くらべてください。
@@ -4130,6 +4181,7 @@ async function lsPullAll(){
   catch(e){ return lsSaveMsg("読めませんでした："+esc(String(e.message||e)).slice(0,120),"bad"); }
   if(!Object.keys(srv.data||{}).length)
     return lsSaveMsg("まだ何も預けられていません。先に「サーバーに全記録を送信する」を押してください。","warn");
+  lsKeepExtra(srv.data||{});
   const mine=lsPack();
   const ok=await askYN("預けてある記録を読み込みますか？",
     `<b>この端末の記録は、預けてある記録に置きかわります。</b><br>
@@ -4142,7 +4194,7 @@ async function lsPullAll(){
   lsSaveMsg("読み込んでいます…");
   try{
     /* 今この端末にしか無いものは消します（まるごと置きかえるため）*/
-    const keep=new Set(Object.keys(srv.data||{}));
+    const keep=new Set(Object.keys(srv.data||{}).concat(Object.keys(lsExtra)));
     LS_ALL().forEach(k=>{
       if(keep.has(k)) return;
       const cur=localStorage.getItem(k);
@@ -4152,6 +4204,14 @@ async function lsPullAll(){
     });
     const changed=[];
     lsUnpack(srv.data,changed);
+    /* まだ読み込んでいない道具のぶんも、そのまま書き戻します */
+    Object.keys(lsExtra).forEach(k=>{
+      const v=lsExtra[k];
+      const next=(typeof v==="string")?v:JSON.stringify(v);
+      if(localStorage.getItem(k)===next) return;
+      stKeep(k,localStorage.getItem(k));
+      try{ localStorage.setItem(k,next); changed.push(k); }catch(e){}
+    });
     lsRev=srv.rev||0; lsSaveRev();
     lsReload(); lsFill(); renderLs(); lsViewDraw();
     lsMark("そろっています　"+new Date().toLocaleTimeString("ja-JP"));
@@ -8600,7 +8660,7 @@ const saveLsAll=()=>{try{localStorage.setItem(K_LSALL,JSON.stringify(lsAll));}ca
 let lsLog=ls(K_LSLOG,[]);
 let lsRun=null;      /* {start, count} */
 let lsTimer=null, lsCool=0;
-const saveLs=()=>{try{localStorage.setItem(K_LS,JSON.stringify(lsCfg));
+const saveLs=()=>{try{lsCfg.at=Date.now();localStorage.setItem(K_LS,JSON.stringify(lsCfg));
   localStorage.setItem(K_LSLOG,JSON.stringify(lsLog));}catch(e){}
   try{ lsSoon(); }catch(e){}};
 const lsB=()=>{const w=DATA(); return (w&&w.lsBorders)||{rand:{},score:{}};};
@@ -18395,6 +18455,10 @@ function normalize(j){
   if(sess&&sbOn()){ try{ await stStart(); }catch(e){} }
   /* 見はりは、あとからログインしても効くように、いつでも用意しておきます */
   try{ stWatch(); }catch(e){}
+  /* ★ 追加の道具（箱根駅伝など）は、LSやりこみをそろえる前に読み込みます。
+     あとにすると、その道具のデータが「知らないもの」あつかいになり、
+     送る時にサーバーから消えてしまいます。 */
+  try{ await extLoad(); }catch(e){}
   /* ★ LSやりこみは専用の入れものでそろえます（5分おき） */
   try{ lsWatch(); }catch(e){}
   if(sess&&sbOn()){ try{ await lsStart(); }catch(e){} }
@@ -18415,6 +18479,8 @@ function normalize(j){
   if($("#devCard")) $("#devCard").hidden=!isAdmin();
   try{ admShow(); }catch(e){}          /* 管理者だけに見せるタブなど */
   try{ await extLoad(); }catch(e){}
+  /* 道具が読み込めたので、預かっていたそのぶんのデータを入れます */
+  try{ if(lsApplyExtra()) lsSoon(); }catch(e){}
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
