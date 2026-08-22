@@ -1154,6 +1154,24 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 </section>
 
 <section id="ls" hidden>
+  <div class="card" id="lsSaveCard">
+    <h2>記録の保存と読み込み</h2>
+    <p class="muted" style="margin-top:-8px">
+      LSやりこみの記録を、自分のアカウントに預けたり、取り出したりできます。<br>
+      <span class="tiny">別の端末で続きをやりたい時や、端末を買いかえる時に使ってください。</span></p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="lsPush">サーバーに全記録を送信する</button>
+      <button class="btn" id="lsPull">送信された記録を読み込む</button>
+      <button class="btn sm" id="lsWhat">いま預けてあるものを見る</button>
+    </div>
+    <div id="lsSaveMsg" class="tiny" style="margin-top:8px"></div>
+    <p class="tiny" style="color:var(--dim2);margin-top:6px">
+      送信すると、預けてあった記録は<b>この端末の記録に置きかわります</b>。
+      読み込むと、この端末の記録が<b>預けてあった記録に置きかわります</b>。<br>
+      どちらも、押す前に中身をくらべて確かめられます。前の内容は30回ぶん残るので、
+      まちがえても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>
+  </div>
+
   <div class="card">
     <h2>準備</h2>
     <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとの増加量を登録しておくと、予測値が出せます。</p>
@@ -2361,7 +2379,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v101";
+const APP_VERSION = "v102";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3040,6 +3058,10 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v102":[
+    "LSやりこみの一番上に「サーバーに全記録を送信する」「送信された記録を読み込む」を追加",
+    "押す前に、この端末と預けてある記録を見くらべられます（ちがうところに色がつきます）",
+    "まちがえても、前の内容は残るので元に戻せます"],
   "v101":[
     "「入力したのにランキングに反映されない」不具合を修正（昔の種目名で保存されたデータが読めていませんでした）",
     "競技会の記録にも 審査 → 審査員審査 → スーパーバイザー審査 を追加。審査画面では換算前の元の記録が必ず見えます",
@@ -4013,6 +4035,165 @@ async function lsStart(){
     }
   }catch(e){}
   await lsSync();
+}
+/* ══════════════════════════════════════════════════════════
+   手で送る・手で読み込む
+   ──────────────────────────────────────────────────────────
+   自動でそろえるのは「混ぜる」やり方なので、思ったとおりに
+   ならないことがあります。こちらは分かりやすく、
+   　送信 … サーバーの中身を、この端末の中身にする
+   　読込 … この端末の中身を、サーバーの中身にする
+   と、まるごと置きかえます。押す前に中身をくらべられます。
+   ══════════════════════════════════════════════════════════ */
+/** かたまりの中身を、人が読める形にまとめます */
+function lsBrief(o){
+  o=o||{};
+  const g=k=>{ const v=o[k]; if(v===undefined||v===null) return null;
+    return (typeof v==="string")?(()=>{try{return JSON.parse(v);}catch(e){return v;}})():v; };
+  const all=g("sa-lsall-v1")||{};
+  const log=g("sa-lslog-v1");
+  const base=g("sa-lsbase-v1")||{};
+  const coin=g("sa-lscoin-v1")||{};
+  const n=k=>{ const v=+((all&&all[k])||0); return v>0?v:0; };
+  return {
+    kazu: Object.keys(o).filter(k=>LS_ALL().indexOf(k)>=0).length,
+    kai:  (all&&+all.n)||0,
+    score:n("score"), rand:n("rand"),
+    logN: Array.isArray(log)?log.length:(log&&typeof log==="object"?Object.keys(log).length:0),
+    baseAt: (+base.at)||0,
+    coinP: (+coin.p)||0
+  };
+}
+/** くらべる表を作ります */
+function lsCmpHTML(a,b,an,bn){
+  const A=lsBrief(a), B=lsBrief(b);
+  const row=(name,x,y,fmt)=>{
+    const f=fmt||(v=>v?jp(v):"—");
+    const same=String(x)===String(y);
+    return `<tr><td>${esc(name)}</td>`+
+      `<td style="text-align:right">${f(x)}</td>`+
+      `<td style="text-align:right;color:${same?"var(--dim)":"var(--warn)"}">${f(y)}</td></tr>`;
+  };
+  return `<div class="scroll"><table><thead><tr><th></th>
+      <th style="text-align:right">${esc(an)}</th>
+      <th style="text-align:right">${esc(bn)}</th></tr></thead><tbody>`+
+    row("やりこんだ回数",A.kai,B.kai)+
+    row("スコアの累積",A.score,B.score)+
+    row("生成した乱数の累積",A.rand,B.rand)+
+    row("残っている記録の数",A.logN,B.logN)+
+    row("Prime Coin の進み",A.coinP,B.coinP)+
+    row("預かっている項目の数",A.kazu,B.kazu)+
+    `</tbody></table></div>`;
+}
+/** サーバーの中身を読みます */
+async function lsFetch(){
+  const g=await sbAuth("rpc/ls_get",{method:"POST",body:"{}"});
+  return {data:(g&&g.data)||{}, rev:+((g&&g.rev)||0), at:(g&&g.at)||null};
+}
+const lsSaveMsg=(t,cls)=>{ const e=$("#lsSaveMsg");
+  if(e) e.innerHTML=cls?`<span style="color:var(--${cls})">${t}</span>`:t; };
+/** この端末の中身を、まるごとサーバーに送ります */
+async function lsPushAll(){
+  if(!stCan()) return toast("ログインが必要です（設定タブから）");
+  lsSaveMsg("いま預けてあるものを読んでいます…");
+  let srv;
+  try{ srv=await lsFetch(); }
+  catch(e){ return lsSaveMsg("読めませんでした："+esc(String(e.message||e)).slice(0,120),"bad"); }
+  const mine=lsPack();
+  const ok=await askYN("この端末の記録を、まるごと送信しますか？",
+    `<b>預けてある記録は、この端末の記録に置きかわります。</b><br>
+     <span class="tiny">下の2つをよく見くらべてください。
+     ちがっているところは色を変えています。</span><br><br>`+
+    lsCmpHTML(mine,srv.data,"この端末","いま預けてあるもの")+
+    `<p class="tiny" style="margin-top:8px">前に預けてあった内容は30回ぶん残るので、
+      まちがえても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>`,
+    "この端末の内容で送信する","やめる");
+  if(!ok) { lsSaveMsg(""); return; }
+  lsSaveMsg("送っています…");
+  try{
+    /* いまの版に合わせて送るので、混ぜずにそのまま書きかわります */
+    const r=await sbAuth("rpc/ls_put",{method:"POST",
+      body:JSON.stringify({p_data:mine,p_rev:srv.rev||null})});
+    if(!(r&&r.ok)) throw new Error("ほかの端末が先に書きこみました。もう一度お試しください");
+    lsRev=+r.rev||0; lsSaveRev();
+    lsMark("そろっています　"+new Date().toLocaleTimeString("ja-JP"));
+    lsSaveMsg("送信しました。ほかの端末で「送信された記録を読み込む」を押すと続きができます。","acc2");
+    toast("サーバーに送信しました");
+  }catch(e){ lsSaveMsg("送信できませんでした："+esc(String(e.message||e)).slice(0,140),"bad"); }
+}
+/** サーバーの中身を、まるごとこの端末に入れます */
+async function lsPullAll(){
+  if(!stCan()) return toast("ログインが必要です（設定タブから）");
+  lsSaveMsg("預けてあるものを読んでいます…");
+  let srv;
+  try{ srv=await lsFetch(); }
+  catch(e){ return lsSaveMsg("読めませんでした："+esc(String(e.message||e)).slice(0,120),"bad"); }
+  if(!Object.keys(srv.data||{}).length)
+    return lsSaveMsg("まだ何も預けられていません。先に「サーバーに全記録を送信する」を押してください。","warn");
+  const mine=lsPack();
+  const ok=await askYN("預けてある記録を読み込みますか？",
+    `<b>この端末の記録は、預けてある記録に置きかわります。</b><br>
+     <span class="tiny">${srv.at?"預けた日時："+jstFull(srv.at)+" (JST)":""}</span><br><br>`+
+    lsCmpHTML(mine,srv.data,"いまの端末","読み込むもの")+
+    `<p class="tiny" style="margin-top:8px">読み込む前の内容は、この端末の中に控えを残します
+      （設定タブの「LSやりこみを元に戻す」から戻せます）。</p>`,
+    "読み込む","やめる");
+  if(!ok) { lsSaveMsg(""); return; }
+  lsSaveMsg("読み込んでいます…");
+  try{
+    /* 今この端末にしか無いものは消します（まるごと置きかえるため）*/
+    const keep=new Set(Object.keys(srv.data||{}));
+    LS_ALL().forEach(k=>{
+      if(keep.has(k)) return;
+      const cur=localStorage.getItem(k);
+      if(cur==null) return;
+      stKeep(k,cur);                 /* 控えてから消します */
+      try{ localStorage.removeItem(k); }catch(e){}
+    });
+    const changed=[];
+    lsUnpack(srv.data,changed);
+    lsRev=srv.rev||0; lsSaveRev();
+    lsReload(); lsFill(); renderLs(); lsViewDraw();
+    lsMark("そろっています　"+new Date().toLocaleTimeString("ja-JP"));
+    lsSaveMsg(`読み込みました（${jp(changed.length)} 項目を入れかえました）。`,"acc2");
+    toast("読み込みました");
+  }catch(e){ lsSaveMsg("読み込めませんでした："+esc(String(e.message||e)).slice(0,140),"bad"); }
+}
+/** 保存・読み込みのボタンを用意します */
+function lsSaveEnter(){
+  const card=$("#lsSaveCard"); if(!card) return;
+  const on=stCan();
+  ["lsPush","lsPull","lsWhat"].forEach(id=>{
+    const b=$("#"+id); if(!b) return;
+    b.disabled=!on;
+  });
+  if(!on){
+    lsSaveMsg((typeof TEST!=="undefined"&&TEST)
+      ? "おためし中は使えません。"
+      : "使うにはログインが必要です（設定タブから）。","dim2");
+  }else if(!$("#lsSaveMsg").textContent){ lsSaveMsg(""); }
+  const wire=(id,fn)=>{ const b=$("#"+id);
+    if(b&&!b.dataset.on){ b.dataset.on="1"; b.onclick=fn; } };
+  wire("lsPush",lsPushAll);
+  wire("lsPull",lsPullAll);
+  wire("lsWhat",lsShowSaved);
+}
+/** いま預けてあるものを、見るだけ */
+async function lsShowSaved(){
+  if(!stCan()) return toast("ログインが必要です（設定タブから）");
+  lsSaveMsg("読んでいます…");
+  let srv;
+  try{ srv=await lsFetch(); }
+  catch(e){ return lsSaveMsg("読めませんでした："+esc(String(e.message||e)).slice(0,120),"bad"); }
+  lsSaveMsg("");
+  const has=Object.keys(srv.data||{}).length;
+  const M=modal(`<h2>いま預けてあるもの</h2>
+    <p class="muted" style="margin-top:-8px">${
+      has?`預けた日時：<b>${srv.at?jstFull(srv.at)+" (JST)":"—"}</b>`
+        :"まだ何も預けられていません。"}</p>
+    ${has?lsCmpHTML(lsPack(),srv.data,"この端末","預けてあるもの"):""}
+    <div class="tools"><button class="btn" id="lsSvX">閉じる</button></div>`,{w:620});
+  M.q("#lsSvX").onclick=M.close;
 }
 /** 受け取ったぶんを画面に出し直します */
 function lsReload(){
@@ -5660,7 +5841,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); renderRole();
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
 
-  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); }
+  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); lsSaveEnter(); }
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
