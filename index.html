@@ -96,6 +96,16 @@ table.rtin tfoot td{border-top:2px solid var(--line)}
   padding:1px 6px;font-size:.86em}
 .rich{line-height:1.75;word-break:break-word;white-space:pre-wrap}
 .rich div,.rich p,.rich li,.rich ul,.rich ol{white-space:normal}
+/* 提出された記録の数（Impact で大きく出します） */
+.subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:4px}
+.subbox{background:#0d1524;border:1px solid var(--line);border-radius:12px;padding:14px 12px;text-align:center}
+.subbox.all{border-color:var(--acc);background:#0e1b30}
+.subbox .t{font-size:.74rem;color:var(--dim2);letter-spacing:.04em}
+.subn{font-family:Impact,"Arial Black","Haettenschweiler","Anton",
+  "ヒラギノ角ゴ StdN W8","Hiragino Sans","Yu Gothic",sans-serif;
+  font-size:2.4rem;line-height:1.1;color:#eaf3ff;letter-spacing:.02em;margin-top:4px}
+.subbox.all .subn{font-size:3rem;color:var(--acc2)}
+.subbox .s{font-size:.68rem;color:var(--dim2);margin-top:2px}
 .notebox{background:#ffffff08;border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
   padding:8px 12px;margin:8px 0;max-height:none;overflow:visible;-webkit-line-clamp:none}
 .rich a{color:#5aa9ff;text-decoration:underline}
@@ -1708,6 +1718,11 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 
 <section id="stats" hidden>
   <div class="card">
+    <h2>提出された記録</h2>
+    <p class="muted" style="margin-top:-8px">これまでにみんなが出した記録の数です。</p>
+    <div id="stSubs"><p class="muted">読み込み中…</p></div>
+  </div>
+  <div class="card">
     <h2>統計情報</h2>
     <p class="muted" style="margin-top:-8px">乱数累積・スコア累積の全体ボーダーと、参加している人の数です。
       <span class="tiny">「比較」は、先週からどれだけ増えたかを表しています。</span></p>
@@ -2379,7 +2394,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v104";
+const APP_VERSION = "v105";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3058,6 +3073,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v105":[
+    "賞品を変えても、開催中のものと終わったものは変わらないようにした（配り直しもしません）",
+    "変えた賞品は「次の日から始まるもの」に使われます。Weekly は次の月曜、Monthly は次の月の1日からです",
+    "「次回（第n回 yyyy/mm/dd）より」と、賞品が変わる予告を出すようにした",
+    "あなたの軌跡で、予測を出すとグラフの線と点がずれる不具合を修正",
+    "統計情報に「提出された記録」の数を追加"],
   "v104":[
     "くらべる表に、管理者だけが使う項目が出ていたのを修正"],
   "v103":[
@@ -6058,8 +6079,37 @@ function stRender(st){
           <div class="v">${jp(st.gemsp.n)}</div><div class="s">${stDiff(st.gemsp.d)}</div></div>`:""}
       </div>`:"");
 }
+/* ── 提出された記録の数 ── */
+let SUBCNT=null;
+async function stSubsLoad(){
+  if(TEST||!sbOn()) return null;
+  try{ const r=await sb("rpc/submit_counts",{method:"POST",body:"{}"});
+       if(r&&typeof r==="object") SUBCNT=r; }catch(e){}
+  return SUBCNT;
+}
+function stSubsDraw(){
+  const box=$("#stSubs"); if(!box) return;
+  const c=SUBCNT;
+  if(!c){ box.innerHTML=`<p class="muted">${sbOn()?"読み込めませんでした。":"まだつながっていません。"}</p>`; return; }
+  const n=k=>Math.max(0,+c[k]||0);
+  const one=(t,k,s,cls)=>`<div class="subbox${cls||""}">
+    <div class="t">${esc(t)}</div>
+    <div class="subn">${jp(n(k))}</div>
+    <div class="s">${esc(s||"")}</div></div>`;
+  box.innerHTML=`<div class="subgrid">
+    ${one("競技会","competition","出された記録")}
+    ${one("チャレンジ","challenge","出された記録")}
+    ${one("アチーブメント","achievement","出された提出")}
+    ${one("すべての合計","total","ぜんぶ合わせて"," all")}
+  </div>
+  <p class="tiny" style="margin-top:8px;color:var(--dim2)">
+    合計には、個人の記録の提出 ${jp(n("record"))} 件もふくまれます。
+    　登録している人 ${jp(n("people"))} 人</p>`;
+}
 let ST_DRAFT=null;   /* 読み取ったけれど、まだ保存していない内容 */
 function stEnter(){
+  stSubsDraw();
+  stSubsLoad().then(stSubsDraw);
   stRender(stOf(DATA()));
   const ad=$("#stAdmin"); if(ad) ad.hidden=!isAdmin();
   if(!isAdmin()) return;
@@ -13945,15 +13995,33 @@ function hsFill(key, from, to){
 /* ── グラフ ── */
 function hsChart(rows, opt){
   const o=opt||{};
-  const pts=rows.filter(r=>r.v!=null);
+  /* ★ 予測は「日付」でつなぎます。
+     前は 実際の記録の並び と 予測の並び をただ後ろにくっつけていたので、
+     ・日付が 08-31 → 08-23 と戻ってしまう
+     ・線は「全部の数」で、点と日付は「実際の記録の数」で場所を決めていたため
+       線と点が横にずれる
+     という2つの崩れが起きていました。 */
+  const real=(rows||[]).map(r=>Object.assign({},r));
+  const lastReal=(()=>{ for(let i=real.length-1;i>=0;i--) if(real[i].v!=null) return real[i].d;
+                        return null; })();
+  const seen=new Set(real.map(r=>r.d));
+  const pred=((o.pred||[])
+    .filter(p=>p&&p.v!=null && (!lastReal||p.d>lastReal) && !seen.has(p.d))
+    .map(p=>Object.assign({},p,{pred:true})));
+  /* 日付順に、ひとつながりにします */
+  const all=real.concat(pred).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  const pts=all.filter(r=>r.v!=null);
   if(pts.length<1) return `<p class="muted">この月には、まだ記録がありません。</p>`;
+
   const W=760, H=260, L=64, R=14, T=14, B=42;
-  const xs=(i)=>L+(rows.length<=1?0:(W-L-R)*i/(rows.length-1));
+  const N=all.length;
+  /* 場所の決め方は、これ1つだけ。線も点も日付も、必ずこれを使います */
+  const xs=i=>L+(N<=1?0:(W-L-R)*i/(N-1));
   let lo=Math.min(...pts.map(p=>p.v)), hi=Math.max(...pts.map(p=>p.v));
-  if(o.pred&&o.pred.length){ lo=Math.min(lo,...o.pred.map(p=>p.v)); hi=Math.max(hi,...o.pred.map(p=>p.v)); }
   if(lo===hi){ lo=lo-1; hi=hi+1; }
   const pad=(hi-lo)*0.08; lo-=pad; hi+=pad;
   const ys=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+
   /* 目もり（重ならないように、4本だけ） */
   let g="";
   for(let i=0;i<=4;i++){
@@ -13962,51 +14030,45 @@ function hsChart(rows, opt){
       +`<text x="${L-6}" y="${(y+3).toFixed(1)}" text-anchor="end">${esc(hsShort(v))}</text>`;
   }
   /* 日付は、重ならない数だけ出します */
-  const step=Math.max(1,Math.ceil(rows.length/8));
+  const step=Math.max(1,Math.ceil(N/8));
   let xl="";
-  rows.forEach((r,i)=>{
-    if(i%step!==0 && i!==rows.length-1) return;
-    xl+=`<text x="${xs(i).toFixed(1)}" y="${H-B+16}" text-anchor="middle">${esc(r.d.slice(5))}</text>`;
+  all.forEach((r,i)=>{
+    if(i%step!==0 && i!==N-1) return;
+    xl+=`<text x="${xs(i).toFixed(1)}" y="${H-B+16}" text-anchor="middle"`
+      +(r.pred?' style="opacity:.6"':"")+`>${esc(r.d.slice(5))}</text>`;
   });
-  /* 線 */
-  let dline="", first=true;
-  rows.forEach((r,i)=>{
+  /* 実際の記録の線 */
+  let dline="", first=true, lastIdx=-1;
+  all.forEach((r,i)=>{
+    if(r.pred) return;
     if(r.v==null){ first=true; return; }
     dline+=(first?"M":"L")+xs(i).toFixed(1)+" "+ys(r.v).toFixed(1)+" ";
-    first=false;
+    first=false; lastIdx=i;
   });
-  /* 点（実際に入力した日だけ大きく） */
+  /* 点（実際に入力した日だけ大きく）。予測には点を打ちません */
   let dots="";
-  rows.forEach((r,i)=>{
-    if(r.v==null) return;
+  all.forEach((r,i)=>{
+    if(r.pred||r.v==null) return;
     dots+=`<circle class="dt${r.real?"":" fill"}" cx="${xs(i).toFixed(1)}" cy="${ys(r.v).toFixed(1)}"
       r="${r.real?3.2:2}"><title>${esc(r.d)}　${esc(jp(Math.round(r.v)))}${r.real?"":"（補い）"}</title></circle>`;
   });
-  /* 予測 */
+  /* 予測の線。実際の記録の最後の点から、つなげて描きます */
   let pl="";
-  if(o.pred&&o.pred.length){
-    const all=rows.concat(o.pred);
-    const xs2=i=>L+(all.length<=1?0:(W-L-R)*i/(all.length-1));
-    /* 予測を足したぶん、全体を引き直します */
-    let d2="", f2=true;
+  if(pred.length){
+    let d2="", f=true;
+    if(lastIdx>=0){ d2="M"+xs(lastIdx).toFixed(1)+" "+ys(all[lastIdx].v).toFixed(1)+" "; f=false; }
     all.forEach((r,i)=>{
-      if(r.v==null){ f2=true; return; }
-      d2+=(f2?"M":"L")+xs2(i).toFixed(1)+" "+ys(r.v).toFixed(1)+" ";
-      f2=false;
+      if(!r.pred||r.v==null) return;
+      d2+=(f?"M":"L")+xs(i).toFixed(1)+" "+ys(r.v).toFixed(1)+" ";
+      f=false;
     });
-    return `<svg class="hschart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-      ${g}<line class="ax" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>
-      <path class="ln" d="${d2}"/>
-      <path class="ln2" d="${o.pred.map((p,j)=>{
-        const i=rows.length-1+j;
-        return (j===0?"M"+xs2(rows.length-1).toFixed(1)+" "+ys(rows[rows.length-1]&&rows[rows.length-1].v!=null?rows[rows.length-1].v:p.v).toFixed(1)+" L":"L")
-          +xs2(i+1).toFixed(1)+" "+ys(p.v).toFixed(1)+" ";}).join("")}"/>
-      ${dots}${xl}</svg>`;
+    if(d2) pl=`<path class="ln2" d="${d2}"/>`;
   }
   return `<svg class="hschart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
     ${g}<line class="ax" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>
-    <path class="ln" d="${dline}"/>${dots}${xl}</svg>`;
+    <path class="ln" d="${dline}"/>${pl}${dots}${xl}</svg>`;
 }
+/** 目もりに出す、短い言い方 */
 const hsShort=v=>{
   const a=Math.abs(v);
   if(a>=1e8) return (v/1e8).toFixed(1)+"億";
@@ -14016,7 +14078,7 @@ const hsShort=v=>{
 };
 /* ── 予測（最小二乗法）── */
 const HS_PRED_MIN=7;      /* この日数ぶん入力がないと出しません */
-/* 予測を出してよい項目（累積で、増え方がだいたい一定のものだけ） */
+/* 予測を出すのは「スコアの累積」と「生成した乱数の累積」だけです */
 const HS_PRED_OK=k=>k==="score_cum"||k==="rand_cum";
 function hsPredict(key, days){
   const it=hsItem(key);
@@ -15589,6 +15651,85 @@ function cupPrize(cup,key){
   }
   return (PZCFG||{})[key]||{ranks:[],join:{star:0,coin:0}};
 }
+/* ══════════════════════════════════════════════════════════
+   賞品の「いつから変わるか」
+   ──────────────────────────────────────────────────────────
+   賞品を変えても、いま開催中のものや終わったものは変わりません。
+   ・Daily  … 次の日から
+   ・Weekly … 次の週（月曜）から。今の回が終わるまでは今の賞品のまま
+   ・Monthly… 次の月（1日）から。今の月が終わるまでは今の賞品のまま
+   ・競技会 … その日以降に始まる大会から
+   ══════════════════════════════════════════════════════════ */
+let PZNEXT=null;   /* {from:"YYYY-MM-DD", cfg:{…}} これから使う賞品 */
+/** 日づけの計算（日本時間で、時刻は持ちません）*/
+const pdParse=t=>{ const m=String(t||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?new Date(+m[1],+m[2]-1,+m[3]):null; };
+const pdStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const pdSlash=d=>`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+/** その日以降で、いちばん早い「回のはじまり」を返します */
+function pzNextStart(kind,fromISO){
+  const f=pdParse(fromISO); if(!f) return null;
+  if(kind==="day"||kind==="cup") return f;
+  if(kind==="week"){
+    const w=(f.getDay()+6)%7;                 /* 月曜を0にします */
+    if(w===0) return f;                       /* ちょうど月曜なら、その日から */
+    const d=new Date(f); d.setDate(f.getDate()+(7-w)); return d;
+  }
+  if(kind==="month"){
+    if(f.getDate()===1) return f;             /* ついたちなら、その月から */
+    return new Date(f.getFullYear(),f.getMonth()+1,1);
+  }
+  return f;
+}
+/** その「回のはじまり」の期間キー（第n回を出すのに使います）*/
+function pzPeriodKey(kind,d){
+  if(kind==="day") return pdStr(d);
+  if(kind==="month") return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  if(kind==="week"){
+    /* ISO週の番号 */
+    const t=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    const day=(t.getDay()+6)%7;
+    t.setDate(t.getDate()-day+3);             /* その週の木曜 */
+    const jan4=new Date(t.getFullYear(),0,4);
+    const w1=new Date(jan4); w1.setDate(jan4.getDate()-((jan4.getDay()+6)%7)+3);
+    const wk=Math.round((t-w1)/(7*86400000))+1;
+    return `${t.getFullYear()}-W${String(wk).padStart(2,"0")}`;
+  }
+  return "";
+}
+/** 「次回（第n回 yyyy/mm/dd）より」の予告。変わるところだけ出します */
+function prizeNextHTML(cup,key,label){
+  if(!PZNEXT||!PZNEXT.from||!PZNEXT.cfg) return "";
+  if(cup&&cup.prize) return "";               /* 大会ごとの上書きがある時は、そちらが優先です */
+  const now=(PZCFG||{})[key], nxt=(PZNEXT.cfg||{})[key];
+  if(!nxt) return "";
+  if(JSON.stringify(now||null)===JSON.stringify(nxt)) return "";   /* 中身が同じなら出しません */
+  const st=pzNextStart(key,PZNEXT.from);
+  if(!st) return "";
+  let kai="";
+  if(cup&&cup.created_at&&key!=="cup"){
+    try{ kai=pkeyKai(cup,pzPeriodKey(key,st),key)||""; }catch(e){}
+  }
+  const rs=(nxt.ranks||[]).slice().sort((a,b)=>(+a.pos||0)-(+b.pos||0))
+    .filter(r=>(+r.star||0)>0||(+r.coin||0)>0);
+  const cell=r=>[(+r.star||0)>0?`<b style="color:#ffd45e">★${jp(+r.star)}</b>`:"",
+    (+r.coin||0)>0?`<span class="pcoin">P</span>${jp(+r.coin)}`:""].filter(Boolean).join("　");
+  const jj=cell(nxt.join||{});
+  const atama=(key==="cup")
+    ? `${esc(pdSlash(st))} 以降にはじまる競技会より`
+    : `次回（${kai?esc(kai)+" ":""}${esc(pdSlash(st))}）より`;
+  return `<div class="hintbox" style="margin-top:6px;border-color:var(--warn)">
+    <b style="color:var(--warn)">${atama}、もらえるものが変わります</b>
+    <div class="tools" style="margin-top:6px;gap:10px;flex-wrap:wrap">
+      ${rs.length?rs.map(r=>`<span class="sbtag" style="border-color:#ffd45e55">${jp(+r.pos)}位　${cell(r)}</span>`).join("")
+        :`<span class="sbtag">順位の賞はなくなります</span>`}
+      ${jj?`<span class="sbtag" style="border-color:var(--acc2)">参加賞　${jj}</span>`
+          :`<span class="sbtag">参加賞はなくなります</span>`}
+    </div>
+    <p class="tiny" style="margin:6px 0 0;color:var(--dim2)">
+      いまの回が終わるまでは、上の賞品のままです。${
+      key==="week"?"（Weekly は次の月曜から）":key==="month"?"（Monthly は次の月の1日から）":""}</p></div>`;
+}
 /** 賞品を、ランキングのところに出す小さな表 */
 function prizeBox(cup,key,label){
   const pz=cupPrize(cup,key);
@@ -15598,7 +15739,9 @@ function prizeBox(cup,key,label){
   const cell=r=>[(+r.star||0)>0?`<b style="color:#ffd45e">★${jp(+r.star)}</b>`:"",
     (+r.coin||0)>0?`<span class="pcoin">P</span>${jp(+r.coin)}`:""].filter(Boolean).join("　");
   const jj=cell(j);
-  if(!rs.length&&!jj) return `<p class="tiny" style="color:var(--dim2)">この${label||""}に賞品はありません。</p>`;
+  if(!rs.length&&!jj)
+    return `<p class="tiny" style="color:var(--dim2)">この${label||""}に賞品はありません。</p>`
+      +prizeNextHTML(cup,key,label);
   return `<div class="hintbox" style="margin-top:8px">
     <b>もらえるもの${label?`（${esc(label)}）`:""}</b>
     <div class="tools" style="margin-top:6px;gap:10px;flex-wrap:wrap">
@@ -15606,7 +15749,8 @@ function prizeBox(cup,key,label){
       ${jj?`<span class="sbtag" style="border-color:var(--acc2)">参加賞　${jj}</span>`:""}
     </div>
     <p class="tiny" style="margin:6px 0 0;color:var(--dim2)">スターは1個 5XP になります。
-      ${cup&&cup.prize?"この大会だけの特別な賞品です。":"共通の設定です。"}</p></div>`;
+      ${cup&&cup.prize?"この大会だけの特別な賞品です。":"共通の設定です。"}</p></div>`
+    +prizeNextHTML(cup,key,label);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -15628,6 +15772,11 @@ async function pzLoad(){
     const r=await sb("rpc/prize_cfg",{method:"POST",body:"{}"});
     if(r&&typeof r==="object") PZCFG=Object.assign(JSON.parse(JSON.stringify(PZ_DEF)),r);
   }catch(e){}
+  /* これから使う賞品（予告用）。古い SQL の時は、何も出しません */
+  try{
+    const n=await sb("rpc/prize_cfg_next",{method:"POST",body:"{}"});
+    PZNEXT=(n&&n.from&&n.cfg)?n:null;
+  }catch(e){ PZNEXT=null; }
   return PZCFG;
 }
 async function pzEnter(){
@@ -15658,6 +15807,10 @@ function pzDraw(){
       <td class="n"><input type="number" class="txt" data-pzj="coin" min="0" max="9999" step="1"
         value="${+((cur.join||{}).coin)||0}" style="max-width:90px"></td><td></td></tr>`
     +`</tbody></table></div>
+    ${PZNEXT&&PZNEXT.from?`<div class="hintbox" style="margin-top:8px;border-color:var(--warn)">
+      <b style="color:var(--warn)">${esc(String(PZNEXT.from).replace(/-/g,"/"))} から使う賞品が、すでに決まっています。</b><br>
+      <span class="tiny">いまの表は「これから保存する内容」です。
+        保存すると、いちばん新しい内容に置きかわります。</span></div>`:""}
     <div class="tools" style="margin-top:8px">
       <button class="btn sm" id="pzAdd">＋ 順位を増やす</button>
       <span class="tiny">スターは1個 5XP になります。0 にすると、その順位には何も配りません。</span>
@@ -15688,14 +15841,30 @@ if($("#pzSave")) $("#pzSave").onclick=async()=>{
         .sort((a,b)=>a.pos-b.pos),
       join:{star:Math.max(0,+((c.join||{}).star)||0),coin:Math.max(0,+((c.join||{}).coin)||0)}};
   });
+  /* いつから使うのかを、先に見せて確かめてもらいます */
+  const asu=(()=>{ const d=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
+    d.setDate(d.getDate()+1); return d; })();
+  const lines=PZ_KEYS.map(([k,n])=>{
+    const st=pzNextStart(k,pdStr(asu));
+    return `<tr><td>${esc(n)}</td><td class="tiny">${esc(pdSlash(st))} から</td>
+      <td class="tiny">${k==="cup"?"この日以降に<b>はじまる</b>競技会"
+        :k==="day"?"この日のぶんから"
+        :k==="week"?"次の週（月曜）から"
+        :"次の月の1日から"}</td></tr>`;
+  }).join("");
+  if(!await askYN("この賞品で保存しますか？",
+    `<b>いま開催中のものと、終わったものは変わりません。</b><br>
+     <span class="tiny">配り終えたごほうびを、あとから配り直すこともありません。</span><br><br>
+     <div class="scroll"><table><thead><tr><th>種類</th><th>いつから</th><th></th>
+       </tr></thead><tbody>${lines}</tbody></table></div>`,
+    "この内容で保存する")) { pzMsg(""); return; }
   pzMsg("送っています…");
   try{
-    await sbAuth("rpc/prize_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
+    const r=await sbAuth("rpc/prize_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
     await pzLoad();
-    const srv=await sb("rpc/prize_cfg",{method:"POST",body:"{}"});
-    const same=JSON.stringify((srv||{}).cup)===JSON.stringify(cfg.cup);
     PZEDIT=JSON.parse(JSON.stringify(PZCFG)); pzDraw();
-    pzMsg(same?"保存しました。全員に反映されました":"保存しましたが、確認できませんでした",same);
+    const from=(r&&r.from)?r.from:pdStr(asu);
+    pzMsg(`保存しました。${from.replace(/-/g,"/")} から始まるものに使われます`,true);
   }catch(e){ pzMsg(String(e.message||e).slice(0,90),false); }
 };
 if($("#pzReload")) $("#pzReload").onclick=async()=>{ await pzEnter(); pzMsg("読み直しました"); };
