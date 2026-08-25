@@ -78,7 +78,21 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .richbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 8px;
   background:#101a2c;border-bottom:1px solid var(--line)}
 .richbar .btn{padding:2px 8px;font-size:.76rem}
-.richbar select{height:26px;font-size:.74rem;max-width:110px}
+.richbar select{height:26px;font-size:.74rem;max-width:130px}
+/* 管理者エディターモード */
+.uiedit [data-uikey]{outline:1px dashed #4da3ff88;outline-offset:2px;cursor:pointer;
+  border-radius:4px;transition:background .12s}
+.uiedit [data-uikey]:hover{background:#4da3ff22;outline:2px solid #4da3ff;outline-offset:2px}
+.uiedit [data-uikey][data-ui-on="1"]{outline-color:#ffd45e88}
+.uibar{position:fixed;left:0;right:0;bottom:0;z-index:9000;display:flex;gap:10px;
+  align-items:center;flex-wrap:wrap;padding:9px 14px;background:#0b1524f2;
+  border-top:2px solid var(--acc);backdrop-filter:blur(6px)}
+.uibar .uibt{font-weight:800;color:var(--acc);letter-spacing:.04em}
+.uibar .btn{padding:3px 10px}
+body.uiedit{padding-bottom:64px}
+.richpt{display:inline-flex;align-items:center;gap:3px}
+.richpt input{width:58px;height:24px;font-size:.74rem;padding:0 4px;text-align:right}
+.richpt span{font-size:.7rem;color:var(--dim2)}
 .richbar input[type=color]{width:26px;height:24px;padding:0;border-radius:5px}
 .richsep{width:1px;height:18px;background:var(--line);margin:0 3px}
 .richcol{width:18px;height:18px;border-radius:50%;border:1px solid #ffffff33;cursor:pointer;padding:0}
@@ -2296,6 +2310,18 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <span class="tiny" id="admNote"></span></div>
   </div>
   <div id="admWrap" hidden>
+  <div class="card" id="uiCard">
+    <h2>管理者エディターモード</h2>
+    <p class="muted" style="margin-top:-8px">画面に出ている文章や、タブの名前・並び順を書きかえられます。<br>
+      <span class="tiny">書きかえた内容はサーバーに預けるので、GitHub に上げ直さなくても全員に届きます。</span></p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="uiGo">エディターモードを始める</button>
+      <button class="btn" id="uiTabs">タブの名前と並び順</button>
+      <button class="btn" id="uiList">書きかえた所の一覧</button>
+      <button class="btn" id="uiGh">GitHubに控えを保存</button>
+    </div>
+    <div id="uiMsg" class="tiny" style="margin-top:8px"></div>
+  </div>
   <div class="card" id="devCard" hidden data-adm="1">
     <h2>開発者メニュー</h2>
     <p class="muted" style="margin-top:-8px">管理者だけに出ています。
@@ -2394,7 +2420,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v105";
+const APP_VERSION = "v107";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3073,6 +3099,15 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v107":[
+    "管理者エディターモードを追加。画面に出ている文章をその場でクリックして書きかえられます",
+    "タブの名前・並び順・表示／非表示も変えられるようにしました",
+    "文字の大きさを pt で指定できるようにし、大文字・小文字・書体も選べるようにしました",
+    "書きかえた文章はサーバーに預けるので、GitHub に上げ直さなくても全員に届きます",
+    "GitHub に控えを残すこともできます"],
+  "v106":[
+    "エラーが出たときに、意味の分かる日本語で出るようにした（前は英語のまま途中で切れていました）",
+    "承認のボタンで、誰のことか分からないまま送ってしまわないようにした"],
   "v105":[
     "賞品を変えても、開催中のものと終わったものは変わらないようにした（配り直しもしません）",
     "変えた賞品は「次の日から始まるもの」に使われます。Weekly は次の月曜、Monthly は次の月の1日からです",
@@ -5939,6 +5974,8 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="help") renderHelp();
   if(b.dataset.tab==="pgbc") pgRender();
   if(b.dataset.tab==="stats") stEnter();
+  /* 画面を作り直した所にも、書きかえた文章を当て直します */
+  try{ if(uiCount()||UIT_ON){ uiApply(); if(UIT_ON) uiMark(); } }catch(e){}
   if(b.dataset.tab==="cheer") cheerEnter();
   saveWhere();
   scrollTo({top:0,behavior:"smooth"});});
@@ -7056,9 +7093,39 @@ async function sb(path,opt){
   const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),12000);
   try{
     const r=await fetch(SB_URL+"/rest/v1/"+path,Object.assign({signal:ac.signal},o,{headers:h}));
-    if(!r.ok){ const t=await r.text(); const e=new Error(t||("HTTP "+r.status)); e.status=r.status; throw e; }
+    if(!r.ok){ const t=await r.text(); const e=new Error(sbErrText(t,r.status));
+      e.status=r.status; e.raw=t;
+      try{ const j=JSON.parse(t); e.code=j&&j.code; }catch(x){}
+      throw e; }
     return r.status===204?null:r.json();
   }finally{ clearTimeout(tm); }
+}
+/* サーバーから返ってきた中身を、人が読める言い方に直します。
+   前は JSON をそのまま出していたので、画面では途中で切れて読めませんでした。 */
+const PG_ERR={
+  "22P02":"入力の形が合っていません（ID・数字・日付のどれかが空か、形がちがいます）",
+  "23505":"同じものがすでにあります",
+  "23503":"つながっている先が見つかりません",
+  "23502":"必要な項目が空です",
+  "22003":"数が大きすぎます",
+  "22001":"文字が長すぎます",
+  "42501":"権限が足りません",
+  "P0001":""                      /* raise exception の文はそのまま出します */
+};
+function sbErrText(body,status){
+  const t=String(body||"");
+  let j=null; try{ j=JSON.parse(t); }catch(e){}
+  if(!j||typeof j!=="object") return t||("HTTP "+(status||"?"));
+  const parts=[];
+  const known=PG_ERR[j.code];
+  if(known) parts.push(known);
+  if(j.message) parts.push(String(j.message));
+  if(j.details) parts.push("（"+String(j.details)+"）");
+  if(j.hint)    parts.push("ヒント："+String(j.hint));
+  let out=parts.filter(Boolean).join(" ");
+  /* P0001 は、こちらで書いた日本語の注意文なので、記号を付けません */
+  if(j.code&&known===undefined&&j.code!=="P0001") out=out+"［"+j.code+"］";
+  return out||t;
 }
 /** エラー本文からよくある原因を日本語で言い当てる */
 function sbHint(msg){
@@ -7074,6 +7141,10 @@ function sbHint(msg){
     return "APIキーが正しくありません。Settings → API Keys の Publishable key を貼り直してください。";
   if(/permission denied/i.test(m))
     return "権限が足りません。SQL末尾の grant 文まで実行されているか確認してください。";
+  if(/22P02|invalid input syntax/i.test(m))
+    return "送ろうとした値の形が合っていません。"
+      + "画面を読み込み直してから、もう一度お試しください。"
+      + "それでも直らない時は、この文をそのまま管理者にお知らせください。";
   if(/別の端末で登録済み/.test(m))
     return "この@IDは別の端末から登録済みです。Supabase の Table Editor で該当行を削除すると再登録できます。";
   if(/Failed to fetch|NetworkError/i.test(m))
@@ -7657,19 +7728,26 @@ function admGate(){
   const ok=isAdmin();
   if(gate) gate.hidden=!ok;
   if(wrap) wrap.hidden=!(ok&&admOpen);
-  if(!ok){ admOpen=false; return; }
+  if(!ok){ admOpen=false;
+    /* 管理者でなければ、エディターモードは必ず閉じます */
+    if(UIT_ON){ UIT_ON=false; document.body.classList.remove("uiedit");
+      $$("[data-uikey]").forEach(el=>{ delete el.dataset.uikey; });
+      const bb=$("#uiBar"); if(bb) bb.remove(); }
+    return; }
   const b=$("#admToggle");
   if(b){
     b.textContent=admOpen?"管理者メニューを閉じる":"管理者メニューを開く";
     if(!b.dataset.on){ b.dataset.on="1";
       b.onclick=()=>{ admOpen=!admOpen; admGate();
-        if(admOpen){ renderAdmin(); ccEnter(); pzEnter();
+        if(admOpen){ renderAdmin(); ccEnter(); pzEnter(); uiCardInit();
           const el=$("#admWrap");
           if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); } }; }
   }
+  if(admOpen) uiCardInit();
   const note=$("#admNote");
   if(note) note.textContent=admOpen
-    ? "開発者メニュー・Prime Coin の配り方・大会の賞品・コインと応援ポイントの管理・管理者のしごと"
+    ? "管理者エディターモード・開発者メニュー・Prime Coin の配り方・大会の賞品・"
+      +"コインと応援ポイントの管理・管理者のしごと"
     : "";
 }
 function renderSupporter(){
@@ -7795,9 +7873,12 @@ async function reviewClaim(id,ok){
   M.q("#apGo").onclick=()=>approve(true);
   M.q("#apOnly").onclick=()=>approve(false);
 }
+const isUuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||""));
 async function setRole(uid,role){
+  /* 誰のことか分からないまま送ると、意味の分からないエラーになります */
+  if(!isUuid(uid)) return toast("どの人のことか分かりませんでした。再読み込みしてお試しください");
   try{ await sbAuth("rpc/set_role",{method:"POST",body:JSON.stringify({p_user:uid,p_role:role})});
-  }catch(e){ return toast("失敗しました："+String(e.message||e).slice(0,60)); }
+  }catch(e){ return toast("失敗しました："+String(e.message||e).slice(0,120)); }
   toast(role==="supporter"?"サポーターに承認しました":"却下しました"); renderAdmin();
 }
 
@@ -10285,7 +10366,9 @@ function renderRole(){
   if($("#apJudge")) $("#apJudge").onclick=()=>ask("judge",JUDGE_TERMS);
   if($("#apSv"))    $("#apSv").onclick=()=>ask("supervisor",SV_TERMS);
   box.querySelectorAll("[data-ok]").forEach(b=>b.onclick=async()=>{
-    try{ await callRpc("decide_role_request",{p_id:b.closest("[data-rq]").dataset.rq,p_ok:b.dataset.ok==="1"});
+    const rqId=(b.closest("[data-rq]")||{dataset:{}}).dataset.rq;
+    if(!isUuid(rqId)) return toast("どの申請か分かりませんでした。再読み込みしてお試しください");
+    try{ await callRpc("decide_role_request",{p_id:rqId,p_ok:b.dataset.ok==="1"});
       toast("処理しました"); await loadRoleReq(); renderRole();
     }catch(e){ toast(String(e.message||e).slice(0,120)); }
   });
@@ -15370,6 +15453,464 @@ function lsCoinFx(n){
 }
 
 /* ══════════════════════════════════════════════════════════
+   管理者エディターモード（画面の文章を書きかえる）
+   ──────────────────────────────────────────────────────────
+   考えかた
+   ・画面の中から「文字を持っているかたまり」だけを取り出します
+   ・その中身から鍵（合言葉）を作り、書きかえた文をその鍵で預けます
+   ・出す時は「もとの文が今も同じか」を確かめてから当てます。
+     アプリの更新でもとの文が変わったら、その差しかえは当てません。
+     こうしておくと、古い差しかえが残って中身がちぐはぐになりません。
+   ══════════════════════════════════════════════════════════ */
+let UIT={texts:{},tabs:{}};   /* いま使っている差しかえ */
+let UIT_ON=false;             /* エディターモードを開いているか */
+let UIT_DIRTY=false;          /* まだ全員に反映していない変更があるか */
+const UIT_SKIP=new Set(["SCRIPT","STYLE","INPUT","TEXTAREA","SELECT","SVG","PATH","CIRCLE",
+  "LINE","RECT","TITLE","CANVAS","IFRAME","OBJECT"]);
+/* 中身が入れかわるだけの所（「—」「0」など）は、書きかえても意味がないので外します */
+const uiPlaceholder=t=>!String(t||"").replace(/[\s　—\-–—0-9.,%…:：]/g,"").length;
+/* いちばん最初に見た時の中身を、ここに覚えておきます。
+   ★ 画面（HTML）には書き込みません。書き込むと、差しかえた中身の中に
+      目印が入りこんで、次に数える時にずれてしまうためです。 */
+const UIT_ORIG=new WeakMap();
+const uiOrigOf=el=>UIT_ORIG.has(el)?UIT_ORIG.get(el):el.innerHTML;
+/** 文字を直接持っているか */
+function uiOwnsText(el){
+  for(const n of el.childNodes) if(n.nodeType===3 && n.nodeValue.trim()) return true;
+  return false;
+}
+/** 文字を、鍵を作るための形にそろえます */
+const uiNorm=t=>String(t||"").replace(/\s+/g," ").trim();
+/** 短くて重ならない鍵を作ります */
+function uiHash(str){
+  let h=5381;
+  for(let i=0;i<str.length;i++){ h=((h<<5)+h)^str.charCodeAt(i); h=h>>>0; }
+  let h2=52711;
+  for(let i=str.length-1;i>=0;i--){ h2=((h2<<5)+h2)^str.charCodeAt(i); h2=h2>>>0; }
+  return ("00000000"+h.toString(16)).slice(-8)+("00000000"+h2.toString(16)).slice(-8);
+}
+/** 画面の中から、書きかえられるかたまりを全部さがします */
+function uiScan(){
+  const out=[];
+  const root=document.body; if(!root) return out;
+  (function walk(el,inside){
+    for(const c of el.children){
+      if(UIT_SKIP.has(c.tagName)) continue;
+      /* ★ 一度かたまりだと決めた所は、中身を差しかえたあとも、ずっとかたまりのままです。
+         こうしないと、差しかえた中の <b> などが新しいかたまりに見えてしまい、
+         もとに戻せなくなります。 */
+      const was=UIT_ORIG.has(c);
+      const mine=!inside && (was || uiOwnsText(c));
+      if(mine){
+        if(!was) UIT_ORIG.set(c, c.innerHTML);
+        const orig=uiNorm(UIT_ORIG.get(c).replace(/<[^>]*>/g," "));
+        if(orig && !uiPlaceholder(orig)) out.push({el:c, orig});
+      }
+      /* かたまりの中には入りません（差しかえた中身を数えないため）*/
+      if(!mine) walk(c, inside);
+    }
+  })(root,false);
+  /* 同じ文が何度も出てくる時は、出てきた順に番号を足します */
+  const seen={};
+  out.forEach(u=>{
+    const base=uiHash(u.el.tagName+"|"+u.orig);
+    const n=(seen[base]=(seen[base]||0)+1);
+    u.key=base+(n>1?("_"+n):"");
+  });
+  return out;
+}
+/** 預かっている文章を、画面に当てます */
+function uiApply(){
+  let n=0;
+  uiScan().forEach(u=>{
+    const rec=UIT.texts&&UIT.texts[u.key];
+    const cur=uiOrigOf(u.el);
+    if(!rec||typeof rec.html!=="string"){
+      /* 差しかえが無いなら、もとの中身に戻しておきます */
+      if(u.el.dataset.uiOn==="1"){ u.el.innerHTML=cur; delete u.el.dataset.uiOn; }
+      return;
+    }
+    /* ★ もとの文が変わっていたら当てません（ちぐはぐを防ぎます）*/
+    if(uiNorm(String(rec.orig||"")) !== u.orig){
+      if(u.el.dataset.uiOn==="1"){ u.el.innerHTML=cur; delete u.el.dataset.uiOn; }
+      return;
+    }
+    const html=sanitizeRich(rec.html);
+    if(u.el.innerHTML!==html){ u.el.innerHTML=html; }
+    u.el.dataset.uiOn="1"; n++;
+  });
+  uiTabsApply();
+  return n;
+}
+/** サーバーから、預けてある文章を読みます */
+async function uiLoad(){
+  if(TEST||!sbOn()) return UIT;
+  try{
+    const r=await sb("rpc/ui_text",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object"){
+      UIT={texts:(r.texts&&typeof r.texts==="object")?r.texts:{},
+           tabs:(r.tabs&&typeof r.tabs==="object")?r.tabs:{}};
+    }
+  }catch(e){ /* 古い SQL の時は、何もしません */ }
+  return UIT;
+}
+
+/* ══════════════════════════════════════════════════════════
+   エディターモードの動き
+   ══════════════════════════════════════════════════════════ */
+const uiMsg=(t,cls)=>{ const e=$("#uiMsg");
+  if(e) e.innerHTML=cls?`<span style="color:var(--${cls})">${t}</span>`:t; };
+/** 書きかえの数 */
+const uiCount=()=>Object.keys((UIT.texts)||{}).length;
+/** エディターモードを、始めたり終えたりします */
+function uiToggle(on){
+  if(!isAdmin()){ UIT_ON=false; document.body.classList.remove("uiedit"); uiBarDraw(); return; }
+  UIT_ON=(on===undefined)?!UIT_ON:!!on;
+  document.body.classList.toggle("uiedit",UIT_ON);
+  if(UIT_ON) uiMark();
+  else $$("[data-uikey]").forEach(el=>{ delete el.dataset.uikey; });
+  uiBarDraw();
+  const b=$("#uiGo");
+  if(b) b.textContent=UIT_ON?"エディターモードを終える":"エディターモードを始める";
+}
+/** 書きかえられる所に、目印を付けます */
+function uiMark(){
+  uiScan().forEach(u=>{ u.el.dataset.uikey=u.key; });
+}
+/** 画面の下に出る、操作バー */
+function uiBarDraw(){
+  let bar=$("#uiBar");
+  if(!UIT_ON){ if(bar) bar.remove(); return; }
+  if(!bar){
+    bar=document.createElement("div"); bar.id="uiBar"; bar.className="uibar";
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML=`<span class="uibt">エディターモード</span>
+    <span class="tiny">書きかえたい文字を<b>クリック</b>してください</span>
+    <span class="tiny" id="uiN">書きかえ ${jp(uiCount())} か所${UIT_DIRTY?"（未反映）":""}</span>
+    <button class="btn sm pri" id="uiSave">全員に反映する</button>
+    <button class="btn sm" id="uiTabs2">タブ</button>
+    <button class="btn sm" id="uiList2">一覧</button>
+    <button class="btn sm" id="uiEnd">終える</button>`;
+  bar.querySelector("#uiEnd").onclick=()=>uiToggle(false);
+  bar.querySelector("#uiSave").onclick=uiPublish;
+  bar.querySelector("#uiTabs2").onclick=uiTabsEdit;
+  bar.querySelector("#uiList2").onclick=uiListShow;
+}
+/* クリックを横取りして、編集の窓を開きます。
+   （ボタンの上でも、本来の動きは起こさないようにします）*/
+document.addEventListener("click",e=>{
+  if(!UIT_ON||!isAdmin()) return;
+  if(e.target.closest&&(e.target.closest(".mask")||e.target.closest("#uiBar"))) return;
+  const el=e.target.closest&&e.target.closest("[data-uikey]");
+  if(!el) return;
+  e.preventDefault(); e.stopPropagation();
+  uiEditOne(el);
+},true);
+/** ひとつぶんの文章を書きかえる窓 */
+function uiEditOne(el){
+  const key=el.dataset.uikey; if(!key) return;
+  const orig=uiOrigOf(el);
+  const rec=(UIT.texts||{})[key];
+  const now=(rec&&typeof rec.html==="string")?rec.html:orig;
+  const M=modal(`<h2>文章を書きかえる</h2>
+    <p class="muted" style="margin-top:-8px">この場所だけを書きかえます。<br>
+      <span class="tiny">文字を選んでから、上のボタンで色・太さ・大きさ（pt）・大文字を変えられます。</span></p>
+    <details style="margin-bottom:8px"><summary class="muted">もとの文</summary>
+      <div class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:8px;
+        padding:8px 10px;margin-top:6px;white-space:pre-wrap">${esc(orig.replace(/<[^>]*>/g,""))}</div></details>
+    ${richEditHTML("uiEd","ここに出したい文章を書きます")}
+    <div class="tools">
+      <button class="btn pri" id="uiOk">この文章にする</button>
+      <button class="btn" id="uiRev">もとの文にもどす</button>
+      <button class="btn" id="uiNo">やめる</button></div>
+    <p class="tiny" style="color:var(--dim2);margin-top:6px">
+      「この文章にする」を押すと、この画面ではすぐ変わります。<br>
+      ほかの人にも見せるには、下のバーの<b>「全員に反映する」</b>を押してください。</p>
+    <div id="uiEdMsg" class="tiny"></div>`,{w:780});
+  const get=richEditInit(M.q("#uiEd"),now);
+  M.q("#uiNo").onclick=M.close;
+  M.q("#uiRev").onclick=()=>{
+    if(UIT.texts) delete UIT.texts[key];
+    el.innerHTML=orig; delete el.dataset.uiOn;
+    UIT_DIRTY=true; uiBarDraw(); M.close(); toast("もとの文にもどしました");
+  };
+  M.q("#uiOk").onclick=()=>{
+    const html=get();
+    if(!html){ M.q("#uiEdMsg").innerHTML='<span style="color:var(--bad)">中身が空です</span>'; return; }
+    const safe=sanitizeRich(html);
+    if(!(safe.replace(/<[^>]*>/g,"").trim())){
+      M.q("#uiEdMsg").innerHTML='<span style="color:var(--bad)">文字が残っていません</span>'; return; }
+    UIT.texts=UIT.texts||{};
+    UIT.texts[key]={html:safe, orig:uiNorm(orig.replace(/<[^>]*>/g," ")), at:new Date().toISOString()};
+    el.innerHTML=safe; el.dataset.uiOn="1";
+    UIT_DIRTY=true; uiBarDraw(); M.close(); toast("この画面では変わりました（まだ全員には届いていません）");
+  };
+}
+/** 全員に反映します */
+async function uiPublish(){
+  if(!isAdmin()) return toast("管理者だけが使えます");
+  const n=uiCount();
+  if(!await askYN("この内容を全員に反映しますか？",
+    `書きかえた文章 <b>${jp(n)} か所</b>と、タブの決まりを、みんなの画面に反映します。<br><br>
+     <span class="tiny">ひとつ前の内容は控えとして残るので、あとから戻せます。</span>`,
+    "全員に反映する")) return;
+  uiMsg("送っています…");
+  try{
+    const r=await callRpc("ui_text_set",{p_cfg:{texts:UIT.texts||{},tabs:UIT.tabs||{}}});
+    UIT_DIRTY=false; uiBarDraw();
+    uiMsg(`反映しました（${jp((r&&r.n)||n)} か所）`,"acc2");
+    toast("全員に反映しました");
+  }catch(e){ uiMsg("反映できませんでした："+esc(String(e.message||e)).slice(0,160),"bad");
+    toast(String(e.message||e).slice(0,120)); }
+}
+/** 書きかえた所の一覧 */
+function uiListShow(){
+  const t=UIT.texts||{};
+  const keys=Object.keys(t);
+  const units=uiScan();
+  const found={}; units.forEach(u=>found[u.key]=u);
+  const M=modal(`<h2>書きかえた所の一覧</h2>
+    <p class="muted" style="margin-top:-8px">${jp(keys.length)} か所を書きかえています。</p>
+    ${keys.length?`<div class="scroll" style="max-height:52vh"><table><thead><tr>
+      <th>もとの文</th><th>いまの文</th><th>ようす</th><th></th></tr></thead><tbody>`+
+      keys.map(k=>{
+        const r=t[k]||{};
+        const u=found[k];
+        const ok=u&&uiNorm(String(r.orig||""))===u.orig;
+        return `<tr><td class="tiny">${esc(String(r.orig||"").slice(0,40))}</td>
+          <td class="tiny">${esc(String(r.html||"").replace(/<[^>]*>/g,"").slice(0,40))}</td>
+          <td class="tiny">${ok?'<span style="color:var(--acc2)">出ています</span>'
+            :u?'<span style="color:var(--warn)">もとの文が変わったので、出していません</span>'
+               :'<span style="color:var(--dim2)">今の画面には無い所です</span>'}</td>
+          <td><button class="btn sm del" data-uidel="${esc(k)}">消す</button></td></tr>`;
+      }).join("")+`</tbody></table></div>`
+      :`<p class="muted">まだ書きかえていません。</p>`}
+    <div class="tools">
+      ${keys.length?`<button class="btn" id="uiClrOld">出していないものをまとめて消す</button>`:""}
+      <button class="btn" id="uiClrAll" style="border-color:#7a3030;color:#ff8a8a">全部もとに戻す</button>
+      <button class="btn" id="uiLX">閉じる</button></div>`,{w:820});
+  M.q("#uiLX").onclick=M.close;
+  M.qa("[data-uidel]").forEach(b=>b.onclick=()=>{
+    delete UIT.texts[b.dataset.uidel]; UIT_DIRTY=true; uiApply(); if(UIT_ON) uiMark();
+    uiBarDraw(); M.close(); uiListShow();
+  });
+  if(M.q("#uiClrOld")) M.q("#uiClrOld").onclick=()=>{
+    let n=0;
+    Object.keys(UIT.texts||{}).forEach(k=>{
+      const u=found[k];
+      if(!u||uiNorm(String((UIT.texts[k]||{}).orig||""))!==u.orig){ delete UIT.texts[k]; n++; }
+    });
+    UIT_DIRTY=true; uiApply(); if(UIT_ON) uiMark(); uiBarDraw();
+    M.close(); toast(`${jp(n)} 件を消しました`);
+  };
+  M.q("#uiClrAll").onclick=async()=>{
+    if(!await askYN("全部もとに戻しますか？",
+      "書きかえた文章をすべて消して、はじめの文にもどします。<br>タブの決まりも消えます。","全部もどす")) return;
+    UIT={texts:{},tabs:{}}; UIT_DIRTY=true; uiApply(); if(UIT_ON) uiMark(); uiBarDraw();
+    M.close(); toast("もとに戻しました（まだ全員には届いていません）");
+  };
+}
+
+/** GitHub に控えを保存します（Supabase が使えなくなった時の備え）*/
+async function uiGhSave(){
+  if(!isAdmin()) return toast("管理者だけが使えます");
+  if(typeof ghReady!=="function"||!ghReady())
+    return uiMsg("GitHub連携が未設定です。管理者メニューの「開発者メニュー」→「GitHub連携の設定」から入れてください。","bad");
+  const path=(gh.uiPath||"ui-text.json");
+  const body=JSON.stringify({texts:UIT.texts||{},tabs:UIT.tabs||{},
+    at:new Date().toISOString(), note:"素数あつめRATING 画面の文章の控え"},null,2);
+  if(!await askYN("GitHubに控えを保存しますか？",
+    `${esc(gh.owner)}/${esc(gh.repo)} の <b>${esc(path)}</b> に、いまの内容を書き出します。<br><br>
+     <span class="tiny">これは<b>控え</b>です。みんなの画面に出すのは「全員に反映する」のほうです。</span>`,
+    "保存する")) return;
+  uiMsg("送っています…");
+  try{
+    await ghPut(path, body, "画面の文章の控えを更新");
+    uiMsg(`${esc(path)} に保存しました（${jp(uiCount())} か所）`,"acc2");
+  }catch(e){ uiMsg("保存できませんでした："+esc(String(e.message||e)).slice(0,180),"bad"); }
+}
+/** GitHub の控えから読み戻します */
+async function uiGhLoad(){
+  if(!isAdmin()) return toast("管理者だけが使えます");
+  if(typeof ghReady!=="function"||!ghReady()) return uiMsg("GitHub連携が未設定です。","bad");
+  const path=(gh.uiPath||"ui-text.json");
+  uiMsg("読んでいます…");
+  try{
+    const r=await ghGetJson(path);
+    const j=r&&r.json;
+    if(!j||typeof j!=="object") throw new Error("中身が読めません");
+    const n=Object.keys((j.texts&&typeof j.texts==="object")?j.texts:{}).length;
+    if(!await askYN("控えから読み戻しますか？",
+      `<b>${esc(path)}</b> にある ${jp(n)} か所を、いまの内容と入れかえます。<br><br>
+       <span class="tiny">読み戻したあと、「全員に反映する」を押すとみんなに届きます。</span>`,
+      "読み戻す")) { uiMsg(""); return; }
+    UIT={texts:(j.texts&&typeof j.texts==="object")?j.texts:{},
+         tabs:(j.tabs&&typeof j.tabs==="object")?j.tabs:{}};
+    UIT_DIRTY=true; uiApply(); if(UIT_ON) uiMark(); uiBarDraw();
+    uiMsg(`控えから ${jp(n)} か所を読み戻しました。「全員に反映する」を押すと届きます。`,"acc2");
+  }catch(e){ uiMsg("読めませんでした："+esc(String(e.message||e)).slice(0,180),"bad"); }
+}
+/** 管理者メニューのボタンを用意します */
+function uiCardInit(){
+  const card=$("#uiCard"); if(!card) return;
+  card.hidden=!isAdmin();
+  if(!isAdmin()) return;
+  const wire=(id,fn)=>{ const b=$("#"+id);
+    if(b&&!b.dataset.on){ b.dataset.on="1"; b.onclick=fn; } };
+  wire("uiGo",()=>uiToggle());
+  wire("uiTabs",uiTabsEdit);
+  wire("uiList",uiListShow);
+  wire("uiGh",()=>{
+    const M=modal(`<h2>GitHubの控え</h2>
+      <p class="muted" style="margin-top:-8px">
+        書きかえた文章を、GitHub にファイルとして残せます。<br>
+        <span class="tiny">みんなの画面にすぐ出すのは「全員に反映する」のほうです。
+        こちらは、もしもの時のための控えです。</span></p>
+      <div class="tools">
+        <button class="btn pri" id="ugS">控えを保存する</button>
+        <button class="btn" id="ugL">控えから読み戻す</button>
+        <button class="btn" id="ugX">閉じる</button></div>`,{w:600});
+    M.q("#ugX").onclick=M.close;
+    M.q("#ugS").onclick=()=>{ M.close(); uiGhSave(); };
+    M.q("#ugL").onclick=()=>{ M.close(); uiGhLoad(); };
+  });
+  const b=$("#uiGo");
+  if(b) b.textContent=UIT_ON?"エディターモードを終える":"エディターモードを始める";
+  uiMsg(uiCount()?`いま ${jp(uiCount())} か所を書きかえています${UIT_DIRTY?"（未反映）":""}`:"");
+}
+
+/* ══════════ タブの名前と並び順 ══════════ */
+/* ★ 追加の道具が足したタブは、ここでは絶対にあつかいません。
+      名前や並び順を預けると、みんなに見えてしまうためです。 */
+function uiTabList(){
+  const own=new Set(["profile","pgbc","stats","card","input","plan","analysis","hist",
+    "mood","ls","sns","settings","rprank","rankedit","help","cheer"]);
+  return $$("#tabs button").filter(b=>own.has(b.dataset.tab));
+}
+/** タブの名前・並び順・非表示を決める窓 */
+function uiTabsEdit(){
+  if(!isAdmin()) return toast("管理者だけが使えます");
+  const t=UIT.tabs=UIT.tabs||{};
+  t.names=t.names||{}; t.groups=t.groups||{}; t.hidden=Array.isArray(t.hidden)?t.hidden:[];
+  const list=uiTabList();
+  const grpName={home:"ホーム",me:"個人データ",tool:"ツール",sns:"Prime SNS",set:"設定"};
+  /* 並び順は、グループごとにまとめて出します */
+  const byG={};
+  list.forEach(b=>{ const g=(b.parentElement&&b.parentElement.dataset.g)||"?";
+    (byG[g]=byG[g]||[]).push(b); });
+  const ord=Array.isArray(t.order)?t.order:[];
+  Object.keys(byG).forEach(g=>{
+    byG[g].sort((a,b)=>{
+      const ia=ord.indexOf(a.dataset.tab), ib=ord.indexOf(b.dataset.tab);
+      return (ia<0?9999:ia)-(ib<0?9999:ib);
+    });
+  });
+  const rows=g=>byG[g].map(b=>{
+    const k=b.dataset.tab;
+    const og=b.dataset.uiTabOrig!==undefined?b.dataset.uiTabOrig:b.textContent;
+    return `<tr data-utk="${esc(k)}">
+      <td class="tiny">${esc(og)}</td>
+      <td><input type="text" class="txt" data-utn="${esc(k)}" maxlength="20"
+        value="${esc((t.names[k]!==undefined&&t.names[k]!==og)?t.names[k]:"")}"
+        placeholder="${esc(og)}" style="max-width:none"></td>
+      <td><label class="pk" style="display:inline-flex"><input type="checkbox" data-uth="${esc(k)}"
+        ${t.hidden.indexOf(k)>=0?" checked":""}> 隠す</label></td>
+      <td style="white-space:nowrap">
+        <button class="btn sm" data-utup="${esc(k)}">▲</button>
+        <button class="btn sm" data-utdn="${esc(k)}">▼</button></td></tr>`;
+  }).join("");
+  const M=modal(`<h2>タブの名前と並び順</h2>
+    <p class="muted" style="margin-top:-8px">タブの名前を変えたり、並べかえたり、隠したりできます。<br>
+      <span class="tiny">並べかえは、同じグループの中だけでできます。
+      名前を空にすると、もとの名前にもどります。</span></p>
+    ${Object.keys(byG).map(g=>`<h3>${esc(grpName[g]||g)}</h3>
+      <label class="fl">グループの名前</label>
+      <input type="text" class="txt" data-utg="${esc(g)}" maxlength="20"
+        value="${esc(t.groups[g]||"")}" placeholder="${esc(grpName[g]||g)}" style="max-width:260px">
+      <div class="scroll"><table><thead><tr>
+        <th>もとの名前</th><th>出す名前</th><th></th><th>並び</th></tr></thead>
+        <tbody>${rows(g)}</tbody></table></div>`).join("")}
+    <div class="hintbox" style="margin-top:10px">
+      <span class="tiny">ここに出ていないタブ（管理者だけのものなど）は、あつかいません。</span></div>
+    <div class="tools">
+      <button class="btn pri" id="utOk">この決まりにする</button>
+      <button class="btn" id="utRev">もとに戻す</button>
+      <button class="btn" id="utNo">やめる</button></div>`,{w:760});
+  M.q("#utNo").onclick=M.close;
+  /* 並べかえ */
+  const move=(k,d)=>{
+    const tr=M.q(`tr[data-utk="${CSS.escape(k)}"]`); if(!tr) return;
+    const tb=tr.parentElement;
+    if(d<0&&tr.previousElementSibling) tb.insertBefore(tr,tr.previousElementSibling);
+    if(d>0&&tr.nextElementSibling) tb.insertBefore(tr.nextElementSibling,tr);
+  };
+  M.qa("[data-utup]").forEach(b=>b.onclick=()=>move(b.dataset.utup,-1));
+  M.qa("[data-utdn]").forEach(b=>b.onclick=()=>move(b.dataset.utdn,1));
+  M.q("#utRev").onclick=()=>{
+    UIT.tabs={}; UIT_DIRTY=true; uiTabsApply(); M.close(); toast("タブをもとに戻しました");
+  };
+  M.q("#utOk").onclick=()=>{
+    const names={}, groups={}, hidden=[], order=[];
+    M.qa("tr[data-utk]").forEach(tr=>{
+      const k=tr.dataset.utk; order.push(k);
+      const inp=tr.querySelector("[data-utn]");
+      const v=(inp&&inp.value||"").trim();
+      if(v) names[k]=v;
+      const hb=tr.querySelector("[data-uth]");
+      if(hb&&hb.checked) hidden.push(k);
+    });
+    M.qa("[data-utg]").forEach(inp=>{
+      const v=(inp.value||"").trim(); if(v) groups[inp.dataset.utg]=v;
+    });
+    UIT.tabs={names,groups,hidden,order};
+    UIT_DIRTY=true; uiTabsApply(); uiBarDraw();
+    M.close(); toast("この画面では変わりました（まだ全員には届いていません）");
+  };
+}
+/** 預かっているタブの決まりを当てます */
+function uiTabsApply(){
+  const t=UIT.tabs||{};
+  const list=uiTabList();
+  if(!list.length) return;
+  /* 名前 */
+  list.forEach(b=>{
+    const k=b.dataset.tab;
+    if(b.dataset.uiTabOrig===undefined) b.dataset.uiTabOrig=b.textContent;
+    const nm=(t.names||{})[k];
+    const want=(typeof nm==="string"&&nm.trim())?nm.trim():b.dataset.uiTabOrig;
+    if(b.textContent!==want) b.textContent=want;
+  });
+  /* 見出しの名前 */
+  $$("#tabs .ghead").forEach(g=>{
+    const k=(g.parentElement&&g.parentElement.dataset.g)||"";
+    if(!k) return;
+    if(g.dataset.uiTabOrig===undefined) g.dataset.uiTabOrig=g.textContent;
+    const nm=(t.groups||{})[k];
+    const want=(typeof nm==="string"&&nm.trim())?nm.trim():g.dataset.uiTabOrig;
+    if(g.textContent!==want) g.textContent=want;
+  });
+  /* 並び順（同じグループの中だけで入れかえます） */
+  const order=Array.isArray(t.order)?t.order:null;
+  if(order&&order.length){
+    const byGrp={};
+    list.forEach(b=>{ const g=b.parentElement; if(!g) return;
+      (byGrp[g.dataset.g||"?"]=byGrp[g.dataset.g||"?"]||{grp:g,items:[]}).items.push(b); });
+    Object.values(byGrp).forEach(({grp,items})=>{
+      const sorted=items.slice().sort((a,b)=>{
+        const ia=order.indexOf(a.dataset.tab), ib=order.indexOf(b.dataset.tab);
+        return (ia<0?9999:ia)-(ib<0?9999:ib);
+      });
+      sorted.forEach(b=>grp.appendChild(b));
+    });
+  }
+  /* 隠す。★ 隠すことしかできません。
+     「出す」はできないので、管理者だけのタブが見えてしまうことはありません。 */
+  const hid=Array.isArray(t.hidden)?t.hidden:[];
+  list.forEach(b=>{ if(hid.indexOf(b.dataset.tab)>=0) b.hidden=true; });
+}
+
+/* ══════════════════════════════════════════════════════════
    かんたんな文字かざり（太字・色・大きさなど）
    ・書いた人が付けられるのは、下の決まった飾りだけです
    ・出す時は必ず「安全な形に直して」から出します
@@ -15380,7 +15921,17 @@ const RICH_TAGS={B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,BR:1,DIV:1,P:1,SPAN:1,
 const RICH_DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,SVG:1,MATH:1,
   FORM:1,INPUT:1,BUTTON:1,TEXTAREA:1,SELECT:1,LINK:1,META:1,BASE:1,TEMPLATE:1,NOSCRIPT:1,TITLE:1};
 const RICH_CSS=["color","backgroundColor","fontSize","fontWeight","fontStyle",
-  "textDecoration","textDecorationLine","textAlign"];
+  "textDecoration","textDecorationLine","textAlign","textTransform","fontFamily",
+  "letterSpacing","lineHeight"];
+/* 使ってよい書体だけを決めておきます（よそのものを読み込ませないため） */
+const RICH_FONTS={
+  "":"（そのまま）",
+  "Impact, 'Arial Black', sans-serif":"Impact（太くて目立つ）",
+  "'Times New Roman', serif":"明朝（Times）",
+  "'Courier New', monospace":"等幅（Courier）",
+  "'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif":"ゴシック",
+  "'Hiragino Mincho ProN','Yu Mincho',serif":"明朝"
+};
 /** 書かれた飾りを、安全な形に直します */
 function sanitizeRich(html){
   const src=document.createElement("div");
@@ -15408,10 +15959,27 @@ function sanitizeRich(html){
           const m=String(v).match(/^([\d.]+)(px|pt|em|rem|%)$/);
           if(!m) return;
           const n2=+m[1];
-          if(m[2]==="px"&&n2>44) v="44px";
-          if((m[2]==="em"||m[2]==="rem")&&n2>3) v="3em";
-          if(m[2]==="%"&&n2>300) v="300%";
-          if(m[2]==="pt"&&n2>34) v="34pt";
+          if(!(n2>0)) return;
+          /* 大きすぎ・小さすぎを、ほどよい所で止めます */
+          if(m[2]==="px") v=Math.min(Math.max(n2,6),200)+"px";
+          if(m[2]==="pt") v=Math.min(Math.max(n2,4),150)+"pt";   /* ★ pt が使えます */
+          if(m[2]==="em"||m[2]==="rem") v=Math.min(Math.max(n2,.4),12)+m[2];
+          if(m[2]==="%") v=Math.min(Math.max(n2,40),1200)+"%";
+        }
+        if(k==="textTransform"&&!/^(none|uppercase|lowercase|capitalize)$/i.test(String(v).trim())) return;
+        if(k==="fontFamily"){
+          /* 決めておいた書体だけを通します */
+          const ok=Object.keys(RICH_FONTS).some(f=>f&&f.replace(/["']/g,"").toLowerCase()
+            ===String(v).replace(/["']/g,"").toLowerCase());
+          if(!ok) return;
+        }
+        if(k==="letterSpacing"){
+          const m2=String(v).match(/^(-?[\d.]+)(px|em)$/); if(!m2) return;
+          v=Math.min(Math.max(+m2[1],-2),20)+m2[2];
+        }
+        if(k==="lineHeight"){
+          const m3=String(v).match(/^([\d.]+)(px|em|)$/); if(!m3) return;
+          v=Math.min(Math.max(+m3[1],.6),(m3[2]==="px")?200:6)+m3[2];
         }
         try{ el.style[k]=v; }catch(e){}
       });
@@ -15457,12 +16025,29 @@ function richEditHTML(id,ph){
         style="background:${c}" title="この色にする"></button>`).join("")}
       <input type="color" data-rcolx title="好きな色" value="#ffd45e">
       <span class="richsep"></span>
-      <select data-rsize title="文字の大きさ">
+      <span class="richpt" title="文字の大きさ（pt）">
+        <input type="number" data-rpt min="4" max="150" step="0.5" placeholder="pt"><span>pt</span>
+        <button type="button" class="btn sm" data-rptgo>変える</button>
+      </span>
+      <select data-rsize title="よく使う大きさ">
         <option value="">大きさ</option>
-        <option value="12px">小さい</option>
-        <option value="16px">ふつう</option>
-        <option value="22px">大きい</option>
-        <option value="30px">とても大きい</option>
+        <option value="8pt">8pt</option>
+        <option value="9pt">9pt</option>
+        <option value="10.5pt">10.5pt（標準）</option>
+        <option value="12pt">12pt</option>
+        <option value="14pt">14pt</option>
+        <option value="18pt">18pt</option>
+        <option value="24pt">24pt</option>
+        <option value="36pt">36pt</option>
+        <option value="48pt">48pt</option>
+      </select>
+      <span class="richsep"></span>
+      <button type="button" class="btn sm" data-rcase="uppercase" title="大文字にする">AA</button>
+      <button type="button" class="btn sm" data-rcase="lowercase" title="小文字にする">aa</button>
+      <button type="button" class="btn sm" data-rcase="capitalize" title="先頭だけ大文字">Aa</button>
+      <select data-rfont title="書体">
+        ${Object.entries(RICH_FONTS).map(([v,n])=>
+          `<option value="${esc(v)}">${esc(n)}</option>`).join("")}
       </select>
       <span class="richsep"></span>
       <button type="button" class="btn sm" data-rc="insertUnorderedList" title="箇条書き">・一覧</button>
@@ -15492,19 +16077,46 @@ function richEditInit(root,initial){
   root.querySelectorAll("[data-rcol]").forEach(b=>b.onclick=e=>{ e.preventDefault(); run("foreColor",b.dataset.rcol); });
   const cx=root.querySelector("[data-rcolx]");
   if(cx) cx.oninput=()=>run("foreColor",cx.value);
-  const sz=root.querySelector("[data-rsize]");
-  if(sz) sz.onchange=()=>{
-    if(!sz.value) return;
+  /* 選んだところに、見た目の指定を当てます（execCommand に無いものはこれで） */
+  const wrapSel=(prop,val)=>{
     box.focus();
+    const sel=window.getSelection&&window.getSelection();
+    if(!sel||!sel.rangeCount||sel.isCollapsed){
+      toast("先に、変えたい文字を選んでください"); return;
+    }
+    /* いったん目印を付けてから、その目印に指定を当てます */
+    try{ document.execCommand("styleWithCSS",false,true); }catch(e){}
     try{ document.execCommand("fontSize",false,7); }catch(e){}
-    /* fontSize=7 で作られた font タグを、決めた大きさに直します */
     box.querySelectorAll('font[size="7"]').forEach(f=>{
       const sp=document.createElement("span");
-      sp.style.fontSize=sz.value; sp.innerHTML=f.innerHTML;
+      sp.style[prop]=val; sp.innerHTML=f.innerHTML;
       f.replaceWith(sp);
     });
-    sz.value="";
+    /* すでに span になっている所（続けて指定した時）にも当てます */
+    if(!box.querySelector("font")){
+      const r=sel.rangeCount?sel.getRangeAt(0):null;
+      if(r&&!r.collapsed){
+        const node=r.commonAncestorContainer;
+        const el=(node.nodeType===1?node:node.parentNode);
+        if(el&&el!==box&&box.contains(el)) el.style[prop]=val;
+      }
+    }
   };
+  const setSize=v=>{ if(v) wrapSel("fontSize",v); };
+  const sz=root.querySelector("[data-rsize]");
+  if(sz) sz.onchange=()=>{ setSize(sz.value); sz.value=""; };
+  const ptGo=root.querySelector("[data-rptgo]"), ptIn=root.querySelector("[data-rpt]");
+  if(ptGo) ptGo.onclick=e=>{
+    e.preventDefault();
+    const v=parseFloat(ptIn&&ptIn.value);
+    if(!(v>0)) return toast("大きさを pt で入れてください（例：14）");
+    setSize(Math.min(Math.max(v,4),150)+"pt");
+  };
+  if(ptIn) ptIn.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); ptGo&&ptGo.click(); } };
+  root.querySelectorAll("[data-rcase]").forEach(b=>b.onclick=e=>{
+    e.preventDefault(); wrapSel("textTransform",b.dataset.rcase); });
+  const fo=root.querySelector("[data-rfont]");
+  if(fo) fo.onchange=()=>{ if(fo.value) wrapSel("fontFamily",fo.value); fo.value=""; };
   root.querySelectorAll("[data-ralign]").forEach(b=>b.onclick=e=>{ e.preventDefault();
     run(b.dataset.ralign==="center"?"justifyCenter":"justifyLeft"); });
   const lk=root.querySelector("[data-rlink]");
@@ -18639,6 +19251,8 @@ function normalize(j){
   try{ histWatch(); histAuto(); }catch(e){}
   try{ await histPull(); await histWriteFull(); }catch(e){}
   try{ await loadBorderAt(); }catch(e){} tickClock();
+  /* ★ 管理者が書きかえた文章を、画面に当てます（誰でも読めます）*/
+  try{ await uiLoad(); uiApply(); }catch(e){}
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
