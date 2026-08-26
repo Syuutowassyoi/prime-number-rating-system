@@ -2429,7 +2429,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v109";
+const APP_VERSION = "v110";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3108,6 +3108,9 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v110":[
+    "Prime Bingo で、同じ素数が2回出ないように守りを固めました",
+    "別の端末とデータがまざった時に、カードの中身がちぐはぐにならないよう直しました"],
   "v109":[
     "Prime Bingo の処理を軽くしました（抽選が約1,000倍速く、保存も10分の1以下になりました）",
     "通常の画面には、ビンゴの盤面とまとめだけを出すようにしました",
@@ -3995,7 +3998,11 @@ const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
    いまは下の LS_NEWEST に移して、新しく変えたほうが勝つようにしています。 */
 const LS_NEW=[];
 /* 「新しいほうが勝ち」で混ぜるもの（増加量の設定・基準・コインの進み具合） */
-const LS_NEWEST=["sa-ls-v1","sa-lsbase-v1","sa-lsb-v1","sa-lscoin-v1"];
+/* ★ Prime Bingo のカードは、キーごとに混ぜてはいけません。
+   混ぜると「旗はAの、回数はBの」というちぐはぐな状態になり、
+   同じ素数がもう一度出てしまうおそれがあります。
+   まるごと「新しいほう」を採ります。 */
+const LS_NEWEST=["sa-ls-v1","sa-lsbase-v1","sa-lsb-v1","sa-lscoin-v1","sa-pb-v1"];
 let lsRev=+ls(K_LSREV,0)||0, lsBusy=false, lsT=null, lsTick=null, lsState="";
 /* ★ 追加の道具がまだ読み込まれていないと、
    その道具のデータが LS_ALL() に入らず、送る時にごっそり消えていました。
@@ -9627,7 +9634,10 @@ function pbFix(){
     PB._m=PB.mask;
     PB_REST=null;
   }
-  if(!(+PB.n>=0)) PB.n=pbCount();
+  /* ★ 回数は、旗に立っている数（＝出た素数の個数）を正とします。
+     こうしておくと、もし食いちがいが起きても「何回目」がずれません。 */
+  const real=pbCount();
+  if(PB.n!==real) PB.n=real;
   return PB;
 }
 /** いま遊べる状態か */
@@ -9700,17 +9710,28 @@ function pbDraw(){
       if(!pbHas(c)){ idx=c; break; }
     }
   }
-  if(idx<0){
-    if(!PB_REST||!PB_REST.length){
-      PB_REST=[];
-      for(let i=0;i<N;i++) if(!pbHas(i)) PB_REST.push(i);
-      /* まぜておきます */
-      for(let i=PB_REST.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0;
-        [PB_REST[i],PB_REST[j]]=[PB_REST[j],PB_REST[i]]; }
+  /* ★ ここから下は「まだ出ていない番号」しか通しません。
+     当てずっぽうで見つからなかった時や、選んだ番号がすでに出ていた時は、
+     残りの一覧から確実に取り直します。 */
+  if(idx<0||pbHas(idx)){
+    idx=-1;
+    for(let g=0; g<3 && idx<0; g++){
+      if(!PB_REST||!PB_REST.length){
+        PB_REST=[];
+        for(let i=0;i<N;i++) if(!pbHas(i)) PB_REST.push(i);
+        for(let i=PB_REST.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0;
+          [PB_REST[i],PB_REST[j]]=[PB_REST[j],PB_REST[i]]; }
+      }
+      /* 一覧が古くなっていることもあるので、出ていないものが出るまで取ります */
+      while(PB_REST.length){
+        const c=PB_REST.pop();
+        if(!pbHas(c)){ idx=c; break; }
+      }
+      if(idx<0) PB_REST=null;        /* 作り直してもう一度 */
     }
-    idx=PB_REST.pop();
-    if(idx===undefined) return null;
+    if(idx<0) return null;           /* 本当に残っていません */
   }
+  if(pbHas(idx)) return null;        /* 念のための最後の関所 */
   pbSet(idx);
   PB.n=done+1;
   PB.tail.push(idx); if(PB.tail.length>12) PB.tail.shift();
