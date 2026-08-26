@@ -97,17 +97,16 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .pblast .v{font-family:Impact,"Arial Black",sans-serif;font-size:2.6rem;line-height:1.1;
   color:#8fe9ff;letter-spacing:.02em}
 .pblast .s{font-size:.7rem;color:var(--dim2);margin-top:2px}
-.pbgrid{display:grid;grid-template-columns:repeat(100,1fr);gap:1px;margin-top:8px;
-  background:#0b1524;border:1px solid var(--line);border-radius:8px;padding:5px;overflow-x:auto}
-.pbg{width:100%;aspect-ratio:1;background:#16233a;border-radius:1px;display:block;min-width:3px}
-.pbg.on{background:#39d98a}
-.pbg.last{background:#ffd45e;box-shadow:0 0 4px #ffd45e}
-.pbg.none{background:#0e1727}
-/* 専用画面にすると、ふつうのLSやりこみは小さくなります */
-#ls.pbfull{display:flex;flex-direction:column}
-#ls.pbfull>#pbCard{order:-1}
-#ls.pbfull>.card:not(#pbCard):not(#lsTopCard){transform:scale(.72);transform-origin:top left;
-  width:139%;opacity:.55;margin-bottom:-8px}
+/* 出た素数の表は「絵」で描きます（四角を9,600個ならべると重いためです）*/
+.pbwrap{position:relative;margin-top:8px;overflow:auto;border:1px solid var(--line);
+  border-radius:8px;background:#0b1524;padding:5px;max-width:100%}
+.pbwrap canvas{display:block;image-rendering:pixelated}
+.pbtip{position:absolute;z-index:5;background:#0d1524;border:1px solid var(--acc);
+  border-radius:6px;padding:2px 7px;font-size:.72rem;color:#eaf3ff;pointer-events:none;
+  white-space:nowrap;box-shadow:0 3px 10px #0008}
+/* 通常画面：盤面とボタンを横にならべます */
+.pbrow2{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:12px}
+.pbrow2 .pbcard{width:min(300px,74vw)}
 /* 書きかえられる所は、うっすら点線。ふつうの操作はそのままできます */
 .uiedit [data-uikey]{outline:1px dashed #4da3ff55;outline-offset:2px;border-radius:4px}
 .uiedit [data-uikey]:hover{outline:1px dashed #4da3ffcc;background:#4da3ff14}
@@ -1224,7 +1223,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     </div>
   </div>
 
-  <div class="card" id="pbCard" hidden>
+  <div class="card" id="pbCard" data-lsv="bingo" hidden>
     <h2>Prime Bingo</h2>
     <div id="pbBody"></div>
   </div>
@@ -2430,7 +2429,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v108";
+const APP_VERSION = "v109";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3109,6 +3108,11 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v109":[
+    "Prime Bingo の処理を軽くしました（抽選が約1,000倍速く、保存も10分の1以下になりました）",
+    "通常の画面には、ビンゴの盤面とまとめだけを出すようにしました",
+    "「Prime Bingo」ボタンを押すと、出た素数の表などの詳しい画面が開きます",
+    "Prime Bingo も、表示・非表示を選べるようにしました"],
   "v108":[
     "審査で直された記録を、自分の個人データに入れられるようにした",
     "1から順にEX は必ず小数第2位、タイム系は必ず小数第3位で表示するようにした",
@@ -5163,7 +5167,8 @@ const LSV_ITEMS=[
   {k:"rank", n:"RANK の見込み"},
   {k:"sl",   n:"S値・L値の予測"},
   {k:"log",  n:"やりこみ記録"},
-  {k:"sum",  n:"クリア回数のまとめ"}
+  {k:"sum",  n:"クリア回数のまとめ"},
+  {k:"bingo",n:"Prime Bingo"}
 ];
 let LSVIEW=ls(K_LSVIEW,{});
 const lsvOn=k=>LSVIEW[k]!==false;         /* 何も決めていなければ表示します */
@@ -5173,13 +5178,17 @@ function lsViewApply(){
     $$(`[data-lsv="${x.k}"]`).forEach(el=>{
       /* RANK の枠は、公開されていない時はそもそも出しません */
       if(x.k==="rank"&&!rpVisible()){ el.hidden=true; return; }
+      /* Prime Bingo は、いまは管理者だけです */
+      if(x.k==="bingo"&&!(typeof pbVisible==="function"&&pbVisible())){ el.hidden=true; return; }
       el.hidden=!lsvOn(x.k);
     });
   });
 }
 function lsViewDraw(){
   const b=$("#lsView"); if(!b) return;
-  b.innerHTML=LSV_ITEMS.map(x=>`<label class="pk">
+  b.innerHTML=LSV_ITEMS.filter(x=>
+      !(x.k==="bingo"&&!(typeof pbVisible==="function"&&pbVisible()))
+    ).map(x=>`<label class="pk">
     <input type="checkbox" data-lsv-k="${x.k}"${lsvOn(x.k)?" checked":""}> ${esc(x.n)}</label>`).join("");
   $$("#lsView [data-lsv-k]").forEach(e=>e.onchange=()=>{
     LSVIEW[e.dataset.lsvK]=e.checked; saveLsView(); lsViewApply();
@@ -9517,34 +9526,114 @@ function pbPrimes(){
   const out=[];
   for(let i=2;i<=N;i++) if(!sieve[i]) out.push(i);
   PB_PRIMES=out;
+  return PB_PRIMES;
+}
+/* ──────────────────────────────────────────────────────────
+   出た素数の覚えかた
+   前は「出た番号を全部ならべた配列」で持っていました。
+   9,592回ぶんだと、
+     ・出るたびに毎回すべて数えなおす（どんどん遅くなる）
+     ・保存のたびに 5万文字ぶん書きだす
+   ということが起きていました。
+   いまは「出たかどうか」を1ビットずつの旗（1,199バイト）で持ちます。
+   ・出たかどうかを調べるのは、いつでも一瞬です
+   ・保存も 1.6千文字ほどで済みます
+   ────────────────────────────────────────────────────────── */
+let PB_MASK=null;      /* Uint8Array。1ビット＝1つの素数 */
+let PB_REST=null;      /* 残りが少なくなった時だけ作る「まだ出ていない番号」 */
+const pbBytes=()=>Math.ceil(9592/8);
+const pbHas=i=>!!(PB_MASK&&(PB_MASK[i>>3]>>(i&7))&1);
+const pbSet=i=>{ if(PB_MASK) PB_MASK[i>>3]|=(1<<(i&7)); };
+/** 旗を文字にします（保存用） */
+function pbMaskStr(){
+  if(!PB_MASK) return "";
+  let s2=""; const CH=0x8000;
+  for(let i=0;i<PB_MASK.length;i+=CH)
+    s2+=String.fromCharCode.apply(null,PB_MASK.subarray(i,Math.min(i+CH,PB_MASK.length)));
+  try{ return btoa(s2); }catch(e){ return ""; }
+}
+/** 文字から旗にもどします */
+function pbMaskLoad(str){
+  const n=pbBytes();
+  const out=new Uint8Array(n);
+  if(typeof str==="string"&&str){
+    try{
+      const bin=atob(str);
+      for(let i=0;i<Math.min(bin.length,n);i++) out[i]=bin.charCodeAt(i);
+    }catch(e){}
+  }
   return out;
 }
-/* いまの回。card は素数そのもの、hit は開いたかどうか、drawn は出た素数の番号 */
+/** 旗の中で、立っている数を数えます */
+function pbCount(){
+  if(!PB_MASK) return 0;
+  let n=0;
+  for(let i=0;i<PB_MASK.length;i++){
+    let v=PB_MASK[i];
+    v=v-((v>>1)&0x55); v=(v&0x33)+((v>>2)&0x33); n+=(v+(v>>4))&0x0f;
+  }
+  return n;
+}
+/* いまの回 */
 let PB=ls(K_PB,null);
 let PBLOG=ls(K_PBLOG,[]);
-const pbSave=()=>{ try{ if(PB) PB.at=Date.now();
-    localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
-  try{ lsSoon(); }catch(e){} };
+/* 保存は、たて続けに呼ばれても1.2秒に1回にまとめます（書き出しが重いため） */
+let pbSaveT=null, pbSaveWait=false;
+function pbSave(now){
+  if(!PB){ try{ localStorage.removeItem(K_PB); }catch(e){} return; }
+  pbSaveWait=true;
+  const doIt=()=>{
+    pbSaveT=null; if(!pbSaveWait||!PB) return;
+    pbSaveWait=false;
+    PB.at=Date.now();
+    PB.mask=pbMaskStr();
+    delete PB.drawn;               /* 昔の形は、もう持ちません */
+    try{ localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
+    try{ lsSoon(); }catch(e){}
+  };
+  if(now){ if(pbSaveT) clearTimeout(pbSaveT); doIt(); return; }
+  if(pbSaveT) return;
+  pbSaveT=setTimeout(doIt,1200);
+}
 const pbSaveLog=()=>{ try{ localStorage.setItem(K_PBLOG,JSON.stringify(PBLOG)); }catch(e){}
   try{ lsSoon(); }catch(e){} };
+window.addEventListener("pagehide",()=>{ try{ pbSave(true); }catch(e){} });
+document.addEventListener("visibilitychange",()=>{ if(document.hidden){ try{ pbSave(true); }catch(e){} } });
+
 /** こわれた中身を、遊べる形に直します（同期でおかしくなった時の備え）*/
 function pbFix(){
   if(!PB||typeof PB!=="object") return null;
-  if(!Array.isArray(PB.card)||PB.card.length!==100) return null;
-  if(!Array.isArray(PB.hit)||PB.hit.length!==100)
-    PB.hit=new Array(100).fill(false);
+  if(!PB.card||PB.card.length!==100) return null;
+  if(!Array.isArray(PB.card)) PB.card=Array.from(PB.card);
+  if(!Array.isArray(PB.hit)||PB.hit.length!==100) PB.hit=new Array(100).fill(false);
   PB.hit=PB.hit.map(x=>!!x);
-  if(!Array.isArray(PB.drawn)) PB.drawn=[];
   PB.no=Math.max(1,+PB.no||1);
   PB.lines=Math.max(0,+PB.lines||0);
   PB.coins=Math.max(0,+PB.coins||0);
   if(!(+PB.startAt>0)) PB.startAt=Date.now();
+  if(!Array.isArray(PB.tail)) PB.tail=[];
+  /* 旗をまだ作っていなければ、ここで作ります */
+  if(!PB_MASK||PB_MASK.length!==pbBytes()||PB._m!==PB.mask){
+    PB_MASK=pbMaskLoad(PB.mask);
+    /* 昔の形（出た番号の配列）が残っていたら、旗に移しかえます */
+    if(Array.isArray(PB.drawn)&&PB.drawn.length){
+      PB.drawn.forEach(i=>{ if(i>=0&&i<9592) pbSet(i); });
+      PB.tail=PB.drawn.slice(-12);
+      PB.n=PB.drawn.length;
+      delete PB.drawn;
+      PB.mask=pbMaskStr();
+      try{ localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
+    }
+    PB._m=PB.mask;
+    PB_REST=null;
+  }
+  if(!(+PB.n>=0)) PB.n=pbCount();
   return PB;
 }
 /** いま遊べる状態か */
 const pbOn=()=>!!pbFix();
 /** ビンゴの線（たて10・よこ10・ななめ2）*/
-function pbLines(){
+function pbLinesMake(){
   const L=[];
   for(let r=0;r<10;r++) L.push([...Array(10)].map((_,c)=>r*10+c));
   for(let c=0;c<10;c++) L.push([...Array(10)].map((_,r)=>r*10+c));
@@ -9552,12 +9641,19 @@ function pbLines(){
   L.push([...Array(10)].map((_,i)=>i*10+(9-i)));
   return L;
 }
-const PB_LINES=pbLines();
+const PB_LINES=pbLinesMake();
+/* どのマスが、どの線に入っているか（先に作っておきます）*/
+const PB_OF=(()=>{ const m=[...Array(100)].map(()=>[]);
+  PB_LINES.forEach((l,li)=>l.forEach(i=>m[i].push(li))); return m; })();
 /** そろっている線の数 */
 function pbDone(hit){
   const h=hit||(PB&&PB.hit)||[];
   let n=0;
-  PB_LINES.forEach(l=>{ if(l.every(i=>h[i])) n++; });
+  for(let li=0;li<PB_LINES.length;li++){
+    const l=PB_LINES[li]; let ok=true;
+    for(let k=0;k<10;k++) if(!h[l[k]]){ ok=false; break; }
+    if(ok) n++;
+  }
   return n;
 }
 /** 新しいカードを作ります（第n回のはじまり） */
@@ -9566,19 +9662,20 @@ function pbNewCard(){
   const pick=new Set();
   while(pick.size<100) pick.add(P[Math.floor(Math.random()*P.length)]);
   const card=[...pick];
-  /* 並びもまぜます */
   for(let i=card.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
     [card[i],card[j]]=[card[j],card[i]]; }
   const no=(PB&&+PB.no>0)?(+PB.no+1):((PBLOG.length||0)+1);
-  PB={no, card, hit:new Array(100).fill(false), drawn:[], lines:0, coins:0,
-      startAt:Date.now(), at:Date.now()};
-  pbSave();
+  PB_MASK=new Uint8Array(pbBytes()); PB_REST=null;
+  PB={no, card, hit:new Array(100).fill(false), n:0, tail:[], mask:"",
+      lines:0, coins:0, startAt:Date.now(), at:Date.now()};
+  PB._m=""; 
+  pbSave(true);
   return PB;
 }
 /** いまの回を、記録に残して終わります */
 function pbCloseRound(){
   if(!pbOn()) return null;
-  const rec={no:PB.no, draws:(PB.drawn||[]).length, opened:(PB.hit||[]).filter(Boolean).length,
+  const rec={no:PB.no, draws:+PB.n||0, opened:(PB.hit||[]).filter(Boolean).length,
     lines:pbDone(), coins:+PB.coins||0,
     startAt:PB.startAt, endAt:Date.now(), ms:Math.max(0,Date.now()-(+PB.startAt||Date.now()))};
   PBLOG.unshift(rec);
@@ -9586,45 +9683,67 @@ function pbCloseRound(){
   pbSaveLog();
   return rec;
 }
-/** 素数を1つ抽選します。まだ出ていないものから選びます */
+/** 素数を1つ抽選します。まだ出ていないものから選びます。
+    残りが多いうちは「当てずっぽう」で十分すぐ当たります。
+    残り少なくなったら、残りの一覧を1回だけ作って、そこから取ります。 */
 function pbDraw(){
   if(!pbOn()) return null;
-  const P=pbPrimes();
-  const got=new Set(PB.drawn||[]);
-  if(got.size>=P.length) return null;         /* もう全部出ました */
-  let idx;
-  /* 出ていないものに当たるまで引きます（残りが少ない時はまとめてさがします）*/
-  if(got.size < P.length*0.8){
-    do{ idx=Math.floor(Math.random()*P.length); }while(got.has(idx));
-  }else{
-    const rest=[]; for(let i=0;i<P.length;i++) if(!got.has(i)) rest.push(i);
-    idx=rest[Math.floor(Math.random()*rest.length)];
+  const N=9592;
+  const done=+PB.n||0;
+  if(done>=N) return null;
+  const left=N-done;
+  let idx=-1;
+  if(left>N*0.15){
+    /* 期待して7回もかかりません */
+    for(let t=0;t<64;t++){
+      const c=(Math.random()*N)|0;
+      if(!pbHas(c)){ idx=c; break; }
+    }
   }
-  PB.drawn.push(idx);
+  if(idx<0){
+    if(!PB_REST||!PB_REST.length){
+      PB_REST=[];
+      for(let i=0;i<N;i++) if(!pbHas(i)) PB_REST.push(i);
+      /* まぜておきます */
+      for(let i=PB_REST.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0;
+        [PB_REST[i],PB_REST[j]]=[PB_REST[j],PB_REST[i]]; }
+    }
+    idx=PB_REST.pop();
+    if(idx===undefined) return null;
+  }
+  pbSet(idx);
+  PB.n=done+1;
+  PB.tail.push(idx); if(PB.tail.length>12) PB.tail.shift();
+  const P=pbPrimes();
   const v=P[idx];
   /* カードにあれば、そのマスを開けます */
   const at=PB.card.indexOf(v);
-  let opened=false;
-  if(at>=0 && !PB.hit[at]){ PB.hit[at]=true; opened=true; }
-  const before=+PB.lines||0;
-  const now=pbDone(PB.hit);
-  PB.lines=now;
-  const newLines=Math.max(0,now-before);
-  if(newLines>0) PB.coins=(+PB.coins||0)+newLines;
+  let opened=false, newLines=0;
+  if(at>=0 && !PB.hit[at]){
+    PB.hit[at]=true; opened=true;
+    /* ★ そのマスが入っている線だけを調べます（22本すべては見ません）*/
+    PB_OF[at].forEach(li=>{
+      const l=PB_LINES[li];
+      let ok=true;
+      for(let k=0;k<10;k++) if(!PB.hit[l[k]]){ ok=false; break; }
+      if(ok) newLines++;
+    });
+    if(newLines>0){ PB.lines=(+PB.lines||0)+newLines; PB.coins=(+PB.coins||0)+newLines; }
+  }
   pbSave();
-  return {value:v, idx, opened, newLines, n:PB.drawn.length};
+  return {value:v, idx, opened, newLines, n:PB.n, at};
 }
 /** 1回クリアした時に呼ばれます */
 async function pbHit(){
   if(!pbVisible()||!pbOn()) return;
   const r=pbDraw();
   if(!r) return;
-  pbRender();
+  pbTick(r);                 /* 変わった所だけ描き直します */
   if(r.newLines>0){
     const got=await coinEarn("bingo", r.newLines, true);
     if(got>0){ toast(`${COIN} ${jp(got)}枚 もらいました（Prime Bingo ${r.newLines}ライン）`);
       try{ lsCoinFx(got); }catch(e){} }
-    pbRender();
+    pbStatDraw();
   }
 }
 /** いま Prime Bingo を使えるか。はじめは管理者だけです */
@@ -9636,70 +9755,118 @@ function pbTime(ms){
   return `${h}時間${String(m).padStart(2,"0")}分${String(s2).padStart(2,"0")}秒`;
 }
 
-/* ── Prime Bingo の画面 ── */
-let PB_FULL=false;          /* 専用画面にしているか */
+/* ══════════════ Prime Bingo の画面 ══════════════ */
 let PB_DETAIL=false;        /* カードに数字を出しているか */
-/** 10×10 のカード */
+let PB_MODAL=null;          /* 開いている詳細の窓 */
+/** 10×10 のカード。作るのは1回だけで、あとは変わったマスだけ直します */
 function pbCardHTML(){
   if(!pbOn()) return "";
-  return `<div class="pbcard${PB_DETAIL?" det":""}">`+
+  return `<div class="pbcard${PB_DETAIL?" det":""}" id="pbCardGrid">`+
     PB.card.map((v,i)=>`<div class="pbc${PB.hit[i]?" on":""}" data-pbi="${i}"
-      title="${jp(v)}${PB.hit[i]?"（開いています）":""}">${PB_DETAIL?jp(v):""}</div>`).join("")+
-    `</div>`;
+      title="${jp(v)}">${jp(v)}</div>`).join("")+`</div>`;
 }
-/** 出た素数の表（100×96 ＝ 9,600マス）*/
-function pbGridHTML(){
-  const P=pbPrimes();
-  const got=new Set(PB&&PB.drawn||[]);
-  const last=(PB&&PB.drawn&&PB.drawn.length)?PB.drawn[PB.drawn.length-1]:-1;
-  const cells=new Array(PB_W*PB_H);
-  for(let i=0;i<PB_W*PB_H;i++){
-    if(i>=P.length){ cells[i]=`<i class="pbg none"></i>`; continue; }
-    const on=got.has(i);
-    cells[i]=`<i class="pbg${on?" on":""}${i===last?" last":""}" data-pbg="${i}"
-      title="${jp(P[i])}${on?"（出ました）":""}"></i>`;
-  }
-  return `<div class="pbgrid">${cells.join("")}</div>`;
-}
-/** 最近出た素数 */
-function pbLastHTML(){
-  const P=pbPrimes();
-  const d=(PB&&PB.drawn)||[];
-  if(!d.length) return `<div class="pblast"><div class="t">まだ出ていません</div>
-    <div class="v">—</div><div class="s">LSやりこみを1回クリアすると、1つ出ます</div></div>`;
-  const last=P[d[d.length-1]];
-  const rest=d.slice(-6,-1).reverse().map(i=>jp(P[i]));
-  return `<div class="pblast">
-    <div class="t">いちばん新しく出た素数</div>
-    <div class="v">${jp(last)}</div>
-    <div class="s">${jp(d.length)} 回目の抽選</div>
-    ${rest.length?`<div class="s" style="margin-top:4px">その前：${rest.join("　")}</div>`:""}
-  </div>`;
-}
-/** Prime Bingo のまとめ */
+/** まとめの4つの箱（通常画面にも出します） */
 function pbStatHTML(){
-  const d=(PB&&PB.drawn)||[], h=(PB&&PB.hit)||[];
-  const open=h.filter(Boolean).length;
-  const ms=pbOn()?Math.max(0,Date.now()-(+PB.startAt||Date.now())):0;
-  return `<div class="lsgrid">
-    <div class="lsbox"><div class="t">第 ${jp((PB&&PB.no)||1)} 回</div>
-      <div class="v" style="font-size:1.5rem">${jp(open)}<span class="tiny"> / 100</span></div>
+  return `<div class="lsgrid" id="pbStat">
+    <div class="lsbox"><div class="t">第 <span id="pbNo">1</span> 回</div>
+      <div class="v" style="font-size:1.5rem"><span id="pbOpen">0</span><span class="tiny"> / 100</span></div>
       <div class="s">開いたマス</div></div>
     <div class="lsbox"><div class="t">そろったライン</div>
-      <div class="v" style="font-size:1.5rem;color:#ffd45e">${jp(pbDone())}<span class="tiny"> / 22</span></div>
-      <div class="s">${COIN} ${jp((PB&&PB.coins)||0)} 枚ぶん</div></div>
+      <div class="v" style="font-size:1.5rem;color:#ffd45e"><span id="pbLine">0</span><span class="tiny"> / 22</span></div>
+      <div class="s">${COIN} <span id="pbCoin">0</span> 枚ぶん</div></div>
     <div class="lsbox"><div class="t">抽選した回数</div>
-      <div class="v" style="font-size:1.5rem">${jp(d.length)}</div>
+      <div class="v" style="font-size:1.5rem" id="pbN">0</div>
       <div class="s">9,592個のうち</div></div>
     <div class="lsbox"><div class="t">開催してから</div>
-      <div class="v" style="font-size:1.2rem" id="pbTime">${pbTime(ms)}</div>
-      <div class="s">${pbOn()&&PB.startAt?jstFull(new Date(PB.startAt).toISOString()):"—"}</div></div>
+      <div class="v" style="font-size:1.2rem" id="pbTimeV">0時間00分00秒</div>
+      <div class="s" id="pbFrom">—</div></div>
   </div>`;
 }
-/** 画面を出し直します */
+/** 数字のところだけ、書きかえます（作り直しません） */
+function pbStatDraw(){
+  if(!pbOn()||!$("#pbStat")) return;
+  const set=(id,v)=>{ const e=$("#"+id); if(e&&e.textContent!==String(v)) e.textContent=v; };
+  set("pbNo",jp(PB.no));
+  set("pbOpen",jp(PB.hit.filter(Boolean).length));
+  set("pbLine",jp(pbDone()));
+  set("pbCoin",jp(+PB.coins||0));
+  set("pbN",jp(+PB.n||0));
+  const f=$("#pbFrom");
+  if(f&&PB.startAt) f.textContent=jstFull(new Date(PB.startAt).toISOString());
+}
+/** 抽選のたびに呼ばれます。変わった所だけ直すので、とても軽いです */
+function pbTick(r){
+  if(!r) return;
+  /* カードの1マス */
+  if(r.opened){
+    const c=document.querySelector(`#pbCardGrid [data-pbi="${r.at}"]`);
+    if(c) c.classList.add("on");
+  }
+  pbStatDraw();
+  /* 詳細の窓が開いていれば、そこも1マスだけ直します */
+  if(PB_MODAL){
+    pbGridDot(r.idx);
+    const lv=PB_MODAL.q&&PB_MODAL.q("#pbLastV");
+    if(lv) lv.textContent=jp(r.value);
+    const ln=PB_MODAL.q&&PB_MODAL.q("#pbLastN");
+    if(ln) ln.textContent=`${jp(r.n)} 回目の抽選`;
+    const lp=PB_MODAL.q&&PB_MODAL.q("#pbLastPrev");
+    if(lp) lp.textContent=pbPrevText();
+  }
+}
+const pbPrevText=()=>{
+  const P=pbPrimes(), t=(PB&&PB.tail)||[];
+  const rest=t.slice(0,-1).slice(-5).reverse().map(i=>jp(P[i]));
+  return rest.length?("その前："+rest.join("　")):"";
+};
+
+/* ── 出た素数の表は「絵」で描きます ──
+   9,600個の四角をひとつずつ画面に置くと、それだけで重くなります。
+   1枚の絵に描けば、変わった1マスだけ塗り直すだけで済みます。 */
+let PB_CV=null, PB_CTX=null, PB_CELL=6;
+function pbGridBuild(canvas){
+  if(!canvas){ PB_CV=null; PB_CTX=null; return; }
+  let ctx=null;
+  try{ ctx=canvas.getContext("2d"); }catch(e){ ctx=null; }
+  if(!ctx){ PB_CV=null; PB_CTX=null; return; }   /* 絵が使えない時は、何もしません */
+  PB_CV=canvas; PB_CTX=ctx;
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  canvas.width=PB_W*PB_CELL*dpr; canvas.height=PB_H*PB_CELL*dpr;
+  canvas.style.width=(PB_W*PB_CELL)+"px"; canvas.style.height=(PB_H*PB_CELL)+"px";
+  PB_CTX.setTransform(dpr,0,0,dpr,0,0);
+  pbGridAll();
+}
+function pbGridAll(){
+  if(!PB_CTX) return;
+  const P=pbPrimes();
+  PB_CTX.fillStyle="#0b1524";
+  PB_CTX.fillRect(0,0,PB_W*PB_CELL,PB_H*PB_CELL);
+  for(let i=0;i<PB_W*PB_H;i++){
+    const x=(i%PB_W)*PB_CELL, y=((i/PB_W)|0)*PB_CELL;
+    PB_CTX.fillStyle=(i>=P.length)?"#0e1727":(pbHas(i)?"#39d98a":"#16233a");
+    PB_CTX.fillRect(x,y,PB_CELL-1,PB_CELL-1);
+  }
+  const t=(PB&&PB.tail)||[];
+  if(t.length) pbGridDot(t[t.length-1],true);
+}
+/** 1マスだけ塗り直します */
+function pbGridDot(i,skipPrev){
+  if(!PB_CTX||i==null||i<0) return;
+  const t=(PB&&PB.tail)||[];
+  if(!skipPrev&&t.length>1){
+    const prev=t[t.length-2];
+    const px=(prev%PB_W)*PB_CELL, py=((prev/PB_W)|0)*PB_CELL;
+    PB_CTX.fillStyle="#39d98a";
+    PB_CTX.fillRect(px,py,PB_CELL-1,PB_CELL-1);
+  }
+  const x=(i%PB_W)*PB_CELL, y=((i/PB_W)|0)*PB_CELL;
+  PB_CTX.fillStyle="#ffd45e";
+  PB_CTX.fillRect(x,y,PB_CELL-1,PB_CELL-1);
+}
+/** 通常画面（盤面とまとめだけ） */
 function pbRender(){
-  const box=$("#pbBody"); if(!box) return;
   const card=$("#pbCard"); if(card) card.hidden=!pbVisible();
+  const box=$("#pbBody"); if(!box) return;
   if(!pbVisible()){ box.innerHTML=""; return; }
   if(!pbOn()){
     box.innerHTML=`<div class="hintbox">
@@ -9713,59 +9880,93 @@ function pbRender(){
       ・カードはいつでも新しくできます。「第n回」として記録に残ります<br>
       ・時間は、カードを作った時から数えます</span></div>
       <div class="tools"><button class="btn pri" id="pbMake">ビンゴカードを作成する</button></div>`;
-    $("#pbMake").onclick=()=>{ pbNewCard(); pbRender(); toast("第1回をはじめました"); };
+    const mk=$("#pbMake");
+    if(mk) mk.onclick=()=>{ pbNewCard(); pbRender(); toast("第1回をはじめました"); };
     return;
   }
   box.innerHTML=pbStatHTML()
-    +`<div class="pbrow">
-        <div>${pbCardHTML()}</div>
-        <div>${pbLastHTML()}
-          <div class="tools" style="margin-top:8px">
-            <button class="btn sm" id="pbDet">${PB_DETAIL?"数字を隠す":"詳細（数字を出す）"}</button>
-            <button class="btn sm" id="pbNew">カードを新しくする</button>
-            <button class="btn sm" id="pbLog">軌跡</button>
-            ${PB_FULL?`<button class="btn sm" id="pbBack">← LSやりこみへ</button>`
-                     :`<button class="btn sm pri" id="pbFull">Prime Bingo だけ表示</button>`}
-          </div></div>
-      </div>
-      <h3 style="margin-top:14px">出た素数（100×96 ＝ 9,600マス）</h3>
-      <p class="tiny" style="margin-top:-6px;color:var(--dim2)">
-        四角にカーソルを合わせると、その素数が分かります。
-        <b style="color:#ffd45e">黄色</b>がいちばん新しく出たものです。</p>
-      ${pbGridHTML()}
-      ${isAdmin()?`<div class="tools" style="margin-top:12px">
-        <button class="btn sm" id="pbReset" style="border-color:#7a3030;color:#ff8a8a">
-          ぜんぶリセット（管理者・お試し中）</button></div>`:""}`;
-  const on=(id,fn)=>{ const b=$("#"+id); if(b) b.onclick=fn; };
-  on("pbDet",()=>{ PB_DETAIL=!PB_DETAIL; pbRender(); });
-  on("pbNew",async()=>{
+    +`<div class="pbrow2">${pbCardHTML()}
+      <div class="tools" style="margin-top:0">
+        <button class="btn pri" id="pbOpenBtn">Prime Bingo</button>
+        <button class="btn sm" id="pbDet">${PB_DETAIL?"数字を隠す":"数字を出す"}</button>
+      </div></div>`;
+  pbStatDraw();
+  const ob=$("#pbOpenBtn"); if(ob) ob.onclick=pbOpen;
+  const db=$("#pbDet"); if(db) db.onclick=()=>{ PB_DETAIL=!PB_DETAIL;
+    const g=$("#pbCardGrid"); if(g) g.classList.toggle("det",PB_DETAIL);
+    db.textContent=PB_DETAIL?"数字を隠す":"数字を出す"; };
+  lsViewApply();
+}
+/** 「Prime Bingo」を押した時の、詳しい画面 */
+function pbOpen(){
+  if(!pbVisible()||!pbOn()) return;
+  const M=modal(`<h2>Prime Bingo　<span class="tiny">第 ${jp(PB.no)} 回</span></h2>
+    <div id="pbMBody"></div>
+    <div class="tools">
+      <button class="btn sm" id="pbNew">カードを新しくする</button>
+      <button class="btn sm" id="pbLog">軌跡</button>
+      ${isAdmin()?`<button class="btn sm" id="pbReset" style="border-color:#7a3030;color:#ff8a8a">ぜんぶリセット</button>`:""}
+      <button class="btn" id="pbX">閉じる</button>
+    </div>`,{w:900});
+  PB_MODAL=M;
+  M.q("#pbMBody").innerHTML=
+    `<div class="pbrow">
+      <div>${pbCardHTML().replace('id="pbCardGrid"','id="pbCardGrid2"')}</div>
+      <div><div class="pblast">
+        <div class="t">いちばん新しく出た素数</div>
+        <div class="v" id="pbLastV">${(PB.tail&&PB.tail.length)?jp(pbPrimes()[PB.tail[PB.tail.length-1]]):"—"}</div>
+        <div class="s" id="pbLastN">${(+PB.n>0)?jp(PB.n)+" 回目の抽選":"LSやりこみを1回クリアすると、1つ出ます"}</div>
+        <div class="s" id="pbLastPrev" style="margin-top:4px">${esc(pbPrevText())}</div>
+      </div></div>
+    </div>
+    <h3 style="margin-top:14px">出た素数（100×96 ＝ 9,600マス）</h3>
+    <p class="tiny" style="margin-top:-6px;color:var(--dim2)">
+      四角にカーソルを合わせると、その素数が分かります。
+      <b style="color:#ffd45e">黄色</b>がいちばん新しく出たものです。</p>
+    <div class="pbwrap"><canvas id="pbCanvas"></canvas><span class="pbtip" id="pbTip" hidden></span></div>`;
+  pbGridBuild(M.q("#pbCanvas"));
+  /* カーソルを合わせた所の素数を出します */
+  const cv=M.q("#pbCanvas"), tip=M.q("#pbTip");
+  cv.onmousemove=e=>{
+    const r=cv.getBoundingClientRect();
+    const cx=Math.floor((e.clientX-r.left)/PB_CELL), cy=Math.floor((e.clientY-r.top)/PB_CELL);
+    if(cx<0||cy<0||cx>=PB_W||cy>=PB_H){ tip.hidden=true; return; }
+    const i=cy*PB_W+cx, P=pbPrimes();
+    if(i>=P.length){ tip.hidden=true; return; }
+    tip.hidden=false;
+    tip.textContent=jp(P[i])+(pbHas(i)?"（出ました）":"");
+    tip.style.left=(cx*PB_CELL+10)+"px";
+    tip.style.top=(cy*PB_CELL-24)+"px";
+  };
+  cv.onmouseleave=()=>{ tip.hidden=true; };
+  const close=()=>{ PB_MODAL=null; PB_CV=null; PB_CTX=null; M.close(); };
+  M.q("#pbX").onclick=close;
+  M.q("#pbNew").onclick=async()=>{
     if(!await askYN("カードを新しくしますか？",
       `いまの<b>第${jp(PB.no)}回</b>を記録に残して、次の回をはじめます。<br><br>`
       +`開いたマス ${jp((PB.hit||[]).filter(Boolean).length)} / 100　`
       +`そろったライン ${jp(pbDone())}<br>`
       +`<span class="tiny">時間は、新しいカードを作った時から数え直します。</span>`,
       "新しくする")) return;
-    pbCloseRound(); pbNewCard(); PB_DETAIL=false; pbRender();
-    toast(`第${jp(PB.no)}回をはじめました`);
-  });
-  on("pbLog",pbLogShow);
-  on("pbFull",()=>{ PB_FULL=true; pbLayout(); });
-  on("pbBack",()=>{ PB_FULL=false; pbLayout(); });
-  on("pbReset",async()=>{
+    pbCloseRound(); pbNewCard(); PB_DETAIL=false;
+    close(); pbRender(); toast(`第${jp(PB.no)}回をはじめました`);
+  };
+  M.q("#pbLog").onclick=pbLogShow;
+  if(M.q("#pbReset")) M.q("#pbReset").onclick=async()=>{
     if(!await askYN("Prime Bingo をぜんぶリセットしますか？",
       "カードも、出た素数も、軌跡もすべて消えます。元に戻せません。<br>"
       +'<span class="tiny">お試し中のための機能です。もらった Prime Coin は消えません。</span>',
       "ぜんぶ消す")) return;
-    PB=null; PBLOG=[];
+    PB=null; PBLOG=[]; PB_MASK=null; PB_REST=null;
     try{ localStorage.removeItem(K_PB); localStorage.removeItem(K_PBLOG); }catch(e){}
     try{ lsSoon(); }catch(e){}
-    PB_FULL=false; PB_DETAIL=false; pbLayout(); pbRender(); toast("リセットしました");
-  });
+    PB_DETAIL=false; close(); pbRender(); toast("リセットしました");
+  };
 }
 /** 軌跡（第n回ごとの記録） */
 function pbLogShow(){
   const rows=PBLOG.slice();
-  const cur=pbOn()?[{no:PB.no, draws:(PB.drawn||[]).length,
+  const cur=pbOn()?[{no:PB.no, draws:+PB.n||0,
     opened:(PB.hit||[]).filter(Boolean).length, lines:pbDone(), coins:+PB.coins||0,
     startAt:PB.startAt, ms:Date.now()-(+PB.startAt||Date.now()), now:true}]:[];
   const all=cur.concat(rows);
@@ -9788,17 +9989,11 @@ function pbLogShow(){
     <div class="tools"><button class="btn" id="pbLX">閉じる</button></div>`,{w:820});
   M.q("#pbLX").onclick=M.close;
 }
-/** 専用画面にすると、ふつうのLSやりこみは小さくなります */
-function pbLayout(){
-  const sec=$("#ls"); if(!sec) return;
-  sec.classList.toggle("pbfull",!!PB_FULL&&pbVisible());
-  const card=$("#pbCard"); if(card) card.hidden=!pbVisible();
-  pbRender();
-}
+function pbLayout(){ pbRender(); }
 /* 1秒ごとに、開催してからの時間だけ出し直します */
 setInterval(()=>{
   if(!pbVisible()||!pbOn()) return;
-  const e=$("#pbTime"); if(!e||$("#ls").hidden) return;
+  const e=$("#pbTimeV"); if(!e||!$("#ls")||$("#ls").hidden) return;
   e.textContent=pbTime(Date.now()-(+PB.startAt||Date.now()));
 },1000);
 
