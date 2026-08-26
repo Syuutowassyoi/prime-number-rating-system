@@ -80,16 +80,52 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .richbar .btn{padding:2px 8px;font-size:.76rem}
 .richbar select{height:26px;font-size:.74rem;max-width:130px}
 /* 管理者エディターモード */
-.uiedit [data-uikey]{outline:1px dashed #4da3ff88;outline-offset:2px;cursor:pointer;
-  border-radius:4px;transition:background .12s}
-.uiedit [data-uikey]:hover{background:#4da3ff22;outline:2px solid #4da3ff;outline-offset:2px}
-.uiedit [data-uikey][data-ui-on="1"]{outline-color:#ffd45e88}
-.uibar{position:fixed;left:0;right:0;bottom:0;z-index:9000;display:flex;gap:10px;
-  align-items:center;flex-wrap:wrap;padding:9px 14px;background:#0b1524f2;
-  border-top:2px solid var(--acc);backdrop-filter:blur(6px)}
-.uibar .uibt{font-weight:800;color:var(--acc);letter-spacing:.04em}
-.uibar .btn{padding:3px 10px}
-body.uiedit{padding-bottom:64px}
+/* ══════════ Prime Bingo ══════════ */
+.pbrow{display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:14px;
+  align-items:start;margin-top:12px}
+@media(max-width:700px){.pbrow{grid-template-columns:1fr}}
+.pbcard{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;
+  background:#0b1524;border:1px solid var(--line);border-radius:10px;padding:6px}
+.pbc{aspect-ratio:1;border-radius:4px;background:#16233a;border:1px solid #24344f;
+  display:flex;align-items:center;justify-content:center;font-size:0;color:#7d93b3;
+  transition:background .15s}
+.pbc.on{background:linear-gradient(160deg,#ffd45e,#ff9d3c);border-color:#ffd45e;
+  color:#241a05;font-weight:800;box-shadow:0 0 8px #ffd45e66}
+.pbcard.det .pbc{font-size:.5rem}
+.pblast{background:#0d1524;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.pblast .t{font-size:.72rem;color:var(--dim2)}
+.pblast .v{font-family:Impact,"Arial Black",sans-serif;font-size:2.6rem;line-height:1.1;
+  color:#8fe9ff;letter-spacing:.02em}
+.pblast .s{font-size:.7rem;color:var(--dim2);margin-top:2px}
+.pbgrid{display:grid;grid-template-columns:repeat(100,1fr);gap:1px;margin-top:8px;
+  background:#0b1524;border:1px solid var(--line);border-radius:8px;padding:5px;overflow-x:auto}
+.pbg{width:100%;aspect-ratio:1;background:#16233a;border-radius:1px;display:block;min-width:3px}
+.pbg.on{background:#39d98a}
+.pbg.last{background:#ffd45e;box-shadow:0 0 4px #ffd45e}
+.pbg.none{background:#0e1727}
+/* 専用画面にすると、ふつうのLSやりこみは小さくなります */
+#ls.pbfull{display:flex;flex-direction:column}
+#ls.pbfull>#pbCard{order:-1}
+#ls.pbfull>.card:not(#pbCard):not(#lsTopCard){transform:scale(.72);transform-origin:top left;
+  width:139%;opacity:.55;margin-bottom:-8px}
+/* 書きかえられる所は、うっすら点線。ふつうの操作はそのままできます */
+.uiedit [data-uikey]{outline:1px dashed #4da3ff55;outline-offset:2px;border-radius:4px}
+.uiedit [data-uikey]:hover{outline:1px dashed #4da3ffcc;background:#4da3ff14}
+.uiedit [data-ui-on="1"]{outline-color:#ffd45e99}
+/* 右上の札。いちばん前に出します */
+.uiflag{position:fixed;top:10px;right:10px;z-index:99999;width:min(280px,84vw);
+  background:#0b1524f7;border:2px solid var(--acc);border-radius:12px;
+  box-shadow:0 8px 28px #000a;backdrop-filter:blur(6px);overflow:hidden}
+.uifhead{display:flex;align-items:center;gap:7px;padding:7px 10px;
+  background:linear-gradient(90deg,#123a6b,#0b1524);color:#eaf3ff;font-size:.8rem}
+.uifdot{width:9px;height:9px;border-radius:50%;background:#ff5e5e;flex:none;
+  animation:uipulse 1.4s ease-in-out infinite}
+@keyframes uipulse{0%,100%{opacity:1;box-shadow:0 0 0 0 #ff5e5eaa}50%{opacity:.55;box-shadow:0 0 0 6px #ff5e5e00}}
+.uifmin{margin-left:auto;background:none;border:1px solid #ffffff33;color:#eaf3ff;
+  border-radius:6px;width:22px;height:20px;line-height:1;cursor:pointer;font-size:.9rem}
+.uifbody{padding:8px 10px}
+.uiflag.mini .uifbody{display:none}
+.uiflag .btn{padding:2px 8px;font-size:.72rem}
 .richpt{display:inline-flex;align-items:center;gap:3px}
 .richpt input{width:58px;height:24px;font-size:.74rem;padding:0 4px;text-align:right}
 .richpt span{font-size:.7rem;color:var(--dim2)}
@@ -1178,46 +1214,19 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 </section>
 
 <section id="ls" hidden>
-  <div class="card" id="lsSaveCard">
-    <h2>記録の保存と読み込み</h2>
-    <p class="muted" style="margin-top:-8px">
-      LSやりこみの記録を、自分のアカウントに預けたり、取り出したりできます。<br>
-      <span class="tiny">別の端末で続きをやりたい時や、端末を買いかえる時に使ってください。</span></p>
+  <!-- 3つのボタンにまとめました。押すと窓が開きます -->
+  <div class="card" id="lsTopCard">
     <div class="tools" style="margin-top:0">
-      <button class="btn pri" id="lsPush">サーバーに全記録を送信する</button>
-      <button class="btn" id="lsPull">送信された記録を読み込む</button>
-      <button class="btn sm" id="lsWhat">いま預けてあるものを見る</button>
+      <button class="btn pri" id="lsBtnSave">記録の保存</button>
+      <button class="btn" id="lsBtnCfg">設定</button>
+      <button class="btn" id="lsBtnView">表示</button>
+      <span class="tiny" id="lsTopNote" style="margin-left:auto"></span>
     </div>
-    <div id="lsSaveMsg" class="tiny" style="margin-top:8px"></div>
-    <p class="tiny" style="color:var(--dim2);margin-top:6px">
-      送信すると、預けてあった記録は<b>この端末の記録に置きかわります</b>。
-      読み込むと、この端末の記録が<b>預けてあった記録に置きかわります</b>。<br>
-      どちらも、押す前に中身をくらべて確かめられます。前の内容は30回ぶん残るので、
-      まちがえても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>
   </div>
 
-  <div class="card">
-    <h2>準備</h2>
-    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとの増加量を登録しておくと、予測値が出せます。</p>
-    <div class="tools" style="margin-top:0">
-      <button class="btn pri" id="lsOpenCfg">1回あたりの増加量を登録</button>
-      <button class="btn" id="lsOpenKey">カウントキーを設定</button>
-      <button class="btn" id="lsOpenSKey">スタート／ストップのキー</button>
-      <button class="btn" id="lsSnd">音：オン</button>
-      <button class="btn" id="lsLit">光：オン</button>
-    </div>
-    <div id="lsCfgView" class="tiny" style="margin-top:10px"></div>
-  </div>
-
-  <div class="card">
-    <h2>表示するもの</h2>
-    <p class="muted" style="margin-top:-8px">見たいものだけ表示できます。
-      <b>隠しても、値はいつもどおり計算されています</b>（見えなくなるだけです）。</p>
-    <div id="lsView" class="picks"></div>
-    <div class="tools" style="margin-top:8px">
-      <button class="btn sm" id="lsViewAll">ぜんぶ表示</button>
-      <button class="btn sm" id="lsViewMin">最小にする</button>
-    </div>
+  <div class="card" id="pbCard" hidden>
+    <h2>Prime Bingo</h2>
+    <div id="pbBody"></div>
   </div>
 
   <div class="card">
@@ -1617,6 +1626,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       </div>
       <div class="card">
         <h2>自分の提出</h2>
+        <div id="sbFix" hidden></div>
         <div id="sbMine"><p class="muted">まだ提出がありません。</p></div>
       </div>
     </div>
@@ -2420,7 +2430,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v107";
+const APP_VERSION = "v108";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3099,6 +3109,14 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v108":[
+    "審査で直された記録を、自分の個人データに入れられるようにした",
+    "1から順にEX は必ず小数第2位、タイム系は必ず小数第3位で表示するようにした",
+    "賞品を保存したあと、編集画面に保存した内容が出るようにした（反映されていないように見えていました）",
+    "賞品を変えたら、全員へのお知らせも出せるようにした",
+    "管理者エディターモードを右クリック式にして、ふだんの操作ができるようにした",
+    "LSやりこみを「記録の保存」「設定」「表示」の3つのボタンにまとめた",
+    "Prime Bingo を追加（いまは管理者だけ・お試し中）"],
   "v107":[
     "管理者エディターモードを追加。画面に出ている文章をその場でクリックして書きかえられます",
     "タブの名前・並び順・表示／非表示も変えられるようにしました",
@@ -3683,6 +3701,7 @@ const ST_LABEL={
   "sa-ls-v1":"LSやりこみの設定", "sa-lslog-v1":"やりこみ記録",
   "sa-lsall-v1":"やりこみの通算", "sa-lsbase-v1":"やりこみの基準",
   "sa-lsb-v1":"やりこみの基準B", "sa-autopost-v1":"自動投稿の設定",
+  "sa-pb-v1":"Prime Bingo のカード", "sa-pblog-v1":"Prime Bingo の軌跡",
   "sa-tagwatch-v1":"タグの見はり",
   "pp-seen-v1":"Prime Park のチュートリアル", "pp-story-v1":"Prime Park の台本",
   "sa-hist-v1":"あなたの軌跡"
@@ -3963,7 +3982,7 @@ function stFlush(){
 const K_LSREV="sa-lsrev-v1";
 /* このまとまりを、ひとつの入れものとして扱います */
 const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1","sa-lsday-v1",
-  "sa-lscoin-v1"];
+  "sa-lscoin-v1","sa-pb-v1","sa-pblog-v1"];
 /** 追加の道具が足したものも、いっしょに持ちます */
 const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
 /* ★ 以前はここに "sa-ls-v1"（1回あたりの増加量）を入れて
@@ -4281,7 +4300,8 @@ async function lsPullAll(){
 }
 /** 保存・読み込みのボタンを用意します */
 function lsSaveEnter(){
-  const card=$("#lsSaveCard"); if(!card) return;
+  /* 窓が開いている時だけ用意します */
+  if(!$("#lsPush")) return;
   const on=stCan();
   ["lsPush","lsPull","lsWhat"].forEach(id=>{
     const b=$("#"+id); if(!b) return;
@@ -4321,6 +4341,7 @@ function lsReload(){
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
+    if(typeof PB!=="undefined"){ PB=ls(K_PB,null); PBLOG=ls(K_PBLOG,[]); }
     if(typeof lsDay!=="undefined") lsDay=ls(K_LSDAY,{});
     if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
     if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
@@ -4479,6 +4500,7 @@ function stReload(quiet){
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
+    if(typeof PB!=="undefined"){ PB=ls(K_PB,null); PBLOG=ls(K_PBLOG,[]); }
     if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
     if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
     if(typeof autoPost!=="undefined") autoPost=ls(K_AUTOPOST,{rec:true,cup:true,ach:true});
@@ -4668,7 +4690,7 @@ function render(){
       `<b style="color:var(--bad)">入力値がおかしいようです。</b><br>`+
       `<span class="muted">次の種目は理論値の ${jp(MAXSCORE)} 点を超えています。`+
       `素数ゲームV1・V2／暗素因数分解 Lv.1-3 の10種は ${jp(MAXSCORE)} 点が上限です。</span><br>`+
-      over.map(n=>`<span class="tiny">${esc(n)}：${jp(rec[n])} 点</span>`).join("　");
+      over.map(n=>`<span class="tiny">${esc(n)}：${fmtRec(n,rec[n])} 点</span>`).join("　");
   }
   const step=(name,fn)=>{ try{ fn(); }catch(e){
     console.error(name,e);
@@ -5164,12 +5186,7 @@ function lsViewDraw(){
   });
   lsViewApply();
 }
-if($("#lsViewAll")) $("#lsViewAll").onclick=()=>{
-  LSV_ITEMS.forEach(x=>LSVIEW[x.k]=true); saveLsView(); lsViewDraw();
-};
-if($("#lsViewMin")) $("#lsViewMin").onclick=()=>{
-  LSV_ITEMS.forEach(x=>LSVIEW[x.k]=(x.k==="count"||x.k==="rank")); saveLsView(); lsViewDraw();
-};
+/* ぜんぶ表示・最小にする は、表示の窓の中で配線します */
 
 /* ══════════ LSやりこみの中の RANK（見込み）══════════ */
 let LSRP=null;                 /* 前に出した RP。アニメの始まりに使います */
@@ -5828,8 +5845,11 @@ function overCap(){
   return DECA.concat(["素数判定"]).filter(n=>(rec[n]||0)>MAXSCORE);
 }
 function fillInputs(){
-  $$("[data-in]").forEach(el=>{const v=rec[el.dataset.in];
-    el.value=(v===undefined||v===null||v===0)?"":commaFmt(String(v));});
+  /* ★ 小数の桁数は、種目ごとに決まった数でそろえます
+     （1から順にEX は 20 → 20.00、タイム系は 5 → 5.000）*/
+  $$("[data-in]").forEach(el=>{const n=el.dataset.in, v=rec[n];
+    el.value=(v===undefined||v===null||v===0)?"":
+      (decOf(n)!=null?fmtRec(n,v):commaFmt(String(v)));});
   $("#pn").value=pro.name||""; $("#ph").value=pro.handle||"";
   if($("#pbio")) $("#pbio").value=pro.bio||"";
   if($("#pfProofs")){
@@ -5839,6 +5859,16 @@ function fillInputs(){
   /* 合計スコアは自動計算。ふだんは編集できない状態に戻します */
   try{ recalcTotal(); setEditMode(editMode); }catch(e){}
 }
+/* 入力し終わったら、決まった桁数にそろえ直します（打っている間はそのまま）*/
+document.addEventListener("blur",e=>{
+  const t=e.target;
+  if(!t||!t.dataset||!t.dataset.in) return;
+  const n=t.dataset.in, d=decOf(n);
+  if(d==null) return;
+  const v=num(t.value);
+  if(t.value.trim()==="") return;
+  if(v>0) t.value=fmtRec(n,v);
+},true);
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.in){
     applyComma(t);
@@ -5961,7 +5991,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); renderRole();
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
 
-  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); lsSaveEnter(); }
+  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); lsTopNote(); pbLayout(); }
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
@@ -6954,7 +6984,7 @@ function drawBack(g,W,H,c,rk,F,shown){
       g.fillText(n.length>13?n.slice(0,13)+"…":n,col.x+10,y-2);
       g.textAlign="right";
       g.fillStyle="#cfe0f5";g.font=`400 20px ${IMPACT}`;
-      g.fillText(v>0?nice(v):"—",col.x+346,y-2);
+      g.fillText(v>0?fmtRec(n,v):"—",col.x+346,y-2);
       g.fillStyle=used?"#57e0a0":"#5f7391";g.font=`400 20px ${IMPACT}`;
       g.fillText((r*100).toFixed(1)+"%",col.x+470,y-2);
       g.textAlign="left";
@@ -7345,7 +7375,7 @@ async function loadRanking(force){
         `<br><span class="tiny" style="color:var(--dim2)">${r.updated_at?agoText(r.updated_at):"更新日時不明"}</span>`+
         `</div></div></td>`+
         ((rkSortKey==="rating"||rkSortKey==="rp")?""
-          :`<td><b>${v==null||!v?"—":(byEv?nice(v):f3(v))}</b></td>`)+
+          :`<td><b>${v==null||!v?"—":(byEv?fmtRec(evName,v):f3(v))}</b></td>`)+
         `<td>${r.rating==null?'<span class="tiny" style="color:var(--dim2)">計測中</span>':f3(+r.rating)}</td>`+
         `<td style="${r.rating==null?"color:var(--dim)":rankCSS(rankOf(+r.rating),4)}">${r.rating==null?"—":esc(rankOf(+r.rating).n)}</td>`+
         (rpVisible()?(()=>{ const rp=rpOf(r.records||{}), d=rpRank(rp);
@@ -7732,7 +7762,7 @@ function admGate(){
     /* 管理者でなければ、エディターモードは必ず閉じます */
     if(UIT_ON){ UIT_ON=false; document.body.classList.remove("uiedit");
       $$("[data-uikey]").forEach(el=>{ delete el.dataset.uikey; });
-      const bb=$("#uiBar"); if(bb) bb.remove(); }
+      const bb=$("#uiFlag"); if(bb) bb.remove(); }
     return; }
   const b=$("#admToggle");
   if(b){
@@ -8362,8 +8392,8 @@ function showEntryDetail(c,evs,e,owner,reload){
             `<td class="tiny">${v>0?esc(eventRate(n,v,D).band||"—"):"—"}</td></tr>`;
         }
         return `<tr><td>${esc(n)}${LOW.has(n)?' <span class="tiny">(秒)</span>':""}</td>`+
-          (W?`<td class="tiny">×${w}</td><td><b>${nice(v*w)}</b></td><td class="tiny">${v?nice(v):"—"}</td>`
-             :`<td><b>${v?nice(v):"—"}</b></td>`)+`</tr>`;}).join("")+
+          (W?`<td class="tiny">×${w}</td><td><b>${nice(v*w)}</b></td><td class="tiny">${v?fmtRec(n,v):"—"}</td>`
+             :`<td><b>${v?fmtRec(n,v):"—"}</b></td>`)+`</tr>`;}).join("")+
       `<tr style="border-top:2px solid var(--line)"><td><b>合計</b></td>`+
       (isRate?`<td class="tiny">—</td>`+
           `<td><b style="color:var(--acc2)">${rate3(cupTotal(Object.assign({},c,{weights:null}),e.scores,evs))}</b></td>`+
@@ -8627,7 +8657,7 @@ function entryForm(c,evs,dir,mine){
     if(better.length){
       const upd=await askYN("個人歴代最高記録を更新しましたか？",
         `次の種目で、プロフィールの記録を上回っています。<br><br>`+
-        better.map(n=>`<b>${esc(n)}</b>　${nice(rec[n]||0)} → <b>${nice(sc[n])}</b>`).join("<br>")+
+        better.map(n=>`<b>${esc(n)}</b>　${rec[n]>0?fmtRec(n,rec[n]):"—"} → <b>${fmtRec(n,sc[n])}</b>`).join("<br>")+
         `<br><br><span class="tiny">「はい」を選ぶと、プロフィールの記録も同じ値に更新します。</span>`,
         "はい、更新する","大会の記録だけにする");
       if(upd){ better.forEach(n=>rec[n]=sc[n]); fillInputs(); render(); }
@@ -9262,6 +9292,7 @@ function lsHit(){
   if(lsRun) lsRun.count++;
   lsAll++; saveLsAll();
   lsDayHit();                          /* 日ごとの回数（タイマーなしでも数えます） */
+  try{ pbHit(); }catch(e){}             /* Prime Bingo の抽選 */
   lsAddB();                            /* 見込み（基準値C）を1回ぶん進めます */
   extCall("clear");                    /* 追加の道具に知らせます */
   try{ lsCoinCheck(1); }catch(e){}      /* Prime Coin（1日の上限あり） */
@@ -9273,10 +9304,12 @@ function lsHit(){
     $("#lsHit").disabled=stop; if($("#hkHit")) $("#hkHit").disabled=stop; },1000);
   renderLs(prev);
 }
-$("#lsOpenSKey").onclick=()=>lsSetSKey();
-$("#lsSnd").onclick=()=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
+const lsOpenSKeyFn=()=>lsSetSKey();
+if($("#lsOpenSKey")) $("#lsOpenSKey").onclick=lsOpenSKeyFn;
+/* 音と光の切りかえ（設定の窓の中で使います）*/
+const lsSndFn=()=>{ lsCfg.mute=!lsCfg.mute; saveLs(); lsFxLabels();
   if(!lsCfg.mute) lsBeep(false,1); };
-$("#lsLit").onclick=()=>{ lsCfg.nolight=!lsCfg.nolight; saveLs(); lsFxLabels();
+const lsLitFn=()=>{ lsCfg.nolight=!lsCfg.nolight; saveLs(); lsFxLabels();
   if(!lsCfg.nolight) lsFlash(false); };
 lsFxLabels();
 function lsFill(){ lsCfgView(); }
@@ -9353,7 +9386,7 @@ function lsCfgView(){
     (lsCfg.goalS||lsCfg.goalR?`<br>目標 — スコア ${lsCfg.goalS?jp(lsCfg.goalS):"—"} ／ 乱数 ${lsCfg.goalR?jp(lsCfg.goalR):"—"}`:"");
 }
 /* 増加量の登録（最前面） */
-$("#lsOpenCfg").onclick=()=>{
+const lsOpenCfgFn=()=>{
   const M=modal(`<h2>1回あたりの増加量を登録</h2>
     <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとに、どれだけ増えるかの予測値です。</p>
     <div class="frow">
@@ -9432,7 +9465,7 @@ $("#lsOpenCfg").onclick=()=>{
   };
 };
 /* カウントキーの設定（実際に押して覚えさせる） */
-$("#lsOpenKey").onclick=()=>{
+const lsOpenKeyFn=()=>{
   const M=modal(`<h2>カウントキーを設定</h2>
     <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするたびに押すキーです。
       画面のボタンを押さなくても、このキーだけで回数を数えられます。</p>
@@ -9461,6 +9494,391 @@ $("#lsOpenKey").onclick=()=>{
     M.q("#mKeyNow").textContent="スペース"; lsCfgView(); toast("スペースに戻しました");};
   M.q("#mKeyX").onclick=()=>{ document.removeEventListener("keydown",onKey,true); M.close(); };
 };
+
+/* ══════════════════════════════════════════════════════════
+   Prime Bingo
+   ──────────────────────────────────────────────────────────
+   ・2〜99,999 の素数（9,592個）だけが出てきます
+   ・その中から100個えらんで、10×10 のビンゴカードを作ります
+   ・LSやりこみを1回クリアするごとに、素数が1つ抽選されます
+   ・カードにあれば、そのマスが空きます
+   ・1ライン そろうごとに Prime Coin を1枚もらえます
+   ・「第n回」で管理します。カードを作った時から時間を数えます
+   ══════════════════════════════════════════════════════════ */
+const K_PB="sa-pb-v1", K_PBLOG="sa-pblog-v1";
+const PB_W=100, PB_H=96;              /* 排出表は 100×96 ＝ 9,600マス */
+/** 2〜99,999 の素数をぜんぶ作ります（はじめの1回だけ） */
+let PB_PRIMES=null;
+function pbPrimes(){
+  if(PB_PRIMES) return PB_PRIMES;
+  const N=99999;
+  const sieve=new Uint8Array(N+1); sieve[0]=sieve[1]=1;
+  for(let i=2;i*i<=N;i++) if(!sieve[i]) for(let j=i*i;j<=N;j+=i) sieve[j]=1;
+  const out=[];
+  for(let i=2;i<=N;i++) if(!sieve[i]) out.push(i);
+  PB_PRIMES=out;
+  return out;
+}
+/* いまの回。card は素数そのもの、hit は開いたかどうか、drawn は出た素数の番号 */
+let PB=ls(K_PB,null);
+let PBLOG=ls(K_PBLOG,[]);
+const pbSave=()=>{ try{ if(PB) PB.at=Date.now();
+    localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
+  try{ lsSoon(); }catch(e){} };
+const pbSaveLog=()=>{ try{ localStorage.setItem(K_PBLOG,JSON.stringify(PBLOG)); }catch(e){}
+  try{ lsSoon(); }catch(e){} };
+/** こわれた中身を、遊べる形に直します（同期でおかしくなった時の備え）*/
+function pbFix(){
+  if(!PB||typeof PB!=="object") return null;
+  if(!Array.isArray(PB.card)||PB.card.length!==100) return null;
+  if(!Array.isArray(PB.hit)||PB.hit.length!==100)
+    PB.hit=new Array(100).fill(false);
+  PB.hit=PB.hit.map(x=>!!x);
+  if(!Array.isArray(PB.drawn)) PB.drawn=[];
+  PB.no=Math.max(1,+PB.no||1);
+  PB.lines=Math.max(0,+PB.lines||0);
+  PB.coins=Math.max(0,+PB.coins||0);
+  if(!(+PB.startAt>0)) PB.startAt=Date.now();
+  return PB;
+}
+/** いま遊べる状態か */
+const pbOn=()=>!!pbFix();
+/** ビンゴの線（たて10・よこ10・ななめ2）*/
+function pbLines(){
+  const L=[];
+  for(let r=0;r<10;r++) L.push([...Array(10)].map((_,c)=>r*10+c));
+  for(let c=0;c<10;c++) L.push([...Array(10)].map((_,r)=>r*10+c));
+  L.push([...Array(10)].map((_,i)=>i*10+i));
+  L.push([...Array(10)].map((_,i)=>i*10+(9-i)));
+  return L;
+}
+const PB_LINES=pbLines();
+/** そろっている線の数 */
+function pbDone(hit){
+  const h=hit||(PB&&PB.hit)||[];
+  let n=0;
+  PB_LINES.forEach(l=>{ if(l.every(i=>h[i])) n++; });
+  return n;
+}
+/** 新しいカードを作ります（第n回のはじまり） */
+function pbNewCard(){
+  const P=pbPrimes();
+  const pick=new Set();
+  while(pick.size<100) pick.add(P[Math.floor(Math.random()*P.length)]);
+  const card=[...pick];
+  /* 並びもまぜます */
+  for(let i=card.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
+    [card[i],card[j]]=[card[j],card[i]]; }
+  const no=(PB&&+PB.no>0)?(+PB.no+1):((PBLOG.length||0)+1);
+  PB={no, card, hit:new Array(100).fill(false), drawn:[], lines:0, coins:0,
+      startAt:Date.now(), at:Date.now()};
+  pbSave();
+  return PB;
+}
+/** いまの回を、記録に残して終わります */
+function pbCloseRound(){
+  if(!pbOn()) return null;
+  const rec={no:PB.no, draws:(PB.drawn||[]).length, opened:(PB.hit||[]).filter(Boolean).length,
+    lines:pbDone(), coins:+PB.coins||0,
+    startAt:PB.startAt, endAt:Date.now(), ms:Math.max(0,Date.now()-(+PB.startAt||Date.now()))};
+  PBLOG.unshift(rec);
+  while(PBLOG.length>200) PBLOG.pop();
+  pbSaveLog();
+  return rec;
+}
+/** 素数を1つ抽選します。まだ出ていないものから選びます */
+function pbDraw(){
+  if(!pbOn()) return null;
+  const P=pbPrimes();
+  const got=new Set(PB.drawn||[]);
+  if(got.size>=P.length) return null;         /* もう全部出ました */
+  let idx;
+  /* 出ていないものに当たるまで引きます（残りが少ない時はまとめてさがします）*/
+  if(got.size < P.length*0.8){
+    do{ idx=Math.floor(Math.random()*P.length); }while(got.has(idx));
+  }else{
+    const rest=[]; for(let i=0;i<P.length;i++) if(!got.has(i)) rest.push(i);
+    idx=rest[Math.floor(Math.random()*rest.length)];
+  }
+  PB.drawn.push(idx);
+  const v=P[idx];
+  /* カードにあれば、そのマスを開けます */
+  const at=PB.card.indexOf(v);
+  let opened=false;
+  if(at>=0 && !PB.hit[at]){ PB.hit[at]=true; opened=true; }
+  const before=+PB.lines||0;
+  const now=pbDone(PB.hit);
+  PB.lines=now;
+  const newLines=Math.max(0,now-before);
+  if(newLines>0) PB.coins=(+PB.coins||0)+newLines;
+  pbSave();
+  return {value:v, idx, opened, newLines, n:PB.drawn.length};
+}
+/** 1回クリアした時に呼ばれます */
+async function pbHit(){
+  if(!pbVisible()||!pbOn()) return;
+  const r=pbDraw();
+  if(!r) return;
+  pbRender();
+  if(r.newLines>0){
+    const got=await coinEarn("bingo", r.newLines, true);
+    if(got>0){ toast(`${COIN} ${jp(got)}枚 もらいました（Prime Bingo ${r.newLines}ライン）`);
+      try{ lsCoinFx(got); }catch(e){} }
+    pbRender();
+  }
+}
+/** いま Prime Bingo を使えるか。はじめは管理者だけです */
+const pbVisible=()=>isAdmin();
+/** かかった時間の言い方 */
+function pbTime(ms){
+  const t=Math.max(0,Math.floor((+ms||0)/1000));
+  const h=Math.floor(t/3600), m=Math.floor(t%3600/60), s2=t%60;
+  return `${h}時間${String(m).padStart(2,"0")}分${String(s2).padStart(2,"0")}秒`;
+}
+
+/* ── Prime Bingo の画面 ── */
+let PB_FULL=false;          /* 専用画面にしているか */
+let PB_DETAIL=false;        /* カードに数字を出しているか */
+/** 10×10 のカード */
+function pbCardHTML(){
+  if(!pbOn()) return "";
+  return `<div class="pbcard${PB_DETAIL?" det":""}">`+
+    PB.card.map((v,i)=>`<div class="pbc${PB.hit[i]?" on":""}" data-pbi="${i}"
+      title="${jp(v)}${PB.hit[i]?"（開いています）":""}">${PB_DETAIL?jp(v):""}</div>`).join("")+
+    `</div>`;
+}
+/** 出た素数の表（100×96 ＝ 9,600マス）*/
+function pbGridHTML(){
+  const P=pbPrimes();
+  const got=new Set(PB&&PB.drawn||[]);
+  const last=(PB&&PB.drawn&&PB.drawn.length)?PB.drawn[PB.drawn.length-1]:-1;
+  const cells=new Array(PB_W*PB_H);
+  for(let i=0;i<PB_W*PB_H;i++){
+    if(i>=P.length){ cells[i]=`<i class="pbg none"></i>`; continue; }
+    const on=got.has(i);
+    cells[i]=`<i class="pbg${on?" on":""}${i===last?" last":""}" data-pbg="${i}"
+      title="${jp(P[i])}${on?"（出ました）":""}"></i>`;
+  }
+  return `<div class="pbgrid">${cells.join("")}</div>`;
+}
+/** 最近出た素数 */
+function pbLastHTML(){
+  const P=pbPrimes();
+  const d=(PB&&PB.drawn)||[];
+  if(!d.length) return `<div class="pblast"><div class="t">まだ出ていません</div>
+    <div class="v">—</div><div class="s">LSやりこみを1回クリアすると、1つ出ます</div></div>`;
+  const last=P[d[d.length-1]];
+  const rest=d.slice(-6,-1).reverse().map(i=>jp(P[i]));
+  return `<div class="pblast">
+    <div class="t">いちばん新しく出た素数</div>
+    <div class="v">${jp(last)}</div>
+    <div class="s">${jp(d.length)} 回目の抽選</div>
+    ${rest.length?`<div class="s" style="margin-top:4px">その前：${rest.join("　")}</div>`:""}
+  </div>`;
+}
+/** Prime Bingo のまとめ */
+function pbStatHTML(){
+  const d=(PB&&PB.drawn)||[], h=(PB&&PB.hit)||[];
+  const open=h.filter(Boolean).length;
+  const ms=pbOn()?Math.max(0,Date.now()-(+PB.startAt||Date.now())):0;
+  return `<div class="lsgrid">
+    <div class="lsbox"><div class="t">第 ${jp((PB&&PB.no)||1)} 回</div>
+      <div class="v" style="font-size:1.5rem">${jp(open)}<span class="tiny"> / 100</span></div>
+      <div class="s">開いたマス</div></div>
+    <div class="lsbox"><div class="t">そろったライン</div>
+      <div class="v" style="font-size:1.5rem;color:#ffd45e">${jp(pbDone())}<span class="tiny"> / 22</span></div>
+      <div class="s">${COIN} ${jp((PB&&PB.coins)||0)} 枚ぶん</div></div>
+    <div class="lsbox"><div class="t">抽選した回数</div>
+      <div class="v" style="font-size:1.5rem">${jp(d.length)}</div>
+      <div class="s">9,592個のうち</div></div>
+    <div class="lsbox"><div class="t">開催してから</div>
+      <div class="v" style="font-size:1.2rem" id="pbTime">${pbTime(ms)}</div>
+      <div class="s">${pbOn()&&PB.startAt?jstFull(new Date(PB.startAt).toISOString()):"—"}</div></div>
+  </div>`;
+}
+/** 画面を出し直します */
+function pbRender(){
+  const box=$("#pbBody"); if(!box) return;
+  const card=$("#pbCard"); if(card) card.hidden=!pbVisible();
+  if(!pbVisible()){ box.innerHTML=""; return; }
+  if(!pbOn()){
+    box.innerHTML=`<div class="hintbox">
+      <b>Prime Bingo とは</b><br>
+      <span class="tiny">
+      ・出てくる数字は<b>素数だけ</b>です（2 から 99,999 までの 9,592個）<br>
+      ・その中から100個をえらんで、<b>10×10 のビンゴカード</b>を作ります<br>
+      ・<b>LSやりこみを1回クリアするごとに、素数が1つ抽選</b>されます<br>
+      ・その素数がカードにあれば、そのマスが空きます<br>
+      ・たて・よこ・ななめの<b>1ライン そろうごとに ${COIN} を1枚</b>もらえます<br>
+      ・カードはいつでも新しくできます。「第n回」として記録に残ります<br>
+      ・時間は、カードを作った時から数えます</span></div>
+      <div class="tools"><button class="btn pri" id="pbMake">ビンゴカードを作成する</button></div>`;
+    $("#pbMake").onclick=()=>{ pbNewCard(); pbRender(); toast("第1回をはじめました"); };
+    return;
+  }
+  box.innerHTML=pbStatHTML()
+    +`<div class="pbrow">
+        <div>${pbCardHTML()}</div>
+        <div>${pbLastHTML()}
+          <div class="tools" style="margin-top:8px">
+            <button class="btn sm" id="pbDet">${PB_DETAIL?"数字を隠す":"詳細（数字を出す）"}</button>
+            <button class="btn sm" id="pbNew">カードを新しくする</button>
+            <button class="btn sm" id="pbLog">軌跡</button>
+            ${PB_FULL?`<button class="btn sm" id="pbBack">← LSやりこみへ</button>`
+                     :`<button class="btn sm pri" id="pbFull">Prime Bingo だけ表示</button>`}
+          </div></div>
+      </div>
+      <h3 style="margin-top:14px">出た素数（100×96 ＝ 9,600マス）</h3>
+      <p class="tiny" style="margin-top:-6px;color:var(--dim2)">
+        四角にカーソルを合わせると、その素数が分かります。
+        <b style="color:#ffd45e">黄色</b>がいちばん新しく出たものです。</p>
+      ${pbGridHTML()}
+      ${isAdmin()?`<div class="tools" style="margin-top:12px">
+        <button class="btn sm" id="pbReset" style="border-color:#7a3030;color:#ff8a8a">
+          ぜんぶリセット（管理者・お試し中）</button></div>`:""}`;
+  const on=(id,fn)=>{ const b=$("#"+id); if(b) b.onclick=fn; };
+  on("pbDet",()=>{ PB_DETAIL=!PB_DETAIL; pbRender(); });
+  on("pbNew",async()=>{
+    if(!await askYN("カードを新しくしますか？",
+      `いまの<b>第${jp(PB.no)}回</b>を記録に残して、次の回をはじめます。<br><br>`
+      +`開いたマス ${jp((PB.hit||[]).filter(Boolean).length)} / 100　`
+      +`そろったライン ${jp(pbDone())}<br>`
+      +`<span class="tiny">時間は、新しいカードを作った時から数え直します。</span>`,
+      "新しくする")) return;
+    pbCloseRound(); pbNewCard(); PB_DETAIL=false; pbRender();
+    toast(`第${jp(PB.no)}回をはじめました`);
+  });
+  on("pbLog",pbLogShow);
+  on("pbFull",()=>{ PB_FULL=true; pbLayout(); });
+  on("pbBack",()=>{ PB_FULL=false; pbLayout(); });
+  on("pbReset",async()=>{
+    if(!await askYN("Prime Bingo をぜんぶリセットしますか？",
+      "カードも、出た素数も、軌跡もすべて消えます。元に戻せません。<br>"
+      +'<span class="tiny">お試し中のための機能です。もらった Prime Coin は消えません。</span>',
+      "ぜんぶ消す")) return;
+    PB=null; PBLOG=[];
+    try{ localStorage.removeItem(K_PB); localStorage.removeItem(K_PBLOG); }catch(e){}
+    try{ lsSoon(); }catch(e){}
+    PB_FULL=false; PB_DETAIL=false; pbLayout(); pbRender(); toast("リセットしました");
+  });
+}
+/** 軌跡（第n回ごとの記録） */
+function pbLogShow(){
+  const rows=PBLOG.slice();
+  const cur=pbOn()?[{no:PB.no, draws:(PB.drawn||[]).length,
+    opened:(PB.hit||[]).filter(Boolean).length, lines:pbDone(), coins:+PB.coins||0,
+    startAt:PB.startAt, ms:Date.now()-(+PB.startAt||Date.now()), now:true}]:[];
+  const all=cur.concat(rows);
+  const M=modal(`<h2>Prime Bingo の軌跡</h2>
+    <p class="muted" style="margin-top:-8px">これまでの回の記録です。</p>
+    ${all.length?`<div class="scroll" style="max-height:56vh"><table><thead><tr>
+      <th>回</th><th class="n">抽選した回数</th><th class="n">開いたマス</th>
+      <th class="n">ライン</th><th class="n">${COIN}</th><th>開催した時間</th><th>はじめた日時</th>
+      </tr></thead><tbody>`+
+      all.map(r=>`<tr class="${r.now?"used":""}">
+        <td><b>第${jp(r.no)}回</b>${r.now?'<span class="sbtag certified">開催中</span>':""}</td>
+        <td class="n">${jp(r.draws||0)}</td>
+        <td class="n">${jp(r.opened||0)} / 100</td>
+        <td class="n">${jp(r.lines||0)} / 22</td>
+        <td class="n">${jp(r.coins||0)}</td>
+        <td class="tiny">${pbTime(r.ms)}</td>
+        <td class="tiny">${r.startAt?jstFull(new Date(r.startAt).toISOString()):"—"}</td>
+      </tr>`).join("")+`</tbody></table></div>`
+      :`<p class="muted">まだ記録がありません。</p>`}
+    <div class="tools"><button class="btn" id="pbLX">閉じる</button></div>`,{w:820});
+  M.q("#pbLX").onclick=M.close;
+}
+/** 専用画面にすると、ふつうのLSやりこみは小さくなります */
+function pbLayout(){
+  const sec=$("#ls"); if(!sec) return;
+  sec.classList.toggle("pbfull",!!PB_FULL&&pbVisible());
+  const card=$("#pbCard"); if(card) card.hidden=!pbVisible();
+  pbRender();
+}
+/* 1秒ごとに、開催してからの時間だけ出し直します */
+setInterval(()=>{
+  if(!pbVisible()||!pbOn()) return;
+  const e=$("#pbTime"); if(!e||$("#ls").hidden) return;
+  e.textContent=pbTime(Date.now()-(+PB.startAt||Date.now()));
+},1000);
+
+/* ══════════════════════════════════════════════════════════
+   LSやりこみの上の3つのボタン
+   「記録の保存」「設定」「表示」を押すと、それぞれの窓が開きます
+   ══════════════════════════════════════════════════════════ */
+/** 記録の保存 */
+function lsSaveOpen(){
+  const M=modal(`<h2>記録の保存</h2>
+    <p class="muted" style="margin-top:-8px">
+      LSやりこみの記録を、自分のアカウントに預けたり、取り出したりできます。<br>
+      <span class="tiny">別の端末で続きをやりたい時や、端末を買いかえる時に使ってください。</span></p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="lsPush">サーバーに全記録を送信する</button>
+      <button class="btn" id="lsPull">送信された記録を読み込む</button>
+      <button class="btn sm" id="lsWhat">いま預けてあるものを見る</button>
+    </div>
+    <div id="lsSaveMsg" class="tiny" style="margin-top:8px"></div>
+    <p class="tiny" style="color:var(--dim2);margin-top:6px">
+      送信すると、預けてあった記録は<b>この端末の記録に置きかわります</b>。
+      読み込むと、この端末の記録が<b>預けてあった記録に置きかわります</b>。<br>
+      どちらも、押す前に中身をくらべて確かめられます。前の内容は30回ぶん残るので、
+      まちがえても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>
+    <div class="tools"><button class="btn" id="lsSvX">閉じる</button></div>`,{w:720});
+  M.q("#lsSvX").onclick=M.close;
+  lsSaveEnter();
+}
+/** 設定（増加量・キー・音・光） */
+function lsCfgOpen(){
+  const M=modal(`<h2>設定</h2>
+    <p class="muted" style="margin-top:-8px">素数ゲームを1回クリアするごとの増加量を登録しておくと、予測値が出せます。</p>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="lsOpenCfg">1回あたりの増加量を登録</button>
+      <button class="btn" id="lsOpenKey">カウントキーを設定</button>
+      <button class="btn" id="lsOpenSKey">スタート／ストップのキー</button>
+      <button class="btn" id="lsSnd">音：オン</button>
+      <button class="btn" id="lsLit">光：オン</button>
+    </div>
+    <div id="lsCfgView" class="tiny" style="margin-top:10px"></div>
+    <div class="tools"><button class="btn" id="lsCfX">閉じる</button></div>`,{w:720});
+  M.q("#lsCfX").onclick=M.close;
+  M.q("#lsOpenCfg").onclick=lsOpenCfgFn;
+  M.q("#lsOpenKey").onclick=lsOpenKeyFn;
+  M.q("#lsOpenSKey").onclick=lsOpenSKeyFn;
+  M.q("#lsSnd").onclick=lsSndFn;
+  M.q("#lsLit").onclick=lsLitFn;
+  lsFxLabels(); lsCfgView();
+}
+/** 表示（見たいものだけ出す） */
+function lsViewOpen(){
+  const M=modal(`<h2>表示</h2>
+    <p class="muted" style="margin-top:-8px">見たいものだけ表示できます。
+      <b>隠しても、値はいつもどおり計算されています</b>（見えなくなるだけです）。</p>
+    <div id="lsView" class="picks"></div>
+    <div class="tools" style="margin-top:8px">
+      <button class="btn sm" id="lsViewAll">ぜんぶ表示</button>
+      <button class="btn sm" id="lsViewMin">最小にする</button>
+      <button class="btn" id="lsVwX">閉じる</button>
+    </div>`,{w:720});
+  M.q("#lsVwX").onclick=M.close;
+  M.q("#lsViewAll").onclick=()=>{
+    LSV_ITEMS.forEach(x=>LSVIEW[x.k]=true); saveLsView(); lsViewDraw(); };
+  M.q("#lsViewMin").onclick=()=>{
+    LSV_ITEMS.forEach(x=>LSVIEW[x.k]=(x.k==="count"||x.k==="rank")); saveLsView(); lsViewDraw(); };
+  lsViewDraw();
+}
+/** 上の行に、いまのようすを短く出します */
+function lsTopNote(){
+  const e=$("#lsTopNote"); if(!e) return;
+  const hid=LSV_ITEMS.filter(x=>!lsvOn(x.k)).length;
+  const parts=[];
+  if(lsCfg.perScore>0||lsCfg.perRand>0) parts.push("増加量：登録ずみ");
+  else parts.push("増加量：未登録");
+  if(hid) parts.push(`非表示 ${jp(hid)} 件`);
+  e.textContent=parts.join("　／　");
+}
+if($("#lsBtnSave")) $("#lsBtnSave").onclick=lsSaveOpen;
+if($("#lsBtnCfg"))  $("#lsBtnCfg").onclick=lsCfgOpen;
+if($("#lsBtnView")) $("#lsBtnView").onclick=lsViewOpen;
 
 $("#lsStartBtn").onclick=()=>{
   lsRun={start:Date.now(),count:0,p0:performance.now(),pp:null}; lsCool=0;
@@ -9642,7 +10060,72 @@ async function loadRoleReq(){
 /* 記録の提出は大会・チャレンジからのみ行います（専用フォームは廃止） */
 
 /* ---- 自分の提出 ---- */
+/* ══════════════════════════════════════════════════════════
+   審査で直された記録を、自分の記録に入れます
+   ──────────────────────────────────────────────────────────
+   審査の人が値を直しても、それだけでは自分の「個人データ」は
+   古いままでした。ここで、直された記録を拾って入れ直します。
+   ══════════════════════════════════════════════════════════ */
+/** 審査で直された、自分の記録をさがします */
+function subFixed(){
+  return (SUBS||[]).filter(s=>{
+    if(s.mine===false) return false;
+    if(s.status==="rejected"||s.status==="removed") return false;
+    if(!s.event||!(+s.value>0)) return false;
+    /* 「直す前の値」が入っていれば、審査で直されたということです */
+    const from=[s.jm_from,s.sv_from,s.judge_from].find(v=>v!=null&&v!=="");
+    if(from==null) return false;
+    const now=+rec[s.event]||0;
+    if(Math.abs(now-(+s.value))<1e-9) return false;   /* もう入っています */
+    return {ok:true};
+  }).map(s=>{
+    const from=[s.jm_from,s.sv_from,s.judge_from].find(v=>v!=null&&v!=="");
+    return {id:s.id, event:s.event, value:+s.value, from:+from,
+            now:+rec[s.event]||0, at:s.jm_at||s.sv_at||s.judged_at};
+  });
+}
+/** 直された記録を、自分の記録に入れます */
+function subApplyFix(list,quiet){
+  let n=0;
+  (list||[]).forEach(x=>{
+    if(!x||!x.event||!(x.value>0)) return;
+    rec[x.event]=x.value; n++;
+  });
+  if(!n) return 0;
+  try{ save(); }catch(e){ try{ localStorage.setItem(K_REC,JSON.stringify(rec)); }catch(e2){} }
+  try{ fillInputs(); render(); renderMeCards(); }catch(e){}
+  try{ if(typeof stSoon==="function") stSoon(); }catch(e){}
+  if(!quiet) toast(`${jp(n)} 件の記録を、審査で直された値にしました`);
+  return n;
+}
+/** 「直された記録があります」のお知らせ */
+function subFixBanner(){
+  const box=$("#sbFix"); if(!box) return;
+  const list=subFixed();
+  if(!list.length){ box.hidden=true; box.innerHTML=""; return; }
+  box.hidden=false;
+  box.innerHTML=`<div class="hintbox" style="border-color:var(--warn)">
+    <b style="color:var(--warn)">審査で直された記録があります</b>
+    <div class="scroll" style="margin-top:6px"><table><tbody>`+
+    list.map(x=>`<tr><td>${esc(x.event)}</td>
+      <td class="tiny">いまの記録 ${x.now>0?fmtRec(x.event,x.now):"—"}</td>
+      <td>→ <b style="color:var(--acc2)">${fmtRec(x.event,x.value)}</b></td>
+      <td class="tiny">${x.at?jstShort(x.at):""}</td></tr>`).join("")+
+    `</tbody></table></div>
+    <div class="tools" style="margin-top:8px">
+      <button class="btn pri sm" id="sbFixGo">この値を自分の記録に入れる</button>
+      <span class="tiny">審査の人が直した値です。入れると個人データが書きかわります。</span>
+    </div></div>`;
+  $("#sbFixGo").onclick=async()=>{
+    if(!await askYN("審査で直された値を、自分の記録に入れますか？",
+      list.map(x=>`<b>${esc(x.event)}</b>　${x.now>0?fmtRec(x.event,x.now):"—"} → <b>${fmtRec(x.event,x.value)}</b>`).join("<br>")
+      +"<br><br><span class='tiny'>個人データが書きかわります。</span>","入れる")) return;
+    subApplyFix(list);
+    subFixBanner();
+  };
+}
 function renderSubs(){
+  subFixBanner();
   const box=$("#sbMine"); if(!box) return;
   if(!(sess&&sbOn())){ box.innerHTML='<p class="muted">ログインすると提出できます。</p>'; return; }
   if(!SUBS.length){ box.innerHTML='<p class="muted">まだ提出がありません。</p>'; return; }
@@ -15567,7 +16050,10 @@ function uiToggle(on){
   if(!isAdmin()){ UIT_ON=false; document.body.classList.remove("uiedit"); uiBarDraw(); return; }
   UIT_ON=(on===undefined)?!UIT_ON:!!on;
   document.body.classList.toggle("uiedit",UIT_ON);
-  if(UIT_ON) uiMark();
+  if(UIT_ON){
+    if(!uiIsPC()) toast("文章の書きかえは、パソコンからだけできます");
+    uiMark();
+  }
   else $$("[data-uikey]").forEach(el=>{ delete el.dataset.uikey; });
   uiBarDraw();
   const b=$("#uiGo");
@@ -15577,31 +16063,54 @@ function uiToggle(on){
 function uiMark(){
   uiScan().forEach(u=>{ u.el.dataset.uikey=u.key; });
 }
-/** 画面の下に出る、操作バー */
+/** 画面の右上に、いつも出しておく札 */
 function uiBarDraw(){
-  let bar=$("#uiBar");
-  if(!UIT_ON){ if(bar) bar.remove(); return; }
-  if(!bar){
-    bar=document.createElement("div"); bar.id="uiBar"; bar.className="uibar";
-    document.body.appendChild(bar);
+  let f=$("#uiFlag");
+  if(!UIT_ON){ if(f) f.remove(); return; }
+  if(!f){
+    f=document.createElement("div"); f.id="uiFlag"; f.className="uiflag";
+    document.body.appendChild(f);
   }
-  bar.innerHTML=`<span class="uibt">エディターモード</span>
-    <span class="tiny">書きかえたい文字を<b>クリック</b>してください</span>
-    <span class="tiny" id="uiN">書きかえ ${jp(uiCount())} か所${UIT_DIRTY?"（未反映）":""}</span>
-    <button class="btn sm pri" id="uiSave">全員に反映する</button>
-    <button class="btn sm" id="uiTabs2">タブ</button>
-    <button class="btn sm" id="uiList2">一覧</button>
-    <button class="btn sm" id="uiEnd">終える</button>`;
-  bar.querySelector("#uiEnd").onclick=()=>uiToggle(false);
-  bar.querySelector("#uiSave").onclick=uiPublish;
-  bar.querySelector("#uiTabs2").onclick=uiTabsEdit;
-  bar.querySelector("#uiList2").onclick=uiListShow;
+  f.innerHTML=`<div class="uifhead">
+      <span class="uifdot"></span><b>管理者エディターモード発動中</b>
+      <button class="uifmin" id="uiMin" title="小さくする">–</button></div>
+    <div class="uifbody">
+      <div class="tiny">書きかえたい文字を<b>右クリック</b>してください。<br>
+        ふつうの操作は、そのままできます。</div>
+      <div class="tiny" id="uiN" style="margin-top:4px">書きかえ ${jp(uiCount())} か所${
+        UIT_DIRTY?'　<b style="color:var(--warn)">未反映</b>':""}</div>
+      <div class="tools" style="margin-top:6px">
+        <button class="btn sm pri" id="uiSave">全員に反映</button>
+        <button class="btn sm" id="uiTabs2">タブ</button>
+        <button class="btn sm" id="uiList2">一覧</button>
+        <button class="btn sm" id="uiEnd">終える</button></div>
+      ${uiIsPC()?"":`<div class="tiny" style="color:var(--warn);margin-top:4px">
+        この端末では右クリックができないため、文章の書きかえはできません。
+        パソコンからお使いください。</div>`}
+    </div>`;
+  f.querySelector("#uiEnd").onclick=()=>uiToggle(false);
+  f.querySelector("#uiSave").onclick=uiPublish;
+  f.querySelector("#uiTabs2").onclick=uiTabsEdit;
+  f.querySelector("#uiList2").onclick=uiListShow;
+  f.querySelector("#uiMin").onclick=()=>{
+    f.classList.toggle("mini");
+    f.querySelector("#uiMin").textContent=f.classList.contains("mini")?"＋":"–";
+  };
 }
-/* クリックを横取りして、編集の窓を開きます。
-   （ボタンの上でも、本来の動きは起こさないようにします）*/
-document.addEventListener("click",e=>{
-  if(!UIT_ON||!isAdmin()) return;
-  if(e.target.closest&&(e.target.closest(".mask")||e.target.closest("#uiBar"))) return;
+/* ★ 右クリックで編集の窓を開きます。
+   ふつうのクリックは横取りしません。エディターモードを開いたままでも、
+   タブを開いたりボタンを押したり、いつもどおり使えます。
+   （スマホには右クリックがないので、パソコンだけの機能です）*/
+const uiIsPC=()=>{
+  try{
+    if(window.matchMedia&&window.matchMedia("(pointer: coarse)").matches) return false;
+    if(navigator.maxTouchPoints>1) return false;
+    return true;
+  }catch(e){ return true; }
+};
+document.addEventListener("contextmenu",e=>{
+  if(!UIT_ON||!isAdmin()||!uiIsPC()) return;
+  if(e.target.closest&&(e.target.closest(".mask")||e.target.closest("#uiFlag"))) return;
   const el=e.target.closest&&e.target.closest("[data-uikey]");
   if(!el) return;
   e.preventDefault(); e.stopPropagation();
@@ -16394,7 +16903,10 @@ async function pzLoad(){
 async function pzEnter(){
   if(!isAdmin()) return;
   await pzLoad();
-  PZEDIT=JSON.parse(JSON.stringify(PZCFG));
+  /* ★ 予定が入っていれば、その内容を出します。
+     前は「いま使っている賞品」を出していたので、保存しても表が
+     元に戻ったように見えて、反映されていないと思われていました。 */
+  PZEDIT=JSON.parse(JSON.stringify((PZNEXT&&PZNEXT.cfg)?PZNEXT.cfg:PZCFG));
   pzDraw(); pzCups();
 }
 function pzDraw(){
@@ -16419,10 +16931,22 @@ function pzDraw(){
       <td class="n"><input type="number" class="txt" data-pzj="coin" min="0" max="9999" step="1"
         value="${+((cur.join||{}).coin)||0}" style="max-width:90px"></td><td></td></tr>`
     +`</tbody></table></div>
-    ${PZNEXT&&PZNEXT.from?`<div class="hintbox" style="margin-top:8px;border-color:var(--warn)">
-      <b style="color:var(--warn)">${esc(String(PZNEXT.from).replace(/-/g,"/"))} から使う賞品が、すでに決まっています。</b><br>
-      <span class="tiny">いまの表は「これから保存する内容」です。
-        保存すると、いちばん新しい内容に置きかわります。</span></div>`:""}
+    ${PZNEXT&&PZNEXT.from?`<div class="hintbox" style="margin-top:8px;border-color:var(--acc2)">
+      <b style="color:var(--acc2)">この表は「${esc(String(PZNEXT.from).replace(/-/g,"/"))} から使う賞品」です。</b><br>
+      <span class="tiny">すでに保存ずみで、全員の画面にも予告が出ています。
+        ここを変えて保存し直すこともできます。<br>
+        いま配られている賞品は、その下の「いま使っている賞品」で確かめられます。</span></div>
+      <details style="margin-top:8px"><summary class="muted">いま使っている賞品（きょうまで）</summary>
+      <div class="scroll" style="margin-top:6px"><table><thead><tr>
+        <th>種類</th><th>順位ごと</th><th>参加賞</th></tr></thead><tbody>`+
+      PZ_KEYS.map(([k,n])=>{
+        const c=(PZCFG||{})[k]||{};
+        const rs=(c.ranks||[]).filter(r=>(+r.star||0)>0||(+r.coin||0)>0)
+          .map(r=>`${+r.pos}位 ★${+r.star||0}${(+r.coin||0)?" P"+(+r.coin):""}`).join("　")||"なし";
+        const j=c.join||{};
+        return `<tr><td class="tiny">${esc(n)}</td><td class="tiny">${esc(rs)}</td>
+          <td class="tiny">★${+j.star||0}${(+j.coin||0)?" P"+(+j.coin):""}</td></tr>`;
+      }).join("")+`</tbody></table></div></details>`:""}
     <div class="tools" style="margin-top:8px">
       <button class="btn sm" id="pzAdd">＋ 順位を増やす</button>
       <span class="tiny">スターは1個 5XP になります。0 にすると、その順位には何も配りません。</span>
@@ -16474,14 +16998,71 @@ if($("#pzSave")) $("#pzSave").onclick=async()=>{
   try{
     const r=await sbAuth("rpc/prize_cfg_set",{method:"POST",body:JSON.stringify({p_cfg:cfg})});
     await pzLoad();
-    PZEDIT=JSON.parse(JSON.stringify(PZCFG)); pzDraw();
+    /* 保存した内容（＝これから使う賞品）を、そのまま表に出しておきます */
+    PZEDIT=JSON.parse(JSON.stringify((PZNEXT&&PZNEXT.cfg)?PZNEXT.cfg:cfg)); pzDraw();
     const from=(r&&r.from)?r.from:pdStr(asu);
     pzMsg(`保存しました。${from.replace(/-/g,"/")} から始まるものに使われます`,true);
+    /* 全員へのお知らせも出せます */
+    await pzNotice(cfg,from);
   }catch(e){ pzMsg(String(e.message||e).slice(0,90),false); }
 };
 if($("#pzReload")) $("#pzReload").onclick=async()=>{ await pzEnter(); pzMsg("読み直しました"); };
 if($("#pzDef")) $("#pzDef").onclick=()=>{ PZEDIT=JSON.parse(JSON.stringify(PZ_DEF)); pzDraw();
   pzMsg("はじめの形に戻しました（保存はまだです）"); };
+/** 賞品を変えたことを、全員にお知らせします */
+async function pzNotice(cfg,from){
+  const f=pdParse(from)||new Date();
+  const line=(k,n)=>{
+    const c=cfg[k]||{};
+    const st=pzNextStart(k,pdStr(f));
+    const rs=(c.ranks||[]).filter(r=>(+r.star||0)>0||(+r.coin||0)>0)
+      .sort((a,b)=>a.pos-b.pos)
+      .map(r=>`${r.pos}位 ★${+r.star||0}${(+r.coin||0)?` / Prime Coin ${+r.coin}`:""}`).join("、");
+    const j=c.join||{};
+    const jj=((+j.star||0)||(+j.coin||0))?`参加賞 ★${+j.star||0}${(+j.coin||0)?` / Prime Coin ${+j.coin}`:""}`:"参加賞なし";
+    const when=(k==="cup")?`${pdSlash(st)} 以降にはじまる大会から`
+      :(k==="day")?`${pdSlash(st)} の回から`
+      :(k==="week")?`次の週（${pdSlash(st)} 月曜）の回から`
+      :`次の月（${pdSlash(st)}）の回から`;
+    return `■ ${n}\n　${when}\n　${rs||"順位の賞はなし"}\n　${jj}`;
+  };
+  const body=`もらえるものが新しくなります。\n\n`
+    +PZ_KEYS.map(([k,n])=>line(k,n)).join("\n\n")
+    +`\n\nいま開催中のものと、終わったものは変わりません。`
+    +`\n配り終えたごほうびを、あとから配り直すこともありません。`;
+  const M=modal(`<h2>全員にお知らせを出しますか？</h2>
+    <p class="muted" style="margin-top:-8px">賞品を変えたことを、みんなに知らせられます。<br>
+      <span class="tiny">出さなくても、賞品のところには予告が出ています。</span></p>
+    <label class="fl">タイトル</label>
+    <input type="text" class="txt" id="pnT" style="max-width:none"
+      value="${esc(`もらえるものが変わります（${pdSlash(f)} から）`)}">
+    <label class="fl">本文</label>
+    <textarea id="pnB" rows="12" style="font-size:.86rem">${esc(body)}</textarea>
+    <label class="pk" style="margin-top:8px;display:inline-flex">
+      <input type="checkbox" id="pnP" checked> 上に固定して見せる</label>
+    <div class="tools">
+      <button class="btn pri" id="pnGo">お知らせを出す</button>
+      <button class="btn" id="pnNo">出さない</button></div>
+    <div id="pnM" class="tiny"></div>`,{w:720});
+  return new Promise(res=>{
+    M.q("#pnNo").onclick=()=>{ M.close(); res(false); };
+    M.q("#pnGo").onclick=async()=>{
+      const t=M.q("#pnT").value.trim();
+      if(!t){ M.q("#pnM").innerHTML='<span style="color:var(--bad)">タイトルを入れてください</span>'; return; }
+      M.q("#pnGo").disabled=true; M.q("#pnM").textContent="送っています…";
+      try{
+        await callRpc("notice_put",{p_id:null,p_title:t,p_body:M.q("#pnB").value,
+          p_link:null,p_ver:APP_VERSION,p_pinned:!!M.q("#pnP").checked});
+        M.close(); toast("お知らせを出しました");
+        try{ await ntcLoad(); ntcBadge(); }catch(e){}
+        res(true);
+      }catch(e){
+        M.q("#pnGo").disabled=false;
+        M.q("#pnM").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e)).slice(0,150)}</span>`;
+      }
+    };
+  });
+}
 /** 大会ごとの上書き */
 async function pzCups(){
   const sel=$("#pzCup"); if(!sel) return;
