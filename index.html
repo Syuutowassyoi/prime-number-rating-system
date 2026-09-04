@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>素数あつめ RATING</title>
 <meta name="description" content="素数あつめのランキングボーダーからRATINGを算出し、プロフィールカードとして共有できるツール。">
 <meta property="og:title" content="素数あつめ RATING">
@@ -15,6 +15,9 @@
   --serif:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif;
 }
 *{box-sizing:border-box}
+/* ダブルタップで画面が拡大しないようにします（応援ボタンなどの連打で困るためです）*/
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
+button,.btn,.arkey,.pk,.seg,.segs button,.toggle button{touch-action:manipulation}
 /* クラス側の display 指定が [hidden] を打ち消してしまうのを防ぐ */
 [hidden]{display:none !important}
 html,body{margin:0;padding:0}
@@ -80,6 +83,38 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .richbar .btn{padding:2px 8px;font-size:.76rem}
 .richbar select{height:26px;font-size:.74rem;max-width:130px}
 /* 管理者エディターモード */
+/* ══════════ 素因数分解アリーナ ══════════ */
+.arbar{height:8px;background:#16233a;border-radius:99px;overflow:hidden;margin:10px 0 2px}
+.arbar i{display:block;height:100%;background:linear-gradient(90deg,#39d98a,#ffd45e,#ff5e5e);
+  transition:width .05s linear}
+.arcard{background:#0d1524;border:2px solid var(--line);border-radius:14px;
+  padding:18px 14px;text-align:center;margin-top:8px;transition:border-color .15s,background .15s}
+.arcard.okf{border-color:#39d98a;background:#0e2318;animation:arpop .4s ease-out}
+.arcard.ngf{border-color:#ff5e5e;background:#26121a;animation:arshake .4s ease-out}
+@keyframes arpop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes arshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.arq{font-family:Impact,"Arial Black",sans-serif;font-size:clamp(2.6rem,12vw,4.6rem);
+  line-height:1;color:#eaf3ff;letter-spacing:.02em}
+.arinbox{margin-top:10px;min-height:2.2em;background:#0b1524;border:1px solid var(--line);
+  border-radius:10px;padding:8px 12px;font-family:Impact,"Arial Black",sans-serif;
+  font-size:clamp(1.4rem,6vw,2.2rem);color:#8fe9ff;letter-spacing:.12em;word-break:break-all}
+.arinbox.bad{border-color:#ff5e5e;color:#ff9d9d}
+.arkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;
+  max-width:340px;margin-left:auto;margin-right:auto}
+.arkey{background:#16233a;border:1px solid #24344f;border-radius:10px;color:#eaf3ff;
+  font-size:1.5rem;font-weight:800;padding:14px 0;cursor:pointer;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+.arkey:active{background:#24344f}
+.arkey.sp{font-size:.9rem;color:var(--acc2)}
+.arkey.del{font-size:.9rem;color:var(--warn)}
+.arkey.wide{grid-column:span 1}
+/* 図鑑 */
+.adgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:5px;
+  margin-top:8px;max-height:50vh;overflow:auto}
+.adcell{background:#16233a;border:1px solid #24344f;border-radius:7px;color:#cfe0f5;
+  font-size:.76rem;font-weight:700;padding:7px 2px;cursor:pointer;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition:transform .1s}
+.adcell:hover{transform:scale(1.08);border-color:var(--acc)}
 /* ══════════ Prime Bingo ══════════ */
 .pbrow{display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:14px;
   align-items:start;margin-top:12px}
@@ -885,11 +920,11 @@ body.paused{overflow:hidden}
 .hslegend i{display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:4px;
   vertical-align:middle}
 .hsnone{color:var(--dim2)}
-/* Prime Park へのボタン */
-a.btn.ppbtn{margin-left:6px;text-decoration:none;display:inline-flex;align-items:center;
+/* 素因数分解アリーナへのボタン */
+.btn.ppbtn{margin-left:6px;display:inline-flex;align-items:center;
   border-color:#c08bff;color:#e6d4ff;font-weight:800;letter-spacing:.04em;
   background:linear-gradient(135deg,#3a2260,#5b3496)}
-a.btn.ppbtn:hover{border-color:#d9b6ff;filter:brightness(1.15)}
+.btn.ppbtn:hover{border-color:#d9b6ff;filter:brightness(1.15)}
 a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 /* 開発者を応援する */
 .chpop{width:138px;height:138px;border-radius:50%;border:2px solid #ffc861;cursor:pointer;
@@ -980,7 +1015,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <i class="dot" id="noticeDot" hidden></i>
   </button>
   <button class="btn sm" id="cheerBtn" style="margin-left:8px">開発者を応援する</button>
-  <a class="btn sm ppbtn" id="ppBtn" href="prime-park.html">Prime Park</a>
+  <button class="btn sm ppbtn" id="arBtn" hidden>素因数分解アリーナ</button>
   <span class="hclock" id="nowClock">—</span>
   <span class="hclock cd" id="nextUp">—</span>
 </header>
@@ -1739,6 +1774,19 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
 </section>
 
+<section id="arena" hidden>
+  <div class="card">
+    <div class="tools" style="margin-top:0">
+      <h2 style="margin:0">素因数分解アリーナ</h2>
+      <span class="tiny" id="arState" style="margin-left:auto"></span>
+    </div>
+    <div id="arHome"></div>
+  </div>
+  <div class="card" id="arPlayCard" hidden>
+    <div id="arPlay"></div>
+  </div>
+</section>
+
 <section id="stats" hidden>
   <div class="card">
     <h2>提出された記録</h2>
@@ -2319,6 +2367,17 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <span class="tiny" id="admNote"></span></div>
   </div>
   <div id="admWrap" hidden>
+  <div class="card" id="bgCard">
+    <h2>Prime Bingo の設定</h2>
+    <p class="muted" style="margin-top:-8px">公開するかどうかと、もらえる Prime Coin の枚数を決められます。<br>
+      <span class="tiny">管理者は、公開していなくても Prime Bingo を使えます。</span></p>
+    <div id="bgBox"></div>
+    <div class="tools">
+      <button class="btn pri" id="bgSave">この設定で保存する（全員に反映）</button>
+      <button class="btn" id="bgReload">保存せずに読み直す</button>
+      <span class="tiny" id="bgMsg"></span>
+    </div>
+  </div>
   <div class="card" id="uiCard">
     <h2>管理者エディターモード</h2>
     <p class="muted" style="margin-top:-8px">画面に出ている文章や、タブの名前・並び順を書きかえられます。<br>
@@ -2429,7 +2488,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v110";
+const APP_VERSION = "v111";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3108,6 +3167,14 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v111":[
+    "Prime Bingo を全員に公開できるようにしました（公開するかどうかは管理者が決めます）",
+    "パーフェクトボーナス（9,592個ぜんぶ）と All Bingo ボーナス（100マスぜんぶ）を追加",
+    "ビンゴ・パーフェクト・All Bingo でもらえる Prime Coin の枚数を、管理者が決められます",
+    "Prime Bingo に「ルール」ボタンを追加、リセットは無くしました",
+    "統計情報の「すべての合計」を、競技会＋チャレンジ＋アチーブメント だけにしました",
+    "素因数分解アリーナを追加しました（いまは管理者だけ）。Prime Park は終了しました",
+    "ダブルタップで画面が拡大してしまう不具合を直しました"],
   "v110":[
     "Prime Bingo で、同じ素数が2回出ないように守りを固めました",
     "別の端末とデータがまざった時に、カードの中身がちぐはぐにならないよう直しました"],
@@ -3629,8 +3696,6 @@ const ST_KEYS=[
   /* LSやりこみと追加の道具は、専用の入れもの（ls_state）で持ちます。
      版（rev）で食い違いを見つけて必ず混ぜるので、こちらでは扱いません */
   "sa-autopost-v1","sa-tagwatch-v1",
-  "pp-seen-v1",       /* Prime Park：チュートリアルを見たか */
-  "pp-story-v1",      /* Prime Park：ストーリーの台本 */
   "sa-hist-v1",       /* あなたの軌跡（毎日のデータ） */
 ];
 const ST_MAX=150000;
@@ -3710,7 +3775,6 @@ const ST_LABEL={
   "sa-lsb-v1":"やりこみの基準B", "sa-autopost-v1":"自動投稿の設定",
   "sa-pb-v1":"Prime Bingo のカード", "sa-pblog-v1":"Prime Bingo の軌跡",
   "sa-tagwatch-v1":"タグの見はり",
-  "pp-seen-v1":"Prime Park のチュートリアル", "pp-story-v1":"Prime Park の台本",
   "sa-hist-v1":"あなたの軌跡"
 };
 /* 追加の道具が足したものは、そちらが名前を教えてくれます */
@@ -5995,7 +6059,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","stats","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
+  ["profile","pgbc","stats","arena","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
@@ -6020,6 +6084,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="help") renderHelp();
   if(b.dataset.tab==="pgbc") pgRender();
   if(b.dataset.tab==="stats") stEnter();
+  if(b.dataset.tab==="arena"){ arCfgLoad().then(arHome); arHome(); }
   /* 画面を作り直した所にも、書きかえた文章を当て直します */
   try{ if(uiCount()||UIT_ON){ uiApply(); if(UIT_ON) uiMark(); } }catch(e){}
   if(b.dataset.tab==="cheer") cheerEnter();
@@ -6174,7 +6239,11 @@ function stSubsDraw(){
   const box=$("#stSubs"); if(!box) return;
   const c=SUBCNT;
   if(!c){ box.innerHTML=`<p class="muted">${sbOn()?"読み込めませんでした。":"まだつながっていません。"}</p>`; return; }
-  const n=k=>Math.max(0,+c[k]||0);
+  const n=k=>{
+    if(k==="total")   /* サーバーが古くても、ここで足し直します */
+      return Math.max(0,+c.competition||0)+Math.max(0,+c.challenge||0)+Math.max(0,+c.achievement||0);
+    return Math.max(0,+c[k]||0);
+  };
   const one=(t,k,s,cls)=>`<div class="subbox${cls||""}">
     <div class="t">${esc(t)}</div>
     <div class="subn">${jp(n(k))}</div>
@@ -6186,7 +6255,8 @@ function stSubsDraw(){
     ${one("すべての合計","total","ぜんぶ合わせて"," all")}
   </div>
   <p class="tiny" style="margin-top:8px;color:var(--dim2)">
-    合計には、個人の記録の提出 ${jp(n("record"))} 件もふくまれます。
+    「すべての合計」は、競技会・チャレンジ・アチーブメントを足したものです。<br>
+    このほかに、個人の記録の提出が ${jp(n("record"))} 件あります。
     　登録している人 ${jp(n("people"))} 人</p>`;
 }
 let ST_DRAFT=null;   /* 読み取ったけれど、まだ保存していない内容 */
@@ -7641,6 +7711,10 @@ function admShow(){
   if($("#tabRankEdit")) $("#tabRankEdit").hidden=!isAdmin();
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
+  if($("#bgCard")) $("#bgCard").hidden=!isAdmin();
+  /* 素因数分解アリーナのボタン。公開していなければ管理者だけに出ます */
+  const ab=$("#arBtn");
+  if(ab) ab.hidden=!(typeof arVisible==="function"&&arVisible());
 }
 /* 役職の強さ。SQL 側の role_level と同じ順番にしてあります */
 const ROLE_LV={admin:5,judgeman:4,supervisor:3,judge:2,supporter:1,user:0};
@@ -7785,11 +7859,11 @@ function admGate(){
     b.textContent=admOpen?"管理者メニューを閉じる":"管理者メニューを開く";
     if(!b.dataset.on){ b.dataset.on="1";
       b.onclick=()=>{ admOpen=!admOpen; admGate();
-        if(admOpen){ renderAdmin(); ccEnter(); pzEnter(); uiCardInit();
+        if(admOpen){ renderAdmin(); ccEnter(); pzEnter(); uiCardInit(); bgEnter();
           const el=$("#admWrap");
           if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); } }; }
   }
-  if(admOpen) uiCardInit();
+  if(admOpen){ uiCardInit(); bgEnter(); }
   const note=$("#admNote");
   if(note) note.textContent=admOpen
     ? "管理者エディターモード・開発者メニュー・Prime Coin の配り方・大会の賞品・"
@@ -9512,6 +9586,624 @@ const lsOpenKeyFn=()=>{
 };
 
 /* ══════════════════════════════════════════════════════════
+   素因数分解アリーナ
+   ──────────────────────────────────────────────────────────
+   ・出された自然数を、素因数分解して打ちます（例：30 → 2 3 5）
+   ・順番は自由。打てた時点で正解です（「解答する」ボタンはありません）
+   ・1問 15秒。かかった時間はぜんぶ残します
+   ・PRS（Prime Rating System）で、どれだけ極めたかを表します
+   ══════════════════════════════════════════════════════════ */
+const K_AR="sa-arena-v1", K_ARDEX="sa-arenadex-v1", K_ARCOL="sa-arenacol-v1";
+let ARCFG={on:false,cost:5,qn:30,per:0.020,sec:15};
+let AR=ls(K_AR,{prs:0,plays:0,best:0});          /* 自分のPRS */
+let ARDEX=ls(K_ARDEX,{});                        /* 数ごとの成績 {n:{q,ok,ms}} */
+const arSave=()=>{ try{ localStorage.setItem(K_AR,JSON.stringify(AR)); }catch(e){} };
+let arDexT=null;
+const arSaveDex=()=>{ if(arDexT) return;
+  arDexT=setTimeout(()=>{ arDexT=null;
+    try{ localStorage.setItem(K_ARDEX,JSON.stringify(ARDEX)); }catch(e){} },800); };
+/** 管理者は、公開していなくても使えます */
+const arVisible=()=>!!(ARCFG.on||isAdmin());
+/** いま挑戦できる自然数の上（2 から この数まで）*/
+function arMax(prs){
+  const p=(prs===undefined)?(+AR.prs||0):(+prs||0);
+  const n=Math.floor(p);
+  return (p<1)?999:1000*(n+1);
+}
+/* ── 素因数分解 ── */
+const AR_FAC={};                 /* 一度出した答えは覚えておきます */
+function arFactor(n){
+  n=Math.floor(n);
+  if(AR_FAC[n]) return AR_FAC[n];
+  const out=[];
+  let x=n;
+  for(let d=2; d*d<=x; d+=(d===2?1:2)){
+    while(x%d===0){ out.push(d); x/=d; }
+  }
+  if(x>1) out.push(x);
+  AR_FAC[n]=out;
+  return out;
+}
+const arIsPrime=n=>arFactor(n).length===1&&n>=2;
+/** 素因数分解を見せる形にします（2 3 5 → 2×3×5）*/
+const arFacText=n=>arFactor(n).join(" × ");
+
+/* ── 打った文字が、その数の素因数分解になっているか ──
+   ・順番は自由（並べかえて見くらべます）
+   ・「打てていたら正解」なので、最後の数字を打った瞬間に決まります */
+function arCheck(n, text){
+  const t=String(text||"").trim();
+  if(!t) return {done:false};
+  /* 数字と区切りだけ。区切りは 空白・カンマ・× など何でも受けます */
+  const parts=t.split(/[^\d]+/).filter(x=>x!=="");
+  if(!parts.length) return {done:false};
+  const nums=parts.map(Number);
+  if(nums.some(v=>!(v>=2))) return {done:false,bad:true};
+  const want=arFactor(n).slice().sort((a,b)=>a-b);
+  const got=nums.slice().sort((a,b)=>a-b);
+  if(got.length>want.length) return {done:false,bad:true};
+  /* とちゅうまで合っているか（先まわりして×にしないため、多すぎる時だけ×）*/
+  const w=want.slice(), okSoFar=got.every(v=>{ const i=w.indexOf(v);
+    if(i<0) return false; w.splice(i,1); return true; });
+  if(!okSoFar) return {done:false,bad:true};
+  if(got.length===want.length) return {done:true, ok:true};
+  return {done:false};
+}
+/* ── 図鑑の成績 ── */
+function arDexOf(n){ const d=ARDEX[n]||{}; return {q:+d.q||0, ok:+d.ok||0, ms:+d.ms||0}; }
+function arDexPut(n, ok, ms){
+  const d=arDexOf(n);
+  ARDEX[n]={q:d.q+1, ok:d.ok+(ok?1:0), ms:d.ms+(ok?Math.max(0,ms|0):0)};
+  arSaveDex();
+}
+const arRate=n=>{ const d=arDexOf(n); return d.q?(d.ok/d.q*100):null; };
+const arAvg =n=>{ const d=arDexOf(n); return d.ok?(d.ms/d.ok/1000):null; };
+
+/* ── 出題のえらび方 ── */
+const AR_MODES=[["random","ランダム","出題できる数の中から、でたらめに出します"],
+                ["new","ニューナンバー","まだ出したことのない数を先に出します"],
+                ["weak","苦手","正答率の低い数・時間のかかる数を先に出します"],
+                ["limit","縛り","はんいを自分で決めて出します"]];
+let arMode="random", arLimLo=2, arLimHi=999;
+/** 次の問題をえらびます */
+function arPick(max, used){
+  const lo=(arMode==="limit")?Math.max(2,arLimLo):2;
+  const hi=(arMode==="limit")?Math.min(max,arLimHi):max;
+  const N=Math.max(lo,hi);
+  const rnd=()=>lo+Math.floor(Math.random()*(N-lo+1));
+  if(arMode==="random"||arMode==="limit"){
+    for(let t=0;t<200;t++){ const v=rnd(); if(!used||!used.has(v)) return v; }
+    return rnd();
+  }
+  /* ニューナンバー：出題回数の少ないものから。同じ回数どうしは、でたらめに */
+  if(arMode==="new"){
+    let best=[], bestQ=Infinity;
+    for(let v=lo; v<=N; v++){
+      if(used&&used.has(v)) continue;
+      const q=arDexOf(v).q;
+      if(q<bestQ){ bestQ=q; best=[v]; if(q===0&&best.length>400) break; }
+      else if(q===bestQ&&best.length<4000) best.push(v);
+    }
+    if(!best.length) return rnd();
+    return best[Math.floor(Math.random()*best.length)];
+  }
+  /* 苦手：正答率が低い順、同じなら時間のかかる順。出したことのない数は後まわし */
+  const list=[];
+  for(let v=lo; v<=N; v++){
+    if(used&&used.has(v)) continue;
+    const d=arDexOf(v);
+    if(!d.q) continue;
+    const r=d.ok/d.q;
+    list.push({v, r, t:d.ok?(d.ms/d.ok):999999});
+  }
+  if(!list.length) return rnd();
+  list.sort((a,b)=>(a.r-b.r)||(b.t-a.t));
+  /* いちばん苦手なものから、多くても40個。
+     前にあるものほど出やすくなるように、かたよらせて選びます */
+  const k=Math.max(1,Math.min(40,Math.ceil(list.length*0.1)));
+  const top=list.slice(0,k);
+  const r=Math.random();
+  return top[Math.min(top.length-1,Math.floor(r*r*top.length))].v;
+}
+
+/* ══════════ アリーナ：図鑑 ══════════ */
+/* 色の決まり。どれか1つを選ぶと、数字ブロックがその色にうつり変わります */
+const AR_COLK=[["none","色をつけない",""],
+  ["q","出題回数が多いほど","たくさん出した数ほど、色が濃くなります"],
+  ["rate","正答率が低いほど","まちがえやすい数ほど、色が濃くなります"],
+  ["time","解答時間が遅いほど","時間のかかる数ほど、色が濃くなります"],
+  ["prime","素数ならば","素数だけに色をつけます"]];
+let ARCOL=Object.assign({k:"none",c0:"#ffffff",c1:"#ff5e5e",c2:"#8fe9ff",cut:30},ls(K_ARCOL,{}));
+const arSaveCol=()=>{ try{ localStorage.setItem(K_ARCOL,JSON.stringify(ARCOL)); }catch(e){} };
+/** 2つの色を、まぜ合わせます（t は 0〜1）*/
+function arMix(a,b,t){
+  const h=x=>{ const v=String(x||"").replace("#","");
+    const q=v.length===3?v.split("").map(c=>c+c).join(""):v;
+    return [parseInt(q.slice(0,2),16)||0,parseInt(q.slice(2,4),16)||0,parseInt(q.slice(4,6),16)||0]; };
+  const A=h(a), B=h(b), u=Math.max(0,Math.min(1,t));
+  return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*u).toString(16).padStart(2,"0")).join("");
+}
+/** その数のブロックの色 */
+function arColorOf(n){
+  const k=ARCOL.k;
+  if(k==="none") return "";
+  if(k==="prime") return arIsPrime(n)?ARCOL.c1:"";
+  const d=arDexOf(n);
+  if(!d.q) return "";
+  if(k==="q"){
+    const t=Math.min(1,d.q/10);
+    return arMix(ARCOL.c0,ARCOL.c1,t);
+  }
+  if(k==="rate"){
+    const r=d.ok/d.q*100;
+    if(r < (+ARCOL.cut||0)) return ARCOL.c2;       /* 決めた%を切ったら、別の色 */
+    const t=1-Math.max(0,Math.min(1,(r-(+ARCOL.cut||0))/(100-(+ARCOL.cut||0)||1)));
+    return arMix(ARCOL.c0,ARCOL.c1,t);
+  }
+  if(k==="time"){
+    const a=arAvg(n); if(a==null) return "";
+    const t=Math.min(1,a/Math.max(1,+ARCFG.sec||15));
+    return arMix(ARCOL.c0,ARCOL.c1,t);
+  }
+  return "";
+}
+let arDexSort="num", arDexQ="", arDexPage=0;
+const AR_DEX_PER=600;
+function arDexShow(){
+  const M=modal(`<h2>図鑑</h2>
+    <div class="tools" style="margin-top:0">
+      <input type="text" class="txt" id="adQ" placeholder="数をさがす（例：30）" style="max-width:180px">
+      <select id="adSort" style="max-width:200px">
+        <option value="num">数の小さい順</option>
+        <option value="rate">正答率の低い順</option>
+        <option value="time">解答時間の遅い順</option>
+        <option value="q">出題回数の少ない順</option>
+      </select>
+      <button class="btn sm" id="adCol">色の設定</button>
+      <span class="tiny" id="adNote" style="margin-left:auto"></span>
+    </div>
+    <div id="adBox"></div>
+    <div class="tools"><button class="btn sm" id="adPrev">◀ 前</button>
+      <span class="tiny" id="adPg"></span>
+      <button class="btn sm" id="adNext">次 ▶</button>
+      <button class="btn" id="adX" style="margin-left:auto">閉じる</button></div>`,{w:900});
+  M.q("#adX").onclick=M.close;
+  M.q("#adSort").value=arDexSort;
+  M.q("#adQ").value=arDexQ;
+  const draw=()=>{
+    const max=arMax();
+    let list=[];
+    const q=arDexQ.trim();
+    if(q){
+      const v=parseInt(q,10);
+      if(v>=2&&v<=max) list=[v];
+      else list=[];
+    }else{
+      for(let v=2; v<=max; v++) list.push(v);
+      if(arDexSort==="rate") list.sort((a,b)=>{
+        const ra=arRate(a), rb=arRate(b);
+        if(ra==null&&rb==null) return a-b;
+        if(ra==null) return 1; if(rb==null) return -1;
+        return ra-rb || a-b; });
+      else if(arDexSort==="time") list.sort((a,b)=>{
+        const ta=arAvg(a), tb=arAvg(b);
+        if(ta==null&&tb==null) return a-b;
+        if(ta==null) return 1; if(tb==null) return -1;
+        return tb-ta || a-b; });
+      else if(arDexSort==="q") list.sort((a,b)=>(arDexOf(a).q-arDexOf(b).q)||a-b);
+    }
+    const pages=Math.max(1,Math.ceil(list.length/AR_DEX_PER));
+    if(arDexPage>=pages) arDexPage=pages-1;
+    if(arDexPage<0) arDexPage=0;
+    const part=list.slice(arDexPage*AR_DEX_PER,(arDexPage+1)*AR_DEX_PER);
+    M.q("#adBox").innerHTML=part.length
+      ? `<div class="adgrid">`+part.map(v=>{
+          const c=arColorOf(v);
+          const d=arDexOf(v);
+          const r=arRate(v);
+          return `<button class="adcell" data-adn="${v}"
+            style="${c?`background:${c};color:#101820;border-color:${c}`:""}"
+            title="${v}${d.q?`／出題 ${d.q} 回・正答率 ${r.toFixed(2)}%`:"／まだ出していません"}">${jp(v)}</button>`;
+        }).join("")+`</div>`
+      : `<p class="muted">見つかりませんでした。</p>`;
+    M.q("#adPg").textContent=`${jp(arDexPage+1)} / ${jp(pages)} ページ　（${jp(list.length)} 個）`;
+    M.q("#adNote").textContent=`出題できる数：2 〜 ${jp(max)}`;
+    M.qa("[data-adn]").forEach(b=>b.onclick=()=>arDexOne(+b.dataset.adn));
+  };
+  M.q("#adQ").oninput=()=>{ arDexQ=M.q("#adQ").value; arDexPage=0; draw(); };
+  M.q("#adSort").onchange=()=>{ arDexSort=M.q("#adSort").value; arDexPage=0; draw(); };
+  M.q("#adPrev").onclick=()=>{ arDexPage--; draw(); };
+  M.q("#adNext").onclick=()=>{ arDexPage++; draw(); };
+  M.q("#adCol").onclick=()=>arColShow(draw);
+  draw();
+}
+/** 1つの数の、詳しいところ */
+function arDexOne(n){
+  const d=arDexOf(n), r=arRate(n), a=arAvg(n);
+  const M=modal(`<h2>${jp(n)}</h2>
+    <div class="hintbox">
+      <b>${arIsPrime(n)?'<span style="color:var(--acc2)">素数です</span>':"素数ではありません"}</b><br>
+      <span class="tiny">素因数分解　<b style="font-size:1.1rem">${jp(n)} ＝ ${esc(arFacText(n))}</b></span>
+      ${arIsPrime(n)?"":`<br><span class="tiny">素因数の数：${arFactor(n).length} 個</span>`}
+    </div>
+    <div class="lsgrid">
+      <div class="lsbox"><div class="t">出題回数</div><div class="v">${jp(d.q)}</div><div class="s">回</div></div>
+      <div class="lsbox"><div class="t">正解回数</div><div class="v">${jp(d.ok)}</div>
+        <div class="s">正答率 ${r==null?"—":r.toFixed(2)+"%"}</div></div>
+      <div class="lsbox"><div class="t">平均解答時間</div>
+        <div class="v">${a==null?"—":a.toFixed(2)}</div><div class="s">秒</div></div>
+    </div>
+    <div class="tools"><button class="btn" id="adOX">閉じる</button></div>`,{w:560});
+  M.q("#adOX").onclick=M.close;
+}
+/** 色の設定 */
+function arColShow(after){
+  const M=modal(`<h2>数字ブロックの色</h2>
+    <p class="muted" style="margin-top:-8px">どれか1つを選ぶと、その決まりで色がうつり変わります。</p>
+    <label class="fl">なにで色をつけるか</label>
+    <select id="acK" style="max-width:none">
+      ${AR_COLK.map(([k,n])=>`<option value="${k}"${k===ARCOL.k?" selected":""}>${esc(n)}</option>`).join("")}
+    </select>
+    <p class="tiny" id="acNote" style="color:var(--dim2)"></p>
+    <div class="frow">
+      <div><label class="fl">うすい方の色</label>
+        <input type="color" id="acC0" value="${esc(ARCOL.c0)}"></div>
+      <div><label class="fl">こい方の色</label>
+        <input type="color" id="acC1" value="${esc(ARCOL.c1)}"></div>
+      <div id="acCutBox"><label class="fl">この%を切ったら</label>
+        <input type="number" class="txt" id="acCut" min="0" max="100" value="${+ARCOL.cut||0}" style="max-width:100px">
+        <input type="color" id="acC2" value="${esc(ARCOL.c2)}"></div>
+    </div>
+    <div id="acPrev" style="margin-top:10px"></div>
+    <div class="tools"><button class="btn pri" id="acOk">この色にする</button>
+      <button class="btn" id="acX">やめる</button></div>`,{w:640});
+  M.q("#acX").onclick=M.close;
+  const upd=()=>{
+    const k=M.q("#acK").value;
+    M.q("#acNote").textContent=(AR_COLK.find(x=>x[0]===k)||[])[2]||"";
+    M.q("#acCutBox").hidden=(k!=="rate");
+    /* 見本 */
+    const tmp={k, c0:M.q("#acC0").value, c1:M.q("#acC1").value,
+      c2:M.q("#acC2").value, cut:num(M.q("#acCut").value)};
+    const keep=ARCOL; ARCOL=tmp;
+    const demo=[2,3,4,9,15,30,97,100,101,144];
+    M.q("#acPrev").innerHTML=`<div class="tiny">見本</div><div class="adgrid">`+
+      demo.map(v=>{ const c=arColorOf(v);
+        return `<button class="adcell" style="${c?`background:${c};color:#101820;border-color:${c}`:""}">${v}</button>`;
+      }).join("")+`</div>`;
+    ARCOL=keep;
+  };
+  ["#acK","#acC0","#acC1","#acC2","#acCut"].forEach(q=>{
+    const e=M.q(q); if(e){ e.oninput=upd; e.onchange=upd; } });
+  upd();
+  M.q("#acOk").onclick=()=>{
+    ARCOL={k:M.q("#acK").value, c0:M.q("#acC0").value, c1:M.q("#acC1").value,
+      c2:M.q("#acC2").value, cut:Math.max(0,Math.min(100,num(M.q("#acCut").value)))};
+    arSaveCol(); M.close(); if(after) after();
+  };
+}
+
+/* ══════════ アリーナ：入口の画面 ══════════ */
+async function arCfgLoad(){
+  if(TEST||!sbOn()) return ARCFG;
+  try{
+    const r=await sb("rpc/arena_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object")
+      ARCFG={on:!!r.on, cost:Math.max(0,+r.cost||0), qn:Math.max(1,+r.qn||30),
+             per:Math.max(0,+r.per||0.02), sec:Math.max(3,+r.sec||15)};
+  }catch(e){}
+  try{
+    const m=await sb("rpc/arena_me",{method:"POST",body:"{}"});
+    if(m&&typeof m==="object"){ AR={prs:+m.prs||0, plays:+m.plays||0, best:+m.best||0}; arSave(); }
+  }catch(e){}
+  return ARCFG;
+}
+function arHome(){
+  const box=$("#arHome"); if(!box) return;
+  const st=$("#arState");
+  if(st) st.innerHTML=arVisible()
+    ? (ARCFG.on?"":'<b style="color:var(--warn)">まだ公開していません（管理者だけ）</b>') : "";
+  if(!arVisible()){ box.innerHTML='<p class="muted">いまは使えません。</p>'; return; }
+  const max=arMax();
+  box.innerHTML=`
+    <div class="lsgrid">
+      <div class="lsbox"><div class="t">PRS</div>
+        <div class="v" style="font-size:2rem;color:var(--acc2)">${(+AR.prs||0).toFixed(3)}</div>
+        <div class="s">Prime Rating System</div></div>
+      <div class="lsbox"><div class="t">出題できる数</div>
+        <div class="v" style="font-size:1.5rem">2 〜 ${jp(max)}</div>
+        <div class="s">PRSの整数が1ふえると 1,000ずつ広がります</div></div>
+      <div class="lsbox"><div class="t">挑戦した回数</div>
+        <div class="v" style="font-size:1.5rem">${jp(+AR.plays||0)}</div>
+        <div class="s">いちばん高かった PRS ${(+AR.best||0).toFixed(3)}</div></div>
+    </div>
+    <h3 style="margin-top:14px">出しかたをえらぶ</h3>
+    <div class="segs" id="arModes" style="grid-template-columns:repeat(4,1fr)">
+      ${AR_MODES.map(([k,n])=>`<button data-arm="${k}" class="${k===arMode?"on":""}">${esc(n)}</button>`).join("")}
+    </div>
+    <p class="tiny" id="arModeNote" style="color:var(--dim2)">${
+      esc((AR_MODES.find(x=>x[0]===arMode)||[])[2]||"")}</p>
+    <div id="arLimBox" ${arMode==="limit"?"":"hidden"}>
+      <div class="frow">
+        <div><label class="fl">いくつから</label>
+          <input type="number" class="txt" id="arLo" min="2" max="1000000" value="${arLimLo}" style="max-width:140px"></div>
+        <div><label class="fl">いくつまで</label>
+          <input type="number" class="txt" id="arHi" min="2" max="1000000" value="${Math.min(arLimHi,max)}" style="max-width:140px"></div>
+      </div>
+      <p class="tiny" style="color:var(--dim2)">いま出題できるのは 2 〜 ${jp(max)} です。それより外は出ません。</p>
+    </div>
+    <div class="tools" style="margin-top:12px">
+      <button class="btn pri" id="arFree">れんしゅうする</button>
+      <button class="btn" id="arRated">レートモード（${COIN} ${jp(+ARCFG.cost||0)}枚）</button>
+      <button class="btn" id="arDex">図鑑</button>
+      <button class="btn" id="arRule">ルール</button>
+      ${isAdmin()?`<button class="btn sm" id="arAdm">開発者モード</button>`:""}
+    </div>
+    <p class="tiny" style="color:var(--dim2)">
+      レートモードは ${jp(+ARCFG.qn||30)}問。PRSは（正解−まちがい）×${(+ARCFG.per||0.02).toFixed(3)} だけ動きます。</p>`;
+  box.querySelectorAll("[data-arm]").forEach(b=>b.onclick=()=>{
+    arMode=b.dataset.arm; arHome(); });
+  const lo=$("#arLo"), hi=$("#arHi");
+  if(lo) lo.onchange=()=>{ arLimLo=Math.max(2,Math.round(num(lo.value))||2); };
+  if(hi) hi.onchange=()=>{ arLimHi=Math.max(2,Math.round(num(hi.value))||max); };
+  $("#arFree").onclick=()=>arStart(false);
+  $("#arRated").onclick=arRatedStart;
+  $("#arDex").onclick=arDexShow;
+  $("#arRule").onclick=arRuleShow;
+  if($("#arAdm")) $("#arAdm").onclick=arAdmShow;
+}
+async function arRatedStart(){
+  const cost=Math.max(0,+ARCFG.cost||0);
+  if(!(TEST||(sess&&sbOn()))) return toast("レートモードにはログインが必要です");
+  const have=PC?(+PC.coins||0):0;
+  if(have<cost) return toast(`${COIN} が ${jp(cost)}枚 必要です（いま ${jp(have)}枚）`);
+  if(!await askYN("レートモードに挑戦しますか？",
+    `${COIN} を <b>${jp(cost)}枚</b> つかいます。<br>`
+    +`<b>${jp(+ARCFG.qn||30)}問</b>を、1問 ${jp(+ARCFG.sec||15)}秒 で解きます。<br><br>`
+    +`PRSは（正解 − まちがい）× ${(+ARCFG.per||0.02).toFixed(3)} だけ動きます。<br>`
+    +`<span class="tiny">とちゅうでやめても、そこまでの結果でレートが動きます。</span>`,
+    "挑戦する")) return;
+  arStart(true);
+}
+function arRuleShow(){
+  const M=modal(`<h2>素因数分解アリーナのルール</h2>
+    <div class="hintbox"><span class="tiny">
+      ・出された数を<b>素因数分解</b>して打ちます（例：30 → <b>2 3 5</b>）<br>
+      ・<b>順番は自由</b>です。3 2 5 でも 5 3 2 でも正解になります<br>
+      ・<b>打てた時点で正解</b>です。「解答する」ボタンはありません<br>
+      ・1問 <b>${jp(+ARCFG.sec||15)}秒</b>。こえると時間切れです<br>
+      ・かかった時間はぜんぶ残して、最後にまとめて出します</span></div>
+    <h3>PRS（Prime Rating System）</h3>
+    <div class="hintbox"><span class="tiny">
+      ・はじめは <b>0.000</b> です<br>
+      ・レートモードで（正解 − まちがい）× <b>${(+ARCFG.per||0.02).toFixed(3)}</b> だけ動きます<br>
+      ・PRSの整数が1ふえるごとに、出題できる数が <b>1,000</b> ずつ広がります<br>
+      ・PRS 0台 → 2〜999／1台 → 2〜2,000／2台 → 2〜3,000</span></div>
+    <h3>出しかた</h3>
+    <div class="scroll"><table><tbody>
+      ${AR_MODES.map(([k,n,d])=>`<tr><td><b>${esc(n)}</b></td><td class="tiny">${esc(d)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="tools"><button class="btn" id="arRuX">閉じる</button></div>`,{w:680});
+  M.q("#arRuX").onclick=M.close;
+}
+/* ── 開発者モード（管理者だけ）── */
+function arAdmShow(){
+  if(!isAdmin()) return;
+  const M=modal(`<h2>素因数分解アリーナ　開発者モード</h2>
+    <p class="muted" style="margin-top:-8px">公開するかどうかと、細かい決まりを変えられます。</p>
+    <div class="row" style="margin-bottom:10px">
+      <div><b>全員に公開する</b><div class="tiny" id="arOnNote">${
+        ARCFG.on?"いま公開しています":"いまは管理者だけが使えます"}</div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="arOff" class="${ARCFG.on?"":"on"}">管理者だけ</button>
+        <button id="arOn" class="${ARCFG.on?"on":""}">全員に公開</button></div>
+    </div>
+    <div class="frow">
+      <div><label class="fl">レートモードの ${COIN}</label>
+        <input type="number" class="txt" id="arCost" min="0" max="1000" value="${+ARCFG.cost||0}" style="max-width:120px"></div>
+      <div><label class="fl">レートモードの問題数</label>
+        <input type="number" class="txt" id="arQn" min="1" max="200" value="${+ARCFG.qn||30}" style="max-width:120px"></div>
+      <div><label class="fl">1問あたりの秒</label>
+        <input type="number" class="txt" id="arSec" min="3" max="120" value="${+ARCFG.sec||15}" style="max-width:120px"></div>
+      <div><label class="fl">1問あたりのレート変動</label>
+        <input type="number" class="txt" id="arPer" min="0" max="1" step="0.001" value="${(+ARCFG.per||0.02).toFixed(3)}" style="max-width:120px"></div>
+    </div>
+    <div class="tools"><button class="btn pri" id="arSave">保存する（全員に反映）</button>
+      <button class="btn" id="arAX">閉じる</button><span class="tiny" id="arAMsg"></span></div>`,{w:720});
+  M.q("#arAX").onclick=M.close;
+  let on=!!ARCFG.on;
+  const setOn=v=>{ on=v; M.q("#arOn").classList.toggle("on",v); M.q("#arOff").classList.toggle("on",!v);
+    M.q("#arOnNote").textContent=v?"いま公開しています":"いまは管理者だけが使えます"; };
+  M.q("#arOn").onclick=()=>setOn(true);
+  M.q("#arOff").onclick=()=>setOn(false);
+  M.q("#arSave").onclick=async()=>{
+    const cfg={on, cost:Math.max(0,Math.round(num(M.q("#arCost").value))),
+      qn:Math.max(1,Math.round(num(M.q("#arQn").value))||30),
+      sec:Math.max(3,Math.round(num(M.q("#arSec").value))||15),
+      per:Math.max(0,num(M.q("#arPer").value)||0.02)};
+    M.q("#arAMsg").textContent="送っています…";
+    try{
+      await callRpc("arena_cfg_set",{p_cfg:cfg});
+      await arCfgLoad(); arHome(); admShow();
+      M.q("#arAMsg").innerHTML='<span style="color:var(--acc2)">保存しました</span>';
+    }catch(e){ M.q("#arAMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e)).slice(0,110)}</span>`; }
+  };
+}
+
+/* ══════════ アリーナ：あそぶ画面 ══════════ */
+let ARQ=null;    /* いま進んでいる勝負 */
+function arStart(rated){
+  const max=arMax();
+  ARQ={rated:!!rated, max, qn:rated?Math.max(1,+ARCFG.qn||30):0,
+       i:0, ok:0, ng:0, ms:0, list:[], used:new Set(),
+       n:0, text:"", t0:0, left:0, timer:null, over:false};
+  $("#arPlayCard").hidden=false;
+  arNext();
+  $("#arPlayCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function arNext(){
+  if(!ARQ) return;
+  if(ARQ.rated&&ARQ.i>=ARQ.qn){ arFinish(); return; }
+  ARQ.i++;
+  ARQ.n=arPick(ARQ.max, ARQ.used);
+  ARQ.used.add(ARQ.n);
+  ARQ.text=""; ARQ.t0=Date.now(); ARQ.left=Math.max(3,+ARCFG.sec||15)*1000;
+  arDrawPlay();
+  arTimerStart();
+}
+function arTimerStart(){
+  arTimerStop();
+  ARQ.timer=setInterval(()=>{
+    if(!ARQ) return arTimerStop();
+    const left=ARQ.t0+Math.max(3,+ARCFG.sec||15)*1000-Date.now();
+    ARQ.left=left;
+    const bar=$("#arBar"), tv=$("#arLeft");
+    const full=Math.max(3,+ARCFG.sec||15)*1000;
+    if(bar) bar.style.width=Math.max(0,Math.min(100,left/full*100)).toFixed(1)+"%";
+    if(tv) tv.textContent=(Math.max(0,left)/1000).toFixed(2);
+    if(left<=0) arTimeUp();
+  },50);
+}
+const arTimerStop=()=>{ if(ARQ&&ARQ.timer){ clearInterval(ARQ.timer); ARQ.timer=null; } };
+/** 時間切れ */
+function arTimeUp(){
+  if(!ARQ) return;
+  arTimerStop();
+  const ms=Math.max(3,+ARCFG.sec||15)*1000;
+  ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms});
+  arDexPut(ARQ.n,false,ms);
+  arFlash(false, ARQ.n);
+  setTimeout(()=>{ if(ARQ) arNext(); },900);
+}
+/** 打つたびに呼ばれます */
+function arType(ch){
+  if(!ARQ||ARQ.over) return;
+  if(ch==="back") ARQ.text=ARQ.text.slice(0,-1);
+  else if(ch==="clear") ARQ.text="";
+  else ARQ.text+=ch;
+  const inp=$("#arIn"); if(inp) inp.textContent=ARQ.text||" ";
+  const r=arCheck(ARQ.n, ARQ.text);
+  const box=$("#arInBox");
+  if(box) box.classList.toggle("bad", !!r.bad);
+  if(r.done&&r.ok){
+    arTimerStop();
+    const ms=Date.now()-ARQ.t0;
+    ARQ.ok++; ARQ.ms+=ms; ARQ.list.push({n:ARQ.n, ok:true, ms});
+    arDexPut(ARQ.n,true,ms);
+    arFlash(true, ARQ.n, ms);
+    setTimeout(()=>{ if(ARQ) arNext(); },520);
+  }
+}
+/** 正解・不正解の合図 */
+function arFlash(ok,n,ms){
+  const c=$("#arCard"); if(!c) return;
+  c.classList.remove("okf","ngf"); void c.offsetWidth;
+  c.classList.add(ok?"okf":"ngf");
+  const r=$("#arRes");
+  if(r) r.innerHTML=ok
+    ? `<b style="color:var(--acc2)">正解！</b> <span class="tiny">${(ms/1000).toFixed(2)} 秒</span>`
+    : `<b style="color:var(--bad)">時間切れ</b> <span class="tiny">${esc(String(n))} ＝ ${esc(arFacText(n))}</span>`;
+}
+function arDrawPlay(){
+  const box=$("#arPlay"); if(!box||!ARQ) return;
+  const sec=Math.max(3,+ARCFG.sec||15);
+  box.innerHTML=`
+    <div class="tools" style="margin-top:0">
+      <span class="tiny">${ARQ.rated?`レートモード　<b>${jp(ARQ.i)}</b> / ${jp(ARQ.qn)} 問`
+        :`れんしゅう　<b>${jp(ARQ.i)}</b> 問目`}</span>
+      <span class="tiny" style="margin-left:auto">正解 <b style="color:var(--acc2)">${jp(ARQ.ok)}</b>
+        　まちがい <b style="color:var(--bad)">${jp(ARQ.ng)}</b></span>
+    </div>
+    <div class="arbar"><i id="arBar" style="width:100%"></i></div>
+    <div class="tiny" style="text-align:right">のこり <b id="arLeft">${sec.toFixed(2)}</b> 秒</div>
+    <div class="arcard" id="arCard">
+      <div class="arq">${jp(ARQ.n)}</div>
+      <div class="arinbox" id="arInBox"><span id="arIn">&nbsp;</span></div>
+      <div class="tiny" id="arRes" style="min-height:1.2em"></div>
+    </div>
+    <div class="arkeys" id="arKeys">
+      ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="arkey" data-ark="${d}">${d}</button>`).join("")}
+      <button class="arkey wide" data-ark="0">0</button>
+      <button class="arkey sp" data-ark=" ">空白</button>
+      <button class="arkey del" data-ark="back">消す</button>
+    </div>
+    <div class="tools">
+      <button class="btn" id="arGiveUp">やめる</button>
+      <span class="tiny">キーボードでも打てます（数字と空白）</span>
+    </div>`;
+  box.querySelectorAll("[data-ark]").forEach(b=>{
+    /* 押した時に画面が動かないよう、touchstart で受けます */
+    const go=e=>{ e.preventDefault(); arType(b.dataset.ark); };
+    b.addEventListener("touchstart",go,{passive:false});
+    b.addEventListener("click",e=>{ if(e.detail===0) return; go(e); });
+  });
+  const gv=$("#arGiveUp");
+  if(gv) gv.onclick=()=>{ if(ARQ&&ARQ.rated) return arFinish(); arQuit(); };
+}
+function arQuit(){
+  arTimerStop();
+  const q=ARQ; ARQ=null;
+  $("#arPlayCard").hidden=true;
+  arHome();
+  if(q&&q.list.length) arResult(q,false);
+}
+/** 結果発表 */
+async function arFinish(){
+  if(!ARQ) return;
+  arTimerStop();
+  const q=ARQ; ARQ=null;
+  $("#arPlayCard").hidden=true;
+  if(q.rated){
+    try{
+      const r=await callRpc("arena_finish",{p_ok:q.ok,p_ng:q.ng,p_ms:Math.round(q.ms)});
+      if(r&&r.prs!=null){ AR.prs=+r.prs; AR.plays=(+AR.plays||0)+1;
+        AR.best=Math.max(+AR.best||0,+r.prs); arSave(); }
+      arResult(q,true,r);
+    }catch(e){
+      arResult(q,true,null,String(e.message||e));
+    }
+  }else arResult(q,false);
+  arHome();
+}
+function arResult(q,rated,r,err){
+  const total=(q.ms/1000);
+  const rows=q.list.map((x,i)=>`<tr class="${x.ok?"":"lose"}">
+    <td class="tiny">${i+1}</td><td><b>${jp(x.n)}</b></td>
+    <td class="tiny">${esc(arFacText(x.n))}</td>
+    <td class="n">${x.ok?(x.ms/1000).toFixed(2)+" 秒":"—"}</td>
+    <td class="tiny">${x.ok?'<span style="color:var(--acc2)">正解</span>':'<span style="color:var(--bad)">時間切れ</span>'}</td>
+  </tr>`).join("");
+  const M=modal(`<h2>結果発表</h2>
+    <div class="lsbox" style="text-align:center;margin-bottom:10px">
+      <div class="t">${rated?"レートモード":"れんしゅう"}</div>
+      <div class="v" style="font-size:1.8rem">${jp(q.ok)}問正解　合計解答時間
+        <b style="color:var(--acc2)">${total.toFixed(2)}</b> 秒</div>
+      <div class="s">まちがい ${jp(q.ng)} 問${q.ok?`　1問あたり ${(total/q.ok).toFixed(2)} 秒`:""}</div>
+    </div>
+    ${err?`<div class="hintbox" style="border-color:var(--bad)">
+      <b style="color:var(--bad)">レートを送れませんでした</b><br>
+      <span class="tiny">${esc(err).slice(0,160)}</span></div>`:""}
+    ${(rated&&r)?`<div class="hintbox">
+      <b>PRS</b>　${(+r.before||0).toFixed(3)} → <b style="color:var(--acc2)">${(+r.prs||0).toFixed(3)}</b>
+      <span class="tiny">（正解 ${jp(q.ok)} − まちがい ${jp(q.ng)}）× ${(+ARCFG.per||0.02).toFixed(3)}</span><br>
+      <span class="tiny">出題できる数：2 〜 ${jp(arMax(+r.prs||0))}</span></div>`:""}
+    <div class="scroll" style="max-height:44vh"><table><thead><tr>
+      <th>#</th><th>数</th><th>素因数分解</th><th class="n">時間</th><th></th>
+      </tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="tools"><button class="btn" id="arRX">閉じる</button></div>`,{w:720});
+  M.q("#arRX").onclick=M.close;
+}
+/* キーボードでも打てます */
+document.addEventListener("keydown",e=>{
+  if(!ARQ||$("#arena").hidden) return;
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(/^[0-9]$/.test(e.key)){ e.preventDefault(); arType(e.key); return; }
+  if(e.key===" "||e.code==="Space"){ e.preventDefault(); arType(" "); return; }
+  if(e.key==="Backspace"){ e.preventDefault(); arType("back"); return; }
+  if(e.key==="Escape"){ e.preventDefault(); if(ARQ.rated) arFinish(); else arQuit(); }
+});
+
+/* ══════════════════════════════════════════════════════════
    Prime Bingo
    ──────────────────────────────────────────────────────────
    ・2〜99,999 の素数（9,592個）だけが出てきます
@@ -9677,7 +10369,7 @@ function pbNewCard(){
   const no=(PB&&+PB.no>0)?(+PB.no+1):((PBLOG.length||0)+1);
   PB_MASK=new Uint8Array(pbBytes()); PB_REST=null;
   PB={no, card, hit:new Array(100).fill(false), n:0, tail:[], mask:"",
-      lines:0, coins:0, startAt:Date.now(), at:Date.now()};
+      lines:0, coins:0, allb:0, perf:0, startAt:Date.now(), at:Date.now()};
   PB._m=""; 
   pbSave(true);
   return PB;
@@ -9754,21 +10446,78 @@ function pbDraw(){
   pbSave();
   return {value:v, idx, opened, newLines, n:PB.n, at};
 }
+/** ボーナスの枚数を渡します */
+async function pbBonus(n,note){
+  if(!(n>0)) return 0;
+  if(TEST||!(sess&&sbOn())) return 0;
+  try{
+    const r=await sbAuth("rpc/coin_bonus",{method:"POST",
+      body:JSON.stringify({p_kind:"bingo",p_n:n,p_note:note})});
+    if(r){ PC=r; renderCoins(); }
+    return (r&&+r.gained)||0;
+  }catch(e){ return 0; }
+}
 /** 1回クリアした時に呼ばれます */
 async function pbHit(){
   if(!pbVisible()||!pbOn()) return;
   const r=pbDraw();
   if(!r) return;
   pbTick(r);                 /* 変わった所だけ描き直します */
+  /* ① ラインがそろった */
   if(r.newLines>0){
-    const got=await coinEarn("bingo", r.newLines, true);
-    if(got>0){ toast(`${COIN} ${jp(got)}枚 もらいました（Prime Bingo ${r.newLines}ライン）`);
-      try{ lsCoinFx(got); }catch(e){} }
+    const per=Math.max(0,+BGCFG.line||0);
+    if(per>0){
+      const got=await pbBonus(r.newLines*per, `Prime Bingo ${r.newLines}ライン`);
+      if(got>0){ toast(`${COIN} ${jp(got)}枚 もらいました（${r.newLines}ライン）`);
+        try{ lsCoinFx(got); }catch(e){} }
+    }
     pbStatDraw();
   }
+  /* ② カードの100マスがぜんぶ埋まった（All Bingo） */
+  if(r.opened && !PB.allb && PB.hit.every(Boolean)){
+    PB.allb=1; pbSave(true);
+    const n=Math.max(0,+BGCFG.allbingo||0);
+    const got=n>0?await pbBonus(n,"Prime Bingo All Bingo"):0;
+    pbCheer("All Bingo！",`カードの100マスが ぜんぶ うまりました`,got);
+  }
+  /* ③ 9,592個ぜんぶ出しきった（パーフェクト） */
+  if(!PB.perf && (+PB.n||0)>=9592){
+    PB.perf=1; pbSave(true);
+    const n=Math.max(0,+BGCFG.perfect||0);
+    const got=n>0?await pbBonus(n,"Prime Bingo パーフェクト"):0;
+    pbCheer("パーフェクト！",`9,592個の素数を ぜんぶ 出しきりました`,got);
+  }
 }
-/** いま Prime Bingo を使えるか。はじめは管理者だけです */
-const pbVisible=()=>isAdmin();
+/** ボーナスのお祝い */
+function pbCheer(title,body,got){
+  toast(`${title}　${COIN} ${jp(got)}枚`);
+  try{
+    modal(`<h2 style="text-align:center">${esc(title)}</h2>
+      <p class="muted" style="text-align:center;margin-top:-8px">${esc(body)}</p>
+      <div style="text-align:center;margin:14px 0">
+        <div style="font-family:Impact,'Arial Black',sans-serif;font-size:3rem;color:#ffd45e">
+          ${COIN} ${jp(got)}</div>
+        <div class="tiny" style="color:var(--dim2)">${got>0?"Prime Coin をもらいました":"（いまの設定では、枚数は0枚です）"}</div>
+      </div>
+      <div class="tools"><button class="btn pri" onclick="this.closest('.mask').remove()">とじる</button></div>`,
+      {w:460});
+  }catch(e){}
+  pbStatDraw();
+}
+/* 管理者が決める設定。公開するかどうかと、もらえる枚数です */
+let BGCFG={on:false,line:1,perfect:100,allbingo:30};
+async function pbCfgLoad(){
+  if(TEST||!sbOn()) return BGCFG;
+  try{
+    const r=await sb("rpc/bingo_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object")
+      BGCFG={on:!!r.on, line:Math.max(0,+r.line||0),
+             perfect:Math.max(0,+r.perfect||0), allbingo:Math.max(0,+r.allbingo||0)};
+  }catch(e){}
+  return BGCFG;
+}
+/** いま Prime Bingo を使えるか。管理者は、公開していなくても使えます */
+const pbVisible=()=>!!(BGCFG.on||isAdmin());
 /** かかった時間の言い方 */
 function pbTime(ms){
   const t=Math.max(0,Math.floor((+ms||0)/1000));
@@ -9884,23 +10633,99 @@ function pbGridDot(i,skipPrev){
   PB_CTX.fillStyle="#ffd45e";
   PB_CTX.fillRect(x,y,PB_CELL-1,PB_CELL-1);
 }
+/* ══════════ Prime Bingo の設定（管理者だけ）══════════ */
+const bgMsg=(t,cls)=>{ const e=$("#bgMsg");
+  if(e) e.innerHTML=cls?`<span style="color:var(--${cls})">${t}</span>`:t; };
+function bgDraw(){
+  const b=$("#bgBox"); if(!b) return;
+  const num=(id,v,lab,note)=>`<div>
+    <label class="fl">${esc(lab)}</label>
+    <input type="number" class="txt" id="${id}" min="0" max="10000" step="1" value="${+v||0}"
+      style="max-width:120px"> <span class="tiny">枚</span>
+    <div class="tiny" style="color:var(--dim2)">${esc(note)}</div></div>`;
+  b.innerHTML=`<div class="row" style="margin-bottom:10px">
+      <div><b>全員に公開する</b>
+        <div class="tiny" id="bgOnNote">${BGCFG.on?"いま公開しています":"いまは管理者だけが使えます"}</div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="bgOff" class="${BGCFG.on?"":"on"}">管理者だけ</button>
+        <button id="bgOn" class="${BGCFG.on?"on":""}">全員に公開</button></div>
+    </div>
+    <div class="frow">
+      ${num("bgLine",BGCFG.line,"ビンゴ達成（1ラインごと）","たて・よこ・ななめ。ぜんぶで22ラインあります")}
+      ${num("bgAll",BGCFG.allbingo,"All Bingo ボーナス","カードの100マスがぜんぶ埋まった時（1回につき1度）")}
+      ${num("bgPerf",BGCFG.perfect,"パーフェクトボーナス","9,592個をぜんぶ出しきった時（1回につき1度）")}
+    </div>`;
+  const setOn=v=>{ BGCFG.on=v;
+    $("#bgOn").classList.toggle("on",v); $("#bgOff").classList.toggle("on",!v);
+    $("#bgOnNote").textContent=v?"いま公開しています":"いまは管理者だけが使えます"; };
+  $("#bgOn").onclick=()=>setOn(true);
+  $("#bgOff").onclick=()=>setOn(false);
+}
+async function bgEnter(){
+  if(!isAdmin()) return;
+  const c=$("#bgCard"); if(c) c.hidden=false;
+  await pbCfgLoad(); bgDraw(); bgMsg("");
+}
+if($("#bgSave")) $("#bgSave").onclick=async()=>{
+  if(!isAdmin()) return;
+  const cfg={on:!!BGCFG.on,
+    line:Math.max(0,Math.min(10000,Math.round(num($("#bgLine").value)))),
+    allbingo:Math.max(0,Math.min(10000,Math.round(num($("#bgAll").value)))),
+    perfect:Math.max(0,Math.min(10000,Math.round(num($("#bgPerf").value))))};
+  if(!await askYN("この設定で保存しますか？",
+    `<b>${cfg.on?"全員に公開します":"管理者だけが使えるようにします"}</b><br><br>`
+    +`ビンゴ達成（1ラインごと）　<b>${jp(cfg.line)}</b> 枚<br>`
+    +`All Bingo ボーナス　<b>${jp(cfg.allbingo)}</b> 枚<br>`
+    +`パーフェクトボーナス　<b>${jp(cfg.perfect)}</b> 枚<br><br>`
+    +`<span class="tiny">すぐに全員へ反映されます。</span>`,"保存する")) return;
+  bgMsg("送っています…");
+  try{
+    await callRpc("bingo_cfg_set",{p_cfg:cfg});
+    await pbCfgLoad(); bgDraw();
+    try{ pbRender(); lsViewApply(); }catch(e){}
+    bgMsg("保存しました（全員に反映）","acc2");
+  }catch(e){ bgMsg(esc(String(e.message||e)).slice(0,120),"bad"); }
+};
+if($("#bgReload")) $("#bgReload").onclick=async()=>{ await bgEnter(); bgMsg("読み直しました"); };
+
+/** Prime Bingo のルール（説明の文） */
+function pbRuleHTML(){
+  const L=Math.max(0,+BGCFG.line||0), P=Math.max(0,+BGCFG.perfect||0), A=Math.max(0,+BGCFG.allbingo||0);
+  return `<div class="hintbox">
+    <b>Prime Bingo のルール</b><br>
+    <span class="tiny">
+    ・出てくる数字は<b>素数だけ</b>です（2 から 99,999 までの <b>9,592個</b>）<br>
+    ・その中から100個をえらんで、<b>10×10 のビンゴカード</b>を作ります<br>
+    ・<b>LSやりこみを1回クリアするごとに、素数が1つ抽選</b>されます<br>
+    ・その素数がカードにあれば、そのマスが空きます<br>
+    ・同じ回のあいだに、<b>同じ素数が2回出ることはありません</b><br>
+    ・カードはいつでも新しくできます。「第n回」として記録に残ります<br>
+    ・開催した時間は、カードを作った時から数えます</span></div>
+  <h3 style="margin-top:12px">もらえる ${COIN}</h3>
+  <div class="scroll"><table><thead><tr><th>できたこと</th><th class="n">${COIN}</th><th>説明</th>
+    </tr></thead><tbody>
+    <tr><td><b>ビンゴ達成</b></td><td class="n"><b style="color:#ffd45e">${jp(L)}</b> 枚</td>
+      <td class="tiny">たて・よこ・ななめの1ライン そろうごと（ぜんぶで22ライン）</td></tr>
+    <tr><td><b>All Bingo ボーナス</b></td><td class="n"><b style="color:#ffd45e">${jp(A)}</b> 枚</td>
+      <td class="tiny">カードの100マスが ぜんぶ うまった時（1回につき1度）</td></tr>
+    <tr><td><b>パーフェクトボーナス</b></td><td class="n"><b style="color:#ffd45e">${jp(P)}</b> 枚</td>
+      <td class="tiny">9,592個の素数を ぜんぶ 出しきった時（1回につき1度）</td></tr>
+  </tbody></table></div>
+  <p class="tiny" style="color:var(--dim2)">枚数は管理者が決めています。変わることがあります。</p>`;
+}
+function pbRuleShow(){
+  const M=modal(`<h2>Prime Bingo のルール</h2>${pbRuleHTML()}
+    <div class="tools"><button class="btn" id="pbRX">閉じる</button></div>`,{w:720});
+  M.q("#pbRX").onclick=M.close;
+}
 /** 通常画面（盤面とまとめだけ） */
 function pbRender(){
   const card=$("#pbCard"); if(card) card.hidden=!pbVisible();
   const box=$("#pbBody"); if(!box) return;
   if(!pbVisible()){ box.innerHTML=""; return; }
   if(!pbOn()){
-    box.innerHTML=`<div class="hintbox">
-      <b>Prime Bingo とは</b><br>
-      <span class="tiny">
-      ・出てくる数字は<b>素数だけ</b>です（2 から 99,999 までの 9,592個）<br>
-      ・その中から100個をえらんで、<b>10×10 のビンゴカード</b>を作ります<br>
-      ・<b>LSやりこみを1回クリアするごとに、素数が1つ抽選</b>されます<br>
-      ・その素数がカードにあれば、そのマスが空きます<br>
-      ・たて・よこ・ななめの<b>1ライン そろうごとに ${COIN} を1枚</b>もらえます<br>
-      ・カードはいつでも新しくできます。「第n回」として記録に残ります<br>
-      ・時間は、カードを作った時から数えます</span></div>
-      <div class="tools"><button class="btn pri" id="pbMake">ビンゴカードを作成する</button></div>`;
+    box.innerHTML=pbRuleHTML()
+      +`<div class="tools"><button class="btn pri" id="pbMake">ビンゴカードを作成する</button></div>`;
     const mk=$("#pbMake");
     if(mk) mk.onclick=()=>{ pbNewCard(); pbRender(); toast("第1回をはじめました"); };
     return;
@@ -9910,9 +10735,11 @@ function pbRender(){
       <div class="tools" style="margin-top:0">
         <button class="btn pri" id="pbOpenBtn">Prime Bingo</button>
         <button class="btn sm" id="pbDet">${PB_DETAIL?"数字を隠す":"数字を出す"}</button>
+        <button class="btn sm" id="pbRule">ルール</button>
       </div></div>`;
   pbStatDraw();
   const ob=$("#pbOpenBtn"); if(ob) ob.onclick=pbOpen;
+  const rb=$("#pbRule"); if(rb) rb.onclick=pbRuleShow;
   const db=$("#pbDet"); if(db) db.onclick=()=>{ PB_DETAIL=!PB_DETAIL;
     const g=$("#pbCardGrid"); if(g) g.classList.toggle("det",PB_DETAIL);
     db.textContent=PB_DETAIL?"数字を隠す":"数字を出す"; };
@@ -9926,7 +10753,7 @@ function pbOpen(){
     <div class="tools">
       <button class="btn sm" id="pbNew">カードを新しくする</button>
       <button class="btn sm" id="pbLog">軌跡</button>
-      ${isAdmin()?`<button class="btn sm" id="pbReset" style="border-color:#7a3030;color:#ff8a8a">ぜんぶリセット</button>`:""}
+      <button class="btn sm" id="pbRule2">ルール</button>
       <button class="btn" id="pbX">閉じる</button>
     </div>`,{w:900});
   PB_MODAL=M;
@@ -9973,16 +10800,7 @@ function pbOpen(){
     close(); pbRender(); toast(`第${jp(PB.no)}回をはじめました`);
   };
   M.q("#pbLog").onclick=pbLogShow;
-  if(M.q("#pbReset")) M.q("#pbReset").onclick=async()=>{
-    if(!await askYN("Prime Bingo をぜんぶリセットしますか？",
-      "カードも、出た素数も、軌跡もすべて消えます。元に戻せません。<br>"
-      +'<span class="tiny">お試し中のための機能です。もらった Prime Coin は消えません。</span>',
-      "ぜんぶ消す")) return;
-    PB=null; PBLOG=[]; PB_MASK=null; PB_REST=null;
-    try{ localStorage.removeItem(K_PB); localStorage.removeItem(K_PBLOG); }catch(e){}
-    try{ lsSoon(); }catch(e){}
-    PB_DETAIL=false; close(); pbRender(); toast("リセットしました");
-  };
+  M.q("#pbRule2").onclick=pbRuleShow;
 }
 /** 軌跡（第n回ごとの記録） */
 function pbLogShow(){
@@ -15287,7 +16105,7 @@ function moodDraw(){
         (Math.round(v*100)/100).toFixed(2)}</b></td></tr>`
     +`</tbody></table></div>
     <p class="tiny" style="margin-top:8px">この4つだけが点になります。
-      タイムラインの投稿・Prime Park の遊んだ回数・来訪人数は、記録には残しますが点には入れません。<br>
+      タイムラインの投稿・来訪人数は、記録には残しますが点には入れません。<br>
       X の投稿数は自動集計で入ります（入っていない日は 0 として計算します）。</p>`;
 
   /* ── グラフと一覧 ── */
@@ -16079,10 +16897,10 @@ function lbWindow(gain,bonus){
   M.q("#lbOk").onclick=()=>M.close();
 }
 
-/* ── Prime Park であそんだぶんの Prime Coin を受け取ります ── */
+/* ── Prime Coin の受け取り ── */
 const K_PPCOIN = "sa-ppcoin-v1";
 /* ══════════ コインをもらう（共通）══════════
-   種類：submit＝記録の提出／game＝Prime Park／ls＝LSやりこみ／
+   種類：submit＝記録の提出／ls＝LSやりこみ／bingo＝Prime Bingo／
          best＝自己ベスト更新／ach＝アチーブメント達成
    1回に何枚か・1日に何回までかは、管理者が決めます（サーバーが守ります） */
 async function coinEarn(kind,n,quiet){
@@ -16096,8 +16914,8 @@ async function coinEarn(kind,n,quiet){
     return got;
   }catch(e){ return 0; }
 }
-const COIN_N={submit:"記録の提出",game:"Prime Park",ls:"LSやりこみ",
-              best:"自己ベスト更新",ach:"アチーブメント達成"};
+const COIN_N={submit:"記録の提出",ls:"LSやりこみ",bingo:"Prime Bingo",
+              best:"自己ベスト更新",ach:"アチーブメント達成",game:"（廃止）"};
 /** 今日あと何回もらえるか */
 const coinLeft=k=>{
   const o=PC&&PC.kinds&&PC.kinds[k];
@@ -17317,7 +18135,7 @@ if($("#pzCupClr")) $("#pzCupClr").onclick=async()=>{
    ══════════════════════════════════════════════════════════ */
 let CA_TAB="coin";
 const COIN_SRC={login:"ログインボーナス",streak:"連続ログイン",submit:"記録の提出",
-  game:"Prime Park",ls:"LSやりこみ",best:"自己ベスト更新",ach:"アチーブメント達成",
+  ls:"LSやりこみ",bingo:"Prime Bingo",best:"自己ベスト更新",ach:"アチーブメント達成",
   prize:"大会の賞品",mood:"今週の目標",spend:"応援の連打（使用）",admin:"管理者による修正"};
 /** その人の Prime Coin と応援ポイントを、どこにでも出せる部品として描きます。
  *  root … 中身を入れる場所（設定タブのカードでも、小窓でも同じものが出ます）*/
@@ -17441,7 +18259,6 @@ const CC_ITEMS=[
   {k:"login", n:"ログインボーナス",     cap:false, note:"1日1回。必ず1回だけです"},
   {k:"streak",n:"連続ログイン",         cap:false, note:"何日続けるごとにもらえるか"},
   {k:"submit",n:"記録の提出",           cap:true,  note:"チャレンジ・競技会に出した時"},
-  {k:"game",  n:"Prime Park",           cap:true,  note:"アトラクションを1回遊び終えるごと"},
   {k:"ls",    n:"LSやりこみ",           cap:true,  note:"決めた回数クリアするごと。上限なしにもできます"},
   {k:"best",  n:"自己ベスト更新",       cap:true,  note:"種目の記録を更新した時"},
   {k:"ach",   n:"アチーブメント達成",   cap:true,  note:"達成が認められた時"}
@@ -17528,19 +18345,6 @@ if($("#ccReload")) $("#ccReload").onclick=async()=>{ await ccEnter(); ccMsg("読
 if($("#ccDef")) $("#ccDef").onclick=()=>{ CCEDIT=JSON.parse(JSON.stringify(CC_DEF)); ccDraw();
   ccMsg("初期値に戻しました（保存はまだです）"); };
 
-async function claimParkCoins(){
-  if(TEST||!(sess&&sbOn())) return 0;
-  let q=[]; try{ q=JSON.parse(localStorage.getItem(K_PPCOIN)||"[]")||[]; }catch(e){ q=[]; }
-  if(!q.length) return 0;
-  try{
-    const r=await sbAuth("rpc/coin_add_game",{method:"POST",body:JSON.stringify({p_n:q.length})});
-    localStorage.removeItem(K_PPCOIN);
-    if(r){ PC=r; renderLoginBonus(); renderCoins(); }
-    const n=(r&&+r.gained)||q.length;
-    if(n>0) toast(`Prime Park のぶん ${jp(n)}枚を受け取りました`);
-    return n;
-  }catch(e){ return 0; }
-}
 
 /* ══════════════════════════════════════════════════════════════
    一時停止のスイッチ
@@ -17660,7 +18464,7 @@ function renderCoins(){
   try{ if(typeof renderLsCoin==="function") renderLsCoin(); }catch(e){}
   const msg=$("#pcMsg");
   if(msg) msg.innerHTML=(n<1)
-    ? '<span style="color:var(--dim2)">コインがありません。ログインボーナス・記録の提出・LSやりこみ・自己ベスト更新・Prime Park でもらえます。</span>'
+    ? '<span style="color:var(--dim2)">コインがありません。ログインボーナス・記録の提出・LSやりこみ・自己ベスト更新・Prime Bingo でもらえます。</span>'
     : "";
 }
 if($("#pcUp"))   $("#pcUp").onclick  =()=>{ pcSecs=Math.min(600,pcSecs+5); renderCoins(); };
@@ -18625,8 +19429,6 @@ function coinHelpTbl(){
        `${jp(ls.per||100)}回クリアするごと。あと何回でもらえるかは LSやりこみタブに出ています`)
     +row("種目の自己ベストを更新する",g("best"))
     +row("アチーブメントを達成する",g("ach"))
-    +row("Prime Park のアトラクションを1回遊ぶ",g("game"),
-       "1点以上とるか、3桁以上の数を出した時")
     +`</tbody></table></div>`;
 }
 /* ヘルプの表は、管理者が決めた設定から作ります（ずれないように） */
@@ -20050,6 +20852,8 @@ function normalize(j){
   try{ await loadBorderAt(); }catch(e){} tickClock();
   /* ★ 管理者が書きかえた文章を、画面に当てます（誰でも読めます）*/
   try{ await uiLoad(); uiApply(); }catch(e){}
+  try{ await pbCfgLoad(); }catch(e){}
+  try{ await arCfgLoad(); }catch(e){}
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
@@ -20058,13 +20862,24 @@ function normalize(j){
     try{ await askAwards(); await loadMyAwards(); }catch(e){}
     /* ★ 画面を見せる前に、今日のログインボーナス */
     try{ await loginBonusBoot(); }catch(e){}
-    try{ await claimParkCoins(); }catch(e){} }
+  }
   $("#devBtn").hidden=!isAdmin();
   if($("#devCard")) $("#devCard").hidden=!isAdmin();
   try{ admShow(); }catch(e){}          /* 管理者だけに見せるタブなど */
   try{ await extLoad(); }catch(e){}
   /* 道具が読み込めたので、預かっていたそのぶんのデータを入れます */
   try{ if(lsApplyExtra()) lsSoon(); }catch(e){}
+  /* ヘッダーの「素因数分解アリーナ」ボタン */
+  if($("#arBtn")) $("#arBtn").onclick=()=>{
+    const b2=document.querySelector('#tabs button[data-tab="arena"]');
+    if(b2){ b2.click(); return; }
+    /* タブが無い時は、そのまま画面だけ出します */
+    ["profile","pgbc","stats","arena","plan","analysis","hist","mood","ls","card",
+     "input","sns","settings","rprank","rankedit","help","cheer"].forEach(id=>{
+      const el=$("#"+id); if(el) el.hidden=(id!=="arena"); });
+    arCfgLoad().then(arHome); arHome();
+    scrollTo({top:0,behavior:"smooth"});
+  };
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
