@@ -1790,7 +1790,8 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 <section id="stats" hidden>
   <div class="card">
     <h2>提出された記録</h2>
-    <p class="muted" style="margin-top:-8px">これまでにみんなが出した記録の数です。</p>
+    <p class="muted" style="margin-top:-8px">これまでにみんなが出した記録の、のべ回数です。
+      <span class="tiny">出し直したぶんも1回として数えています。</span></p>
     <div id="stSubs"><p class="muted">読み込み中…</p></div>
   </div>
   <div class="card">
@@ -2488,7 +2489,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v111";
+const APP_VERSION = "v112";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3167,6 +3168,9 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v112":[
+    "統計情報の「提出された記録」を、のべ回数で数えるようにしました",
+    "競技会は出し直しても数が増えていませんでしたが、出すたびに1回として数えます"],
   "v111":[
     "Prime Bingo を全員に公開できるようにしました（公開するかどうかは管理者が決めます）",
     "パーフェクトボーナス（9,592個ぜんぶ）と All Bingo ボーナス（100マスぜんぶ）を追加",
@@ -6249,14 +6253,15 @@ function stSubsDraw(){
     <div class="subn">${jp(n(k))}</div>
     <div class="s">${esc(s||"")}</div></div>`;
   box.innerHTML=`<div class="subgrid">
-    ${one("競技会","competition","出された記録")}
-    ${one("チャレンジ","challenge","出された記録")}
-    ${one("アチーブメント","achievement","出された提出")}
+    ${one("競技会","competition","のべ提出回数")}
+    ${one("チャレンジ","challenge","のべ提出回数")}
+    ${one("アチーブメント","achievement","のべ提出回数")}
     ${one("すべての合計","total","ぜんぶ合わせて"," all")}
   </div>
   <p class="tiny" style="margin-top:8px;color:var(--dim2)">
     「すべての合計」は、競技会・チャレンジ・アチーブメントを足したものです。<br>
-    このほかに、個人の記録の提出が ${jp(n("record"))} 件あります。
+    出し直したぶんも1回として数えています（のべ回数）。<br>
+    このほかに、個人の記録の提出が ${jp(n("record"))} 回あります。
     　登録している人 ${jp(n("people"))} 人</p>`;
 }
 let ST_DRAFT=null;   /* 読み取ったけれど、まだ保存していない内容 */
