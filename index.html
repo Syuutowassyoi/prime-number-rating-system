@@ -364,6 +364,9 @@ body.phoneui #tabs{display:none !important}
 @keyframes arpulse{0%,100%{box-shadow:0 0 10px #ff5e5e66}50%{box-shadow:0 0 18px #ff5e5ecc}}
 html[data-theme="light"] .arpass{background:#f2f5fa;color:var(--dim);border-color:var(--line2)}
 html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
+/* 判定が出てから次の問題までは、キーパッドを触れなくします */
+.arwrap.lockon{pointer-events:none;opacity:.5;filter:saturate(.5)}
+.arwrap{transition:opacity .12s ease}
 /* 数式の表示 */
 .mathb{margin:8px 0;padding:11px 14px;border-radius:10px;background:var(--panel2);
   border:1px solid var(--line);font-size:1.02rem;line-height:1.7;
@@ -399,7 +402,10 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .dtcell:hover{border-color:var(--acc2)}
 .dtcell b{font-size:1.05rem}
 .dtcell span{font-size:.66rem;color:var(--dim2)}
+.dtcell .dtst{font-variant-numeric:tabular-nums;font-size:.63rem}
 .dtcell.got{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+.dtcell.mid{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}
+.dtcell.miss{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,transparent)}
 /* アリーナ入口の 大きなボタン */
 .arbig{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
 @media(max-width:760px){.arbig{grid-template-columns:repeat(2,1fr)}}
@@ -422,10 +428,15 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .btn svg.ico{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px}
 /* PRS の数字。整数は大きく、小数は小さく */
-.prsnum{font-family:Impact,"Arial Black","Haettenschweiler","Anton",
-  "ヒラギノ角ゴ StdN W8","Hiragino Sans","Yu Gothic",sans-serif;
-  line-height:1;letter-spacing:.01em;display:inline-block;color:var(--acc2)}
-.prsdec{opacity:.72;letter-spacing:0}
+.prsnum{font-family:Impact,"Arial Black","Franklin Gothic Heavy",
+  "Trebuchet MS","Yu Gothic",sans-serif;
+  /* ★ Impact は太さが1種類しかありません。800 を受け継ぐと
+        ブラウザが「にせ太字」を作ってしまい、字がつぶれます。 */
+  font-weight:400;-webkit-text-stroke:0;
+  font-variant-numeric:tabular-nums;font-synthesis-weight:none;
+  line-height:1;letter-spacing:.02em;display:inline-block;color:var(--acc2);
+  white-space:nowrap}
+.prsdec{opacity:.78;letter-spacing:.01em;font-weight:400}
 /* ══════════ 入場のアニメ（紫の線のゲート）══════════ */
 .argate{position:fixed;inset:0;z-index:99998;background:#07050f;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
@@ -2879,7 +2890,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v122";
+const APP_VERSION = "v123";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3558,6 +3569,17 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v123":[
+    "PRS の数字がつぶれて表示されていた不具合を修正（Impact に太字を重ねていました）",
+    "アリーナの公開状態が、公開後も「まだ公開していません」のままだった不具合を修正",
+    "公開状態は管理者だけに見えるようにし、「全員に公開中」も表示します",
+    "正解や時間切れの直後から次の問題が出るまで、キー入力を受け付けないようにしました",
+    "正解した直後に空白を押すと次の問題が勝手に正解になる不具合を修正",
+    "素数探偵で、出題できる数を超えるレベルが選べてしまう不具合を修正",
+    "素数探偵は最初 Lv.0 だけ。最高レベルで20問連続正解すると、挑戦中でも次が解放されます",
+    "素数探偵に「ループモード」を追加（そのレベルの素数を終わりなく繰り返します）",
+    "素数探偵の出題数も、練習記録に加算されるようにしました",
+    "素数帳に、素数ごとの出題数・正解数・正答率を表示するようにしました"],
   "v122":[
     "PRS を Impact で表示し、小数部分を小さくしました",
     "レートモードの問題数を 10問きざみ（10〜200問）で選べるようにしました",
@@ -11076,14 +11098,20 @@ function arNumShow(n){
 
 /* ══════════ アリーナ：入口の画面 ══════════ */
 /* ══════════ アリーナ：入口の画面 ══════════ */
+/** サーバーから返ってきた設定を、そのまま取り込みます */
+function arCfgPut(r){
+  if(!r||typeof r!=="object") return ARCFG;
+  ARCFG={on:!!r.on, cost:Math.max(0,+r.cost||0), qn:Math.max(10,+r.qn||50),
+         per:Math.max(0,+r.per||0.02), sec:Math.max(3,+r.sec||15), loaded:true};
+  return ARCFG;
+}
 async function arCfgLoad(){
-  if(TEST||!sbOn()) return ARCFG;
+  if(TEST||!sbOn()){ ARCFG.loaded=true; return ARCFG; }
   try{
     const r=await sb("rpc/arena_cfg",{method:"POST",body:"{}"});
-    if(r&&typeof r==="object")
-      ARCFG={on:!!r.on, cost:Math.max(0,+r.cost||0), qn:Math.max(10,+r.qn||50),
-             per:Math.max(0,+r.per||0.02), sec:Math.max(3,+r.sec||15)};
-  }catch(e){}
+    if(r&&typeof r==="object"){ arCfgPut(r); ARCFG.err=""; }
+    else ARCFG.err="設定が空でした";
+  }catch(e){ ARCFG.err=String(e&&e.message||e).slice(0,80); }
   try{
     const m=await sb("rpc/arena_me",{method:"POST",body:"{}"});
     if(m&&typeof m==="object"){ AR={prs:+m.prs||0, plays:+m.plays||0, best:+m.best||0,
@@ -11094,8 +11122,14 @@ async function arCfgLoad(){
 function arHome(){
   const box=$("#arHome"); if(!box) return;
   const st=$("#arState");
-  if(st) st.innerHTML=arVisible()
-    ? (ARCFG.on?"":'<b style="color:var(--warn)">まだ公開していません（管理者だけ）</b>') : "";
+  /* ★ この表示は管理者だけのものです。ほかの人には何も出しません。
+     また、設定をまだ読めていない間は「非公開」と決めつけません。 */
+  if(st) st.innerHTML = !isAdmin() ? ""
+    : (ARCFG.err ? `<b style="color:var(--bad)">設定を読めませんでした</b>
+        <span class="tiny" style="color:var(--dim2)">${esc(ARCFG.err)}</span>`
+      : !ARCFG.loaded ? '<span style="color:var(--dim2)">設定を読んでいます…</span>'
+      : ARCFG.on ? '<b style="color:var(--acc2)">全員に公開中</b>'
+                 : '<b style="color:var(--warn)">まだ公開していません（管理者だけ）</b>');
   if(!arVisible()){ box.innerHTML='<p class="muted">いまは使えません。</p>'; return; }
   const max=arMax();
   const per10=Math.max(0,+ARCFG.cost||0);
@@ -11142,7 +11176,7 @@ function arHome(){
         <b>レートモード</b><span>${COIN} 10問につき${jp(per10)}枚</span></button>
       <button class="arbigb dt" id="arDetec">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21"/></svg>
-        <b>素数探偵</b><span>5秒で1つ選ぶ</span></button>
+        <b>素数探偵</b><span>6択・5秒で素数を選ぶ</span></button>
       <button class="arbigb log" id="arStats">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg>
         <b>練習記録</b><span>全ての解答を保存</span></button>
@@ -11284,7 +11318,11 @@ function arAdmShow(){
     <p class="muted" style="margin-top:-8px">公開するかどうかと、細かい決まりを変えられます。</p>
     <div class="row" style="margin-bottom:10px">
       <div><b>全員に公開する</b><div class="tiny" id="arOnNote">${
-        ARCFG.on?"いま公開しています":"いまは管理者だけが使えます"}</div></div>
+        ARCFG.on?"いま公開しています":"いまは管理者だけが使えます"}</div>
+        <div class="tiny" style="color:var(--dim2)">サーバーの現在値：${
+          ARCFG.err?`<b style="color:var(--bad)">読めませんでした（${esc(ARCFG.err)}）</b>`
+          :!ARCFG.loaded?"読み込み中"
+          :ARCFG.on?'<b style="color:var(--acc2)">公開中</b>':'<b style="color:var(--warn)">非公開</b>'}</div></div>
       <div class="toggle" style="margin-left:auto">
         <button id="arOff" class="${ARCFG.on?"":"on"}">管理者だけ</button>
         <button id="arOn" class="${ARCFG.on?"on":""}">全員に公開</button></div>
@@ -11314,8 +11352,9 @@ function arAdmShow(){
       per:Math.max(0,num(M.q("#arPer").value)||0.02)};
     M.q("#arAMsg").textContent="送っています…";
     try{
-      await callRpc("arena_cfg_set",{p_cfg:cfg});
-      await arCfgLoad(); arHome(); admShow();
+      const r=await callRpc("arena_cfg_set",{p_cfg:cfg});
+      if(r&&typeof r==="object"){ arCfgPut(r); ARCFG.err=""; } else await arCfgLoad();
+      arHome(); admShow();
       M.q("#arAMsg").innerHTML='<span style="color:var(--acc2)">保存しました</span>';
     }catch(e){ M.q("#arAMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e)).slice(0,110)}</span>`; }
   };
@@ -11328,7 +11367,7 @@ function arStart(rated,qnWant){
   const qn=Math.max(10,Math.round((+qnWant||+ARCFG.qn||50)/10)*10);
   ARQ={rated:!!rated, max, qn:rated?qn:0,
        i:0, ok:0, ng:0, ms:0, list:[], used:new Set(),
-       n:0, text:"", t0:0, left:0, timer:null, over:false, passArm:false,
+       n:0, text:"", t0:0, left:0, timer:null, over:false, passArm:false, lock:true,
        /* レートモードは、範囲全体に 散らして出します
           （偏らせない＝範囲全体を覚えていないと点が出ません）*/
        plan:rated?arPlan(max,qn):null};
@@ -11354,6 +11393,8 @@ function arNext(){
   if(ARQ.rated&&ARQ.i>=ARQ.qn){ arFinish(); return; }
   ARQ.i++;
   ARQ.passArm=false;
+  ARQ.lock=false;                 /* ここでやっと入力を受け付けます */
+  const wr0=$("#arWrap"); if(wr0) wr0.classList.remove("lockon");
   ARQ.n=(ARQ.plan&&ARQ.plan.length)?ARQ.plan.shift():arPick(ARQ.max, ARQ.used);
   ARQ.used.add(ARQ.n);
   ARQ.text=""; ARQ.t0=Date.now(); ARQ.left=Math.max(3,+ARCFG.sec||15)*1000;
@@ -11376,8 +11417,10 @@ function arTimerStart(){
 const arTimerStop=()=>{ if(ARQ&&ARQ.timer){ clearInterval(ARQ.timer); ARQ.timer=null; } };
 /** 時間切れ */
 function arTimeUp(){
-  if(!ARQ) return;
+  if(!ARQ||ARQ.lock) return;
   arTimerStop();
+  ARQ.lock=true;
+  ARQ.passArm=false;
   const ms=Math.max(3,+ARCFG.sec||15)*1000;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms});
   arDexPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
@@ -11387,7 +11430,9 @@ function arTimeUp(){
 }
 /** 打つたびに呼ばれます */
 function arType(ch){
-  if(!ARQ||ARQ.over) return;
+  /* ★ 判定が出てから次の問題が出るまでは、いっさい受け付けません。
+        （正解のあとに空白を打つと、次の問題が勝手に正解になっていました）*/
+  if(!ARQ||ARQ.over||ARQ.lock) return;
   if(ch==="back") ARQ.text=ARQ.text.slice(0,-1);
   else if(ch==="clear") ARQ.text="";
   else ARQ.text+=ch;
@@ -11397,6 +11442,8 @@ function arType(ch){
      正解するまでは、ふつうの見た目のままにします。 */
   if(r.done&&r.ok){
     arTimerStop();
+    ARQ.lock=true;                /* ここから次の問題までは入力を止めます */
+    ARQ.passArm=false;
     const ms=Date.now()-ARQ.t0;
     ARQ.ok++; ARQ.ms+=ms; ARQ.list.push({n:ARQ.n, ok:true, ms});
     arDexPut(ARQ.n,true,ms); arLogPut(ARQ.n,true,ms,ARQ.rated);
@@ -11408,7 +11455,7 @@ function arType(ch){
 }
 /** パス（わからない時）。2回続けて押すと、その問題をとばします */
 function arPass(){
-  if(!ARQ||ARQ.over) return;
+  if(!ARQ||ARQ.over||ARQ.lock) return;
   const b=$("#arPassBtn");
   if(!ARQ.passArm){
     ARQ.passArm=true;
@@ -11418,6 +11465,7 @@ function arPass(){
   ARQ.passArm=false;
   if(b){ b.classList.remove("arm"); b.textContent="パス"; }
   arTimerStop();
+  ARQ.lock=true;
   const ms=Date.now()-ARQ.t0;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms, pass:true});
   arDexPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
@@ -11434,6 +11482,7 @@ function arPassReset(){
 }
 /** 正解・不正解の合図 */
 function arFlash(ok,n,ms,pass){
+  const wr=$("#arWrap"); if(wr) wr.classList.add("lockon");
   const c=$("#arCard"); if(!c) return;
   c.classList.remove("okf","ngf"); void c.offsetWidth;
   c.classList.add(ok?"okf":"ngf");
@@ -11460,7 +11509,7 @@ function arDrawPlay(){
       <div class="arinbox" id="arInBox"><span id="arIn">&nbsp;</span></div>
       <div class="tiny" id="arRes" style="min-height:1.2em"></div>
     </div>
-    <div class="arwrap">
+    <div class="arwrap${ARQ.lock?" lockon":""}" id="arWrap">
       <div class="arkeys" id="arKeys">
         ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="arkey" data-ark="${d}">${d}</button>`).join("")}
         <button class="arkey" data-ark="back">消す</button>
@@ -11580,6 +11629,13 @@ function arResult(q,rated,r,err){
 document.addEventListener("keydown",e=>{
   if(!ARQ||$("#arena").hidden) return;
   if(e.metaKey||e.ctrlKey||e.altKey) return;
+  /* ★ 判定が出ている間は、キーを押しても何も起きません
+        （押しっぱなしや連打で次の問題が飛ぶのを防ぎます）*/
+  if(ARQ.lock){
+    if(/^[0-9]$/.test(e.key)||e.key===" "||e.code==="Space"||e.key==="Backspace"||e.key==="Enter")
+      e.preventDefault();
+    return;
+  }
   if(/^[0-9]$/.test(e.key)){ e.preventDefault(); arType(e.key); return; }
   if(e.key===" "||e.code==="Space"){ e.preventDefault(); arType(" "); return; }
   if(e.key==="Backspace"){ e.preventDefault(); arType("back"); return; }
@@ -11862,15 +11918,34 @@ R=\mathrm{clip}\!\left(\sqrt{N/50},\,0.35,\,1.45\right)</code><br>
 const K_DT="sa-detective-v1";
 const DT_PER=20;                      /* 1レベルあたりの素数の数 */
 const DT_SEC=5;                       /* 制限時間（秒） */
-let DT=ls(K_DT,{lv:0,best:{},seen:{},plays:0,solved:0});
+const DT_UP=20;                       /* 連続正解が この数になると次が解放されます */
+let DT=ls(K_DT,{lv:0,max:0,best:{},seen:{},plays:0,solved:0,asked:0,loop:false});
+/* 古い形（seen[n] が秒数の数値）から、新しい形に直します */
+(function dtFix(){
+  DT.best=DT.best||{}; DT.seen=DT.seen||{};
+  DT.max=Math.max(0,Math.round(+DT.max||0));
+  Object.keys(DT.seen).forEach(k=>{
+    const v=DT.seen[k];
+    if(typeof v==="number") DT.seen[k]={q:1,o:1,b:v};
+    else if(!v||typeof v!=="object") delete DT.seen[k];
+  });
+})();
 const dtSave=()=>{ try{ localStorage.setItem(K_DT,JSON.stringify(DT)); }catch(e){} };
-/** レベルの上限（素数表から決まります） */
-function dtMaxLv(){ return Math.max(0,Math.floor(pbPrimes().length/DT_PER)-1); }
 /** レベル n の素数 20個 */
 function dtLvPrimes(lv){
   const P=pbPrimes(), a=Math.max(0,Math.round(lv))*DT_PER;
   return P.slice(a,a+DT_PER);
 }
+/** ★ 出題できる数（PRSで決まる上限）に収まる、いちばん上のレベル。
+    レベルの素数が1つでも上限を超えるなら、そのレベルは出しません。 */
+function dtCap(){
+  const P=pbPrimes(), mx=arMax();
+  let lo=0, hi=P.length;
+  while(lo<hi){ const m=(lo+hi)>>1; if(P[m]<=mx) lo=m+1; else hi=m; }
+  return Math.max(0, Math.floor(lo/DT_PER)-1);
+}
+/** いま挑戦できる、いちばん上のレベル（解放ぐあい と 出題上限 の小さいほう）*/
+function dtTop(){ return Math.max(0, Math.min(Math.round(+DT.max||0), dtCap())); }
 /** 最小の素因数 */
 function dtSpf(n){
   if(n%2===0) return 2;
@@ -11878,13 +11953,12 @@ function dtSpf(n){
   return n;
 }
 /** 選択肢に使える数か（素数でない ＆ 最小の素因数が 7 以上） */
-let DT_OKC=null;
 function dtCandOk(n){
   if(n<49) return false;
   if(n%2===0||n%3===0||n%5===0) return false;
   return dtSpf(n)!==n;                /* 素数はだめ */
 }
-/** 正解に近い値の 5つを、毎回違う形で選びます */
+/** 正解に近い値の 5つを、毎回ちがう形で選びます */
 function dtPick(ans){
   const pool=[];
   let w=Math.max(24,Math.round(ans*0.22));
@@ -11904,51 +11978,85 @@ function dtPick(ans){
   while(out.length<5){ g+=2; if(dtCandOk(g)&&out.indexOf(g)<0) out.push(g); if(g>ans+40000) break; }
   return out;
 }
-/** 1問つくります */
-function dtMake(lv){
-  const P=dtLvPrimes(lv);
-  const ans=P[Math.floor(Math.random()*P.length)];
+/** その素数で1問つくります */
+function dtMakeFor(ans){
   const opts=dtPick(ans).concat([ans]);
   for(let i=opts.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
     [opts[i],opts[j]]=[opts[j],opts[i]]; }
   return {ans, opts};
 }
+/** レベルから1問つくります（順番はでたらめ） */
+function dtMake(lv){
+  const P=dtLvPrimes(lv);
+  return dtMakeFor(P[Math.floor(Math.random()*P.length)]);
+}
+/** その素数の成績 */
+function dtStatOf(n){
+  const v=DT.seen[n];
+  if(!v||typeof v!=="object") return {q:0,o:0,b:0};
+  return {q:Math.max(0,+v.q||0), o:Math.max(0,+v.o||0), b:Math.max(0,+v.b||0)};
+}
+/** 1問ぶんを記録します */
+function dtStatPut(n,ok,ms){
+  const v=dtStatOf(n);
+  v.q++; if(ok){ v.o++; v.b=v.b?Math.min(v.b,ms):ms; }
+  DT.seen[n]={q:v.q,o:v.o,b:v.b};
+  DT.asked=(+DT.asked||0)+1;
+  if(ok) DT.solved=(+DT.solved||0)+1;
+  /* ★ 出題した数は、練習記録にも足します（1問ずつの正誤は残しません）*/
+  arDayHit(1);
+  dtSave();
+}
+
 /* ── あそぶ ── */
 let DTQ=null;
 function dtShow(){
-  const lv=Math.min(dtMaxLv(),Math.max(0,+DT.lv||0));
-  const P=dtLvPrimes(lv);
-  const M=modal(`<h2>素数探偵モード</h2>
-    <div id="dtBody"></div>`,{w:720});
-  DTQ={M, lv, live:false, i:0, ok:0, streak:0, t0:0, timer:null, q:null};
+  const M=modal(`<h2>素数探偵モード</h2><div id="dtBody"></div>`,{w:740});
+  DTQ={M, lv:dtTop(), live:false, lock:false, i:0, ok:0, streak:0,
+       t0:0, timer:null, q:null, bag:[], loop:!!DT.loop, upped:0};
+  if(DTQ.lv>dtTop()) DTQ.lv=dtTop();
   dtHome();
 }
 function dtStop(){ if(DTQ&&DTQ.timer){ clearInterval(DTQ.timer); DTQ.timer=null; } }
+function dtClose(){ dtStop(); if(DTQ&&DTQ.M) DTQ.M.close(); DTQ=null; }
 function dtHome(){
   dtStop();
   if(!DTQ) return;
-  const lv=DTQ.lv, P=dtLvPrimes(lv), mx=dtMaxLv();
-  const best=+(DT.best[lv]||0);
+  DTQ.live=false;
+  const top=dtTop(), cap=dtCap();
+  if(DTQ.lv>top) DTQ.lv=top;
+  const P=dtLvPrimes(DTQ.lv);
+  const best=+(DT.best[DTQ.lv]||0);
   DTQ.M.q("#dtBody").innerHTML=`
     <p class="muted" style="margin-top:-6px">6つの数の中から、
       <b>素数</b>をただ1つ選びます。制限時間は <b>${DT_SEC}秒</b>。</p>
     <div class="hintbox"><span class="tiny">
       不正解の選択肢は、必ず <b>最小の素因数が 7 以上</b> です。
-      2・3・5 で割り切れる数は出ないので、見た目では外せません。</span></div>
+      2・3・5 で割り切れる数は出ないので、見た目では外せません。<br>
+      いま挑戦できるのは <b>Lv.0 〜 Lv.${jp(top)}</b>。
+      そのレベルで <b>${DT_UP}問連続正解</b>すると、途中でも次のレベルが解放されます。</span></div>
     <div class="frow" style="align-items:flex-end">
-      <div style="flex:1"><label class="fl">レベル（Lv.0 〜 Lv.${jp(mx)}）</label>
+      <div style="flex:1"><label class="fl">レベル（Lv.0 〜 Lv.${jp(top)}）</label>
         <div style="display:flex;align-items:center;gap:8px">
           <button class="btn sm" id="dtLvM">−</button>
-          <input type="range" id="dtLvR" min="0" max="${mx}" step="1" value="${lv}" style="flex:1">
+          <input type="range" id="dtLvR" min="0" max="${top}" step="1" value="${DTQ.lv}" style="flex:1">
           <button class="btn sm" id="dtLvP">＋</button>
         </div></div>
-      <div class="lsbox" style="min-width:140px;text-align:center">
-        <div class="t">Lv.</div><div class="v" style="font-size:1.7rem" id="dtLvV">${jp(lv)}</div>
+      <div class="lsbox" style="min-width:150px;text-align:center">
+        <div class="t">Lv.</div><div class="v" style="font-size:1.7rem" id="dtLvV">${jp(DTQ.lv)}</div>
         <div class="s" id="dtLvS">${jp(P[0])} 〜 ${jp(P[P.length-1])}</div></div>
     </div>
-    <p class="tiny" style="color:var(--dim2)" id="dtLvN">
-      小さい方から ${jp(lv*DT_PER+1)}番目 〜 ${jp(lv*DT_PER+DT_PER)}番目の素数です。
-      連続正解の記録 <b>${jp(best)}</b></p>
+    <p class="tiny" style="color:var(--dim2)" id="dtLvN"></p>
+    <div class="row" style="margin-top:6px">
+      <div><b>ループモード</b>
+        <div class="tiny" id="dtLoopN"></div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="dtLoopOff" class="${DTQ.loop?"":"on"}">1周で終了</button>
+        <button id="dtLoopOn" class="${DTQ.loop?"on":""}">ループ</button></div>
+    </div>
+    ${top<cap?"":`<p class="tiny" style="color:var(--dim2)">
+      ※ Lv.${jp(cap)} より上は、いまの出題できる数（2 〜 ${jp(arMax())}）を超えるため出せません。
+      レートモードで PRS を上げると広がります。</p>`}
     <div class="tools">
       <button class="btn pri" id="dtGo">開始する</button>
       <button class="btn" id="dtBook">
@@ -11962,22 +12070,49 @@ function dtHome(){
     DTQ.M.q("#dtLvR").value=DTQ.lv;
     DTQ.M.q("#dtLvN").innerHTML=`小さい方から ${jp(DTQ.lv*DT_PER+1)}番目 〜 `
       +`${jp(DTQ.lv*DT_PER+DT_PER)}番目の素数です。`
-      +`連続正解の記録 <b>${jp(+(DT.best[DTQ.lv]||0))}</b>`;
-    DT.lv=DTQ.lv; dtSave();
+      +`　このレベルの連続正解の記録 <b>${jp(+(DT.best[DTQ.lv]||0))}</b>`;
+    DTQ.M.q("#dtLoopN").textContent=DTQ.loop
+      ? "そのレベルの素数を、終わりなく繰り返します（順番は毎回でたらめ）"
+      : `${DT_PER}問（そのレベルの素数を1周）で終わります`;
+    DTQ.M.q("#dtLoopOn").classList.toggle("on",DTQ.loop);
+    DTQ.M.q("#dtLoopOff").classList.toggle("on",!DTQ.loop);
+    DT.lv=DTQ.lv; DT.loop=DTQ.loop; dtSave();
   };
-  const set=v=>{ DTQ.lv=Math.min(dtMaxLv(),Math.max(0,Math.round(v)||0)); draw(); };
+  const set=v=>{ DTQ.lv=Math.min(dtTop(),Math.max(0,Math.round(v)||0)); draw(); };
   DTQ.M.q("#dtLvR").oninput=e=>set(+e.target.value);
   DTQ.M.q("#dtLvM").onclick=()=>set(DTQ.lv-1);
   DTQ.M.q("#dtLvP").onclick=()=>set(DTQ.lv+1);
+  DTQ.M.q("#dtLoopOn").onclick=()=>{ DTQ.loop=true; draw(); };
+  DTQ.M.q("#dtLoopOff").onclick=()=>{ DTQ.loop=false; draw(); };
   DTQ.M.q("#dtBook").onclick=()=>dtBookShow(DTQ.lv);
-  DTQ.M.q("#dtX").onclick=()=>{ dtStop(); DTQ.M.close(); DTQ=null; };
-  DTQ.M.q("#dtGo").onclick=()=>{ DTQ.i=0; DTQ.ok=0; DTQ.streak=0; DTQ.live=true; dtNext(); };
+  DTQ.M.q("#dtX").onclick=dtClose;
+  DTQ.M.q("#dtGo").onclick=()=>dtBegin();
+  draw();
+}
+/** そのレベルの素数を、でたらめに並べた袋を作ります */
+function dtBag(lv){
+  const b=dtLvPrimes(lv).slice();
+  for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; }
+  return b;
+}
+function dtBegin(){
+  if(!DTQ) return;
+  DTQ.i=0; DTQ.ok=0; DTQ.streak=0; DTQ.upped=0;
+  DTQ.bag=dtBag(DTQ.lv);
+  DTQ.live=true;
+  DT.plays=(+DT.plays||0)+1; dtSave();
+  dtNext();
 }
 function dtNext(){
   dtStop();
   if(!DTQ) return;
+  if(!DTQ.bag.length){
+    if(!DTQ.loop) return dtOver(true);   /* 1周まわり切りました */
+    DTQ.bag=dtBag(DTQ.lv);               /* ループは、混ぜ直して また回します */
+  }
   DTQ.i++;
-  DTQ.q=dtMake(DTQ.lv);
+  DTQ.lock=false;
+  DTQ.q=dtMakeFor(DTQ.bag.shift());
   DTQ.t0=Date.now();
   dtDraw();
   DTQ.timer=setInterval(()=>{
@@ -11992,11 +12127,13 @@ function dtNext(){
 function dtDraw(){
   if(!DTQ||!DTQ.q) return;
   const best=+(DT.best[DTQ.lv]||0);
+  const left=DTQ.loop?"":`　残り <b>${jp(DTQ.bag.length+1)}</b> 問`;
   DTQ.M.q("#dtBody").innerHTML=`
     <div class="tools" style="margin-top:0">
-      <span class="tiny">Lv.<b>${jp(DTQ.lv)}</b>　<b>${jp(DTQ.i)}</b> 問目</span>
+      <span class="tiny">Lv.<b>${jp(DTQ.lv)}</b>${DTQ.loop?'　<b style="color:var(--acc)">ループ</b>':""}
+        　<b>${jp(DTQ.i)}</b> 問目${left}</span>
       <span class="tiny" style="margin-left:auto">連続正解
-        <b style="color:var(--acc2)">${jp(DTQ.streak)}</b>　記録 ${jp(best)}</span>
+        <b style="color:var(--acc2)">${jp(DTQ.streak)}</b> / ${DT_UP}　記録 ${jp(best)}</span>
     </div>
     <div class="arbar"><i id="dtBar" style="width:100%"></i></div>
     <div class="tiny" style="text-align:right">残り <b id="dtLeft">${DT_SEC.toFixed(2)}</b> 秒</div>
@@ -12011,20 +12148,31 @@ function dtDraw(){
     b.addEventListener("click",e=>e.preventDefault());
     b.addEventListener("contextmenu",e=>e.preventDefault());
   });
-  DTQ.M.q("#dtEnd").onclick=()=>{ DTQ.live=false; dtStop(); dtOver(); };
+  DTQ.M.q("#dtEnd").onclick=()=>{ DTQ.live=false; dtStop(); dtOver(false); };
 }
 function dtAnswer(v){
-  if(!DTQ||!DTQ.live||!DTQ.q) return;
+  if(!DTQ||!DTQ.live||DTQ.lock||!DTQ.q) return;
   dtStop();
+  DTQ.lock=true;
   const ms=Date.now()-DTQ.t0;
   const ans=DTQ.q.ans, hit=(v===ans);
-  DTQ.live=false;
+  dtStatPut(ans,hit,ms);
+  let opened=-1;
   if(hit){
     DTQ.ok++; DTQ.streak++;
-    DT.solved=(+DT.solved||0)+1;
-    DT.seen[ans]=Math.min(+DT.seen[ans]||1e9, Math.round(ms));
     if(DTQ.streak>(+DT.best[DTQ.lv]||0)) DT.best[DTQ.lv]=DTQ.streak;
+    /* ★ いちばん上のレベルで DT_UP 問続けて当てたら、その場で次を解放します */
+    if(DTQ.streak>=DT_UP && DTQ.lv>=dtTop() && DTQ.lv<dtCap()){
+      DT.max=DTQ.lv+1;
+      opened=DT.max;
+      DTQ.upped++;
+      DTQ.lv=DT.max;                 /* 遊んだまま、新しいレベルへ移ります */
+      DTQ.bag=dtBag(DTQ.lv);
+      DTQ.streak=0;                  /* 連続正解は、レベルごとに数えなおします */
+    }
     dtSave();
+  }else{
+    DTQ.streak=0;
   }
   DTQ.M.qa("[data-dtv]").forEach(b=>{
     const n=+b.dataset.dtv;
@@ -12033,67 +12181,95 @@ function dtAnswer(v){
     else b.classList.add("off");
   });
   const r=DTQ.M.q("#dtRes");
-  if(r) r.innerHTML=hit
+  if(r) r.innerHTML=(hit
     ? `<b style="color:var(--acc2)">正解！</b> ${jp(ans)} は素数です
        <span class="tiny">（${(ms/1000).toFixed(2)} 秒）</span>`
     : `<b style="color:var(--bad)">${v==null?"時間切れ":"不正解"}</b>
        <span class="tiny">正解は <b>${jp(ans)}</b>${v!=null
-         ?`／${jp(v)} ＝ ${esc(arFacText(v))}`:""}</span>`;
-  if(hit) setTimeout(()=>{ if(DTQ){ DTQ.live=true; dtNext(); } },700);
-  else setTimeout(()=>{ if(DTQ) dtOver(); },1500);
+         ?`／${jp(v)} ＝ ${esc(arFacText(v))}`:""}</span>`)
+    +(opened>=0?`<br><b style="color:var(--acc)">Lv.${jp(opened)} が解放されました！
+       そのまま挑戦します。</b>`:"");
+  if(hit) setTimeout(()=>{ if(DTQ&&DTQ.live) dtNext(); }, opened>=0?1500:700);
+  else setTimeout(()=>{ if(DTQ){ DTQ.live=false; dtOver(false); } },1600);
 }
-function dtOver(){
+function dtOver(cleared){
   if(!DTQ) return;
-  dtStop();
-  DT.plays=(+DT.plays||0)+1; dtSave();
+  dtStop(); DTQ.live=false;
+  dtSave();
   const best=+(DT.best[DTQ.lv]||0);
   DTQ.M.q("#dtBody").innerHTML=`
+    ${cleared?`<div class="hintbox" style="border-color:var(--acc2);margin-top:0">
+      <b style="color:var(--acc2)">Lv.${jp(DTQ.lv)} を1周しました。</b></div>`:""}
+    ${DTQ.upped?`<div class="hintbox" style="border-color:var(--acc)">
+      <b style="color:var(--acc)">この挑戦で ${jp(DTQ.upped)} レベル解放しました。</b>
+      いまは Lv.0 〜 Lv.${jp(dtTop())} に挑戦できます。</div>`:""}
     <div class="lsbox" style="text-align:center">
       <div class="t">Lv.${jp(DTQ.lv)}　連続正解</div>
       <div class="v" style="font-size:2.2rem;color:var(--acc2)">${jp(DTQ.streak)}</div>
-      <div class="s">自己最高 ${jp(best)}　　挑戦 ${jp(DTQ.i)} 問中 ${jp(DTQ.ok)} 問正解</div></div>
+      <div class="s">このレベルの記録 ${jp(best)}　　${jp(DTQ.i)} 問中 ${jp(DTQ.ok)} 問正解</div></div>
     <div class="tools">
       <button class="btn pri" id="dtAgain">もう一度</button>
       <button class="btn" id="dtBack">レベルを選ぶ</button>
+      <button class="btn" id="dtBook2">素数帳</button>
       <button class="btn" id="dtX2">閉じる</button></div>`;
-  DTQ.M.q("#dtAgain").onclick=()=>{ DTQ.i=0; DTQ.ok=0; DTQ.streak=0; DTQ.live=true; dtNext(); };
+  DTQ.M.q("#dtAgain").onclick=()=>dtBegin();
   DTQ.M.q("#dtBack").onclick=dtHome;
-  DTQ.M.q("#dtX2").onclick=()=>{ DTQ.M.close(); DTQ=null; };
+  DTQ.M.q("#dtBook2").onclick=()=>dtBookShow(DTQ.lv);
+  DTQ.M.q("#dtX2").onclick=dtClose;
 }
 /* ── 素数帳 ── */
 let dtBookLv=0;
 function dtBookShow(lv){
-  dtBookLv=Math.min(dtMaxLv(),Math.max(0,Math.round(+lv>=0?+lv:(+DT.lv||0))));
+  const top=dtTop();
+  dtBookLv=Math.min(top,Math.max(0,Math.round(+lv>=0?+lv:(+DT.lv||0))));
   const M=modal(`<h2>
     <svg viewBox="0 0 24 24" class="ico" style="width:20px;height:20px"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
     素数帳</h2>
     <div id="dtBk"></div>
-    <div class="tools"><button class="btn" id="dtBkX">閉じる</button></div>`,{w:720});
+    <div class="tools"><button class="btn" id="dtBkX">閉じる</button></div>`,{w:760});
   M.q("#dtBkX").onclick=M.close;
   const draw=()=>{
-    const mx=dtMaxLv(), P=dtLvPrimes(dtBookLv);
-    const got=P.filter(n=>DT.seen[n]!=null).length;
+    const P=dtLvPrimes(dtBookLv);
+    const st=P.map(n=>dtStatOf(n));
+    const got=st.filter(x=>x.o>0).length;
+    const q=st.reduce((a,x)=>a+x.q,0), o=st.reduce((a,x)=>a+x.o,0);
     M.q("#dtBk").innerHTML=`
       <div class="frow" style="align-items:flex-end">
-        <div style="flex:1"><label class="fl">レベル</label>
+        <div style="flex:1"><label class="fl">レベル（Lv.0 〜 Lv.${jp(top)}）</label>
           <div style="display:flex;align-items:center;gap:8px">
             <button class="btn sm" id="bkM">−</button>
-            <input type="range" id="bkR" min="0" max="${mx}" step="1" value="${dtBookLv}" style="flex:1">
+            <input type="range" id="bkR" min="0" max="${top}" step="1" value="${dtBookLv}" style="flex:1">
             <button class="btn sm" id="bkP">＋</button></div></div>
-        <div class="lsbox" style="min-width:150px;text-align:center">
+        <div class="lsbox" style="min-width:160px;text-align:center">
           <div class="t">Lv.</div><div class="v" style="font-size:1.7rem">${jp(dtBookLv)}</div>
-          <div class="s">正解済み ${jp(got)} / ${DT_PER}</div></div>
+          <div class="s">正解した素数 ${jp(got)} / ${DT_PER}</div></div>
+      </div>
+      <div class="lsgrid" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
+        <div class="lsbox"><div class="t">このレベルの出題数</div>
+          <div class="v" style="font-size:1.4rem">${jp(q)}</div><div class="s">問</div></div>
+        <div class="lsbox"><div class="t">正解数</div>
+          <div class="v" style="font-size:1.4rem">${jp(o)}</div><div class="s">問</div></div>
+        <div class="lsbox"><div class="t">正答率</div>
+          <div class="v" style="font-size:1.4rem">${q?((o/q)*100).toFixed(1)+"%":"—"}</div>
+          <div class="s">正解 ÷ 出題</div></div>
       </div>
       <p class="tiny" style="color:var(--dim2)">
         小さい方から ${jp(dtBookLv*DT_PER+1)}番目 〜 ${jp(dtBookLv*DT_PER+DT_PER)}番目の素数。
-        数字を押すと詳しく見られます。</p>
+        数字を押すと、その数を詳しく見られます。
+        ${top<dtCap()||DT.max<dtCap()?"　Lv."+jp(top)+" より上は、解放されると載ります。":""}</p>
       <div class="dtbook">
-        ${P.map((n,i)=>`<button class="dtcell ${DT.seen[n]!=null?"got":""}" data-bkn="${n}">
-          <b>${jp(n)}</b><span>${jp(dtBookLv*DT_PER+i+1)}番目</span></button>`).join("")}
+        ${P.map((n,i)=>{ const v=dtStatOf(n);
+          const rate=v.q?Math.round(v.o/v.q*100):-1;
+          const cls=v.o>0?(rate>=80?"got":"mid"):(v.q?"miss":"");
+          return `<button class="dtcell ${cls}" data-bkn="${n}">
+            <b>${jp(n)}</b>
+            <span>${jp(dtBookLv*DT_PER+i+1)}番目</span>
+            <span class="dtst">${v.q?`${jp(v.o)}/${jp(v.q)}　${rate}%`:"未出題"}</span>
+          </button>`; }).join("")}
       </div>`;
-    M.q("#bkR").oninput=e=>{ dtBookLv=Math.min(mx,Math.max(0,+e.target.value||0)); draw(); };
+    M.q("#bkR").oninput=e=>{ dtBookLv=Math.min(top,Math.max(0,+e.target.value||0)); draw(); };
     M.q("#bkM").onclick=()=>{ dtBookLv=Math.max(0,dtBookLv-1); draw(); };
-    M.q("#bkP").onclick=()=>{ dtBookLv=Math.min(mx,dtBookLv+1); draw(); };
+    M.q("#bkP").onclick=()=>{ dtBookLv=Math.min(top,dtBookLv+1); draw(); };
     M.qa("[data-bkn]").forEach(b=>b.onclick=()=>arNumShow(+b.dataset.bkn));
   };
   draw();
