@@ -13,31 +13,110 @@
   --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
   --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
   --serif:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif;
+  /* 箱や線の色。ライトモードで まとめて入れかえます */
+  --panel:#0d1524; --panel2:#16233a; --panel3:#101a2c; --panel0:#0e1727;
+  --line2:#33455f; --tx2:#eaf3ff; --tx3:#cfe0f5;
+  --shadow:0 6px 22px #0006;
   /* 見た目のえらび（ユーザーが変えられます） */
   --font:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
   --navico:22px; --navfs:11px; --navpad:7px; --navh:56px;
 }
-/* 明朝体をえらんだ時 */
+/* 明朝体をえらんだ時。
+   明朝体は線が細いので、そのままだと うすく見えます。
+   少し太く・少し大きくして、読みやすさをそろえます。 */
 html[data-font="mincho"]{
-  --font:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho","Noto Serif JP",Georgia,serif;
+  --font:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP","MS PMincho",Georgia,serif;
 }
-/* ライトモード */
+html[data-font="mincho"] body{font-size:15.5px;letter-spacing:.01em}
+html[data-font="mincho"] .muted,html[data-font="mincho"] .tiny{font-weight:500}
+html[data-font="mincho"] .tiny{font-size:.80rem}
+html[data-font="mincho"] h1,html[data-font="mincho"] h2,
+html[data-font="mincho"] h3,html[data-font="mincho"] h4{font-weight:700}
+html[data-font="mincho"] b,html[data-font="mincho"] strong{font-weight:700}
+html[data-font="mincho"] .btn,html[data-font="mincho"] button{font-weight:600}
+/* 暗い画面では、細い明朝体がとくに うすく見えるので、少し明るくします */
+html[data-font="mincho"][data-theme="dark"] body{color:#f4f8ff}
+html[data-font="mincho"][data-theme="dark"] .muted{color:#a8bad3}
+html[data-font="mincho"][data-theme="dark"] .tiny{color:#a3b6d0}
+/* ══════════ ライトモード ══════════
+   ・下地はうすい灰色、前に出る箱は白。影で「浮いている」ことを表します
+   ・文字は真っ黒にしません（目が疲れるため #0f172a を使います）
+   ・線はうすく、色は白の上でも読める濃さにします */
 html[data-theme="light"]{
-  --bg:#f4f7fc; --card:#ffffff; --card2:#eef3fa; --line:#c9d6e8;
-  --tx:#16202f; --dim:#5a6b83; --dim2:#8195ad;
-  --acc:#1d6fd0; --acc2:#18915f; --warn:#a96a00; --bad:#c53347;
+  --bg:#eef2f7;
+  --card:#ffffff; --card2:#f6f8fc;
+  --panel:#f7f9fc; --panel2:#eef2f7; --panel3:#f2f5fa; --panel0:#e6ebf3;
+  --line:#dbe2ec; --line2:#c3cddb;
+  --tx:#0f172a; --tx2:#111827; --tx3:#1f2937;
+  --dim:#556579; --dim2:#7d8ca0;
+  --acc:#1565c0; --acc2:#0f7a4d; --warn:#9a5b00; --bad:#c02033;
+  --shadow:0 2px 10px #0f172a14, 0 1px 3px #0f172a0f;
 }
 html[data-theme="light"] body{
   background:
-    radial-gradient(900px 500px at 12% -10%,#cfe0f855,transparent 60%),
-    radial-gradient(900px 500px at 88% 0%,#d3f0e855,transparent 60%),
-    linear-gradient(180deg,#f4f7fc,#eaf0f8 60%,#f4f7fc)}
-html[data-theme="light"] .card{box-shadow:0 2px 10px #16202f14}
+    radial-gradient(900px 500px at 12% -10%,#dbe7f8aa,transparent 60%),
+    radial-gradient(900px 500px at 88% 0%,#dff0e8aa,transparent 60%),
+    linear-gradient(180deg,#eef2f7,#e7edf5 60%,#eef2f7);
+  color:var(--tx)}
+/* 前に出る箱は白。影で浮かせます */
+html[data-theme="light"] .card{background:#ffffff;border-color:var(--line);box-shadow:var(--shadow)}
+html[data-theme="light"] .lsbox,html[data-theme="light"] .stat,
+html[data-theme="light"] .hintbox,html[data-theme="light"] .sbrow,
+html[data-theme="light"] .subbox,html[data-theme="light"] .modal{
+  background:#ffffff;border-color:var(--line);color:var(--tx)}
+html[data-theme="light"] .modal{box-shadow:0 18px 50px #0f172a2e}
+html[data-theme="light"] .mask{background:#0f172a55}
+/* 入力するところ */
 html[data-theme="light"] input,html[data-theme="light"] textarea,
-html[data-theme="light"] select{background:#ffffff;color:var(--tx)}
-html[data-theme="light"] .btn{background:#ffffff}
+html[data-theme="light"] select,html[data-theme="light"] .txt{
+  background:#ffffff;color:var(--tx);border-color:var(--line2)}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder{color:#9aa7b8}
+/* ボタン */
+html[data-theme="light"] .btn{background:#ffffff;color:var(--tx);border-color:var(--line2)}
+html[data-theme="light"] .btn:hover{background:#f4f7fc;border-color:var(--acc)}
+html[data-theme="light"] .btn.pri{background:var(--acc);color:#ffffff;border-color:var(--acc)}
+html[data-theme="light"] .toggle button,html[data-theme="light"] .segs button,
+html[data-theme="light"] .segs2 button{background:#ffffff;color:var(--dim);border-color:var(--line2)}
+html[data-theme="light"] .toggle button.on,html[data-theme="light"] .segs button.on,
+html[data-theme="light"] .segs2 button.on{background:var(--acc);color:#ffffff;border-color:var(--acc)}
+html[data-theme="light"] .pk{background:#ffffff;border-color:var(--line2);color:var(--tx)}
+/* 表 */
+html[data-theme="light"] table{color:var(--tx)}
+html[data-theme="light"] th{background:#f2f5fa;color:var(--dim);border-color:var(--line)}
+html[data-theme="light"] td{border-color:var(--line)}
+html[data-theme="light"] tr.used td,html[data-theme="light"] tr.me td{background:#eaf3ff}
+/* 見出しの帯・タブ */
+html[data-theme="light"] .tabs,html[data-theme="light"] header,
 html[data-theme="light"] .navbar,html[data-theme="light"] .navsns{
-  background:#ffffffee;border-color:var(--line)}
+  background:#ffffffee;border-color:var(--line);color:var(--tx)}
+html[data-theme="light"] .tabs button{color:var(--dim)}
+html[data-theme="light"] .tabs button.on{color:var(--acc)}
+html[data-theme="light"] .ghead{color:var(--dim2)}
+/* 文字の色 */
+html[data-theme="light"] .muted,html[data-theme="light"] .tiny{color:var(--dim)}
+html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,
+html[data-theme="light"] h4,html[data-theme="light"] b,html[data-theme="light"] .v{color:var(--tx)}
+/* 白い文字を前提にしていた所を、読める色にもどします */
+html[data-theme="light"] [style*="color:#eaf3ff"],
+html[data-theme="light"] [style*="color:#fff"],
+html[data-theme="light"] [style*="color:#eef3fa"],
+html[data-theme="light"] [style*="color:#cfe0f5"]{color:var(--tx) !important}
+html[data-theme="light"] .rich,html[data-theme="light"] .notebox{color:var(--tx)}
+html[data-theme="light"] .notebox{background:#f4f7fc}
+html[data-theme="light"] .richbox,html[data-theme="light"] .richbar{background:#ffffff;color:var(--tx)}
+html[data-theme="light"] .adcell,html[data-theme="light"] .arkey{
+  background:#f2f5fa;border-color:var(--line2);color:var(--tx)}
+html[data-theme="light"] .arinbox{background:#ffffff;color:#0b6fa4}
+html[data-theme="light"] .arcard{background:#ffffff}
+html[data-theme="light"] .arq{color:var(--tx)}
+html[data-theme="light"] .pbc{background:#eef2f7;border-color:var(--line2)}
+html[data-theme="light"] .uiflag{background:#ffffffee}
+html[data-theme="light"] .uifhead{background:linear-gradient(90deg,#dbe7f8,#ffffff);color:var(--tx)}
+html[data-theme="light"] footer{color:var(--dim2)}
+/* 光る文字は、白い下地では読みにくいので消します */
+html[data-theme="light"] *{text-shadow:none !important}
+
 *{box-sizing:border-box}
 /* ダブルタップで画面が拡大しないようにします（応援ボタンなどの連打で困るためです）*/
 html{touch-action:manipulation;-webkit-text-size-adjust:100%}
@@ -91,7 +170,7 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
   20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
 #lsCoinBox{position:relative}
 .rproad{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
-  border:1px solid var(--line);border-radius:12px;background:#0b1220;padding:6px 0;margin-top:12px}
+  border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:6px 0;margin-top:12px}
 .rpgrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:9px 0;
   border-bottom:1px solid var(--line)}
 .rpgrow .rkf{display:flex;flex-direction:column;gap:3px}
@@ -101,15 +180,15 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .pyrwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 @keyframes rkflow{0%{background-position:0% 50%}100%{background-position:-200% 50%}}
 @media (prefers-reduced-motion:reduce){ [style*="rkflow"]{animation:none!important} }
-.richwrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:6px;background:#0d1524}
+.richwrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:6px;background:var(--panel)}
 .richbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 8px;
-  background:#101a2c;border-bottom:1px solid var(--line)}
+  background:var(--panel3);border-bottom:1px solid var(--line)}
 .richbar .btn{padding:2px 8px;font-size:.76rem}
 .richbar select{height:26px;font-size:.74rem;max-width:130px}
 /* 管理者エディターモード */
 /* ══════════ 下の帯（新しい画面） ══════════ */
 .navbar{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;
-  background:#0b1524ee;border-top:1px solid var(--line);backdrop-filter:blur(8px);
+  background:var(--panel)ee;border-top:1px solid var(--line);backdrop-filter:blur(8px);
   padding-bottom:env(safe-area-inset-bottom,0)}
 .navbar button{flex:1;background:none;border:0;color:var(--dim);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -139,37 +218,59 @@ body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
 .navarrow{background:none;border:0;color:var(--dim);font-size:1.4rem;width:30px;
   cursor:pointer;flex:none;font-family:inherit}
 .navarrow:active{color:var(--acc)}
+/* ボタンの上にせり出すメニュー */
+.navsheet{position:fixed;z-index:8100;transform-origin:bottom center;
+  transform:translateY(14px) scaleY(.6);opacity:0;pointer-events:none;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1.2),opacity .18s ease}
+.navsheet.on{transform:translateY(0) scaleY(1);opacity:1;pointer-events:auto}
+.navsheet.off{transform:translateY(14px) scaleY(.6);opacity:0;pointer-events:none}
+.navsheetin{background:var(--card);border:1px solid var(--acc);border-radius:14px;
+  box-shadow:0 -8px 28px #0007;overflow:hidden;display:flex;flex-direction:column}
+html[data-theme="light"] .navsheetin{box-shadow:0 -6px 24px #0f172a24}
+.navsheet button{background:none;border:0;border-bottom:1px solid var(--line);
+  color:var(--tx);font-family:inherit;font-size:.92rem;padding:12px 14px;text-align:left;
+  cursor:pointer;opacity:0;transform:translateY(6px);
+  transition:opacity .18s ease var(--d,0ms),transform .18s ease var(--d,0ms),background .12s}
+.navsheet.on button{opacity:1;transform:translateY(0)}
+.navsheet button:last-child{border-bottom:0}
+.navsheet button:active{background:var(--panel2)}
+.navbar button.open{color:var(--acc)}
+.navbar button.open i{transform:translateY(-2px)}
+.navbar button i{transition:transform .18s ease}
+/* 下の帯を出している時は、上の「横3本」のメニューは使いません */
+body.hasnav .mbtn{display:none !important}
+body.hasnav .mnow{margin-left:0}
 .navpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .navpick .btn{width:100%}
 /* ══════════ 素因数分解アリーナ ══════════ */
-.arbar{height:8px;background:#16233a;border-radius:99px;overflow:hidden;margin:10px 0 2px}
+.arbar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:10px 0 2px}
 .arbar i{display:block;height:100%;background:linear-gradient(90deg,#39d98a,#ffd45e,#ff5e5e);
   transition:width .05s linear}
-.arcard{background:#0d1524;border:2px solid var(--line);border-radius:14px;
+.arcard{background:var(--panel);border:2px solid var(--line);border-radius:14px;
   padding:18px 14px;text-align:center;margin-top:8px;transition:border-color .15s,background .15s}
 .arcard.okf{border-color:#39d98a;background:#0e2318;animation:arpop .4s ease-out}
 .arcard.ngf{border-color:#ff5e5e;background:#26121a;animation:arshake .4s ease-out}
 @keyframes arpop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
 @keyframes arshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .arq{font-family:Impact,"Arial Black",sans-serif;font-size:clamp(2.6rem,12vw,4.6rem);
-  line-height:1;color:#eaf3ff;letter-spacing:.02em}
-.arinbox{margin-top:10px;min-height:2.2em;background:#0b1524;border:1px solid var(--line);
+  line-height:1;color:var(--tx2);letter-spacing:.02em}
+.arinbox{margin-top:10px;min-height:2.2em;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-family:Impact,"Arial Black",sans-serif;
   font-size:clamp(1.4rem,6vw,2.2rem);color:#8fe9ff;letter-spacing:.12em;word-break:break-all}
 .arinbox.bad{border-color:#ff5e5e;color:#ff9d9d}
 .arkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;
   max-width:340px;margin-left:auto;margin-right:auto}
-.arkey{background:#16233a;border:1px solid #24344f;border-radius:10px;color:#eaf3ff;
+.arkey{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--tx2);
   font-size:1.5rem;font-weight:800;padding:14px 0;cursor:pointer;
   -webkit-user-select:none;user-select:none;touch-action:manipulation}
-.arkey:active{background:#24344f}
+.arkey:active{background:var(--line2)}
 .arkey.sp{font-size:.9rem;color:var(--acc2)}
 .arkey.del{font-size:.9rem;color:var(--warn)}
 .arkey.wide{grid-column:span 1}
 /* 図鑑 */
 .adgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:5px;
   margin-top:8px;max-height:50vh;overflow:auto}
-.adcell{background:#16233a;border:1px solid #24344f;border-radius:7px;color:#cfe0f5;
+.adcell{background:var(--panel2);border:1px solid var(--line2);border-radius:7px;color:var(--tx3);
   font-size:.76rem;font-weight:700;padding:7px 2px;cursor:pointer;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;transition:transform .1s}
 .adcell:hover{transform:scale(1.08);border-color:var(--acc)}
@@ -178,24 +279,24 @@ body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
   align-items:start;margin-top:12px}
 @media(max-width:700px){.pbrow{grid-template-columns:1fr}}
 .pbcard{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;
-  background:#0b1524;border:1px solid var(--line);border-radius:10px;padding:6px}
-.pbc{aspect-ratio:1;border-radius:4px;background:#16233a;border:1px solid #24344f;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px}
+.pbc{aspect-ratio:1;border-radius:4px;background:var(--panel2);border:1px solid var(--line2);
   display:flex;align-items:center;justify-content:center;font-size:0;color:#7d93b3;
   transition:background .15s}
 .pbc.on{background:linear-gradient(160deg,#ffd45e,#ff9d3c);border-color:#ffd45e;
   color:#241a05;font-weight:800;box-shadow:0 0 8px #ffd45e66}
 .pbcard.det .pbc{font-size:.5rem}
-.pblast{background:#0d1524;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.pblast{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .pblast .t{font-size:.72rem;color:var(--dim2)}
 .pblast .v{font-family:Impact,"Arial Black",sans-serif;font-size:2.6rem;line-height:1.1;
   color:#8fe9ff;letter-spacing:.02em}
 .pblast .s{font-size:.7rem;color:var(--dim2);margin-top:2px}
 /* 出た素数の表は「絵」で描きます（四角を9,600個ならべると重いためです）*/
 .pbwrap{position:relative;margin-top:8px;overflow:auto;border:1px solid var(--line);
-  border-radius:8px;background:#0b1524;padding:5px;max-width:100%}
+  border-radius:8px;background:var(--panel);padding:5px;max-width:100%}
 .pbwrap canvas{display:block;image-rendering:pixelated}
-.pbtip{position:absolute;z-index:5;background:#0d1524;border:1px solid var(--acc);
-  border-radius:6px;padding:2px 7px;font-size:.72rem;color:#eaf3ff;pointer-events:none;
+.pbtip{position:absolute;z-index:5;background:var(--panel);border:1px solid var(--acc);
+  border-radius:6px;padding:2px 7px;font-size:.72rem;color:var(--tx2);pointer-events:none;
   white-space:nowrap;box-shadow:0 3px 10px #0008}
 /* 通常画面：盤面とボタンを横にならべます */
 .pbrow2{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:12px}
@@ -206,14 +307,14 @@ body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
 .uiedit [data-ui-on="1"]{outline-color:#ffd45e99}
 /* 右上の札。いちばん前に出します */
 .uiflag{position:fixed;top:10px;right:10px;z-index:99999;width:min(280px,84vw);
-  background:#0b1524f7;border:2px solid var(--acc);border-radius:12px;
+  background:var(--panel)f7;border:2px solid var(--acc);border-radius:12px;
   box-shadow:0 8px 28px #000a;backdrop-filter:blur(6px);overflow:hidden}
 .uifhead{display:flex;align-items:center;gap:7px;padding:7px 10px;
-  background:linear-gradient(90deg,#123a6b,#0b1524);color:#eaf3ff;font-size:.8rem}
+  background:linear-gradient(90deg,#123a6b,var(--panel));color:var(--tx2);font-size:.8rem}
 .uifdot{width:9px;height:9px;border-radius:50%;background:#ff5e5e;flex:none;
   animation:uipulse 1.4s ease-in-out infinite}
 @keyframes uipulse{0%,100%{opacity:1;box-shadow:0 0 0 0 #ff5e5eaa}50%{opacity:.55;box-shadow:0 0 0 6px #ff5e5e00}}
-.uifmin{margin-left:auto;background:none;border:1px solid #ffffff33;color:#eaf3ff;
+.uifmin{margin-left:auto;background:none;border:1px solid #ffffff33;color:var(--tx2);
   border-radius:6px;width:22px;height:20px;line-height:1;cursor:pointer;font-size:.9rem}
 .uifbody{padding:8px 10px}
 .uiflag.mini .uifbody{display:none}
@@ -234,18 +335,18 @@ table.rtin .rtpt{text-align:right;white-space:nowrap;font-variant-numeric:tabula
 table.rtin tfoot td{border-top:2px solid var(--line)}
 .bdform{background:#ffffff08;border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
   padding:10px 13px;margin:10px 0;line-height:1.9}
-.bdform code{background:#0d1524;border:1px solid var(--line);border-radius:5px;
+.bdform code{background:var(--panel);border:1px solid var(--line);border-radius:5px;
   padding:1px 6px;font-size:.86em}
 .rich{line-height:1.75;word-break:break-word;white-space:pre-wrap}
 .rich div,.rich p,.rich li,.rich ul,.rich ol{white-space:normal}
 /* 提出された記録の数（Impact で大きく出します） */
 .subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:4px}
-.subbox{background:#0d1524;border:1px solid var(--line);border-radius:12px;padding:14px 12px;text-align:center}
+.subbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 12px;text-align:center}
 .subbox.all{border-color:var(--acc);background:#0e1b30}
 .subbox .t{font-size:.74rem;color:var(--dim2);letter-spacing:.04em}
 .subn{font-family:Impact,"Arial Black","Haettenschweiler","Anton",
   "ヒラギノ角ゴ StdN W8","Hiragino Sans","Yu Gothic",sans-serif;
-  font-size:2.4rem;line-height:1.1;color:#eaf3ff;letter-spacing:.02em;margin-top:4px}
+  font-size:2.4rem;line-height:1.1;color:var(--tx2);letter-spacing:.02em;margin-top:4px}
 .subbox.all .subn{font-size:3rem;color:var(--acc2)}
 .subbox .s{font-size:.68rem;color:var(--dim2);margin-top:2px}
 .notebox{background:#ffffff08;border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
@@ -254,7 +355,7 @@ table.rtin tfoot td{border-top:2px solid var(--line)}
 .rich ul,.rich ol{margin:4px 0 4px 20px}
 .rkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 0;
   border-bottom:1px solid var(--line)}
-.rkrow .rkno{width:26px;height:26px;border-radius:50%;background:#16233a;color:var(--dim);
+.rkrow .rkno{width:26px;height:26px;border-radius:50%;background:var(--panel2);color:var(--dim);
   display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}
 .rkrow .rkf{display:flex;flex-direction:column;gap:3px}
 .rkrow .rkf .fl{margin:0;font-size:.62rem}
@@ -266,7 +367,7 @@ table.rtin tfoot td{border-top:2px solid var(--line)}
   background:#1e3a5f;color:#8fc7ff;border:1px solid #2f6fd0;vertical-align:middle}
 .postbtn:hover{background:#25497a}
 .postbtn .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;
-  background:#ff2d55;border:1px solid #0b1220}
+  background:#ff2d55;border:1px solid var(--bg)}
 .ntc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
   background:rgba(255,255,255,.02)}
 .ntc.pin{border-color:var(--warn)}
@@ -320,7 +421,7 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wra
 .tabs.open .grp:nth-child(4){transition-delay:.12s}
 .tabs.open .grp:nth-child(5){transition-delay:.15s}
 @media(max-width:640px){ .tabs{grid-template-columns:1fr} }
-.grp{display:flex;flex-direction:column;gap:5px;background:#131c2b88;border:1px solid var(--line);
+.grp{display:flex;flex-direction:column;gap:5px;background:var(--panel2)88;border:1px solid var(--line);
   border-radius:11px;padding:8px}
 .ghead{font-size:.7rem;color:var(--acc);letter-spacing:.1em;font-weight:700;padding:2px 4px 4px}
 .tabs button{background:#16202f;border:1px solid transparent;color:var(--dim);font:inherit;font-size:.86rem;
@@ -329,7 +430,7 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wra
   box-shadow:0 0 0 1px #4da3ff55, 0 6px 16px -10px #4da3ff}
 .tabs button:hover:not(.on){color:var(--tx);background:#1c2739}
 section[hidden]{display:none}
-select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:8px;
+select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);border-radius:8px;
   padding:6px 10px;font:inherit;font-size:.82rem}
 
 .segwrap{display:inline-flex;align-items:flex-end;line-height:0}
@@ -373,7 +474,7 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
 @media(max-width:640px){.stats{grid-template-columns:1fr}}
-.stat{background:linear-gradient(180deg,#131c2b,#0f1726);border:1px solid var(--line);
+.stat{background:linear-gradient(180deg,var(--panel2),#0f1726);border:1px solid var(--line);
   border-radius:13px;padding:13px 15px;transition:border-color .2s}
 .stat:hover{border-color:#3a4d6d}
 .stat .t{font-size:.72rem;color:var(--dim)}
@@ -395,7 +496,7 @@ select{background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius
 .lsgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .lsgrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
 @media(max-width:520px){.lsgrid2{grid-template-columns:1fr}}
-.lsbox{background:linear-gradient(180deg,#131c2b,#0f1726);border:1px solid var(--line);
+.lsbox{background:linear-gradient(180deg,var(--panel2),#0f1726);border:1px solid var(--line);
   border-radius:13px;padding:14px 16px;text-align:center}
 .lsbox .t{font-size:.74rem;color:var(--dim)}
 .lsbox .v{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2;
@@ -519,8 +620,8 @@ tr.pending td{opacity:.72}
 .chk{color:var(--acc2);font-weight:700}
 .tgt{color:var(--warn);font-size:.8rem}
 
-input[type=text],input[type=number],input[type=password]{background:#0d1524;color:var(--tx);
-  border:1px solid #33455f;border-radius:8px;padding:6px 9px;font:inherit;font-size:.88rem;
+input[type=text],input[type=number],input[type=password]{background:var(--panel);color:var(--tx);
+  border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font:inherit;font-size:.88rem;
   text-align:right;font-variant-numeric:tabular-nums;width:100%;max-width:145px}
 input.txt{text-align:left}
 input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px #4da3ff22}
@@ -528,7 +629,7 @@ label.fl{display:block;font-size:.76rem;color:var(--dim);margin:10px 0 4px}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:520px){.frow{grid-template-columns:1fr}}
 .frow input{max-width:none}
-textarea{width:100%;background:#0d1524;color:var(--tx);border:1px solid #33455f;border-radius:9px;
+textarea{width:100%;background:var(--panel);color:var(--tx);border:1px solid var(--line2);border-radius:9px;
   padding:9px;font:inherit;font-size:.8rem;min-height:66px;resize:vertical}
 
 button.btn{background:#22314799;color:var(--tx);border:1px solid var(--line);border-radius:10px;
@@ -588,7 +689,7 @@ button.btn.done,button.btn.done:disabled{opacity:1;background:#222a38;border-col
 .sw{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);
   border-radius:12px;padding:12px 14px;margin-top:14px;flex-wrap:wrap}
 .sw .t{font-size:.86rem;font-weight:600}
-.sw .toggle{margin-left:auto;display:flex;gap:4px;background:#0d1524;border:1px solid var(--line);
+.sw .toggle{margin-left:auto;display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);
   border-radius:9px;padding:3px}
 .sw .toggle button{background:none;border:none;color:var(--dim);font:inherit;font-size:.78rem;
   padding:5px 14px;border-radius:7px;cursor:pointer}
@@ -705,7 +806,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .lvb .p{font-size:.78em;opacity:.85}
 .lvb .n{font-size:1.35em}
 /* レベルのメーター */
-.lvmeter{height:8px;background:#0b1220;border:1px solid var(--line);border-radius:99px;
+.lvmeter{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:99px;
   overflow:hidden;margin:8px 0 5px}
 .lvmeter>div{height:100%;width:0;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.3,1);
   background:linear-gradient(90deg,#3f7fd0,#4dd6a8)}
@@ -732,7 +833,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .sbtag{font-size:.68rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--dim2)}
 .sbtag.pending{border-color:#4a5568;color:#8794a8}
 .sbtag.judged{border-color:#8a7330;color:#ffd45e}
-.sbtag.certified{border-color:#a8c4e0;color:#eaf3ff}
+.sbtag.certified{border-color:#a8c4e0;color:var(--tx2)}
 .sbtag.rejected{border-color:#7a3030;color:#ff8a8a}
 .sbwait{font-size:.7rem;color:#ffd45e;margin-top:3px}
 /* ---- Prime SNS の起動画面 ---- */
@@ -744,11 +845,11 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .bootring span:nth-child(2){inset:11px;border-top-color:var(--acc2);animation-duration:.82s;animation-direction:reverse}
 .bootring span:nth-child(3){inset:22px;border-top-color:#ff9de2;animation-duration:1.35s}
 .bootlogo{font-family:Impact,"Arial Black",sans-serif;font-size:2.1rem;letter-spacing:.06em;
-  background:linear-gradient(180deg,#eaf3ff,#7fc4ff);-webkit-background-clip:text;background-clip:text;
+  background:linear-gradient(180deg,var(--tx2),#7fc4ff);-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent}
 .boothi{margin-top:10px;font-size:1.15rem;color:var(--tx);letter-spacing:.14em;
   opacity:0;animation:boothi .5s ease-out .35s forwards}
-.bootbar{width:190px;height:4px;margin:20px auto 0;background:#0d1524;border-radius:99px;overflow:hidden}
+.bootbar{width:190px;height:4px;margin:20px auto 0;background:var(--panel);border-radius:99px;overflow:hidden}
 .bootbar>div{height:100%;width:0;background:linear-gradient(90deg,#3f7fd0,#4dd6a8);
   transition:width .45s cubic-bezier(.3,.9,.3,1)}
 .bootmsg{margin-top:9px;font-size:.74rem;color:var(--dim2);letter-spacing:.04em;min-height:1.2em}
@@ -774,9 +875,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 /* ---- 投稿バー（Twitter風） ---- */
 .composer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:55;
   width:min(720px,calc(100% - 28px));display:flex;gap:8px;align-items:flex-end;
-  background:#16202fee;border:1px solid #33455f;border-radius:18px;padding:8px 9px;
-  box-shadow:0 14px 34px -18px #000,0 0 0 1px #0b122055}
-.composer textarea{flex:1;background:#0d1524;border:1px solid #2a3a52;border-radius:12px;
+  background:#16202fee;border:1px solid var(--line2);border-radius:18px;padding:8px 9px;
+  box-shadow:0 14px 34px -18px #000,0 0 0 1px var(--bg)55}
+.composer textarea{flex:1;background:var(--panel);border:1px solid #2a3a52;border-radius:12px;
   color:var(--tx);font:inherit;font-size:.92rem;line-height:1.5;padding:9px 11px;min-width:0;
   resize:none;max-height:34vh;overflow-y:auto}
 .composer textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px #4da3ff22}
@@ -787,9 +888,9 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   background:linear-gradient(135deg,#2f6fd0,#3f9de0);color:#fff}
 .cbtn:active{transform:translateY(1px)}
 .cplink{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:55;
-  width:min(720px,calc(100% - 28px));background:#16202fee;border:1px solid #33455f;
+  width:min(720px,calc(100% - 28px));background:#16202fee;border:1px solid var(--line2);
   border-radius:12px;padding:8px 10px}
-.cplink input{width:100%;background:#0d1524;border:1px solid #33455f;border-radius:8px;
+.cplink input{width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:8px;
   color:var(--tx);font:inherit;font-size:.86rem;padding:8px 10px}
 /* タグ */
 /* ---- アチーブメントの棚 ---- */
@@ -827,12 +928,12 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .mstate{font-size:.66rem;margin-top:2px}
 .mstate.un{color:#8794a8}.mstate.ed{color:#ffc861}.mstate.pd{color:#7fe9ff}
 /* 表計算 */
-.xlwrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:#0b1220}
+.xlwrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
 .xl{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .xl th,.xl td{border:1px solid #22304a;padding:0;min-width:78px;height:26px}
-.xl th{background:#131c2b;color:var(--dim);font:600 10px ui-sans-serif;text-align:center;
+.xl th{background:var(--panel2);color:var(--dim);font:600 10px ui-sans-serif;text-align:center;
   min-width:30px;position:sticky;top:0}
-.xl td.rh{background:#131c2b;color:var(--dim);font:600 10px ui-sans-serif;text-align:center;min-width:30px}
+.xl td.rh{background:var(--panel2);color:var(--dim);font:600 10px ui-sans-serif;text-align:center;min-width:30px}
 .xl input{width:100%;height:26px;border:none;background:transparent;color:var(--tx);
   font:inherit;font-size:.76rem;padding:0 5px;text-align:right}
 .xl input:focus{outline:2px solid var(--acc);outline-offset:-2px;background:#0f1a2c}
@@ -852,14 +953,14 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 @media (max-width:760px){.lsgoals{grid-template-columns:1fr}}
 .gwrap{display:grid;grid-template-columns:92px 1fr;gap:8px;margin-bottom:10px}
 .glabel{display:flex;align-items:center;justify-content:center;text-align:center;
-  background:#131c2b;border:1px solid var(--line);border-radius:10px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:10px;
   font-size:.78rem;font-weight:700;color:var(--dim);padding:6px}
 .grows{display:grid;gap:5px}
 .grow{background:#0f1726;border:1px solid var(--line);border-radius:9px;
   padding:7px 11px;display:flex;align-items:baseline;gap:9px;font-variant-numeric:tabular-nums}
 .grow .gk{font-size:.7rem;color:var(--dim2);min-width:5.4em}
 .grow .gv{font-size:1.02rem;font-weight:700;transition:color .25s}
-.grow.v1 .gv{color:#eef3fa}
+.grow.v1 .gv{color:var(--tx2)}
 .grow.v2 .gv{color:#57e0a0}
 .grow.v3 .gv{color:#ffd45e}
 .grow .gv.up{animation:gflash .5s ease-out}
@@ -869,10 +970,10 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .lsval.bump{animation:bump .35s ease-out}
 /* プロフィール右上のトロフィー・スター */
 .awbox{float:right;display:flex;gap:16px;text-align:center;margin:-4px 0 6px 12px}
-.awn{font-family:Impact,"Arial Black",sans-serif;font-size:2rem;line-height:1;color:#eaf3ff}
+.awn{font-family:Impact,"Arial Black",sans-serif;font-size:2rem;line-height:1;color:var(--tx2)}
 .awl{font-size:.66rem;color:var(--dim2);margin-top:2px}
 .awbtn{margin-top:4px;font-size:.62rem;padding:1px 7px;border:1px solid var(--line);
-  border-radius:999px;background:#0d1524;color:var(--dim);cursor:pointer;white-space:nowrap}
+  border-radius:999px;background:var(--panel);color:var(--dim);cursor:pointer;white-space:nowrap}
 .awbtn:hover{color:var(--tx);border-color:var(--acc)}
 /* 部屋 */
 .roomgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
@@ -894,7 +995,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
 .room .rtag{font-size:.64rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);
   color:var(--dim2);align-self:flex-start;margin-top:6px}
 .room.pinned{border-color:#8a7330}
-.codebox{text-align:center;background:#0d1524;border:1px solid #33455f;border-radius:12px;
+.codebox{text-align:center;background:var(--panel);border:1px solid var(--line2);border-radius:12px;
   padding:14px;margin:12px 0}
 .codenum{font-family:Impact,"Arial Black",sans-serif;font-size:2.6rem;letter-spacing:.22em;
   color:#ffd45e;text-shadow:0 0 14px #ffd45e55;line-height:1.1}
@@ -1021,13 +1122,13 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 .radars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 @media (max-width:760px){.radars{grid-template-columns:1fr}}
 .ptags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 6px}
-.ptag{font-size:.75rem;padding:4px 9px;border-radius:99px;border:1px solid #33455f;
-  background:#0d1524;color:#8fbdf0;cursor:pointer;font-family:inherit}
-.ptag.on{background:#1d3a5c;border-color:var(--acc);color:#eaf3ff;font-weight:700}
+.ptag{font-size:.75rem;padding:4px 9px;border-radius:99px;border:1px solid var(--line2);
+  background:var(--panel);color:#8fbdf0;cursor:pointer;font-family:inherit}
+.ptag.on{background:#1d3a5c;border-color:var(--acc);color:var(--tx2);font-weight:700}
 .ptag .n{opacity:.7;margin-left:5px;font-variant-numeric:tabular-nums}
 .taginline{color:#8fbdf0;cursor:pointer;font-weight:600}
 /* いいね（ハート） */
-.heart{display:inline-flex;align-items:center;gap:5px;border:1px solid #33455f;background:#16202f;
+.heart{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);background:#16202f;
   color:var(--dim);border-radius:99px;padding:5px 11px;font:inherit;font-size:.8rem;cursor:pointer}
 .heart .hi{font-size:1rem;line-height:1}
 .heart.on{border-color:#ff5470;color:#ff8fa3;background:#2a1220}
@@ -1040,14 +1141,14 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 .ptag.off{border-color:#8a7330;background:#241d0d}
 .ptag.off.on{background:#3a2f12;color:#ffe9a8}
 /* 複数リンクの入力欄 */
-.lkrow{display:grid;gap:5px;background:#0d1524;border:1px solid #33455f;border-radius:9px;
+.lkrow{display:grid;gap:5px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;
   padding:8px;margin-bottom:6px}
 .lkrow input,.lkrow textarea{width:100%;background:#101a2a;border:1px solid #2a3a52;border-radius:7px;
   color:var(--tx);font:inherit;font-size:.82rem;padding:7px 9px;line-height:1.55}
 .lkrow textarea{resize:vertical;min-height:64px}
 .lkrow input:focus,.lkrow textarea:focus{outline:none;border-color:var(--acc)}
 .lktools{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-.lktools button{font-size:.72rem;padding:5px 8px;border-radius:7px;border:1px solid #33455f;
+.lktools button{font-size:.72rem;padding:5px 8px;border-radius:7px;border:1px solid var(--line2);
   background:#16202f;color:var(--dim);cursor:pointer;font-family:inherit}
 .lktools button:hover{color:var(--tx);background:#1c2739}
 .segs{display:grid;gap:6px;margin-bottom:12px}
@@ -2406,6 +2507,12 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
         <button id="skDark">ダークモード</button>
         <button id="skLight">ライトモード</button></div>
     </div>
+    <div class="row" id="skPhoneRow" hidden>
+      <div><b>画面の作り</b><div class="tiny" id="skPhoneNow"></div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="skAuto">この端末に合わせる</button>
+        <button id="skPhone">スマホの見た目</button></div>
+    </div>
   </div>
 
   <div class="card">
@@ -2547,7 +2654,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 </section>
 
 <footer>
-  <span id="upd">—</span>
+  <span id="upd" hidden>—</span>
   <button id="devBtn" title="開発者メニュー" hidden>⚙</button>
 </footer>
 </div>
@@ -2577,7 +2684,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v113";
+const APP_VERSION = "v114";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3256,6 +3363,16 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v114":[
+    "ライトモードを作り直しました（白い箱と影、読みやすい文字色）",
+    "明朝体を、うすく見えないように太さと大きさを調整しました",
+    "下の帯のボタンを押すと、選ぶものが上にせり出すようにしました（もう一度押すとしまいます）",
+    "ヘルプと ランクの編集 を「設定」ボタンの中に入れました",
+    "パソコンでも「スマホの見た目」を選べるようにしました",
+    "申請の承認でエラーが出る不具合を修正しました",
+    "ランキングに「レベル」を追加し、21項目そろった人だけを載せるようにしました",
+    "応援ポイントで同じ人が2回出てしまう不具合を修正しました",
+    "画面の一番下の表示を整理しました"],
   "v113":[
     "LSやりこみで、古いデータが同期で復活してしまう不具合を修正しました",
     "あなたの軌跡で、今月のグラフに予測が出ない不具合を修正しました",
@@ -7514,10 +7631,15 @@ async function sbTest(){
   stop("接続は正常です。プロフィールの @ID を入れて「公開」を押してください。");
 }
 let RANK_ROWS=[], rkSortKey="rating", PEND_CLAIMS=[];
-const SORT_OPTS=()=>[["rating","RATING（総合）"]]
+const SORT_OPTS=()=>[["rating","RATING（総合）"],["lv","レベル"]]
   .concat(rpVisible()?[["rp","RANK（やりこみ）"]]:[])
   .concat([["l_value","L値"],["s_value","S値"],
   ["total_score","十種競技総合スコア"]]).concat(EVENTS.map(n=>["ev:"+n,n]));
+/* 21項目がぜんぶ入っているか（入っていない人は一覧に出しません）*/
+function rkFull(r){
+  const rc=(r&&r.records)||{};
+  return ORDER.every(n=>(+rc[n]||0)>0);
+}
 let rkCache={key:"",at:0,rows:null};
 async function loadRanking(force){
   const el=$("#rankBody");
@@ -7564,11 +7686,29 @@ async function loadRanking(force){
       rkCache={key:ck,at:Date.now(),rows};
     }
     const evName=byEv?rkSortKey.slice(3):null;
+    const byLv=(rkSortKey==="lv");
+    /* レベルは、レベルの表から持ってきます */
+    if(byLv){
+      try{
+        const lv=await sb("user_levels?select=handle,lv,xp&limit=500");
+        const m={}; (lv||[]).forEach(x=>{ m[String(x.handle||"").toLowerCase()]=x; });
+        rows.forEach(r=>{ const x=m[String(r.handle||"").toLowerCase()];
+          r.lv=x?(+x.lv||0):0; r.xp=x?(+x.xp||0):0; });
+      }catch(e){ rows.forEach(r=>{ r.lv=0; r.xp=0; }); }
+    }
+    /* ★ 21項目がぜんぶそろっている人だけを出します */
+    rows=rows.filter(rkFull);
     const val=r=>byEv?((r.records||{})[evName]||0)
       :byRp?rpOf(r.records||{})
+      :byLv?(+r.lv||0)
       :(r[rkSortKey]==null?null:+r[rkSortKey]);
     const lowBetter=byEv&&LOW.has(evName);
-    rows.sort((a,b)=>{const x=val(a),y=val(b);
+    rows.sort((a,b)=>{
+      if(byLv){
+        /* レベルが同じなら、通算の経験値が多いほうが上 */
+        return ((+b.lv||0)-(+a.lv||0)) || ((+b.xp||0)-(+a.xp||0));
+      }
+      const x=val(a),y=val(b);
       if(!x&&!y) return 0; if(!x) return 1; if(!y) return -1;
       return lowBetter?(x-y):(y-x);});
     if(!rows.length){ el.innerHTML=`<p class="muted">まだ公開しているプレイヤーがいません。</p>
@@ -7586,13 +7726,14 @@ async function loadRanking(force){
       ${pro.pub?"":`<p class="tiny" style="color:var(--warn)">現在「非公開」です。プロフィール設定で公開に切り替えると一覧に載ります。</p>`}
       <p class="tiny" id="rkAt">最終更新 —</p>
       ${rpVisible()?`<p class="tiny">並べかえで <b>RANK（やりこみ）</b> を選ぶと、RP の多い順に並びます。</p>`:""}
-      <p class="tiny"><b>RATING は全21項目（合計スコア・18種目・累積2つ）がそろって初めて出ます。</b>
-        1つでも空いている人は「計測中」と出ます。</p>
+      <p class="tiny"><b>ランキングに出るのは、全21項目（合計スコア・18種目・累積2つ）が
+        そろっている人だけです。</b>1つでも空いていると、一覧には出ません。</p>
+      ${rkSortKey==="lv"?`<p class="tiny">レベルが同じときは、<b>通算の経験値が多いほう</b>が上になります。</p>`:""}
       <p class="tiny">名前やアイコンを押すとその人のプロフィールが開きます。
         アイコンの<span style="color:#ff2d55">赤いリング</span>は3日以内、
         <span style="color:#ffc861">黄色いリング</span>は7日以内に記録を更新した人です。</p>
       <div class="scroll"><table><thead><tr><th>#</th><th>プレイヤー</th>
-      ${(rkSortKey==="rating"||rkSortKey==="rp")?"":`<th>${esc(SORT_OPTS().find(o=>o[0]===rkSortKey)[1])}</th>`}
+      ${(rkSortKey==="rating"||rkSortKey==="rp")?"":`<th>${esc((SORT_OPTS().find(o=>o[0]===rkSortKey)||["",""])[1])}</th>`}
       <th>RATING</th><th>ランク</th>${rpVisible()?"<th>RANK</th>":""}<th>L値</th><th>S値</th></tr></thead><tbody>`+
       rows.map((r,i)=>{const v=val(r);
         return `<tr class="${r.handle===mine?"me":""}"><td>${i+1}</td>`+
@@ -7604,6 +7745,7 @@ async function loadRanking(force){
         `<br><span class="tiny" style="color:var(--dim2)">${r.updated_at?agoText(r.updated_at):"更新日時不明"}</span>`+
         `</div></div></td>`+
         ((rkSortKey==="rating"||rkSortKey==="rp")?""
+          :byLv?`<td><b>${lvHTML(+r.lv||0)}</b><br><span class="tiny">${jp(+r.xp||0)} XP</span></td>`
           :`<td><b>${v==null||!v?"—":(byEv?fmtRec(evName,v):f3(v))}</b></td>`)+
         `<td>${r.rating==null?'<span class="tiny" style="color:var(--dim2)">計測中</span>':f3(+r.rating)}</td>`+
         `<td style="${r.rating==null?"color:var(--dim)":rankCSS(rankOf(+r.rating),4)}">${r.rating==null?"—":esc(rankOf(+r.rating).n)}</td>`+
@@ -8137,7 +8279,16 @@ async function reviewClaim(id,ok){
   M.q("#apGo").onclick=()=>approve(true);
   M.q("#apOnly").onclick=()=>approve(false);
 }
-const isUuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||""));
+/* ★ ふだんは「正しい形のID」だけを通します。
+   ただし、テストモードの見本データは UUID ではないので、
+   そこでは「空でなければよい」ことにします。
+   （前はここで見本データまではじいてしまい、承認できませんでした）*/
+const isUuid=v=>{
+  const t=String(v||"");
+  if(!t) return false;
+  if(typeof TEST!=="undefined"&&TEST) return true;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t);
+};
 async function setRole(uid,role){
   /* 誰のことか分からないまま送ると、意味の分からないエラーになります */
   if(!isUuid(uid)) return toast("どの人のことか分かりませんでした。再読み込みしてお試しください");
@@ -9774,28 +9925,37 @@ if($("#navHide")) $("#navHide").onclick=()=>navPubSet(false);
 
 /* ══════════ 見た目のえらび（この端末だけ）══════════ */
 const K_SKIN="sa-skin-v1";
-let SKIN=Object.assign({font:"gothic",theme:"dark"},ls(K_SKIN,{}));
+let SKIN=Object.assign({font:"gothic",theme:"dark",phone:"auto"},ls(K_SKIN,{}));
 function skinApply(){
   const r=document.documentElement;
   r.setAttribute("data-font", SKIN.font==="mincho"?"mincho":"gothic");
   r.setAttribute("data-theme", SKIN.theme==="light"?"light":"dark");
-  const f=$("#skFontNow"), t=$("#skThemeNow");
+  const f=$("#skFontNow"), t=$("#skThemeNow"), ph=$("#skPhoneNow");
   if(f) f.textContent=SKIN.font==="mincho"?"いまは 明朝体":"いまは ゴシック体";
   if(t) t.textContent=SKIN.theme==="light"?"いまは ライトモード":"いまは ダークモード";
+  if(ph) ph.textContent=SKIN.phone==="phone"?"スマホの見た目で出しています"
+    :("この端末に合わせています（いまは "+((typeof isPhone==="function"&&isPhone())?"スマホ":"パソコン")+"）");
   const on=(id,v)=>{ const b=$("#"+id); if(b) b.classList.toggle("on",v); };
   on("skGothic",SKIN.font!=="mincho"); on("skMincho",SKIN.font==="mincho");
   on("skDark",SKIN.theme!=="light");   on("skLight",SKIN.theme==="light");
+  on("skAuto",SKIN.phone!=="phone");   on("skPhone",SKIN.phone==="phone");
+  /* この行は、下の帯が用意できたあとで出します。
+     読み込みのはじめに呼ばれることがあるので、try で囲みます */
+  try{ const row=$("#skPhoneRow"); if(row) row.hidden=!navOn(); }catch(e){}
 }
 function skinSet(k,v){
   SKIN[k]=v;
   try{ localStorage.setItem(K_SKIN,JSON.stringify(SKIN)); }catch(e){}
   skinApply();
+  /* 画面の作りを変えたら、下の帯も作り直します */
+  if(k==="phone"){ try{ navSize(); navBuild(); }catch(e){} }
 }
 skinApply();
 document.addEventListener("DOMContentLoaded",()=>{
   const wire=(id,k,v)=>{ const b=document.getElementById(id); if(b) b.onclick=()=>skinSet(k,v); };
   wire("skGothic","font","gothic"); wire("skMincho","font","mincho");
   wire("skDark","theme","dark");    wire("skLight","theme","light");
+  wire("skAuto","phone","auto");    wire("skPhone","phone","phone");
   skinApply();
 });
 
@@ -9810,6 +9970,7 @@ let NAVON=false;               /* 全員に公開しているか */
 /** スマホかどうか。指でさわる画面で、はばがせまいものをスマホとします */
 function isPhone(){
   try{
+    if(SKIN&&SKIN.phone==="phone") return true;
     const coarse=window.matchMedia&&window.matchMedia("(pointer: coarse)").matches;
     const touch=(navigator.maxTouchPoints||0)>1||("ontouchstart" in window);
     const w=window.innerWidth||document.documentElement.clientWidth||0;
@@ -9845,18 +10006,20 @@ const ICO={
   rv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/><path d="m8 10.5 1.8 1.8L13 9"/></svg>',
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9.5" cy="10.5" r="2.4"/><path d="M5.6 17c.6-2 2-3 3.9-3s3.3 1 3.9 3"/><path d="M15 9.5h3.5M15 13h3.5"/></svg>'
 };
-/* 下の帯にならべるもの */
+/* 下の帯にならべるもの。どれも「上にせり出すメニュー」を持ちます */
 const NAV_MAIN=[
-  {k:"profile", n:"ホーム",       i:"home"},
-  {k:"__me",    n:"ユーザーデータ", i:"user"},
-  {k:"sns",     n:"Prime SNS",   i:"sns"},
-  {k:"__tool",  n:"ツール",       i:"tool"},
-  {k:"settings",n:"設定",         i:"gear"}
+  {k:"__home", n:"ホーム",        i:"home"},
+  {k:"__me",   n:"ユーザーデータ", i:"user"},
+  {k:"sns",    n:"Prime SNS",    i:"sns"},
+  {k:"__tool", n:"ツール",        i:"tool"},
+  {k:"__set",  n:"設定",          i:"gear"}
 ];
-/* 「ユーザーデータ」「ツール」は、いくつかのタブのまとめです */
+/* ボタンごとの、中に入るタブ */
 const NAV_GROUP={
+  __home:["profile","pgbc"],
   __me:  ["card","input","hist","mood","ls"],
-  __tool:["pgbc","stats","arena","plan","analysis","rprank"]
+  __tool:["stats","arena","plan","analysis","rprank"],
+  __set: ["settings","help","rankedit"]
 };
 const NAV_SNS=[
   {k:"feed",n:"タイムライン",i:"feed"},
@@ -9899,36 +10062,85 @@ function navBuild(){
   bar.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>navGo(b.dataset.nav));
   navSnsBuild();
 }
+/* いま開いている、せり出しメニュー */
+let navOpenK=null;
 /** 下の帯のボタンを押した時 */
 function navGo(k){
-  navNow=k;
-  $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===k));
-  const snsBar=$("#navSns"); if(snsBar) snsBar.hidden=(k!=="sns");
-  document.body.classList.toggle("hassns", k==="sns");
-  if(k==="__me"||k==="__tool") return navGroupShow(k);
-  const btn=document.querySelector(`#tabs button[data-tab="${CSS.escape(k)}"]`);
-  if(btn) btn.click();
-  scrollTo({top:0,behavior:"smooth"});
+  /* 同じボタンをもう一度押したら、しまいます（逆さ再生のように閉じます）*/
+  if(navOpenK===k) return navSheetClose();
+  if(k==="sns"){
+    navSheetClose();
+    navNow=k;
+    $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===k));
+    const snsBar=$("#navSns"); if(snsBar) snsBar.hidden=false;
+    document.body.classList.add("hassns");
+    const btn=document.querySelector('#tabs button[data-tab="sns"]');
+    if(btn) btn.click();
+    scrollTo({top:0,behavior:"smooth"});
+    return;
+  }
+  navSheetOpen(k);
 }
-/** まとめのボタンを押すと、中身をえらべます */
-function navGroupShow(k){
+/** ボタンの上に、えらぶものをせり出させます */
+function navSheetOpen(k){
+  navSheetClose(true);                       /* 何重にも出さないように、まず消します */
   const list=(NAV_GROUP[k]||[]).map(t=>{
     const b=document.querySelector(`#tabs button[data-tab="${CSS.escape(t)}"]`);
     return (b&&!b.hidden)?{t, n:b.textContent.trim()}:null;
   }).filter(Boolean);
-  const title=(NAV_MAIN.find(x=>x.k===k)||{}).n||"";
-  const M=modal(`<h2>${esc(title)}</h2>
-    <div class="navpick">${list.map(x=>
-      `<button class="btn" data-ng="${esc(x.t)}">${esc(x.n)}</button>`).join("")}</div>
-    <div class="tools"><button class="btn" id="ngX">閉じる</button></div>`,{w:520});
-  M.q("#ngX").onclick=M.close;
-  M.qa("[data-ng]").forEach(b=>b.onclick=()=>{
-    M.close();
-    const t=document.querySelector(`#tabs button[data-tab="${CSS.escape(b.dataset.ng)}"]`);
-    if(t) t.click();
-    scrollTo({top:0,behavior:"smooth"});
-  });
+  if(!list.length) return;
+  /* 中身が1つだけなら、まよわず開きます */
+  if(list.length===1){ navPick(list[0].t, k); return; }
+  const bar=$("#navBar"); if(!bar) return;
+  const btn=bar.querySelector(`[data-nav="${CSS.escape(k)}"]`);
+  const sheet=document.createElement("div");
+  sheet.className="navsheet"; sheet.id="navSheet";
+  sheet.innerHTML=`<div class="navsheetin">`+
+    list.map((x,i)=>`<button data-ng="${esc(x.t)}" style="--d:${i*26}ms">${esc(x.n)}</button>`).join("")
+    +`</div>`;
+  document.body.appendChild(sheet);
+  /* ボタンの真上に出します（画面からはみ出さないようにします）*/
+  const r=btn?btn.getBoundingClientRect():{left:0,width:scrW()};
+  const w=Math.min(Math.max(160, r.width*2.6), scrW()-16);
+  let left=r.left+r.width/2-w/2;
+  left=Math.max(8, Math.min(left, scrW()-w-8));
+  sheet.style.width=w+"px";
+  sheet.style.left=left+"px";
+  sheet.style.bottom=(navSize().h+6)+"px";
+  /* 出てくるアニメ */
+  requestAnimationFrame(()=>sheet.classList.add("on"));
+  navOpenK=k;
+  $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("open",b.dataset.nav===k));
+  sheet.querySelectorAll("[data-ng]").forEach(b=>b.onclick=()=>navPick(b.dataset.ng,k));
 }
+/** しまいます（出てきた動きを、逆に再生します） */
+function navSheetClose(now){
+  const sh=$("#navSheet");
+  navOpenK=null;
+  $$("#navBar [data-nav]").forEach(b=>b.classList.remove("open"));
+  if(!sh) return;
+  if(now){ sh.remove(); return; }
+  sh.classList.remove("on");
+  sh.classList.add("off");
+  setTimeout(()=>{ if(sh&&sh.parentNode) sh.remove(); },240);
+}
+/** えらんだタブを開きます */
+function navPick(tab,k){
+  navSheetClose();
+  navNow=k||navNow;
+  $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===navNow));
+  const snsBar=$("#navSns"); if(snsBar) snsBar.hidden=true;
+  document.body.classList.remove("hassns");
+  const t=document.querySelector(`#tabs button[data-tab="${CSS.escape(tab)}"]`);
+  if(t) t.click();
+  scrollTo({top:0,behavior:"smooth"});
+}
+/* 外を押したら、しまいます */
+document.addEventListener("click",e=>{
+  if(!navOpenK) return;
+  if(e.target.closest&&(e.target.closest("#navSheet")||e.target.closest("#navBar"))) return;
+  navSheetClose();
+},true);
 /* ── Prime SNS の帯（7つ・ぐるぐる回ります）── */
 let navSnsI=0;
 function navSnsBuild(){
@@ -11012,14 +11224,21 @@ function pbGridBuild(canvas){
   PB_CTX.setTransform(dpr,0,0,dpr,0,0);
   pbGridAll();
 }
+/** いまのテーマの色を読みます（絵には var() が使えないため） */
+function cssVar(n,fb){
+  try{ const v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    return v||fb; }catch(e){ return fb; }
+}
 function pbGridAll(){
   if(!PB_CTX) return;
   const P=pbPrimes();
-  PB_CTX.fillStyle="#0b1524";
+  const cBg=cssVar("--panel","#0b1524"), cOff=cssVar("--panel2","#16233a"),
+        cNone=cssVar("--panel0","#0e1727");
+  PB_CTX.fillStyle=cBg;
   PB_CTX.fillRect(0,0,PB_W*PB_CELL,PB_H*PB_CELL);
   for(let i=0;i<PB_W*PB_H;i++){
     const x=(i%PB_W)*PB_CELL, y=((i/PB_W)|0)*PB_CELL;
-    PB_CTX.fillStyle=(i>=P.length)?"#0e1727":(pbHas(i)?"#39d98a":"#16233a");
+    PB_CTX.fillStyle=(i>=P.length)?cNone:(pbHas(i)?"#39d98a":cOff);
     PB_CTX.fillRect(x,y,PB_CELL-1,PB_CELL-1);
   }
   const t=(PB&&PB.tail)||[];
