@@ -9,7 +9,7 @@
 <meta property="og:description" content="記録を入力してRATINGを算出。プロフィールカードの保存、フレンド比較、全体ランキングに対応。">
 <style>
 :root{
-  --bg:#0d1220; --card:var(--card); --card2:var(--card2); --line:#28374f;
+  --bg:#0d1220; --card:#161f30; --card2:#111a29; --line:#28374f;
   --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
   --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
   --serif:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif;
@@ -290,16 +290,27 @@ body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
   transition:transform .22s cubic-bezier(.2,.9,.3,1.2),opacity .18s ease}
 .navsheet.on{transform:translateY(0) scaleY(1);opacity:1;pointer-events:auto}
 .navsheet.off{transform:translateY(14px) scaleY(.6);opacity:0;pointer-events:none}
-.navsheetin{background:var(--card);border:1px solid var(--acc);border-radius:14px;
-  box-shadow:0 -8px 28px #0007;overflow:hidden;display:flex;flex-direction:column}
-html[data-theme="light"] .navsheetin{box-shadow:0 -6px 24px #0f172a24}
-.navsheet button{background:none;border:0;border-bottom:1px solid var(--line);
-  color:var(--tx);font-family:inherit;font-size:.92rem;padding:12px 14px;text-align:left;
-  cursor:pointer;opacity:0;transform:translateY(6px);
-  transition:opacity .18s ease var(--d,0ms),transform .18s ease var(--d,0ms),background .12s}
-.navsheet.on button{opacity:1;transform:translateY(0)}
+/* ★ 中身は「すけない下地」にします。
+   うしろの文字と重なって読みにくくならないよう、
+   入れものにも、1つずつのボタンにも、しっかり色をしきます。 */
+.navsheetin{background:var(--card,#161f30);border:2px solid var(--acc,#4da3ff);border-radius:14px;
+  box-shadow:0 -12px 34px #000b, 0 0 0 1px #0008;overflow:hidden;
+  display:flex;flex-direction:column}
+html[data-theme="light"] .navsheetin{
+  background:#ffffff;box-shadow:0 -10px 30px #0f172a33, 0 0 0 1px #0f172a12}
+/* 1つずつのボタンにも下地をつけます（うしろの文字が すけないように）*/
+.navsheet button{background:var(--panel,#0d1524);border:0;border-bottom:1px solid var(--line,#28374f);
+  color:var(--tx,#e9eff8);font-family:inherit;font-size:.95rem;font-weight:600;
+  padding:13px 16px;text-align:left;cursor:pointer;
+  transform:translateY(8px);
+  transition:transform .18s ease var(--d,0ms),background .12s,color .12s}
+html[data-theme="light"] .navsheet button{background:#ffffff;color:var(--tx)}
+/* 出てくる時は、下からすべり上がります（文字は最初からはっきり出します）*/
+.navsheet.on button{transform:translateY(0)}
 .navsheet button:last-child{border-bottom:0}
-.navsheet button:active{background:var(--panel2)}
+.navsheet button:active,.navsheet button:hover{background:var(--accsoft);color:var(--tx2)}
+html[data-theme="light"] .navsheet button:active,
+html[data-theme="light"] .navsheet button:hover{background:var(--accsoft);color:var(--tx)}
 .navbar button.open{color:var(--acc)}
 .navbar button.open i{transform:translateY(-2px)}
 .navbar button i{transition:transform .18s ease}
@@ -857,8 +868,12 @@ button.btn.done,button.btn.done:disabled{opacity:1;background:#222a38;border-col
 footer{text-align:center;margin-top:26px;font-size:.74rem;color:var(--dim2)}
 footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:inherit;padding:2px 6px}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel2);
-  border:1px solid var(--line);border-radius:10px;padding:10px 20px;font-size:.85rem;z-index:60;
-  opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center}
+  border:1px solid var(--line);border-radius:10px;padding:10px 20px;font-size:.85rem;z-index:9500;
+  opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center;
+  box-shadow:0 6px 22px #0007}
+/* ★ 下の帯があるときは、その上に出します（帯のうしろに隠れないように）*/
+body.hasnav .toast{bottom:calc(var(--navh) + 18px)}
+body.hasnav.hassns .toast{bottom:calc(var(--navh) * 2 + 18px)}
 .toast.on{opacity:1}
 .banner{background:#3a2a12;border:1px solid #6b4d1c;border-radius:10px;padding:9px 13px;
   font-size:.8rem;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -2753,7 +2768,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v116";
+const APP_VERSION = "v118";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3432,6 +3447,14 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v118":[
+    "下のボタンから出るメニューを、すけない下地にしました（うしろの文字と重ならないように）",
+    "メニューの文字を少し太く・大きくして、読みやすくしました"],
+  "v117":[
+    "カードの背景が透けてしまう不具合を修正しました（色の指定がこわれていました）",
+    "下のボタンから出るメニューに下地をつけ、文字が重ならないようにしました",
+    "コインをもらった時のお知らせが、下の帯にかくれないようにしました",
+    "「この端末に合わせる」でパソコンの見た目にもどれるようにしました"],
   "v116":[
     "Prime Bingo の「出た数字」が同期で消えてしまう不具合を修正しました",
     "「画面の作り」の切りかえが押せない・確認画面が出ない不具合を修正しました",
@@ -10028,8 +10051,13 @@ function skinApply(){
   on("skDark",SKIN.theme!=="light");   on("skLight",SKIN.theme==="light");
   on("skAuto",SKIN.phone!=="phone");   on("skPhone",SKIN.phone==="phone");
   /* この行は、下の帯が用意できたあとで出します。
-     読み込みのはじめに呼ばれることがあるので、try で囲みます */
-  try{ const row=$("#skPhoneRow"); if(row) row.hidden=!navOn(); }catch(e){}
+     ★ ただし「スマホの見た目」をえらんでいる間は、かならず出します。
+       そうしないと、もどす方法が無くなってしまいます。 */
+  try{ const row=$("#skPhoneRow");
+    if(row) row.hidden=!(navOn()||SKIN.phone==="phone"); }catch(e){
+    try{ const row2=$("#skPhoneRow");
+      if(row2&&SKIN.phone==="phone") row2.hidden=false; }catch(e2){}
+  }
 }
 function skinSet(k,v){
   SKIN[k]=v;
@@ -10215,7 +10243,10 @@ function navSheetOpen(k){
   left=Math.max(8, Math.min(left, scrW()-w-8));
   sheet.style.width=w+"px";
   sheet.style.left=left+"px";
-  sheet.style.bottom=(navSize().h+6)+"px";
+  /* SNSの帯が出ているときは、そのぶん上に出します（重ならないように）*/
+  const sns=$("#navSns");
+  const snsH=(sns&&!sns.hidden)?sns.getBoundingClientRect().height:0;
+  sheet.style.bottom=(navSize().h+snsH+8)+"px";
   /* 出てくるアニメ */
   requestAnimationFrame(()=>sheet.classList.add("on"));
   navOpenK=k;
