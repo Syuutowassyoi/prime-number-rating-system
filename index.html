@@ -18,11 +18,11 @@
   --line2:#33455f; --tx2:#eaf3ff; --tx3:#cfe0f5;
   --accsoft:#2b3d5a;                   /* えらばれている所の、やわらかい下地 */
   --shadow:0 6px 22px #0006;
-  /* 見た目のえらび（ユーザーが変えられます） */
+  /* 見た目の選び（ユーザーが変えられます） */
   --font:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
   --navico:22px; --navfs:11px; --navpad:7px; --navh:56px;
 }
-/* 明朝体をえらんだ時。
+/* 明朝体を選んだ時。
    明朝体は線が細いので、そのままだと うすく見えます。
    少し太く・少し大きくして、読みやすさをそろえます。 */
 html[data-font="mincho"]{
@@ -68,7 +68,7 @@ html[data-theme="light"] .subbox,html[data-theme="light"] .modal{
   background:#ffffff;border-color:var(--line);color:var(--tx)}
 html[data-theme="light"] .modal{box-shadow:0 18px 50px #0f172a2e}
 html[data-theme="light"] .mask{background:#0f172a55}
-/* 入力するところ */
+/* 入力する欄 */
 html[data-theme="light"] input,html[data-theme="light"] textarea,
 html[data-theme="light"] select,html[data-theme="light"] .txt{
   background:#ffffff;color:var(--tx);border-color:var(--line2)}
@@ -99,7 +99,7 @@ html[data-theme="light"] .ghead{color:var(--dim2)}
 html[data-theme="light"] .muted,html[data-theme="light"] .tiny{color:var(--dim)}
 html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,
 html[data-theme="light"] h4,html[data-theme="light"] b,html[data-theme="light"] .v{color:var(--tx)}
-/* 白い文字を前提にしていた所を、読める色にもどします */
+/* 白い文字を前提にしていた所を、読める色に戻します */
 html[data-theme="light"] [style*="color:#eaf3ff"],
 html[data-theme="light"] [style*="color:#fff"],
 html[data-theme="light"] [style*="color:#eef3fa"],
@@ -121,7 +121,7 @@ html[data-theme="light"] .pbc.on{
 html[data-theme="light"] .uiflag{background:#ffffffee}
 html[data-theme="light"] .uifhead{background:linear-gradient(90deg,#dbe7f8,#ffffff);color:var(--tx)}
 html[data-theme="light"] footer{color:var(--dim2)}
-/* ── のこりの場所も、ひとつずつ明るくします ── */
+/* ── 残りの場所も、1つずつ明るくします ── */
 /* データ帯（いちばん上のボーダー） */
 html[data-theme="light"] #pgt,html[data-theme="light"] #pgbc .pgboard{
   background:#e8eef8;border-color:#b9cdea}
@@ -290,15 +290,15 @@ body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
   transition:transform .22s cubic-bezier(.2,.9,.3,1.2),opacity .18s ease}
 .navsheet.on{transform:translateY(0) scaleY(1);opacity:1;pointer-events:auto}
 .navsheet.off{transform:translateY(14px) scaleY(.6);opacity:0;pointer-events:none}
-/* ★ 中身は「すけない下地」にします。
-   うしろの文字と重なって読みにくくならないよう、
+/* ★ 中身は「透けない下地」にします。
+   後ろの文字と重なって読みにくくならないよう、
    入れものにも、1つずつのボタンにも、しっかり色をしきます。 */
 .navsheetin{background:var(--card,#161f30);border:2px solid var(--acc,#4da3ff);border-radius:14px;
   box-shadow:0 -12px 34px #000b, 0 0 0 1px #0008;overflow:hidden;
   display:flex;flex-direction:column}
 html[data-theme="light"] .navsheetin{
   background:#ffffff;box-shadow:0 -10px 30px #0f172a33, 0 0 0 1px #0f172a12}
-/* 1つずつのボタンにも下地をつけます（うしろの文字が すけないように）*/
+/* 1つずつのボタンにも下地をつけます（後ろの文字が 透けないように）*/
 .navsheet button{background:var(--panel,#0d1524);border:0;border-bottom:1px solid var(--line,#28374f);
   color:var(--tx,#e9eff8);font-family:inherit;font-size:.95rem;font-weight:600;
   padding:13px 16px;text-align:left;cursor:pointer;
@@ -338,7 +338,7 @@ body.phoneui #tabs{display:none !important}
 .arinbox{margin-top:10px;min-height:2.2em;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-family:Impact,"Arial Black",sans-serif;
   font-size:clamp(1.4rem,6vw,2.2rem);color:#8fe9ff;letter-spacing:.12em;word-break:break-all}
-/* ★ まちがっていても見た目は変えません（正解するまで教えません）*/
+/* ★ 間違っていても見た目は変えません（正解するまで教えません）*/
 /* キーボードと、その横のパス。早打ちしても ずれません */
 .arwrap{display:flex;gap:8px;align-items:stretch;justify-content:center;margin-top:12px;
   max-width:430px;margin-left:auto;margin-right:auto;
@@ -364,6 +364,68 @@ body.phoneui #tabs{display:none !important}
 @keyframes arpulse{0%,100%{box-shadow:0 0 10px #ff5e5e66}50%{box-shadow:0 0 18px #ff5e5ecc}}
 html[data-theme="light"] .arpass{background:#f2f5fa;color:var(--dim);border-color:var(--line2)}
 html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
+/* 数式の表示 */
+.mathb{margin:8px 0;padding:11px 14px;border-radius:10px;background:var(--panel2);
+  border:1px solid var(--line);font-size:1.02rem;line-height:1.7;
+  font-family:"Cambria Math","Latin Modern Math","Times New Roman",Georgia,serif;
+  overflow-x:auto;white-space:nowrap}
+.mathb i{font-style:italic}
+.latex{margin:4px 0 10px;padding:9px 12px;border-radius:9px;background:var(--panel0);
+  border:1px dashed var(--line2);overflow-x:auto}
+.latex code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.76rem;color:var(--dim2);white-space:pre-wrap;word-break:break-all}
+.arsvgwrap{margin:10px 0;padding:8px;border-radius:12px;background:var(--panel2);
+  border:1px solid var(--line)}
+.arsvg{width:100%;height:auto;display:block}
+table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
+/* 素数探偵モード */
+.dtgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0}
+@media(max-width:520px){.dtgrid{grid-template-columns:repeat(2,1fr)}}
+.dtopt{padding:20px 6px;border-radius:14px;cursor:pointer;
+  font-size:1.6rem;font-weight:700;letter-spacing:.02em;
+  background:var(--panel2);border:2px solid var(--line);color:var(--tx);
+  transition:transform .1s ease,border-color .1s ease,background .1s ease}
+.dtopt:hover{border-color:var(--acc2);transform:translateY(-2px)}
+.dtopt.ok{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 18%,transparent);
+  color:var(--acc2)}
+.dtopt.ng{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent);
+  color:var(--bad)}
+.dtopt.off{opacity:.42}
+.dtbook{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+@media(max-width:520px){.dtbook{grid-template-columns:repeat(3,1fr)}}
+.dtcell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;
+  border-radius:10px;cursor:pointer;background:var(--panel2);
+  border:1px solid var(--line);color:var(--tx)}
+.dtcell:hover{border-color:var(--acc2)}
+.dtcell b{font-size:1.05rem}
+.dtcell span{font-size:.66rem;color:var(--dim2)}
+.dtcell.got{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+/* アリーナ入口の 大きなボタン */
+.arbig{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:760px){.arbig{grid-template-columns:repeat(2,1fr)}}
+.arbigb{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:16px 10px;border-radius:14px;cursor:pointer;
+  background:var(--panel2);border:1px solid var(--line);color:var(--tx);
+  transition:transform .12s ease,border-color .12s ease,background .12s ease}
+.arbigb:hover{transform:translateY(-2px);border-color:var(--acc2);background:var(--panel3)}
+.arbigb:active{transform:translateY(0)}
+.arbigb svg{width:34px;height:34px;fill:none;stroke:var(--acc2);stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.arbigb.log svg{fill:var(--acc2);stroke:var(--acc2);stroke-width:1.4}
+.arbigb.log svg path{fill:none}
+.arbigb b{font-size:1.06rem}
+.arbigb span{font-size:.72rem;color:var(--dim2);text-align:center;line-height:1.3}
+.arbigb.rate svg{stroke:var(--warn)}
+.arbigb.rate:hover{border-color:var(--warn)}
+.arbigb.dt svg{stroke:var(--acc)}
+.arbigb.dt:hover{border-color:var(--acc)}
+.btn svg.ico{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px}
+/* PRS の数字。整数は大きく、小数は小さく */
+.prsnum{font-family:Impact,"Arial Black","Haettenschweiler","Anton",
+  "ヒラギノ角ゴ StdN W8","Hiragino Sans","Yu Gothic",sans-serif;
+  line-height:1;letter-spacing:.01em;display:inline-block;color:var(--acc2)}
+.prsdec{opacity:.72;letter-spacing:0}
 /* ══════════ 入場のアニメ（紫の線のゲート）══════════ */
 .argate{position:fixed;inset:0;z-index:99998;background:#07050f;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
@@ -420,14 +482,14 @@ html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
 .pblast .v{font-family:Impact,"Arial Black",sans-serif;font-size:2.6rem;line-height:1.1;
   color:#8fe9ff;letter-spacing:.02em}
 .pblast .s{font-size:.7rem;color:var(--dim2);margin-top:2px}
-/* 出た素数の表は「絵」で描きます（四角を9,600個ならべると重いためです）*/
+/* 出た素数の表は「絵」で描きます（四角を9,600個並べると重いためです）*/
 .pbwrap{position:relative;margin-top:8px;overflow:auto;border:1px solid var(--line);
   border-radius:8px;background:var(--panel);padding:5px;max-width:100%}
 .pbwrap canvas{display:block;image-rendering:pixelated}
 .pbtip{position:absolute;z-index:5;background:var(--panel);border:1px solid var(--acc);
   border-radius:6px;padding:2px 7px;font-size:.72rem;color:var(--tx2);pointer-events:none;
   white-space:nowrap;box-shadow:0 3px 10px #0008}
-/* 通常画面：盤面とボタンを横にならべます */
+/* 通常画面：盤面とボタンを横に並べます */
 .pbrow2{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:12px}
 .pbrow2 .pbcard{width:min(300px,74vw)}
 /* 書きかえられる所は、うっすら点線。ふつうの操作はそのままできます */
@@ -920,7 +982,7 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   border:1px solid var(--line);border-radius:10px;padding:10px 20px;font-size:.85rem;z-index:9500;
   opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center;
   box-shadow:0 6px 22px #0007}
-/* ★ 下の帯があるときは、その上に出します（帯のうしろに隠れないように）*/
+/* ★ 下の帯があるときは、その上に出します（帯の後ろに隠れないように）*/
 body.hasnav .toast{bottom:calc(var(--navh) + 18px)}
 body.hasnav.hassns .toast{bottom:calc(var(--navh) * 2 + 18px)}
 .toast.on{opacity:1}
@@ -1356,7 +1418,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <h1 class="pwttl">素数あつめ <span class="g">RATING</span></h1>
     <div class="pwbig">いま お休みしています</div>
     <p class="pwmsg" id="pwMsg">しばらくお待ちください。</p>
-    <p class="pwtiny">みなさんの記録はすべて残っています。消えていません。</p>
+    <p class="pwtiny">みなさんの記録は全て残っています。消えていません。</p>
     <div class="pwtools">
       <button class="btn sm" id="pwLogin">管理者の方はこちら</button>
       <button class="btn sm" id="pwRetry">もう一度確かめる</button>
@@ -1513,7 +1575,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     </div>
     <details style="margin-top:12px"><summary class="muted">伸ばす種目と「私の理論値」を決める</summary>
       <p class="tiny" style="margin-top:6px">
-        チェックした種目だけを使います（未選択なら9種目すべて）。<br>
+        チェックした種目だけを使います（未選択なら9種目全て）。<br>
         <b>私の理論値</b>は「これ以上は無理」と思う記録です。入れると、その値を超える提案はしません。</p>
       <div class="frow" style="margin-top:8px">
         <div><label class="fl">1回で上げる順位の割合</label>
@@ -1670,7 +1732,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 
     <!-- ===== タイムライン ===== -->
     <div id="svFeed">
-      <!-- 部屋えらび -->
+      <!-- 部屋選び -->
       <div id="roomPick">
         <div class="card">
           <h2>部屋を選ぶ</h2>
@@ -1699,7 +1761,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
           <input type="text" class="txt" id="tagQ" placeholder="言葉やタグで探す（例：素数 / #素数）" style="flex:1;min-width:170px">
           <button class="btn sm pri" id="tagGo">探す</button>
           <button class="btn sm" id="fdMore">詳しく</button>
-          <button class="btn sm" id="tagAll" hidden>すべて表示</button>
+          <button class="btn sm" id="tagAll" hidden>全て表示</button>
         </div>
         <div id="fdAdv" hidden style="margin-top:8px">
           <div class="frow">
@@ -1713,7 +1775,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
               <input type="text" class="txt" id="fdWho" placeholder="例：syuuto" style="max-width:none"></div>
             <div><label class="fl">種類</label>
               <select id="fdKind" style="max-width:none">
-                <option value="">すべて</option>
+                <option value="">全て</option>
                 <option value="chat">つぶやき</option>
                 <option value="record">記録の提出</option>
                 <option value="update">記録の更新</option>
@@ -1721,7 +1783,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
               </select></div>
           </div>
           <div class="tools"><button class="btn sm pri" id="fdGo">この条件で探す</button>
-            <button class="btn sm" id="fdClear">条件をすべて消す</button></div>
+            <button class="btn sm" id="fdClear">条件を全て消す</button></div>
         </div>
         <div class="ptags" id="tagCloud"></div>
         <p class="tiny" id="srNote" hidden style="color:var(--acc2)"></p>
@@ -2130,7 +2192,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 <section id="hist" hidden>
   <div class="card">
     <h2>あなたの軌跡</h2>
-    <p class="muted" style="margin-top:-8px">毎日のデータを残して、伸びかたを見られるようにしています。</p>
+    <p class="muted" style="margin-top:-8px">毎日のデータを残して、伸び方を見られるようにしています。</p>
     <div id="histTop"></div>
     <div class="tools">
       <button class="btn sm" id="hsSave">いまのデータを今日ぶんとして残す</button>
@@ -2160,7 +2222,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   <div class="card">
     <h2>予測</h2>
     <p class="muted" style="margin-top:-8px">「スコアの累積」と「生成した乱数の累積」だけ、
-      これまでの伸びかたから先を見積もります。</p>
+      これまでの伸び方から先を見積もります。</p>
     <div id="hsPredBox"></div>
   </div>
 
@@ -2364,7 +2426,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <div class="tools" style="margin-top:0">
         <button class="btn pri" id="rpSave">この内容で保存する</button>
         <button class="btn" id="rpReload">保存せずに読み直す</button>
-        <button class="btn" id="rpDef">はじめの形に戻す</button>
+        <button class="btn" id="rpDef">初期の形に戻す</button>
         <span class="tiny" id="rpMsg"></span>
       </div>
       <label class="pk" style="margin-top:10px;display:inline-flex">
@@ -2428,7 +2490,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="rkSave">この内容で保存する（全員に反映）</button>
       <button class="btn" id="rkReload">保存せずに読み直す</button>
-      <button class="btn" id="rkDef">はじめの形に戻す</button>
+      <button class="btn" id="rkDef">初期の形に戻す</button>
       <button class="btn" id="rkBack">ホームに戻る</button>
       <span class="tiny" id="rkMsg"></span>
     </div>
@@ -2465,7 +2527,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 <section id="card" hidden>
   <div class="card">
     <h2>プロフィールカード</h2>
-    <p class="muted" style="margin-top:-8px">SNSにそのまま貼れる 1200×630 の画像を生成します。裏面には18種目すべての記録とレート値が入ります。</p>
+    <p class="muted" style="margin-top:-8px">SNSにそのまま貼れる 1200×630 の画像を生成します。裏面には18種目全ての記録とレート値が入ります。</p>
     <div class="segs2" style="max-width:280px;margin-bottom:14px">
       <button id="cbFront" class="on">表面</button><button id="cbBack">裏面</button>
     </div>
@@ -2626,7 +2688,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   </div>
   <div class="card">
     <h2>見た目</h2>
-    <p class="muted" style="margin-top:-8px">文字の形と、画面の明るさをえらべます。
+    <p class="muted" style="margin-top:-8px">文字の形と、画面の明るさを選べます。
       <span class="tiny">この端末だけの設定です。</span></p>
     <div class="row" style="margin-bottom:10px">
       <div><b>文字の形</b><div class="tiny" id="skFontNow"></div></div>
@@ -2692,7 +2754,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div id="navBox"></div>
     <div class="tools">
       <button class="btn pri" id="navPub">全員に公開する</button>
-      <button class="btn" id="navHide">管理者だけにもどす</button>
+      <button class="btn" id="navHide">管理者だけに戻す</button>
       <span class="tiny" id="navMsg"></span>
     </div>
   </div>
@@ -2754,7 +2816,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div class="tools">
       <button class="btn pri" id="pzSave">この賞品で保存する（全員に反映）</button>
       <button class="btn" id="pzReload">保存せずに読み直す</button>
-      <button class="btn" id="pzDef">はじめの形に戻す</button>
+      <button class="btn" id="pzDef">初期の形に戻す</button>
       <span class="tiny" id="pzMsg"></span>
     </div>
     <h3 style="margin-top:18px">この大会だけ変える</h3>
@@ -2817,7 +2879,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v121";
+const APP_VERSION = "v122";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -2871,7 +2933,7 @@ const RENAME={
   "スコア累積":SCORE
 };
 /* 種目名の「ゆれ」を吸収します。
-   スペースの有無、大文字小文字、（）や・のちがい、全角半角……
+   スペースの有無、大文字小文字、（）や・の違い、全角半角……
    どれで保存されていても、同じ種目として読めるようにします。
    これをしないと、昔の名前で保存した人の記録が「—」のままになってしまいます。 */
 const normKey=s=>String(s??"")
@@ -2886,7 +2948,7 @@ const CANON=(()=>{
   Object.keys(RENAME).forEach(old=>{ m[normKey(old)]=RENAME[old]; });
   return m;
 })();
-/** 前の名前や、書き方のちがうキーを、正しい名前に付け替えます */
+/** 前の名前や、書き方の違うキーを、正しい名前に付け替えます */
 function fixNames(o){
   if(!o||typeof o!=="object") return o;
   /* 1) はっきり分かっている旧名から直します */
@@ -2897,7 +2959,7 @@ function fixNames(o){
       delete o[old];
     }
   });
-  /* 2) 書き方がちがうだけのキーも、正しい名前に寄せます */
+  /* 2) 書き方が違うだけのキーも、正しい名前に寄せます */
   Object.keys(o).forEach(k=>{
     const nu=CANON[normKey(k)];
     if(!nu||nu===k) return;
@@ -3321,7 +3383,7 @@ function freshClass(t){
   if(ms<=7*86400000) return "warm";
   return "";
 }
-/* 時刻はすべて日本標準時（JST）で表示する */
+/* 時刻は全て日本標準時（JST）で表示する */
 const JST={timeZone:"Asia/Tokyo"};
 function jstDT(t){ const d=new Date(t); if(isNaN(d)) return "—";
   return d.toLocaleString("ja-JP",Object.assign({month:"numeric",day:"numeric",
@@ -3496,14 +3558,27 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v122":[
+    "PRS を Impact で表示し、小数部分を小さくしました",
+    "レートモードの問題数を 10問きざみ（10〜200問）で選べるようにしました",
+    "問題数が多いほど、レートの変化量が大きくなります（信頼度 √(問題数÷50) 倍）",
+    "Prime Coin は 10問につき1枚。開始する時に支払います",
+    "途中で終了しても、そこまでの解答でレートを計算します（Prime Coin は返却されません）",
+    "レートモードなのにレートが変化しなかった不具合を修正しました",
+    "素数探偵モードを追加（6択・5秒・不正解の選択肢は最小素因数が7以上）",
+    "素数帳を追加。レベルごとの素数20個を一覧できます",
+    "練習記録のボタンを大きくし、練習とレートモードの全ての解答を一覧にしました",
+    "一覧の数字を押すと、素因数分解した答えが見られます",
+    "レートの計算式に「やさしい説明」「厳密な定義」「シミュレーター」を追加しました",
+    "画面の文章を、常用漢字で書けるところは漢字に直しました"],
   "v121":[
     "素因数分解アリーナのレートを作り直しました（50問固定・打つ手数と時間で公平に採点）",
     "出題範囲のほとんどを解けるようにならないと、レートが上がらないようにしました",
-    "まちがえても教えないようにし、わからない時の「パス」（2回押し）を足しました",
+    "間違えても教えないようにし、わからない時の「パス」（2回押し）を足しました",
     "早打ちしても拡大や文字選択が起きないキーボードにしました",
     "入場のアニメーションを追加しました",
     "練習の記録（今日・今週・今月・これまで）を表とヒストグラムで見られます",
-    "「復習」「だんだん」の出しかたを足しました",
+    "「復習」「だんだん」の出し方を足しました",
     "レートモードの前に、途中でやめられない旨の警告を出します",
     "新しい範囲が開いたあとの最初の1回は、Prime Coin を使いません"],
   "v120":[
@@ -3513,7 +3588,7 @@ const CHANGES={
     "パソコンで「この端末に合わせる」にしても、スマホの見た目のままだった不具合を修正しました",
     "下の帯があっても、パソコンでは上のメニュー（横3本）が使えるようにしました"],
   "v118":[
-    "下のボタンから出るメニューを、すけない下地にしました（うしろの文字と重ならないように）",
+    "下のボタンから出るメニューを、透けない下地にしました（後ろの文字と重ならないように）",
     "メニューの文字を少し太く・大きくして、読みやすくしました"],
   "v117":[
     "カードの背景が透けてしまう不具合を修正しました（色の指定がこわれていました）",
@@ -3549,10 +3624,10 @@ const CHANGES={
     "競技会は出し直しても数が増えていませんでしたが、出すたびに1回として数えます"],
   "v111":[
     "Prime Bingo を全員に公開できるようにしました（公開するかどうかは管理者が決めます）",
-    "パーフェクトボーナス（9,592個ぜんぶ）と All Bingo ボーナス（100マスぜんぶ）を追加",
+    "パーフェクトボーナス（9,592個全部）と All Bingo ボーナス（100マス全部）を追加",
     "ビンゴ・パーフェクト・All Bingo でもらえる Prime Coin の枚数を、管理者が決められます",
     "Prime Bingo に「ルール」ボタンを追加、リセットは無くしました",
-    "統計情報の「すべての合計」を、競技会＋チャレンジ＋アチーブメント だけにしました",
+    "統計情報の「全ての合計」を、競技会＋チャレンジ＋アチーブメント だけにしました",
     "素因数分解アリーナを追加しました（いまは管理者だけ）。Prime Park は終了しました",
     "ダブルタップで画面が拡大してしまう不具合を直しました"],
   "v110":[
@@ -3587,16 +3662,16 @@ const CHANGES={
     "あなたの軌跡で、予測を出すとグラフの線と点がずれる不具合を修正",
     "統計情報に「提出された記録」の数を追加"],
   "v104":[
-    "くらべる表に、管理者だけが使う項目が出ていたのを修正"],
+    "比べる表に、管理者だけが使う項目が出ていたのを修正"],
   "v103":[
     "追加の道具のデータが同期されず、さらに消えてしまう不具合を修正（道具の読み込みが同期より後になっていました）",
     "「1回あたりの増加量」が他の端末に届かない不具合を修正（この端末を優先する設定になっていました）",
-    "くらべる表で、やりこんだ回数と Prime Coin の進みが「—」になっていた表示の誤りを修正",
-    "くらべる表に「1回あたりの増加」を追加。0 は 0 と表示します"],
+    "比べる表で、やりこんだ回数と Prime Coin の進みが「—」になっていた表示の誤りを修正",
+    "比べる表に「1回あたりの増加」を追加。0 は 0 と表示します"],
   "v102":[
     "LSやりこみの一番上に「サーバーに全記録を送信する」「送信された記録を読み込む」を追加",
-    "押す前に、この端末と預けてある記録を見くらべられます（ちがうところに色がつきます）",
-    "まちがえても、前の内容は残るので元に戻せます"],
+    "押す前に、この端末と預けてある記録を見比べられます（違うところに色がつきます）",
+    "間違えても、前の内容は残るので元に戻せます"],
   "v101":[
     "「入力したのにランキングに反映されない」不具合を修正（昔の種目名で保存されたデータが読めていませんでした）",
     "競技会の記録にも 審査 → 審査員審査 → スーパーバイザー審査 を追加。審査画面では換算前の元の記録が必ず見えます",
@@ -3619,12 +3694,12 @@ const CHANGES={
     "賞品は大会が終わるまで、いつでも直せます",
     "ランキングのところに、その大会の賞品と参加賞を表示するようにした"],
   "v97":[
-    "競技会に「レートモード」を追加。むずかしさの違う種目や、スコアとタイムを混ぜても公平に順位が付きます",
+    "競技会に「レートモード」を追加。難しさの違う種目や、スコアとタイムを混ぜても公平に順位が付きます",
     "順位ごとの賞品（スター・Prime Coin）と参加賞を、管理者が決められるようにした",
     "チャレンジの Daily・Weekly・Monthly も、順位ごとの賞と参加賞を設定できます",
     "大会ごとに賞品を上書きできるようにした",
     "「大会の記録」でチャレンジの記録（第何回・順位）も見られるようにした",
-    "管理者だけが使える機能をサーバー側でも毎回たしかめるようにした",
+    "管理者だけが使える機能をサーバー側でも毎回確かめるようにした",
     "Prime Coin と応援ポイントの履歴を管理者が見て直せるようにした",
     "ヘルプの経験値の数字を、ほんとうの値に直した"],
   "v96":[
@@ -4091,7 +4166,7 @@ function stEmpty(raw){
     if(v==null) return true;
     if(Array.isArray(v)) return v.length===0;
     if(typeof v==="object"){
-      /* すべての値が空なら、中身なしとみなします */
+      /* 全ての値が空なら、中身なしとみなします */
       const ks=Object.keys(v);
       if(!ks.length) return true;
       return ks.every(k=>v[k]==null||v[k]===""||
@@ -4148,7 +4223,7 @@ function stConflict(k, mine, theirs, at){
 }
 const ST_LABEL={
   "sa-rec-v3":"個人データ（記録）", "sa-pro-v3":"プロフィール", "sa-fr-v3":"フレンド",
-  "sa-times-v1":"種目ごとの時刻", "sa-baseline-v1":"はじめの記録",
+  "sa-times-v1":"種目ごとの時刻", "sa-baseline-v1":"最初の記録",
   "sa-mymax-v1":"自己ベスト", "sa-claim-v1":"世界記録の申請",
   "sa-ls-v1":"LSやりこみの設定", "sa-lslog-v1":"やりこみ記録",
   "sa-lsall-v1":"やりこみの通算", "sa-lsbase-v1":"やりこみの基準",
@@ -4221,7 +4296,7 @@ function stConflictPick(){
   };
   M.q("#cfX").onclick=()=>M.close();
 }
-/** 中身のあらましを、みじかい言葉にします */
+/** 中身のあらましを、短い言葉にします */
 function stSize(raw){
   if(raw==null) return "（なし）";
   try{
@@ -4382,7 +4457,7 @@ function stApply(got){
    ・3秒ごとに中身が変わっていないか見る（今までどおり）
    ・20秒ごとに、変わっていなくても取りに行く（ほかの端末のぶんを拾う）
    ・タブを離れる／閉じる時に、その場で送る
-   ・もどってきた時、ネットにつながった時にも送る
+   ・戻ってきた時、ネットにつながった時にも送る
    ══════════════════════════════════════════════════════════════ */
 let stPullT=null;
 function stWatch(){
@@ -4394,7 +4469,7 @@ function stWatch(){
   document.addEventListener("visibilitychange", ()=>{
     if(!stCan()) return;
     if(document.hidden) stFlush();             /* 離れる時は、その場で送る */
-    else { stFail=0; stSync(); }               /* もどったら、すぐそろえる */
+    else { stFail=0; stSync(); }               /* 戻ったら、すぐそろえる */
   });
   window.addEventListener("online", ()=>{ stFail=0; if(stCan()) stSync(); });
   window.addEventListener("pagehide", stFlush);
@@ -4431,7 +4506,7 @@ function stFlush(){
    ・混ぜ方は「多いほうを残す」なので、進み具合が減ることはありません
    ══════════════════════════════════════════════════════════════ */
 const K_LSREV="sa-lsrev-v1";
-/* このまとまりを、ひとつの入れものとして扱います */
+/* このまとまりを、1つの入れものとして扱います */
 const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1","sa-lsday-v1",
   "sa-lscoin-v1","sa-pb-v1","sa-pblog-v1"];
 /** 追加の道具が足したものも、いっしょに持ちます */
@@ -4513,7 +4588,7 @@ function lsId(x){
   }
   try{ return JSON.stringify(x); }catch(e){ return String(x); }
 }
-/** この端末の中身を、ひとつのかたまりにします */
+/** この端末の中身を、1つのかたまりにします */
 function lsPack(){
   /* Prime Bingo は、まとめ書きを待たずに ここで書き出します
      （待っているあいだに同期すると、古い旗が送られてしまうためです）*/
@@ -4526,7 +4601,7 @@ function lsPack(){
   });
   return o;
 }
-/** かたまりを、この端末に書きもどします */
+/** かたまりを、この端末に書き戻します */
 function lsUnpack(o, changedOut){
   let n=0;
   Object.keys(o||{}).forEach(k=>{
@@ -4661,7 +4736,7 @@ async function lsStart(){
    ならないことがあります。こちらは分かりやすく、
    　送信 … サーバーの中身を、この端末の中身にする
    　読込 … この端末の中身を、サーバーの中身にする
-   と、まるごと置きかえます。押す前に中身をくらべられます。
+   と、まるごと置きかえます。押す前に中身を比べられます。
    ══════════════════════════════════════════════════════════ */
 /** かたまりの中身を、人が読める形にまとめます */
 function lsBrief(o){
@@ -4690,7 +4765,7 @@ function lsBrief(o){
     ext:  Object.keys(o).filter(k=>LS_OWN.indexOf(k)<0).length
   };
 }
-/** くらべる表を作ります */
+/** 比べる表を作ります */
 function lsCmpHTML(a,b,an,bn){
   const A=lsBrief(a), B=lsBrief(b);
   /* ★ 0 も「—」ではなく 0 と出します（無いのか 0 なのか分かるように）*/
@@ -4734,11 +4809,11 @@ async function lsPushAll(){
   const mine=Object.assign({},lsExtra,lsPack());
   const ok=await askYN("この端末の記録を、まるごと送信しますか？",
     `<b>預けてある記録は、この端末の記録に置きかわります。</b><br>
-     <span class="tiny">下の2つをよく見くらべてください。
-     ちがっているところは色を変えています。</span><br><br>`+
+     <span class="tiny">下の2つをよく見比べてください。
+     違っているところは色を変えています。</span><br><br>`+
     lsCmpHTML(mine,srv.data,"この端末","いま預けてあるもの")+
     `<p class="tiny" style="margin-top:8px">前に預けてあった内容は30回ぶん残るので、
-      まちがえても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>`,
+      間違えても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>`,
     "この端末の内容で送信する","やめる");
   if(!ok) { lsSaveMsg(""); return; }
   lsSaveMsg("送っています…");
@@ -5281,7 +5356,7 @@ function drawPyramid(total,complete){
    ランクの編集（管理者だけ・1枚の画面）
    ══════════════════════════════════════════════════════════ */
 let REDIT=null;
-/** 中身だけを取り出した「見くらべ用の文字列」（キーの並び順に左右されません） */
+/** 中身だけを取り出した「見比べ用の文字列」（キーの並び順に左右されません） */
 const rankSig=a=>(a||[]).map(r=>[Number(r.min||0).toFixed(3),String(r.n||""),
   String(r.c||"").toLowerCase(),String(r.c2||"").toLowerCase(),
   r.glow?1:0, r.anim?1:0].join("|")).join(";");
@@ -5397,7 +5472,7 @@ function rkPrev(){
       <span class="rtplain" style="font-size:26px;${rankCSS(REDIT.num,6)}">${esc(v.toFixed(3))}</span>
       <span style="${rankCSS(r,4)};font-weight:800">${esc(r.n||"—")}</span>
     </div>`;}).join("");
-  $("#rkPrev").innerHTML=`<p class="tiny">左から：バッジ／レートの下限／RATING の数字／一覧での名前の出かた</p>`
+  $("#rkPrev").innerHTML=`<p class="tiny">左から：バッジ／レートの下限／RATING の数字／一覧での名前の出方</p>`
     +demo
     +`<p class="tiny" style="margin-top:10px;color:var(--dim2)">
        グラデーションと光は、端末によって少し見え方が変わります。
@@ -5409,7 +5484,7 @@ function rkPrev(){
   try{ $("#rkPyr").innerHTML=drawPyramid(((+REDIT.ranks[Math.floor(REDIT.ranks.length/2)].min)||0)+0.5,true); }
   finally{ RANKS=keep; }
 
-  /* ── 入力のまちがいを知らせます ── */
+  /* ── 入力の間違いを知らせます ── */
   const ng=[];
   if(REDIT.ranks.some(r=>!String(r.n||"").trim())) ng.push("名前が空のランクがあります");
   const mins=REDIT.ranks.map(r=>+r.min||0);
@@ -5427,7 +5502,7 @@ if($("#rkAdd")) $("#rkAdd").onclick=()=>{
 };
 if($("#rkDef")) $("#rkDef").onclick=()=>{
   REDIT={ranks:JSON.parse(JSON.stringify(RANK_DEF)),num:JSON.parse(JSON.stringify(RNUM_DEF))};
-  rkDraw(); toast("はじめの形に戻しました（保存はまだです）");
+  rkDraw(); toast("初期の形に戻しました（保存はまだです）");
 };
 if($("#rkReload")) $("#rkReload").onclick=async()=>{ await rankCfgLoad(); rkEnter(); toast("読み直しました"); };
 if($("#rkBack")) $("#rkBack").onclick=()=>goTab("profile");
@@ -5583,7 +5658,7 @@ function rpRoad(rp,cfg){
         style="font:800 13px ui-sans-serif,system-ui;letter-spacing:.06em${
           (+gr.glow||0)>0?`;filter:drop-shadow(0 0 ${gr.glow}px ${gr.c2||gr.c})`:""}">${esc(gr.n)}</text>`;
   }
-  /* 値固定になったところに、しるしを付けます */
+  /* 値固定になったところに、印を付けます */
   if(cur.flat>0&&cur.lastN<st.length){
     const xf=padL+SEG*(cur.lastN-1);
     g+=`<line x1="${xf}" y1="20" x2="${xf}" y2="112" stroke="#7fd8ff" stroke-width="1.5" stroke-dasharray="4 3"/>`;
@@ -5662,7 +5737,7 @@ if($("#rpHomeGo")) $("#rpHomeGo").onclick=()=>goTab("rprank");
 const K_LSVIEW="sa-lsview-v1";
 const LSV_ITEMS=[
   {k:"count",n:"クリア回数・時間・コイン"},
-  {k:"hint", n:"使いかたの説明"},
+  {k:"hint", n:"使い方の説明"},
   {k:"now",  n:"今回の増加"},
   {k:"all",  n:"現在までの増加"},
   {k:"goal", n:"累積の見込みと目標"},
@@ -5697,7 +5772,7 @@ function lsViewDraw(){
   });
   lsViewApply();
 }
-/* ぜんぶ表示・最小にする は、表示の窓の中で配線します */
+/* 全部表示・最小にする は、表示の窓の中で配線します */
 
 /* ══════════ LSやりこみの中の RANK（見込み）══════════ */
 let LSRP=null;                 /* 前に出した RP。アニメの始まりに使います */
@@ -5891,7 +5966,7 @@ function rpFlatNote(){
   }
   const my=(+rec[RAND]||0)*(+(RPEDIT.formula||{}).rand||0)+(+rec[SCORE]||0)*(+(RPEDIT.formula||{}).score||0);
   const d=rpRank(my,RPEDIT);
-  e.innerHTML=`<b>計算のしかた</b><br>
+  e.innerHTML=`<b>計算の仕方</b><br>
     <span class="mono">RANK ${jp(n)} に必要なRP ＝ ${esc(rpFmt(last))}</span><br>
     <span class="mono">ランク ＝ ${jp(n)} ＋ 切り捨て（（いまのRP − ${esc(rpFmt(last))}）÷ ${esc(rpFmt(flat))}）</span><br>
     <span class="tiny">例：RP が ${esc(rpFmt(last+flat*3+Math.floor(flat/2)))} なら、
@@ -5955,7 +6030,7 @@ if($("#rpGen")) $("#rpGen").onclick=()=>{
 if($("#rpDef")) $("#rpDef").onclick=()=>{
   RPEDIT=JSON.parse(JSON.stringify(RP_DEF));
   RPEDIT.steps=rpSteps(RPEDIT); rpEditDraw();
-  toast("はじめの形に戻しました（保存はまだです）");
+  toast("初期の形に戻しました（保存はまだです）");
 };
 if($("#rpReload")) $("#rpReload").onclick=async()=>{ await rpLoad(); rpEditEnter(); toast("読み直しました"); };
 if($("#rpSave")) $("#rpSave").onclick=async()=>{
@@ -6405,7 +6480,7 @@ document.addEventListener("input",e=>{const t=e.target;
   else if(t.id==="pbio"){pro.bio=t.value;proTouch();render();}});
 $("#clear").onclick=async()=>{
   const n=ORDER.filter(x=>rec[x]>0).length;
-  if(n&&!await askYN("入力をすべて消しますか？",
+  if(n&&!await askYN("入力を全て消しますか？",
     `入力済みの <b>${n} 項目</b> を消します。<br>`+
     `<span class="tiny">設定タブの「バックアップを保存」で控えを取れます。</span>`,"消す")) return;
   allowEmptySave=true; rec={}; fillInputs(); render(); allowEmptySave=false;
@@ -6458,7 +6533,7 @@ $("#impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;
   fr.readAsText(f);};
 $("#wipe").onclick=async()=>{
   if(!await askYN("この端末のデータを消しますか？",
-    "記録・プロフィール・フレンドがすべて消えます。<br>"+
+    "記録・プロフィール・フレンドが全て消えます。<br>"+
     "<span class='tiny'>ログイン中ならクラウドには残るので、再ログインで戻せます。</span>","消す")) return;
   allowEmptySave=true;
   [K_REC,K_PRO,K_FR].forEach(k=>localStorage.removeItem(k));
@@ -6585,7 +6660,7 @@ function stParse(text){
     const rank=+flat[ri].replace(/[^\d]/g,"");
     if(!ST_RANKS.includes(rank)){ out.warn.push(`${rank}位 は使わないので飛ばしました`); return; }
     const t=sec||"rand";
-    /* その行の、順位より右にある数字だけを見ます（「○○人」は別あつかい）*/
+    /* その行の、順位より右にある数字だけを見ます（「○○人」は別扱い）*/
     const ns=[];
     for(let i=ri+1;i<flat.length;i++){
       if(/人$/.test(flat[i])) continue;
@@ -6686,10 +6761,10 @@ function stSubsDraw(){
     ${one("競技会","competition","のべ提出回数")}
     ${one("チャレンジ","challenge","のべ提出回数")}
     ${one("アチーブメント","achievement","のべ提出回数")}
-    ${one("すべての合計","total","ぜんぶ合わせて"," all")}
+    ${one("全ての合計","total","全部合わせて"," all")}
   </div>
   <p class="tiny" style="margin-top:8px;color:var(--dim2)">
-    「すべての合計」は、競技会・チャレンジ・アチーブメントを足したものです。<br>
+    「全ての合計」は、競技会・チャレンジ・アチーブメントを足したものです。<br>
     出し直したぶんも1回として数えています（のべ回数）。<br>
     このほかに、個人の記録の提出が ${jp(n("record"))} 回あります。
     　登録している人 ${jp(n("people"))} 人</p>`;
@@ -6918,7 +6993,7 @@ function showEvenPlan(){
       :'<span class="lose">選んだ種目だけでは届きません</span>')+
     `　<b>${rows.length}種目</b>を均等に強化</p>`+
     (p.reached?"":`<div class="hintbox"><b style="color:var(--bad)">目標に届きません。</b>`+
-      `<br><span class="tiny">選んだ7種目をすべて1位にしても ${f3(p.end)} までです。`+
+      `<br><span class="tiny">選んだ7種目を全て1位にしても ${f3(p.end)} までです。`+
       `① 十種競技総合スコアは9種目の合計なので、②に選んでいない種目を伸ばすと、`+
       `さらにRATINGが上がります。「自分で選ぶ」で対象を変えるか、目標を下げてください。</span></div>`)+
     `<div class="hintbox">1位ボーダーまでの残りを、どの種目も同じ割合
@@ -6969,7 +7044,7 @@ $("#doPlanStep").onclick=()=>{
               :'<span class="lose">この条件では届きません</span>')+
     `　<b>${kinds}種目</b>に分散・全<b>${p.steps.length}手</b>`+
     (pool?`　<span class="tiny">（指定した${pool.length}種目のみ使用）</span>`:"")+`</p>`+
-    (p.reached?"":`<div class="hintbox">選んだ種目をすべて1位にしても届きません。対象の種目を増やすか、目標を下げてください。</div>`)+
+    (p.reached?"":`<div class="hintbox">選んだ種目を全て1位にしても届きません。対象の種目を増やすか、目標を下げてください。</div>`)+
     `<h3>種目ごとの最終目標</h3>`+
     fin.map(x=>{const dir=LOW.has(x.n)?"以下":"以上";
       return `<div class="goal"><span class="n">${x.n}</span><span class="g">＋${f3(x.gain)}</span>`+
@@ -7061,7 +7136,7 @@ function decaEvenHTML(targetTotal){
 function decaHTML(targetTotal){
   const d=decaPlan(targetTotal);
   if(d.need<=0) return `<p class="muted">十種競技総合スコアは既に目標に届いています（現在 ${jp(d.cur)}）。</p>`;
-  if(!d.agg.length) return `<p class="muted">対象の種目がすべて上限に達しています。`+
+  if(!d.agg.length) return `<p class="muted">対象の種目が全て上限に達しています。`+
     `<br><span class="tiny">「私の理論値」を上げるか、対象の種目を増やしてください。</span></p>`;
   const diff=n=>{const sp=spreadOf(n);
     return sp<0.05?["密集","少しの伸びで順位が動きます"]
@@ -7071,7 +7146,7 @@ function decaHTML(targetTotal){
     `${d.ok?"":` <span class="lose">※この条件では ${jp(d.end)} 点までです</span>`}</p>`+
     `<p class="tiny">「順位を${Math.round(decaPct*100)}%上げる」を共通の物差しにして、`+
     `1回の伸びは最大${Math.round(decaMax*100)}%までに抑えています。`+
-    `1位ボーダーをいきなり求めるような提案はしません。<br><b>順位はすべて、ボーダーラインから計算した推定値です。</b>実際の順位とは前後します。</p>`+
+    `1位ボーダーをいきなり求めるような提案はしません。<br><b>順位は全て、ボーダーラインから計算した推定値です。</b>実際の順位とは前後します。</p>`+
     `<div class="scroll"><table><thead><tr><th>#</th><th>種目</th><th>いまの記録</th>`+
     `<th>次の目標</th><th>必要な伸び</th><th>推定順位の変化</th><th>性質</th></tr></thead><tbody>`+
     d.agg.map((r,i)=>{const [lb,note]=diff(r.n);
@@ -7654,7 +7729,7 @@ async function sb(path,opt){
 /* サーバーから返ってきた中身を、人が読める言い方に直します。
    前は JSON をそのまま出していたので、画面では途中で切れて読めませんでした。 */
 const PG_ERR={
-  "22P02":"入力の形が合っていません（ID・数字・日付のどれかが空か、形がちがいます）",
+  "22P02":"入力の形が合っていません（ID・数字・日付のどれかが空か、形が違います）",
   "23505":"同じものがすでにあります",
   "23503":"つながっている先が見つかりません",
   "23502":"必要な項目が空です",
@@ -7810,7 +7885,7 @@ const SORT_OPTS=()=>[["rating","RATING（総合）"],["lv","レベル"]]
   .concat(rpVisible()?[["rp","RANK（やりこみ）"]]:[])
   .concat([["l_value","L値"],["s_value","S値"],
   ["total_score","十種競技総合スコア"]]).concat(EVENTS.map(n=>["ev:"+n,n]));
-/* 21項目がぜんぶ入っているか（入っていない人は一覧に出しません）*/
+/* 21項目が全部入っているか（入っていない人は一覧に出しません）*/
 function rkFull(r){
   const rc=(r&&r.records)||{};
   return ORDER.every(n=>(+rc[n]||0)>0);
@@ -7871,7 +7946,7 @@ async function loadRanking(force){
           r.lv=x?(+x.lv||0):0; r.xp=x?(+x.xp||0):0; });
       }catch(e){ rows.forEach(r=>{ r.lv=0; r.xp=0; }); }
     }
-    /* ★ 21項目がぜんぶそろっている人だけを出します */
+    /* ★ 21項目が全部そろっている人だけを出します */
     rows=rows.filter(rkFull);
     const val=r=>byEv?((r.records||{})[evName]||0)
       :byRp?rpOf(r.records||{})
@@ -7948,7 +8023,7 @@ async function loadRanking(force){
       let r=null;
       try{ r=await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:h})}); }
       catch(e){ r=null; }
-      /* 取れなかった時は、公開プロフィールから直接もう一度さがします */
+      /* 取れなかった時は、公開プロフィールから直接もう一度探します */
       if(!r||typeof r!=="object"||!Object.keys(r).length){
         try{
           const p=await sb(`profiles_public?select=records&handle=eq.${encodeURIComponent(h)}&limit=1`);
@@ -8654,8 +8729,8 @@ function syncWeightInputs(){
   $$("[data-cw]").forEach(el=>{ el.style.display=(cupMode==="score"||cupMode==="rate")?"inline-block":"none"; });
 }
 /* レートモードの1種目ぶんの点。
-   その種目のボーダー（1位・5位・10位…）と見くらべて 0〜1000 点に直します。
-   ・むずかしい種目でも、やさしい種目でも「1位なら1000点」でそろいます
+   その種目のボーダー（1位・5位・10位…）と見比べて 0〜1000 点に直します。
+   ・難しい種目でも、易しい種目でも「1位なら1000点」でそろいます
    ・タイムの種目は「短いほど高い」に自動でそろいます（LOW の種目）*/
 const MODE_N=m=>m==="score"?"スコアモード":m==="rate"?"レートモード":"合計モード";
 const RATE_PT=1000;
@@ -8719,7 +8794,7 @@ function cupTotal(c,scores,evs){
   }
   return list.reduce((a,n)=>a+(+sc[n]||0)*(W?(+W[n]||1):1),0);
 }
-/** 作る画面の「週えらび」を、レートモードのときだけ見せます */
+/** 作る画面の「週選び」を、レートモードのときだけ見せます */
 function cupWkFill(){
   const w=$("#cWkWrap"); if(!w) return;
   w.hidden=(cupMode!=="rate");
@@ -8773,7 +8848,7 @@ $("#mdScore").onclick=()=>{cupMode="score";$$("#cupNew .toggle button").forEach(
 $("#mdRate").onclick=()=>{cupMode="rate";$$("#cupNew .toggle button").forEach(b=>b.classList.remove("on"));
   $("#mdRate").classList.add("on");
   $("#mdNote").innerHTML="記録を「その種目の中でどのくらいすごいか」に置きかえてから合計します。"
-    +"<br>むずかしさの違う種目や、スコアとタイムを<b>混ぜても公平</b>に順位が付きます。";
+    +"<br>難しさの違う種目や、スコアとタイムを<b>混ぜても公平</b>に順位が付きます。";
   syncWeightInputs();updateCupHint();};
 $("#cCreate").onclick=async()=>{
   const evs=[...cupEvents], m=$("#cMsg");
@@ -8848,7 +8923,7 @@ async function openCup(id){
       `</tbody></table></div>`:""}
     ${c.note?`<div class="tiny notebox">${richHTML(c.note)}</div>`:""}
     ${c.mode==="rate"?`<div class="hintbox">
-      この競技会は<b>レートモード</b>です。記録は各種目のボーダーラインと見くらべて
+      この競技会は<b>レートモード</b>です。記録は各種目のボーダーラインと見比べて
       <b>0〜${jp(RATE_PT)}点</b>に直してから合計します（1位ボーダーで ${rate3(RATE_PT)}点）。<br>
       適用しているボーダーライン：<b style="color:var(--acc2)">${esc(cupWeekLabel(c))}</b>
       ${cupWeekPinned(c)?'<span class="tiny">（この大会に固定ずみ）</span>'
@@ -8909,7 +8984,7 @@ async function openCup(id){
   if(isAdmin()){
     $("#cupDel").onclick=async()=>{
       if(!await askYN("この大会を削除しますか？",
-        "大会と、提出されたすべての記録が消えます。元に戻せません。","削除する")) return;
+        "大会と、提出された全ての記録が消えます。元に戻せません。","削除する")) return;
       try{ await sbAuth("rpc/delete_tournament",{method:"POST",body:JSON.stringify({p_id:c.id})});
         box.innerHTML=""; toast("削除しました"); cupCache.rows=null; loadCups(true); }
       catch(e){ toast("削除に失敗しました"); }};
@@ -9025,12 +9100,12 @@ function showEntryDetail(c,evs,e,owner,reload){
 /* ══════════════════════════════════════════════════════════
    今回のボーダーラインを、みんなに見せる
    ══════════════════════════════════════════════════════════ */
-/** 換算得点の出しかたを、ことばと式で説明します（全員が見られます）*/
+/** 換算得点の出し方を、言葉と式で説明します（全員が見られます）*/
 function rateFormulaHTML(){
   const rows=IND_RANKS.map((r,i)=>({r,p:IND_PCT[i+1]}));
   return `<div class="bdform">
-    <b>換算得点の出しかた</b><br>
-    <span class="tiny">むずかしさのちがう種目や、スコアとタイムを混ぜても公平になるようにします。</span><br><br>
+    <b>換算得点の出し方</b><br>
+    <span class="tiny">難しさの違う種目や、スコアとタイムを混ぜても公平になるようにします。</span><br><br>
     <b>1.</b> その種目のボーダーライン（何位で何点か）を、下の表のとおりに並べます。<br>
     <b>2.</b> あなたの記録が、どのボーダーとどのボーダーの間にあるかを見ます。<br>
     <b>3.</b> その間を<b>まっすぐに割りふって</b>、0〜1 の「すごさ」を出します。<br>
@@ -9039,13 +9114,13 @@ function rateFormulaHTML(){
     <code>換算得点 ＝ すごさ × ${jp(RATE_PT)}</code>（小数第3位まで）<br>
     <b>5.</b> 比重があるときは、そのあとに比重を掛けます。<br>
     <code>その種目の点 ＝ 換算得点 × 比重</code><br>
-    <b>6.</b> ぜんぶの種目の点をたしたものが、順位表の<b>合計</b>です。<br><br>
+    <b>6.</b> 全部の種目の点をたしたものが、順位表の<b>合計</b>です。<br><br>
     <b>それぞれのボーダーで、いくつになるか</b><br>
     <span class="tiny">記録なし（0）＝ <b>0.000点</b>${
       rows.map(x=>`　／　${x.r}位ボーダー ＝ <b>${rate3(x.p*RATE_PT)}点</b>`).join("")}</span><br>
     <span class="tiny">1位ボーダーを超えても、上限は ${rate3(RATE_PT)}点 です。
       タイムの種目（秒）は「短いほど高い」に自動でそろえています
-      （記録の代わりに 1÷記録 でくらべます）。</span></div>`;
+      （記録の代わりに 1÷記録 で比べます）。</span></div>`;
 }
 /** この大会で使っているボーダーラインの表を出します（だれでも見られます）*/
 function showBorders(c){
@@ -9424,7 +9499,7 @@ function animNum(el,from,to,fmt){
 /* 休憩中は時計を止めます */
 function lsElapsed(){ return lsRun?((lsRun.paused||Date.now())-lsRun.start):0; }
 /** こまかい経過時間。Date.now() は1ミリ秒きざみ（小数第3位）までしか測れないので、
- *  こまかく測るところでは performance.now() を使って、その先まで測ります。
+ *  細かく測るところでは performance.now() を使って、その先まで測ります。
  *  ブラウザによっては 1ミリ秒きざみに丸められるので、その場合は第4位が 0 のままになります。 */
 function lsElapsedHi(){
   if(!lsRun) return 0;
@@ -9463,7 +9538,7 @@ let lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
 const saveLsBase=()=>{ lsBase.at=Date.now();
   try{localStorage.setItem(K_LSBASE,JSON.stringify(lsBase));}catch(e){}
   try{ lsSoon(); }catch(e){}};
-/** はじめて使う時だけ、いまの累積を「メモ（基準A）」として覚えます。
+/** 初めて使う時だけ、いまの累積を「メモ（基準A）」として覚えます。
  *  いちど決まったあとは、「現在まで」をリセットした時にだけ動かします。 */
 function lsSyncBase(){
   const S=rec[SCORE]||0, R=rec[RAND]||0;
@@ -9723,7 +9798,7 @@ function lsPeriodKey(ms,kind){
     {timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
   if(kind==="day")   return ymd;
   if(kind==="month") return ymd.slice(0,7);
-  /* 週は月曜はじまり。日本時間の日付から数えます */
+  /* 週は月曜始まり。日本時間の日付から数えます */
   const [y,m,dd]=ymd.split("-").map(Number);
   const u=Date.UTC(y,m-1,dd);
   const w=new Date(u);
@@ -9732,7 +9807,7 @@ function lsPeriodKey(ms,kind){
   const p=n=>String(n).padStart(2,"0");
   return `${mon.getUTCFullYear()}-${p(mon.getUTCMonth()+1)}-${p(mon.getUTCDate())}`;
 }
-const LSUM_N={day:"日",week:"週（月曜はじまり）",month:"月"};
+const LSUM_N={day:"日",week:"週（月曜始まり）",month:"月"};
 function renderLsSum(){
   const box=$("#lsSum"); if(!box) return;
   $$("#lsSumTabs [data-ls]").forEach(b=>b.classList.toggle("on",b.dataset.ls===lsSumTab));
@@ -9744,7 +9819,7 @@ function renderLsSum(){
     map[k].n+=(+L.count||0); map[k].ms+=(+L.ms||0); map[k].runs++;
     map[k].gs+=(+L.gainS||0); map[k].gr+=(+L.gainR||0);
   });
-  /* ② 押した回数ぜんぶ（タイマーを使っていない分も入ります） */
+  /* ② 押した回数全部（タイマーを使っていない分も入ります） */
   Object.keys(lsDay||{}).forEach(d=>{
     const k=lsPeriodKey(Date.parse(d+"T12:00:00+09:00"),lsSumTab);
     if(!map[k]) map[k]={n:0,all:0,ms:0,runs:0,gs:0,gr:0};
@@ -9777,7 +9852,7 @@ function renderLsSum(){
       <td style="text-align:right"><b style="color:var(--acc2)">${jp(totM)}</b></td>
       <td colspan="4"></td></tr>`
     +`</tbody></table></div>
-    <p class="tiny" style="margin-top:8px"><b>クリア回数</b>は「＋1回 クリア！」を押した回数ぜんぶです
+    <p class="tiny" style="margin-top:8px"><b>クリア回数</b>は「＋1回 クリア！」を押した回数全部です
       （スタートを押していなくても数えます）。<br>
       <b>計測した回数</b>は、スタート〜終了で記録に残したぶんだけです。</p>`;
 }
@@ -10081,7 +10156,7 @@ function navAdmDraw(){
   <p class="tiny" style="color:var(--dim2);margin-top:8px">
     下の帯は<b>スマホの見た目の時だけ</b>出ます。パソコンの見た目では、これまでどおり
     上のメニュー（横3本）を使います。<br>
-    パソコンでも試したい時は、設定の「見た目」→「スマホの見た目」をえらんでください。<br>
+    パソコンでも試したい時は、設定の「見た目」→「スマホの見た目」を選んでください。<br>
     画面のはばに合わせて、ボタンと文字の大きさは自動で変わります。</p>`;
 }
 async function navAdmEnter(){
@@ -10091,21 +10166,21 @@ async function navAdmEnter(){
 }
 async function navPubSet(on){
   if(!isAdmin()) return;
-  if(!await askYN(on?"新しい画面を全員に公開しますか？":"管理者だけにもどしますか？",
-    on?"みんなの画面の下に、ボタンの帯が出るようになります。<br><span class='tiny'>いつでも元にもどせます。</span>"
+  if(!await askYN(on?"新しい画面を全員に公開しますか？":"管理者だけに戻しますか？",
+    on?"みんなの画面の下に、ボタンの帯が出るようになります。<br><span class='tiny'>いつでも元に戻せます。</span>"
       :"あなた以外には、下の帯が出なくなります。",
-    on?"公開する":"もどす")) return;
+    on?"公開する":"戻す")) return;
   navMsg("送っています…");
   try{
     await callRpc("nav_cfg_set",{p_on:!!on});
     await navCfgLoad(); navAdmDraw(); navBuild();
-    navMsg(on?"公開しました（全員に反映）":"管理者だけにもどしました","acc2");
+    navMsg(on?"公開しました（全員に反映）":"管理者だけに戻しました","acc2");
   }catch(e){ navMsg(esc(String(e.message||e)).slice(0,120),"bad"); }
 }
 if($("#navPub"))  $("#navPub").onclick=()=>navPubSet(true);
 if($("#navHide")) $("#navHide").onclick=()=>navPubSet(false);
 
-/* ══════════ 見た目のえらび（この端末だけ）══════════ */
+/* ══════════ 見た目の選び（この端末だけ）══════════ */
 const K_SKIN="sa-skin-v1";
 let SKIN=Object.assign({font:"gothic",theme:"dark",phone:"auto"},ls(K_SKIN,{}));
 function skinApply(){
@@ -10122,8 +10197,8 @@ function skinApply(){
   on("skDark",SKIN.theme!=="light");   on("skLight",SKIN.theme==="light");
   on("skAuto",SKIN.phone!=="phone");   on("skPhone",SKIN.phone==="phone");
   /* この行は、下の帯が用意できたあとで出します。
-     ★ ただし「スマホの見た目」をえらんでいる間は、かならず出します。
-       そうしないと、もどす方法が無くなってしまいます。 */
+     ★ ただし「スマホの見た目」を選んでいる間は、必ず出します。
+       そうしないと、戻す方法が無くなってしまいます。 */
   try{ const row=$("#skPhoneRow");
     if(row) row.hidden=!(navAllow()||SKIN.phone==="phone"); }catch(e){
     try{ const row2=$("#skPhoneRow");
@@ -10137,7 +10212,7 @@ function skinSet(k,v){
 }
 /* ★ 画面の作り（スマホ／パソコン）は、途中まで開いた所が残ると
    ちぐはぐになるので、まるごと読み込み直します。
-   その前に、かならず確かめます。 */
+   その前に、必ず確かめます。 */
 async function skinPhoneSet(v){
   if(SKIN.phone===v) return;
   const name=(v==="phone")?"スマホの見た目":"この端末に合わせる";
@@ -10216,7 +10291,7 @@ const ICO={
   rv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/><path d="m8 10.5 1.8 1.8L13 9"/></svg>',
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9.5" cy="10.5" r="2.4"/><path d="M5.6 17c.6-2 2-3 3.9-3s3.3 1 3.9 3"/><path d="M15 9.5h3.5M15 13h3.5"/></svg>'
 };
-/* 下の帯にならべるもの。どれも「上にせり出すメニュー」を持ちます */
+/* 下の帯に並べるもの。どれも「上にせり出すメニュー」を持ちます */
 const NAV_MAIN=[
   {k:"__home", n:"ホーム",        i:"home"},
   {k:"__me",   n:"ユーザーデータ", i:"user"},
@@ -10277,7 +10352,7 @@ function navBuild(){
   /* スマホの見た目の時は、上のメニューは使いません（下の帯だけ）*/
   const ph=isPhone();
   document.body.classList.toggle("phoneui", ph);
-  /* パソコンにもどしたら、上のメニューをまた使えるようにします */
+  /* パソコンに戻したら、上のメニューをまた使えるようにします */
   if(!ph){ const t=$("#tabs"); if(t&&!t.classList.contains("open")) t.hidden=true; }
   else { try{ toggleMenu(false); }catch(e){} }
   bar.innerHTML=NAV_MAIN.map(x=>`<button data-nav="${x.k}" class="${x.k===navNow?"on":""}">
@@ -10304,7 +10379,7 @@ function navGo(k){
   }
   navSheetOpen(k);
 }
-/** ボタンの上に、えらぶものをせり出させます */
+/** ボタンの上に、選ぶものをせり出させます */
 function navSheetOpen(k){
   navSheetClose(true);                       /* 何重にも出さないように、まず消します */
   const list=(NAV_GROUP[k]||[]).map(t=>{
@@ -10312,7 +10387,7 @@ function navSheetOpen(k){
     return (b&&!b.hidden)?{t, n:b.textContent.trim()}:null;
   }).filter(Boolean);
   if(!list.length) return;
-  /* 中身が1つだけなら、まよわず開きます */
+  /* 中身が1つだけなら、迷わず開きます */
   if(list.length===1){ navPick(list[0].t, k); return; }
   const bar=$("#navBar"); if(!bar) return;
   const btn=bar.querySelector(`[data-nav="${CSS.escape(k)}"]`);
@@ -10350,7 +10425,7 @@ function navSheetClose(now){
   sh.classList.add("off");
   setTimeout(()=>{ if(sh&&sh.parentNode) sh.remove(); },240);
 }
-/** えらんだタブを開きます */
+/** 選んだタブを開きます */
 function navPick(tab,k){
   navSheetClose();
   navNow=k||navNow;
@@ -10436,15 +10511,35 @@ window.addEventListener("resize",()=>{
    ──────────────────────────────────────────────────────────
    ・出された自然数を、素因数分解して打ちます（例：30 → 2 3 5）
    ・順番は自由。打てた時点で正解です（「解答する」ボタンはありません）
-   ・1問 15秒。かかった時間はぜんぶ残します
+   ・1問 15秒。かかった時間は全部残します
    ・PRS（Prime Rating System）で、どれだけ極めたかを表します
    ══════════════════════════════════════════════════════════ */
 const K_AR="sa-arena-v1", K_ARDEX="sa-arenadex-v1", K_ARCOL="sa-arenacol-v1";
 const K_ARDAY="sa-arenaday-v1";   /* 日ごとに、何問解いたか */
-let ARCFG={on:false,cost:5,qn:30,per:0.020,sec:15};
+const K_ARLOG="sa-arenalog-v1";   /* 解いた1問ずつの記録 */
+/** PRS を、整数は大きく・小数は小さく出します（書体は Impact）*/
+function prsHTML(v,size){
+  const x=Math.max(0,+v||0).toFixed(3);
+  const i=x.indexOf(".");
+  const big=(size||2.4), small=big*0.56;
+  return `<span class="prsnum" style="font-size:${big}rem">${esc(x.slice(0,i))}`
+    +`<span class="prsdec" style="font-size:${small}rem">${esc(x.slice(i))}</span></span>`;
+}
+let ARCFG={on:false,cost:1,qn:50,per:0.020,sec:15};  /* cost は 10問あたりの Prime Coin */
 let AR=ls(K_AR,{prs:0,plays:0,best:0});          /* 自分のPRS */
 let ARDEX=ls(K_ARDEX,{});                        /* 数ごとの成績 {n:{q,ok,ms}} */
 let ARDAY=ls(K_ARDAY,{});                        /* 日ごとの解答数 {"2026-09-12":37} */
+let ARLOG=ls(K_ARLOG,[]);                        /* 解いた1問ずつ {n,ok,ms,at,r} */
+let arLogT=null;
+const arSaveLog=()=>{ if(arLogT) return;
+  arLogT=setTimeout(()=>{ arLogT=null;
+    try{ localStorage.setItem(K_ARLOG,JSON.stringify(ARLOG)); }catch(e){} },600); };
+/** 1問ぶんを記録に残します（新しいものが先頭）*/
+function arLogPut(n,ok,ms,rated){
+  ARLOG.unshift({n, ok:!!ok, ms:Math.max(0,ms|0), at:Date.now(), r:rated?1:0});
+  while(ARLOG.length>4000) ARLOG.pop();
+  arSaveLog();
+}
 const arSaveDay=()=>{ try{ localStorage.setItem(K_ARDAY,JSON.stringify(ARDAY)); }catch(e){} };
 /** きょう1問解いた、と記録します */
 function arDayHit(n){
@@ -10455,7 +10550,7 @@ function arDayHit(n){
   while(ks.length>500){ delete ARDAY[ks.shift()]; }
   arSaveDay();
 }
-/** 今日・今週・今月・ぜんぶ の解答数 */
+/** 今日・今週・今月・全部 の解答数 */
 function arCounts(){
   const today=hsDay();
   const d0=new Date(today+"T00:00:00+09:00");
@@ -10517,7 +10612,7 @@ function arExp(n){
 const arFacText=n=>arFactor(n).join(" × ");
 
 /* ── 打った文字が、その数の素因数分解になっているか ──
-   ・順番は自由（並べかえて見くらべます）
+   ・順番は自由（並べかえて見比べます）
    ・「打てていたら正解」なので、最後の数字を打った瞬間に決まります */
 function arCheck(n, text){
   const t=String(text||"").trim();
@@ -10548,25 +10643,26 @@ function arDexPut(n, ok, ms){
   arSaveDex();
   arDayHit(1);
 }
+/* 記録に残すのは、呼んだ側からまとめて行います */
 /* 復習の間かく（分）。正解するほど、次に出るまでが長くなります */
 const AR_IVL=[10*60e3, 60*60e3, 6*3600e3, 24*3600e3, 3*86400e3, 7*86400e3, 21*86400e3];
 const arRate=n=>{ const d=arDexOf(n); return d.q?(d.ok/d.q*100):null; };
 const arAvg =n=>{ const d=arDexOf(n); return d.ok?(d.ms/d.ok/1000):null; };
 
-/* ── 出題のえらび方 ── */
-/* ★ おぼえるのに効く出しかたを足しました。
-   ・復習：まちがえた数を少しあとで、覚えた数はずっとあとで出します
+/* ── 出題の選び方 ── */
+/* ★ 覚えるのに効く出し方を足しました。
+   ・復習：間違えた数を少しあとで、覚えた数はずっとあとで出します
      （間かくをあけて思い出すのが、いちばん記憶に残る方法です）
-   ・だんだん：できたら少しずつ大きい数へ、まちがえたら小さい数へ戻ります */
+   ・だんだん：できたら少しずつ大きい数へ、間違えたら小さい数へ戻ります */
 const AR_MODES=[["random","ランダム","出題できる数の中から、でたらめに出します"],
-                ["review","復習","まちがえた数は少しあとで、おぼえた数はずっとあとで出します。いちばん記憶に残ります"],
-                ["ladder","だんだん","できたら少しずつ大きい数へ、まちがえたら小さい数へ戻ります"],
+                ["review","復習","間違えた数は少しあとで、覚えた数はずっとあとで出します。いちばん記憶に残ります"],
+                ["ladder","だんだん","できたら少しずつ大きい数へ、間違えたら小さい数へ戻ります"],
                 ["new","ニューナンバー","まだ出したことのない数を先に出します"],
                 ["weak","苦手","正答率の低い数・時間のかかる数を先に出します"],
                 ["limit","縛り","はんいを自分で決めて出します"]];
 let arMode="random", arLimLo=2, arLimHi=999;
 let arLadder=0;                 /* だんだんモードの、いまの高さ */
-/** 次の問題をえらびます */
+/** 次の問題を選びます */
 function arPick(max, used){
   const lo=(arMode==="limit")?Math.max(2,arLimLo):2;
   const hi=(arMode==="limit")?Math.min(max,arLimHi):max;
@@ -10629,7 +10725,7 @@ function arPick(max, used){
   if(!list.length) return rnd();
   list.sort((a,b)=>(a.r-b.r)||(b.t-a.t));
   /* いちばん苦手なものから、多くても40個。
-     前にあるものほど出やすくなるように、かたよらせて選びます */
+     前にあるものほど出やすくなるように、偏らせて選びます */
   const k=Math.max(1,Math.min(40,Math.ceil(list.length*0.1)));
   const top=list.slice(0,k);
   const r=Math.random();
@@ -10639,8 +10735,8 @@ function arPick(max, used){
 /* ══════════ アリーナ：図鑑 ══════════ */
 /* 色の決まり。どれか1つを選ぶと、数字ブロックがその色にうつり変わります */
 const AR_COLK=[["none","色をつけない",""],
-  ["q","出題回数が多いほど","たくさん出した数ほど、色が濃くなります"],
-  ["rate","正答率が低いほど","まちがえやすい数ほど、色が濃くなります"],
+  ["q","出題回数が多いほど","多く出した数ほど、色が濃くなります"],
+  ["rate","正答率が低いほど","間違えやすい数ほど、色が濃くなります"],
   ["time","解答時間が遅いほど","時間のかかる数ほど、色が濃くなります"],
   ["prime","素数ならば","素数だけに色をつけます"]];
 let ARCOL=Object.assign({k:"none",c0:"#ffffff",c1:"#ff5e5e",c2:"#8fe9ff",cut:30},ls(K_ARCOL,{}));
@@ -10682,7 +10778,7 @@ const AR_DEX_PER=600;
 function arDexShow(){
   const M=modal(`<h2>図鑑</h2>
     <div class="tools" style="margin-top:0">
-      <input type="text" class="txt" id="adQ" placeholder="数をさがす（例：30）" style="max-width:180px">
+      <input type="text" class="txt" id="adQ" placeholder="数を探す（例：30）" style="max-width:180px">
       <select id="adSort" style="max-width:200px">
         <option value="num">数の小さい順</option>
         <option value="rate">正答率の低い順</option>
@@ -10850,7 +10946,7 @@ function arStatsHTML(){
       <div class="lsbox"><div class="t">今日</div><div class="v">${jp(c.today)}</div><div class="s">問</div></div>
       <div class="lsbox"><div class="t">今週</div><div class="v">${jp(c.week)}</div><div class="s">月曜から</div></div>
       <div class="lsbox"><div class="t">今月</div><div class="v">${jp(c.month)}</div><div class="s">問</div></div>
-      <div class="lsbox"><div class="t">これまで</div><div class="v">${jp(c.all)}</div><div class="s">ぜんぶで</div></div>
+      <div class="lsbox"><div class="t">これまで</div><div class="v">${jp(c.all)}</div><div class="s">全部で</div></div>
     </div>
     <h3 style="margin-top:14px">この2週間</h3>
     <div class="arhist">${days.map(d=>`<div class="arhb" title="${esc(d.k)}　${jp(d.v)}問">
@@ -10860,34 +10956,138 @@ function arStatsHTML(){
     <div class="scroll"><table><thead><tr><th>いつ</th><th class="n">解いた数</th><th>ようす</th>
       </tr></thead><tbody>
       <tr><td>今日</td><td class="n"><b>${jp(c.today)}</b></td>
-        <td class="tiny">${c.today>=50?"よく練習しています":c.today>0?"つづけましょう":"まだ0問です"}</td></tr>
+        <td class="tiny">${c.today>=50?"よく練習しています":c.today>0?"続けましょう":"まだ0問です"}</td></tr>
       <tr><td>今週</td><td class="n"><b>${jp(c.week)}</b></td>
         <td class="tiny">1日あたり ${jp(Math.round(c.week/7))} 問</td></tr>
       <tr><td>今月</td><td class="n"><b>${jp(c.month)}</b></td>
         <td class="tiny">1日あたり ${jp(Math.round(c.month/Math.max(1,+hsDay().slice(8))))} 問</td></tr>
       <tr class="used"><td><b>これまで</b></td><td class="n"><b>${jp(c.all)}</b></td>
-        <td class="tiny">おぼえた数 ${jp(Object.keys(ARDEX).length)} 個</td></tr>
+        <td class="tiny">覚えた数 ${jp(Object.keys(ARDEX).length)} 個</td></tr>
     </tbody></table></div>`;
 }
+/** 「3時間前」のような表示（数値のミリ秒から）*/
+function arWhen(at){
+  const ms=Date.now()-(+at||0);
+  if(!isFinite(ms)||ms<0) return "";
+  const m=Math.floor(ms/60000);
+  if(m<1) return "たった今";
+  if(m<60) return m+"分前";
+  const h=Math.floor(m/60); if(h<24) return h+"時間前";
+  const d=Math.floor(h/24); if(d<30) return d+"日前";
+  return Math.floor(d/30)+"か月前";
+}
+/** 記録の一覧（練習・レートモードの全問）*/
+let arLogTab="all", arLogPage=0;
+function arLogRows(){
+  const f=arLogTab;
+  return ARLOG.filter(x=> f==="all"?true : f==="rate"?x.r : f==="ng"?!x.ok : !x.r);
+}
+function arLogHTML(){
+  const all=arLogRows(), per=100;
+  const pages=Math.max(1,Math.ceil(all.length/per));
+  arLogPage=Math.min(Math.max(0,arLogPage),pages-1);
+  const view=all.slice(arLogPage*per,arLogPage*per+per);
+  const ok=ARLOG.filter(x=>x.ok).length;
+  const rows=view.map(x=>`<tr class="${x.ok?"":"lose"}" data-arn="${x.n}" style="cursor:pointer">
+    <td class="tiny">${esc(arWhen(x.at))}</td>
+    <td><b>${jp(x.n)}</b></td>
+    <td class="tiny">${x.r?'<span style="color:var(--warn)">レート</span>':'<span style="color:var(--dim2)">練習</span>'}</td>
+    <td class="tiny">${x.ok?'<span style="color:var(--acc2)">正解</span>':'<span style="color:var(--bad)">不正解</span>'}</td>
+    <td class="n">${x.ok?(x.ms/1000).toFixed(2)+" 秒":"—"}</td></tr>`).join("")
+    ||`<tr><td colspan="5" class="tiny" style="color:var(--dim2)">まだ記録がありません。</td></tr>`;
+  return `<div class="lsgrid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="lsbox"><div class="t">記録した解答</div>
+        <div class="v" style="font-size:1.5rem">${jp(ARLOG.length)}</div><div class="s">直近4,000問まで</div></div>
+      <div class="lsbox"><div class="t">正解</div>
+        <div class="v" style="font-size:1.5rem">${jp(ok)}</div>
+        <div class="s">正答率 ${ARLOG.length?((ok/ARLOG.length)*100).toFixed(1):"0.0"}%</div></div>
+      <div class="lsbox"><div class="t">平均解答時間</div>
+        <div class="v" style="font-size:1.5rem">${(()=>{const a=ARLOG.filter(x=>x.ok);
+          return a.length?(a.reduce((t,x)=>t+x.ms,0)/a.length/1000).toFixed(2):"—";})()}</div>
+        <div class="s">正解した問題のみ（秒）</div></div>
+    </div>
+    <div class="segs" id="arLogTabs" style="grid-template-columns:repeat(4,1fr);margin-top:10px">
+      <button data-arlt="all" class="${arLogTab==="all"?"on":""}">全て</button>
+      <button data-arlt="rate" class="${arLogTab==="rate"?"on":""}">レートモード</button>
+      <button data-arlt="free" class="${arLogTab==="free"?"on":""}">練習</button>
+      <button data-arlt="ng" class="${arLogTab==="ng"?"on":""}">不正解のみ</button>
+    </div>
+    <p class="tiny" style="color:var(--dim2)">数字を押すと、素因数分解した答えを表示します。</p>
+    <div class="scroll" style="max-height:42vh"><table><thead><tr>
+      <th>いつ</th><th>数</th><th>種類</th><th>判定</th><th class="n">時間</th>
+      </tr></thead><tbody id="arLogBody">${rows}</tbody></table></div>
+    ${pages>1?`<div class="tools" style="justify-content:center">
+      <button class="btn sm" id="arLogPrev" ${arLogPage<=0?"disabled":""}>前へ</button>
+      <span class="tiny">${arLogPage+1} / ${pages} ページ</span>
+      <button class="btn sm" id="arLogNext" ${arLogPage>=pages-1?"disabled":""}>次へ</button></div>`:""}`;
+}
 function arStatsShow(){
-  const M=modal(`<h2>練習の記録</h2>
-    <div id="arStBox">${arStatsHTML()}</div>
-    <div class="tools"><button class="btn" id="arStX">閉じる</button></div>`,{w:760});
+  const M=modal(`<h2>練習記録</h2>
+    <div class="segs" id="arStTop" style="grid-template-columns:repeat(2,1fr)">
+      <button data-arst="sum" class="on">集計</button>
+      <button data-arst="log">解答の一覧</button>
+    </div>
+    <div id="arStBox" style="margin-top:10px">${arStatsHTML()}</div>
+    <div class="tools"><button class="btn" id="arStX">閉じる</button></div>`,{w:820});
   M.q("#arStX").onclick=M.close;
+  let tab="sum";
+  const wire=()=>{
+    const box=M.q("#arStBox");
+    if(tab==="log"){
+      box.querySelectorAll("[data-arlt]").forEach(b=>b.onclick=()=>{
+        arLogTab=b.dataset.arlt; arLogPage=0; box.innerHTML=arLogHTML(); wire(); });
+      box.querySelectorAll("[data-arn]").forEach(r=>r.onclick=()=>arNumShow(+r.dataset.arn));
+      const pv=M.q("#arLogPrev"), nx=M.q("#arLogNext");
+      if(pv) pv.onclick=()=>{ arLogPage--; box.innerHTML=arLogHTML(); wire(); };
+      if(nx) nx.onclick=()=>{ arLogPage++; box.innerHTML=arLogHTML(); wire(); };
+    }
+  };
+  M.qa("#arStTop button").forEach(b=>b.onclick=()=>{
+    tab=b.dataset.arst;
+    M.qa("#arStTop button").forEach(x=>x.classList.toggle("on",x===b));
+    M.q("#arStBox").innerHTML=(tab==="log"?arLogHTML():arStatsHTML());
+    wire();
+  });
+}
+/** 1つの数について、素因数分解した答えを見せます（図鑑と同じ）*/
+function arNumShow(n){
+  n=Math.max(2,Math.round(+n||2));
+  const f=arFactor(n);
+  const mine=ARLOG.filter(x=>x.n===n);
+  const okn=mine.filter(x=>x.ok);
+  const M=modal(`<h2>${jp(n)}</h2>
+    <div class="lsbox" style="text-align:center">
+      <div class="t">素因数分解</div>
+      <div class="v" style="font-size:1.6rem;color:var(--acc2)">${esc(arFacText(n))}</div>
+      <div class="s">${f.length===1?"素数です":`素因数 ${f.length} 個（異なる素因数 ${new Set(f).size} 種類）`}</div>
+    </div>
+    <div class="scroll" style="margin-top:10px"><table><tbody>
+      <tr><td>最大の素因数</td><td class="n"><b>${jp(f[f.length-1]||n)}</b></td></tr>
+      <tr><td>打鍵数（数字の桁数＋区切り）</td><td class="n"><b>${jp(arKeys(n))}</b></td></tr>
+      <tr><td>想定解答時間</td><td class="n"><b>${arExp(n).toFixed(2)}</b> 秒</td></tr>
+      <tr><td>解答した回数</td><td class="n"><b>${jp(mine.length)}</b> 回
+        （正解 ${jp(okn.length)}）</td></tr>
+      ${okn.length?`<tr><td>最速</td><td class="n"><b>${
+        (Math.min(...okn.map(x=>x.ms))/1000).toFixed(2)}</b> 秒</td></tr>`:""}
+    </tbody></table></div>
+    <div class="tools"><button class="btn" id="arNX">閉じる</button></div>`,{w:520});
+  M.q("#arNX").onclick=M.close;
 }
 
+/* ══════════ アリーナ：入口の画面 ══════════ */
 /* ══════════ アリーナ：入口の画面 ══════════ */
 async function arCfgLoad(){
   if(TEST||!sbOn()) return ARCFG;
   try{
     const r=await sb("rpc/arena_cfg",{method:"POST",body:"{}"});
     if(r&&typeof r==="object")
-      ARCFG={on:!!r.on, cost:Math.max(0,+r.cost||0), qn:Math.max(1,+r.qn||30),
+      ARCFG={on:!!r.on, cost:Math.max(0,+r.cost||0), qn:Math.max(10,+r.qn||50),
              per:Math.max(0,+r.per||0.02), sec:Math.max(3,+r.sec||15)};
   }catch(e){}
   try{
     const m=await sb("rpc/arena_me",{method:"POST",body:"{}"});
-    if(m&&typeof m==="object"){ AR={prs:+m.prs||0, plays:+m.plays||0, best:+m.best||0}; arSave(); }
+    if(m&&typeof m==="object"){ AR={prs:+m.prs||0, plays:+m.plays||0, best:+m.best||0,
+      solved:+m.solved||0, free:!!m.free}; arSave(); }
   }catch(e){}
   return ARCFG;
 }
@@ -10898,25 +11098,26 @@ function arHome(){
     ? (ARCFG.on?"":'<b style="color:var(--warn)">まだ公開していません（管理者だけ）</b>') : "";
   if(!arVisible()){ box.innerHTML='<p class="muted">いまは使えません。</p>'; return; }
   const max=arMax();
+  const per10=Math.max(0,+ARCFG.cost||0);
   box.innerHTML=`
     <div class="lsgrid">
       <div class="lsbox"><div class="t">PRS</div>
-        <div class="v" style="font-size:2rem;color:var(--acc2)">${(+AR.prs||0).toFixed(3)}</div>
+        <div class="v">${prsHTML(AR.prs,2.2)}</div>
         <div class="s">Prime Rating System</div></div>
       <div class="lsbox"><div class="t">出題できる数</div>
         <div class="v" style="font-size:1.5rem">2 〜 ${jp(max)}</div>
-        <div class="s">PRSの整数が1ふえると 1,000ずつ広がります</div></div>
+        <div class="s">PRSの整数部分が1増えるごとに 1,000ずつ広がります</div></div>
       <div class="lsbox"><div class="t">挑戦した回数</div>
         <div class="v" style="font-size:1.5rem">${jp(+AR.plays||0)}</div>
-        <div class="s">いちばん高かった PRS ${(+AR.best||0).toFixed(3)}</div></div>
-      <div class="lsbox"><div class="t">今日 解いた数</div>
+        <div class="s">最高記録 PRS ${(+AR.best||0).toFixed(3)}</div></div>
+      <div class="lsbox"><div class="t">本日 解答した数</div>
         <div class="v" style="font-size:1.5rem">${jp(arCounts().today)}</div>
-        <div class="s">これまで ${jp(arCounts().all)} 問</div></div>
+        <div class="s">通算 ${jp(arCounts().all)} 問</div></div>
     </div>
     ${AR.free?`<div class="hintbox" style="border-color:var(--acc2);margin-top:10px">
-      <b style="color:var(--acc2)">新しい範囲が開きました。</b>
-      つぎのレートモードは ${COIN} を使いません（1回だけ）。</div>`:""}
-    <h3 style="margin-top:14px">出しかたをえらぶ</h3>
+      <b style="color:var(--acc2)">新しい範囲が解放されました。</b>
+      次回のレートモードは ${COIN} を消費しません（1回限り）。</div>`:""}
+    <h3 style="margin-top:14px">出題方法を選択</h3>
     <div class="segs" id="arModes" style="grid-template-columns:repeat(4,1fr)">
       ${AR_MODES.map(([k,n])=>`<button data-arm="${k}" class="${k===arMode?"on":""}">${esc(n)}</button>`).join("")}
     </div>
@@ -10924,23 +11125,37 @@ function arHome(){
       esc((AR_MODES.find(x=>x[0]===arMode)||[])[2]||"")}</p>
     <div id="arLimBox" ${arMode==="limit"?"":"hidden"}>
       <div class="frow">
-        <div><label class="fl">いくつから</label>
+        <div><label class="fl">下限</label>
           <input type="number" class="txt" id="arLo" min="2" max="1000000" value="${arLimLo}" style="max-width:140px"></div>
-        <div><label class="fl">いくつまで</label>
+        <div><label class="fl">上限</label>
           <input type="number" class="txt" id="arHi" min="2" max="1000000" value="${Math.min(arLimHi,max)}" style="max-width:140px"></div>
       </div>
-      <p class="tiny" style="color:var(--dim2)">いま出題できるのは 2 〜 ${jp(max)} です。それより外は出ません。</p>
+      <p class="tiny" style="color:var(--dim2)">現在の出題範囲は 2 〜 ${jp(max)} です。範囲外は出題されません。</p>
     </div>
-    <div class="tools" style="margin-top:12px">
-      <button class="btn pri" id="arFree">れんしゅうする</button>
-      <button class="btn" id="arRated">レートモード（${COIN} ${jp(+ARCFG.cost||0)}枚）</button>
+
+    <div class="arbig">
+      <button class="arbigb" id="arFree">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16V9M11 16V5M15 16v-5M19 16v-8"/></svg>
+        <b>練習する</b><span>${COIN}は不要</span></button>
+      <button class="arbigb rate" id="arRated">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg>
+        <b>レートモード</b><span>${COIN} 10問につき${jp(per10)}枚</span></button>
+      <button class="arbigb dt" id="arDetec">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21"/></svg>
+        <b>素数探偵</b><span>5秒で1つ選ぶ</span></button>
+      <button class="arbigb log" id="arStats">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg>
+        <b>練習記録</b><span>全ての解答を保存</span></button>
+    </div>
+    <div class="tools" style="margin-top:10px">
       <button class="btn" id="arDex">図鑑</button>
-      <button class="btn" id="arStats">練習の記録</button>
+      <button class="btn" id="arBook">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+        素数帳</button>
       <button class="btn" id="arRule">ルール</button>
+      <button class="btn" id="arMath">レートの計算式</button>
       ${isAdmin()?`<button class="btn sm" id="arAdm">開発者モード</button>`:""}
-    </div>
-    <p class="tiny" style="color:var(--dim2)">
-      レートモードは ${jp(+ARCFG.qn||30)}問。PRSは（正解−まちがい）×${(+ARCFG.per||0.02).toFixed(3)} だけ動きます。</p>`;
+    </div>`;
   box.querySelectorAll("[data-arm]").forEach(b=>b.onclick=()=>{
     arMode=b.dataset.arm; arHome(); });
   const lo=$("#arLo"), hi=$("#arHi");
@@ -10948,53 +11163,118 @@ function arHome(){
   if(hi) hi.onchange=()=>{ arLimHi=Math.max(2,Math.round(num(hi.value))||max); };
   $("#arFree").onclick=()=>arStart(false);
   $("#arRated").onclick=arRatedStart;
+  $("#arDetec").onclick=dtShow;
   $("#arDex").onclick=arDexShow;
+  $("#arBook").onclick=dtBookShow;
   $("#arStats").onclick=arStatsShow;
   $("#arRule").onclick=arRuleShow;
+  $("#arMath").onclick=arMathShow;
   if($("#arAdm")) $("#arAdm").onclick=arAdmShow;
 }
+/** レートモードの問題数を、10問きざみで選びます */
+let arQnPick=null;
 async function arRatedStart(){
-  const cost=Math.max(0,+ARCFG.cost||0);
-  if(!(TEST||(sess&&sbOn()))) return toast("レートモードにはログインが必要です");
-  const free=!!AR.free;                      /* 新しい範囲が開いた後の1回は ただ */
+  if(!(TEST||(sess&&sbOn()))) return toast("レートモードには登録が必要です");
+  const per10=Math.max(0,+ARCFG.cost||0);
+  const sec=Math.max(3,+ARCFG.sec||15);
+  const free=!!AR.free;                      /* 新範囲の解放直後は1回無料 */
   const have=PC?(+PC.coins||0):0;
-  if(!free&&have<cost) return toast(`${COIN} が ${jp(cost)}枚 必要です（いま ${jp(have)}枚）`);
-  const qn=Math.max(1,+ARCFG.qn||50), sec=Math.max(3,+ARCFG.sec||15);
-  const mins=Math.ceil(qn*sec/60);
-  if(!await askYN("時間は十分にありますか？",
-    `<div class="hintbox" style="border-color:var(--warn);margin-top:0">
-       <b style="color:var(--warn)">レートモードは 一度始めると、
-       試験が終わるまで 途中で止めたり やめたりできません。</b><br>
-       <span class="tiny">画面を閉じたり ほかのタブに移ると、そこまでの成績で終わります。
-       静かな所で、最後まで続けられる時にはじめてください。</span></div>
-     <br><b>${jp(qn)}問</b>を、1問 <b>${jp(sec)}秒</b> で解きます
-     （ぜんぶで 最大 ${jp(mins)}分ほど）。<br>
-     ${free?`<b style="color:var(--acc2)">新しい範囲が開いたので、この1回は ${COIN} を使いません。</b>`
-           :`${COIN} を <b>${jp(cost)}枚</b> つかいます（いま ${jp(have)}枚）。`}<br><br>
-     <span class="tiny">出題は 2 〜 ${jp(arMax())} の中から、はんぜんたいに ちらして出します。
-     ほとんど解けるようになっていないと、レートは上がりません。</span>`,
-    "はじめる","やめておく")) return;
-  arStart(true);
+  let qn=Math.min(200,Math.max(10,Math.round((arQnPick||+ARCFG.qn||50)/10)*10));
+  const M=modal(`<h2>レートモードの設定</h2>
+    <div class="hintbox" style="border-color:var(--warn);margin-top:0">
+      <b style="color:var(--warn)">時間は十分にありますか？</b><br>
+      <span class="tiny">途中で終了した場合も、そこまでの解答でレートを計算します。
+      ただし <b>${COIN} は返却されません</b>。静かな場所で挑戦してください。</span></div>
+    <h3>問題数（10問きざみ）</h3>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn sm" id="qnM">−10</button>
+      <input type="range" id="qnR" min="10" max="200" step="10" value="${qn}" style="flex:1">
+      <button class="btn sm" id="qnP">＋10</button>
+    </div>
+    <div class="lsgrid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+      <div class="lsbox"><div class="t">問題数</div>
+        <div class="v" style="font-size:1.7rem" id="qnV">${qn}</div><div class="s">問</div></div>
+      <div class="lsbox"><div class="t">必要な ${COIN}</div>
+        <div class="v" style="font-size:1.7rem" id="qnC">${jp(per10*(qn/10))}</div>
+        <div class="s">所持 ${jp(have)}枚</div></div>
+      <div class="lsbox"><div class="t">信頼度</div>
+        <div class="v" style="font-size:1.7rem" id="qnRel">${arRel(qn).toFixed(2)}</div>
+        <div class="s">変化量にかかる倍率</div></div>
+    </div>
+    <p class="tiny" id="qnNote" style="color:var(--dim2)"></p>
+    ${free?`<div class="hintbox" style="border-color:var(--acc2)">
+      <b style="color:var(--acc2)">新しい範囲が解放されたため、今回は ${COIN} を消費しません。</b></div>`:""}
+    <div class="tools"><button class="btn pri" id="qnGo">開始する</button>
+      <button class="btn" id="qnX">中止</button><span class="tiny" id="qnMsg"></span></div>`,{w:640});
+  const draw=()=>{
+    const cost=free?0:per10*(qn/10);
+    M.q("#qnV").textContent=qn;
+    M.q("#qnC").textContent=jp(cost);
+    M.q("#qnRel").textContent=arRel(qn).toFixed(2);
+    M.q("#qnR").value=qn;
+    const mins=Math.ceil(qn*sec/60);
+    M.q("#qnNote").innerHTML=`1問 ${jp(sec)}秒、最大 ${jp(mins)}分ほどかかります。`
+      +`問題数が多いほど信頼度が上がり、レートの変化量も大きくなります`
+      +`（満点なら およそ ${arRel(qn)>=0?"+"+(0.637*arRel(qn)).toFixed(3):""}）。`;
+    M.q("#qnGo").disabled=(!free&&cost>have);
+    M.q("#qnMsg").innerHTML=(!free&&cost>have)
+      ? `<span style="color:var(--bad)">${COIN} が足りません</span>` : "";
+  };
+  const setQ=v=>{ qn=Math.min(200,Math.max(10,Math.round(v/10)*10)); arQnPick=qn; draw(); };
+  M.q("#qnR").oninput=e=>setQ(+e.target.value||10);
+  M.q("#qnM").onclick=()=>setQ(qn-10);
+  M.q("#qnP").onclick=()=>setQ(qn+10);
+  M.q("#qnX").onclick=M.close;
+  draw();
+  M.q("#qnGo").onclick=async()=>{
+    M.q("#qnGo").disabled=true; M.q("#qnMsg").textContent="準備しています…";
+    try{
+      const r=await callRpc("arena_begin",{p_qn:qn});
+      if(r&&r.free) AR.free=false;
+      if(r&&r.prs!=null){ AR.prs=+r.prs; arSave(); }
+      try{ if(!TEST){ await loadCoins(); renderCoins(); } else renderCoins(); }catch(e){}
+      M.close();
+      arStart(true,qn);
+    }catch(e){
+      M.q("#qnGo").disabled=false;
+      M.q("#qnMsg").innerHTML=`<span style="color:var(--bad)">${esc(String(e.message||e)).slice(0,120)}</span>`;
+    }
+  };
 }
+/** 問題数から、信頼度（変化量にかかる倍率）を出します */
+function arRel(n){ return Math.min(Math.max(Math.sqrt(Math.max(1,n)/50),0.35),1.45); }
 function arRuleShow(){
   const M=modal(`<h2>素因数分解アリーナのルール</h2>
     <div class="hintbox"><span class="tiny">
-      ・出された数を<b>素因数分解</b>して打ちます（例：30 → <b>2 3 5</b>）<br>
+      ・出された数を<b>素因数分解</b>して入力します（例：30 → <b>2 3 5</b>）<br>
       ・<b>順番は自由</b>です。3 2 5 でも 5 3 2 でも正解になります<br>
-      ・<b>打てた時点で正解</b>です。「解答する」ボタンはありません<br>
-      ・1問 <b>${jp(+ARCFG.sec||15)}秒</b>。こえると時間切れです<br>
-      ・かかった時間はぜんぶ残して、最後にまとめて出します</span></div>
+      ・<b>入力し終えた時点で正解</b>です。「解答する」ボタンはありません<br>
+      ・1問 <b>${jp(+ARCFG.sec||15)}秒</b>。超えると時間切れです<br>
+      ・間違っていても画面は何も変わりません（答えを教えないためです）<br>
+      ・分からない時は<b>パス</b>を2回続けて押してください<br>
+      ・かかった時間は全部残して、最後にまとめて出します</span></div>
     <h3>PRS（Prime Rating System）</h3>
     <div class="hintbox"><span class="tiny">
-      ・はじめは <b>0.000</b> です<br>
-      ・レートモードで（正解 − まちがい）× <b>${(+ARCFG.per||0.02).toFixed(3)}</b> だけ動きます<br>
-      ・PRSの整数が1ふえるごとに、出題できる数が <b>1,000</b> ずつ広がります<br>
-      ・PRS 0台 → 2〜999／1台 → 2〜2,000／2台 → 2〜3,000</span></div>
-    <h3>出しかた</h3>
+      ・最初は <b>0.000</b> です<br>
+      ・レートモードの結果から、<b>正答率</b>と<b>速さ</b>を合わせた総合点で増減します<br>
+      ・正答率が <b>82%</b> に届くまでは上がりません。<b>98%</b> でようやく満額です<br>
+      ・問題数が多いほど信頼度が上がり、増減も大きくなります（√(問題数÷50) 倍）<br>
+      ・下がる時は 0.30倍にやわらげてあります<br>
+      ・PRSの整数部分が1増えるごとに、出題できる数が <b>1,000</b> ずつ広がります<br>
+      ・PRS 0台 → 2〜999／1台 → 2〜2,000／2台 → 2〜3,000<br>
+      ・詳しい式は「レートの計算式」から見られます</span></div>
+    <h3>レートモードの ${COIN}</h3>
+    <div class="hintbox"><span class="tiny">
+      ・問題数は <b>10問きざみ</b>で 10〜200問から選べます<br>
+      ・<b>10問につき ${jp(+ARCFG.cost||0)}枚</b>を、開始する時に支払います<br>
+      ・途中で終了しても、そこまでの解答でレートを計算します<br>
+      ・ただし <b>${COIN} は返却されません</b><br>
+      ・新しい範囲が解放された直後の1回だけ、${COIN} は不要です</span></div>
+    <h3>出し方</h3>
     <div class="scroll"><table><tbody>
       ${AR_MODES.map(([k,n,d])=>`<tr><td><b>${esc(n)}</b></td><td class="tiny">${esc(d)}</td></tr>`).join("")}
     </tbody></table></div>
-    <div class="tools"><button class="btn" id="arRuX">閉じる</button></div>`,{w:680});
+    <div class="tools"><button class="btn" id="arRuX">閉じる</button></div>`,{w:700});
   M.q("#arRuX").onclick=M.close;
 }
 /* ── 開発者モード（管理者だけ）── */
@@ -11010,10 +11290,10 @@ function arAdmShow(){
         <button id="arOn" class="${ARCFG.on?"on":""}">全員に公開</button></div>
     </div>
     <div class="frow">
-      <div><label class="fl">レートモードの ${COIN}</label>
+      <div><label class="fl">10問あたりの ${COIN}</label>
         <input type="number" class="txt" id="arCost" min="0" max="1000" value="${+ARCFG.cost||0}" style="max-width:120px"></div>
-      <div><label class="fl">レートモードの問題数</label>
-        <input type="number" class="txt" id="arQn" min="1" max="200" value="${+ARCFG.qn||30}" style="max-width:120px"></div>
+      <div><label class="fl">問題数の初期値（10きざみ）</label>
+        <input type="number" class="txt" id="arQn" min="10" max="200" step="10" value="${+ARCFG.qn||50}" style="max-width:120px"></div>
       <div><label class="fl">1問あたりの秒</label>
         <input type="number" class="txt" id="arSec" min="3" max="120" value="${+ARCFG.sec||15}" style="max-width:120px"></div>
       <div><label class="fl">1問あたりのレート変動</label>
@@ -11029,7 +11309,7 @@ function arAdmShow(){
   M.q("#arOff").onclick=()=>setOn(false);
   M.q("#arSave").onclick=async()=>{
     const cfg={on, cost:Math.max(0,Math.round(num(M.q("#arCost").value))),
-      qn:Math.max(1,Math.round(num(M.q("#arQn").value))||30),
+      qn:Math.min(200,Math.max(10,Math.round((Math.round(num(M.q("#arQn").value))||50)/10)*10)),
       sec:Math.max(3,Math.round(num(M.q("#arSec").value))||15),
       per:Math.max(0,num(M.q("#arPer").value)||0.02)};
     M.q("#arAMsg").textContent="送っています…";
@@ -11043,21 +11323,21 @@ function arAdmShow(){
 
 /* ══════════ アリーナ：あそぶ画面 ══════════ */
 let ARQ=null;    /* いま進んでいる勝負 */
-function arStart(rated){
+function arStart(rated,qnWant){
   const max=arMax();
-  const qn=Math.max(1,+ARCFG.qn||50);
+  const qn=Math.max(10,Math.round((+qnWant||+ARCFG.qn||50)/10)*10);
   ARQ={rated:!!rated, max, qn:rated?qn:0,
        i:0, ok:0, ng:0, ms:0, list:[], used:new Set(),
        n:0, text:"", t0:0, left:0, timer:null, over:false, passArm:false,
-       /* レートモードは、範囲ぜんたいに ちらして出します
-          （かたよらせない＝範囲ぜんたいを覚えていないと点が出ません）*/
+       /* レートモードは、範囲全体に 散らして出します
+          （偏らせない＝範囲全体を覚えていないと点が出ません）*/
        plan:rated?arPlan(max,qn):null};
   $("#arPlayCard").hidden=false;
   arNext();
   try{ const pc2=$("#arPlayCard");
     if(pc2&&pc2.scrollIntoView) pc2.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
 }
-/** レートモード用：2〜max を問題数ぶんに区切って、1つずつえらびます */
+/** レートモード用：2〜max を問題数ぶんに区切って、1つずつ選びます */
 function arPlan(max,qn){
   const out=[];
   for(let i=0;i<qn;i++){
@@ -11100,7 +11380,7 @@ function arTimeUp(){
   arTimerStop();
   const ms=Math.max(3,+ARCFG.sec||15)*1000;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms});
-  arDexPut(ARQ.n,false,ms);
+  arDexPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
   if(arMode==="ladder") arLadder=Math.max(2,Math.round((arLadder||ARQ.n)*0.85));
   arFlash(false, ARQ.n, ms);
   setTimeout(()=>{ if(ARQ) arNext(); },900);
@@ -11113,13 +11393,13 @@ function arType(ch){
   else ARQ.text+=ch;
   const inp=$("#arIn"); if(inp) inp.textContent=ARQ.text||" ";
   const r=arCheck(ARQ.n, ARQ.text);
-  /* ★ まちがっていても、何も知らせません。
+  /* ★ 間違っていても、何も知らせません。
      正解するまでは、ふつうの見た目のままにします。 */
   if(r.done&&r.ok){
     arTimerStop();
     const ms=Date.now()-ARQ.t0;
     ARQ.ok++; ARQ.ms+=ms; ARQ.list.push({n:ARQ.n, ok:true, ms});
-    arDexPut(ARQ.n,true,ms);
+    arDexPut(ARQ.n,true,ms); arLogPut(ARQ.n,true,ms,ARQ.rated);
     arFlash(true, ARQ.n, ms);
     /* だんだんモードは、できたら少し上へ */
     if(arMode==="ladder") arLadder=Math.min(ARQ.max, Math.round((arLadder||ARQ.n)*1.12+6));
@@ -11140,7 +11420,7 @@ function arPass(){
   arTimerStop();
   const ms=Date.now()-ARQ.t0;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms, pass:true});
-  arDexPut(ARQ.n,false,ms);
+  arDexPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
   if(arMode==="ladder") arLadder=Math.max(2,Math.round((arLadder||ARQ.n)*0.85));
   arFlash(false, ARQ.n, ms, true);
   setTimeout(()=>{ if(ARQ) arNext(); },900);
@@ -11169,12 +11449,12 @@ function arDrawPlay(){
   box.innerHTML=`
     <div class="tools" style="margin-top:0">
       <span class="tiny">${ARQ.rated?`レートモード　<b>${jp(ARQ.i)}</b> / ${jp(ARQ.qn)} 問`
-        :`れんしゅう　<b>${jp(ARQ.i)}</b> 問目`}</span>
+        :`練習　<b>${jp(ARQ.i)}</b> 問目`}</span>
       <span class="tiny" style="margin-left:auto">正解 <b style="color:var(--acc2)">${jp(ARQ.ok)}</b>
-        　まちがい <b style="color:var(--bad)">${jp(ARQ.ng)}</b></span>
+        　間違い <b style="color:var(--bad)">${jp(ARQ.ng)}</b></span>
     </div>
     <div class="arbar"><i id="arBar" style="width:100%"></i></div>
-    <div class="tiny" style="text-align:right">のこり <b id="arLeft">${sec.toFixed(2)}</b> 秒</div>
+    <div class="tiny" style="text-align:right">残り <b id="arLeft">${sec.toFixed(2)}</b> 秒</div>
     <div class="arcard" id="arCard">
       <div class="arq">${jp(ARQ.n)}</div>
       <div class="arinbox" id="arInBox"><span id="arIn">&nbsp;</span></div>
@@ -11190,8 +11470,9 @@ function arDrawPlay(){
       <button class="arpass" id="arPassBtn" data-arpass>パス</button>
     </div>
     <div class="tools">
-      <button class="btn" id="arGiveUp">やめる</button>
-      <span class="tiny">キーボードでも打てます（数字・空白・BackSpace・Enterでパス）</span>
+      <button class="btn" id="arGiveUp">${ARQ.rated?"中止して結果を見る":"終了する"}</button>
+      <span class="tiny">キーボードでも入力できます（数字・空白・BackSpace・Enterでパス）
+        ${ARQ.rated?"／中止してもここまでの解答でレートを計算します":""}</span>
     </div>`;
   /* ★ 早打ちに耐えるようにします。
      ・pointerdown で1回だけ受けます（touch と click の二重反応を防ぎます）
@@ -11239,6 +11520,7 @@ async function arFinish(){
     try{
       const items=q.list.map(x=>({n:x.n, ok:!!x.ok, ms:Math.max(0,Math.round(x.ms))}));
       const r=await callRpc("arena_finish",{p_items:items});
+      try{ if(!TEST){ await loadCoins(); renderCoins(); } else renderCoins(); }catch(e){}
       if(r&&r.prs!=null){ AR.prs=+r.prs; AR.plays=(+AR.plays||0)+1;
         AR.best=Math.max(+AR.best||0,+r.prs); AR.free=false; arSave(); }
       arResult(q,true,r);
@@ -11263,10 +11545,10 @@ function arResult(q,rated,r,err){
   </tr>`).join("");
   const M=modal(`<h2>結果発表</h2>
     <div class="lsbox" style="text-align:center;margin-bottom:10px">
-      <div class="t">${rated?"レートモード":"れんしゅう"}</div>
+      <div class="t">${rated?"レートモード":"練習"}</div>
       <div class="v" style="font-size:1.8rem">${jp(q.ok)}問正解　合計解答時間
         <b style="color:var(--acc2)">${total.toFixed(2)}</b> 秒</div>
-      <div class="s">まちがい ${jp(q.ng)} 問${q.ok?`　1問あたり ${(total/q.ok).toFixed(2)} 秒`:""}</div>
+      <div class="s">間違い ${jp(q.ng)} 問${q.ok?`　1問あたり ${(total/q.ok).toFixed(2)} 秒`:""}</div>
     </div>
     ${err?`<div class="hintbox" style="border-color:var(--bad)">
       <b style="color:var(--bad)">レートを送れませんでした</b><br>
@@ -11304,11 +11586,524 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){ e.preventDefault(); if(ARQ.rated) arFinish(); else arQuit(); }
 });
 
+
+/** サーバーと同じ式で、レートの変化量を出します（確認・練習用） */
+function arDelta(cnt,okn,rate){
+  cnt=Math.max(1,Math.round(cnt)); okn=Math.min(cnt,Math.max(0,Math.round(okn)));
+  const v=Math.min(Math.max(+rate||1,0),2)/2;       /* 1問あたりの速さ点 */
+  const acc=okn/cnt, vavg=(okn*v)/cnt;
+  const sA=Math.pow(Math.max((acc-0.5)/0.5,0),1.5);
+  const sS=0.65*sA+0.35*vavg;
+  const g=(sS-0.58)*2.6;
+  const m=Math.max(Math.min((acc-0.82)/0.16,1),0);
+  const rel=arRel(cnt);
+  let d=(g>0)?(g*m*rel):(g*0.30*rel);
+  d=Math.max(Math.min(d,1.6),-0.60);
+  return {d, acc, vavg, sA, sS, g, m, rel};
+}
+/** 折れ線グラフ（SVG）*/
+function arChart(pts,opt){
+  opt=opt||{};
+  const W=640,H=220,L=46,R=12,T=12,B=30;
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const x0=Math.min(...xs), x1=Math.max(...xs);
+  let y0=Math.min(...ys,0), y1=Math.max(...ys,0);
+  if(y1-y0<0.05){ y1+=0.05; y0-=0.05; }
+  const pad=(y1-y0)*0.08; y0-=pad; y1+=pad;
+  const X=v=>L+(W-L-R)*((v-x0)/Math.max(1e-9,x1-x0));
+  const Y=v=>T+(H-T-B)*(1-(v-y0)/Math.max(1e-9,y1-y0));
+  const zero=Y(0);
+  const up=pts.filter(p=>p[1]>0), dn=pts.filter(p=>p[1]<=0);
+  const path=pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ");
+  const area=path+` L ${X(pts[pts.length-1][0]).toFixed(1)} ${zero.toFixed(1)}`
+    +` L ${X(pts[0][0]).toFixed(1)} ${zero.toFixed(1)} Z`;
+  const ticks=[];
+  for(let k=0;k<=4;k++){ const v=y0+(y1-y0)*k/4;
+    ticks.push(`<line x1="${L}" y1="${Y(v).toFixed(1)}" x2="${W-R}" y2="${Y(v).toFixed(1)}"
+      stroke="var(--line)" stroke-dasharray="2 4"/>
+      <text x="${L-6}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end"
+        font-size="10" fill="var(--dim2)">${v.toFixed(2)}</text>`); }
+  const xt=[];
+  for(let k=0;k<=5;k++){ const v=x0+(x1-x0)*k/5;
+    xt.push(`<text x="${X(v).toFixed(1)}" y="${H-10}" text-anchor="middle"
+      font-size="10" fill="var(--dim2)">${Math.round(v)}</text>`); }
+  const mk=opt.mark!=null?`<circle cx="${X(opt.mark).toFixed(1)}"
+    cy="${Y(opt.markY||0).toFixed(1)}" r="4.5" fill="var(--warn)"/>`:"";
+  return `<svg viewBox="0 0 ${W} ${H}" class="arsvg" role="img" aria-label="${esc(opt.alt||"グラフ")}">
+    ${ticks.join("")}${xt.join("")}
+    <line x1="${L}" y1="${zero.toFixed(1)}" x2="${W-R}" y2="${zero.toFixed(1)}" stroke="var(--dim)"/>
+    <path d="${area}" fill="var(--acc2)" opacity=".12"/>
+    <path d="${path}" fill="none" stroke="var(--acc2)" stroke-width="2.2"
+      stroke-linejoin="round" stroke-linecap="round"/>
+    ${mk}
+    <text x="${L}" y="${H-10}" font-size="10" fill="var(--dim2)"></text>
+  </svg>
+  <div class="tiny" style="text-align:center;color:var(--dim2)">${esc(opt.xlab||"")}</div>`;
+}
+/** レートの計算式（やさしい説明・厳密な説明・シミュレーター）*/
+function arMathShow(){
+  const M=modal(`<h2>PRS の計算式</h2>
+    <div class="segs" id="amTab" style="grid-template-columns:repeat(3,1fr)">
+      <button data-am="easy" class="on">やさしい説明</button>
+      <button data-am="pro">厳密な定義</button>
+      <button data-am="sim">シミュレーター</button>
+    </div>
+    <div id="amBox" style="margin-top:10px"></div>
+    <div class="tools"><button class="btn" id="amX">閉じる</button></div>`,{w:860});
+  M.q("#amX").onclick=M.close;
+  let tab="easy";
+  /* ── シミュレーターの状態 ── */
+  let sa=50, sb=50, sr=1.0, sview="b";
+  const easy=()=>`
+    <p class="muted" style="margin-top:-4px">
+      PRS は「どれだけ確実に、どれだけ速く素因数分解できるか」を1つの数字にしたものです。</p>
+    <h3>1．まず、正答率を見ます</h3>
+    <div class="hintbox"><span class="tiny">
+      半分（50%）を土台にして、そこからどれだけ上かを測ります。<br>
+      正答率が 50% なら 0点、100% なら 1点。ただし <b>後半ほど点が伸びにくい</b> 形にしてあるので、
+      90% から 95% に上げるのは、60% から 65% に上げるより ずっと価値があります。</span></div>
+    <h3>2．つぎに、速さを見ます</h3>
+    <div class="hintbox"><span class="tiny">
+      1問ごとに「この数なら だいたい何秒かかるはず」という <b>想定時間</b> を先に決めています。<br>
+      想定時間は、<b>打つ文字の数</b>（8 なら「2 2 2」で5打、8192 なら「2 2 2 2 2 2 2 2 2 2 2 2 2」で25打）と、
+      <b>いちばん大きい素因数</b>（見つけにくさ）から計算します。<br>
+      だから <b>8 も 8192 も、同じくらいの実力があれば 同じ点</b> になります。
+      大きい数を選んでも、小さい数を選んでも、得も損もしません。</span></div>
+    <h3>3．合わせて「総合点」にします</h3>
+    <div class="hintbox"><span class="tiny">
+      正答率を <b>65%</b>、速さを <b>35%</b> の重みで足します。
+      正確さのほうが大事、という考え方です。</span></div>
+    <h3>4．合格ラインを引きます</h3>
+    <div class="hintbox"><span class="tiny">
+      総合点が <b>0.58</b> より上なら PRS は上がり、下なら下がります。<br>
+      ただし <b>正答率が 82% に届くまでは、上がりません</b>（ここが一番厳しい所です）。
+      82% で少しだけ、<b>98% でようやく満額</b>上がります。<br>
+      逆に下がるときは、勢いを <b>0.30倍</b>に弱めてあります。1回の失敗で大きく落ちないためです。</span></div>
+    <h3>5．問題数が多いほど、大きく動きます</h3>
+    <div class="hintbox"><span class="tiny">
+      10問だけの結果は「たまたま」かもしれません。200問なら、かなり確かです。<br>
+      そこで <b>√(問題数 ÷ 50)</b> を掛けます。50問をふつうの1回分（1.00倍）として、
+      10問なら 0.45倍、100問なら 1.41倍、200問なら 1.45倍（上限）になります。<br>
+      <b>多く解くほど、上がるのも下がるのも大きくなります。</b></span></div>
+    <h3>6．出せる数の範囲</h3>
+    <div class="hintbox"><span class="tiny">
+      PRS の整数部分が1増えるごとに、出題される数の上限が 1,000 ずつ広がります。<br>
+      PRS 0台 → 2〜999／1台 → 2〜2,000／2台 → 2〜3,000 …</span></div>`;
+  const pro=()=>`
+    <p class="muted" style="margin-top:-4px">記号の定義と、設計の根拠です。</p>
+    <h3>記号</h3>
+    <div class="scroll"><table><tbody>
+      <tr><td><i>N</i></td><td class="tiny">出題数（10 ≦ N ≦ 200、10の倍数。途中終了時は実際の解答数）</td></tr>
+      <tr><td><i>c</i></td><td class="tiny">正解数、<i>a = c/N</i> は正答率</td></tr>
+      <tr><td><i>n<sub>i</sub></i></td><td class="tiny">第 i 問の自然数、<i>t<sub>i</sub></i> は解答秒数</td></tr>
+      <tr><td>κ(n)</td><td class="tiny">打鍵数＝素因数を昇順に並べた文字列の長さ（桁数の和＋区切り数）</td></tr>
+      <tr><td>λ(n)</td><td class="tiny">最大素因数</td></tr>
+    </tbody></table></div>
+    <h3>想定解答時間</h3>
+    <div class="mathb">E(n) = 0.90 + 0.16·κ(n) + 0.28·log<sub>2</sub>λ(n)　［秒］</div>
+    <div class="latex"><code>E(n)=0.90+0.16\,\kappa(n)+0.28\log_2\lambda(n)</code></div>
+    <p class="tiny" style="color:var(--dim2)">
+      第1項は反応と読み取りの固定費、第2項は運動系の出力コスト（Fitts 則の線形近似として打鍵数に比例）、
+      第3項は探索コスト。試し割りの深さは √n までだが、実際に「止まる」のは最大素因数を見つけた時点なので
+      log<sub>2</sub>λ(n) を採用しています。これにより
+      <b>E(8)=0.90+0.16·5+0.28·1=1.98</b>、<b>E(8192)=0.90+0.16·25+0.28·1=5.18</b> のように、
+      数の大小ではなく <b>作業量</b> に比例した基準になります。</p>
+    <h3>1問あたりの速度スコア</h3>
+    <div class="mathb">v<sub>i</sub> = ½·min( E(n<sub>i</sub>) / max(t<sub>i</sub>, 0.15), 2 ) ∈ [0, 1]</div>
+    <div class="latex"><code>v_i=\tfrac12\min\!\left(\frac{E(n_i)}{\max(t_i,0.15)},\,2\right)</code></div>
+    <p class="tiny" style="color:var(--dim2)">
+      想定どおりなら <i>v</i>=0.5、2倍速で上限の <i>v</i>=1。
+      分母の下限 0.15 秒は、誤操作による発散を止めるためのクリップです。不正解は <i>v<sub>i</sub></i>=0。</p>
+    <h3>集約</h3>
+    <div class="mathb">a = c/N　　v̄ = (1/N)·Σ<sub>i</sub> v<sub>i</sub></div>
+    <div class="mathb">S<sub>A</sub> = ( max( (a − 0.5)/0.5 , 0 ) )<sup>1.5</sup></div>
+    <div class="mathb">S = 0.65·S<sub>A</sub> + 0.35·v̄</div>
+    <div class="latex"><code>S_A=\left(\max\!\left(\tfrac{a-0.5}{0.5},0\right)\right)^{3/2},\quad
+S=0.65\,S_A+0.35\,\bar v</code></div>
+    <p class="tiny" style="color:var(--dim2)">
+      指数 3/2 は凸（convex）なので、高正答率域での限界価値が増加します。
+      すなわち ∂S<sub>A</sub>/∂a が a について単調増加であり、
+      上位帯の識別力（弁別閾）を確保します。</p>
+    <h3>変化量</h3>
+    <div class="mathb">G = 2.6·(S − 0.58)</div>
+    <div class="mathb">M = clip( (a − 0.82)/0.16 , 0, 1 )</div>
+    <div class="mathb">R = clip( √(N/50) , 0.35, 1.45 )</div>
+    <div class="mathb">Δ = clip( G·R·( M if G&gt;0 else 0.30 ) , −0.60, +1.60 )</div>
+    <div class="mathb">PRS<sub>new</sub> = max( PRS<sub>old</sub> + Δ , 0 )</div>
+    <div class="latex"><code>G=2.6(S-0.58),\quad M=\mathrm{clip}\!\left(\tfrac{a-0.82}{0.16},0,1\right),\quad
+R=\mathrm{clip}\!\left(\sqrt{N/50},\,0.35,\,1.45\right)</code><br>
+<code>\Delta=\mathrm{clip}\Big(G\cdot R\cdot\big(M\,\mathbf{1}[G&gt;0]+0.30\,\mathbf{1}[G\le 0]\big),\,-0.60,\,+1.60\Big)</code><br>
+<code>\mathrm{PRS}_{t+1}=\max(\mathrm{PRS}_t+\Delta,\,0)</code></div>
+    <h3>設計の根拠</h3>
+    <div class="scroll"><table><tbody>
+      <tr><td><b>R = √(N/50)</b></td><td class="tiny">
+        a の標本標準誤差は SE(a)=√(a(1−a)/N) ∝ N<sup>−1/2</sup>。
+        したがって推定量の情報量（Fisher 情報）は N に比例し、精度は √N に比例します。
+        ステップ幅を √N に比例させることは、確率的近似における
+        「情報量に比例した学習率」に対応し、N を変えても
+        <b>1問あたりの寄与が一定</b>になるよう正規化されています。
+        上限 1.45（N≈105 で飽和）は、1回の試験が持ち得る情報量の上限を設け、
+        単一セッションによる支配を防ぐためです。</td></tr>
+      <tr><td><b>M（習熟ゲート）</b></td><td class="tiny">
+        a &lt; 0.82 では Δ ≦ 0 が保証されます（M=0）。
+        これは「上位帯は高正答率でのみ到達可能」という順序制約を課すもので、
+        低正答率での多数回試行による確率的な上昇（ランダムウォーク的なレート稼ぎ）を
+        構造的に不可能にします。</td></tr>
+      <tr><td><b>非対称係数 0.30</b></td><td class="tiny">
+        下降時の実効ステップを 0.30 倍に縮小。指数移動平均としての実効時定数が
+        上昇時より長くなるため、体調・回線などの一過性ショックに対して頑健です。
+        代償として定常状態はやや上方バイアスを持ちます（下記）。</td></tr>
+      <tr><td><b>不動点</b></td><td class="tiny">
+        真の実力に対応する正答率を a* とすると、Δ は PRS を通じて出題上限 1000·(⌊PRS⌋+1) を動かし、
+        出題が難化すると a が低下します。a(PRS) が単調減少であることから
+        Δ(PRS)=0 となる PRS* が一意に存在し、そこが不動点になります。
+        0.30 の非対称性により、実際の定常分布の中心は Δ=0 の点をわずかに上回ります。</td></tr>
+      <tr><td><b>有界性</b></td><td class="tiny">
+        |Δ| ≦ 1.60 かつ PRS ≧ 0。1回のセッションで到達し得る変化量が有界なので、
+        外れ値セッションに対する破壊耐性があります。</td></tr>
+    </tbody></table></div>`;
+  const sim=()=>{
+    const r=arDelta(sa,sb,sr);
+    let pts,xlab,mark,markY;
+    if(sview==="b"){
+      pts=[]; for(let b=0;b<=sa;b++) pts.push([b, arDelta(sa,b,sr).d]);
+      xlab=`正解数（全 ${jp(sa)} 問中）`; mark=sb; markY=r.d;
+    }else if(sview==="a"){
+      pts=[]; const acc=sb/sa;
+      for(let n=10;n<=200;n+=10) pts.push([n, arDelta(n,Math.round(n*acc),sr).d]);
+      xlab=`問題数（正答率 ${(acc*100).toFixed(1)}% を保った場合）`; mark=sa; markY=r.d;
+    }else{
+      pts=[]; for(let k=0;k<=40;k++){ const rr=k/20; pts.push([k*5, arDelta(sa,sb,rr).d]); }
+      xlab="解答の速さ（想定時間に対する% ／ 100%＝想定どおり）"; mark=sr*100; markY=r.d;
+    }
+    const tblN=[10,20,30,50,80,100,150,200];
+    const accs=[1.00,0.98,0.94,0.90,0.86,0.82,0.75,0.60,0.40];
+    return `
+    <div class="frow" style="align-items:flex-end">
+      <div style="flex:1;min-width:220px"><label class="fl">問題数 a（10問きざみ）</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="smA" min="10" max="200" step="10" value="${sa}" style="flex:1">
+          <input type="number" class="txt" id="smAn" min="10" max="200" step="10" value="${sa}" style="max-width:90px"></div></div>
+      <div style="flex:1;min-width:220px"><label class="fl">正解数 b</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="smB" min="0" max="${sa}" step="1" value="${sb}" style="flex:1">
+          <input type="number" class="txt" id="smBn" min="0" max="${sa}" step="1" value="${sb}" style="max-width:90px"></div></div>
+      <div style="flex:1;min-width:220px"><label class="fl">解答の速さ（想定時間に対する%）</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="smR" min="0" max="200" step="5" value="${Math.round(sr*100)}" style="flex:1">
+          <input type="number" class="txt" id="smRn" min="0" max="200" step="5" value="${Math.round(sr*100)}" style="max-width:90px"></div></div>
+    </div>
+    <div class="lsgrid" style="grid-template-columns:repeat(4,1fr);margin-top:10px">
+      <div class="lsbox"><div class="t">PRS の変化量 Δ</div>
+        <div class="v" style="font-size:1.8rem;color:${r.d>0.0005?"var(--acc2)":r.d<-0.0005?"var(--bad)":"var(--dim)"}">${
+          (r.d>=0?"+":"")+r.d.toFixed(4)}</div>
+        <div class="s">${jp(sa)}問中 ${jp(sb)}問正解</div></div>
+      <div class="lsbox"><div class="t">正答率 a</div>
+        <div class="v" style="font-size:1.5rem">${(r.acc*100).toFixed(1)}%</div>
+        <div class="s">習熟ゲート M ＝ ${r.m.toFixed(3)}</div></div>
+      <div class="lsbox"><div class="t">総合点 S</div>
+        <div class="v" style="font-size:1.5rem">${r.sS.toFixed(4)}</div>
+        <div class="s">合格ライン 0.58　（G ＝ ${r.g.toFixed(4)}）</div></div>
+      <div class="lsbox"><div class="t">信頼度 R</div>
+        <div class="v" style="font-size:1.5rem">${r.rel.toFixed(3)}</div>
+        <div class="s">√(${jp(sa)}/50)　速さ v̄ ＝ ${r.vavg.toFixed(3)}</div></div>
+    </div>
+    <div class="segs" id="smView" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+      <button data-smv="b" class="${sview==="b"?"on":""}">正解数を変える</button>
+      <button data-smv="a" class="${sview==="a"?"on":""}">問題数を変える</button>
+      <button data-smv="r" class="${sview==="r"?"on":""}">速さを変える</button>
+    </div>
+    <div class="arsvgwrap">${arChart(pts,{xlab,mark,markY,alt:"レート変化量のグラフ"})}</div>
+    <h3>一覧表（速さ ${Math.round(sr*100)}% のとき）</h3>
+    <p class="tiny" style="color:var(--dim2)">たて＝正答率、よこ＝問題数。数字は Δ です。</p>
+    <div class="scroll"><table class="smt"><thead><tr><th>正答率</th>
+      ${tblN.map(n=>`<th class="n">${n}問</th>`).join("")}</tr></thead><tbody>
+      ${accs.map(ac=>`<tr><td><b>${(ac*100).toFixed(0)}%</b></td>
+        ${tblN.map(n=>{ const dd=arDelta(n,Math.round(n*ac),sr).d;
+          const c=dd>0.0005?"var(--acc2)":dd<-0.0005?"var(--bad)":"var(--dim2)";
+          return `<td class="n" style="color:${c}">${(dd>=0?"+":"")+dd.toFixed(3)}</td>`;}).join("")}
+      </tr>`).join("")}
+    </tbody></table></div>`;
+  };
+  const wire=()=>{
+    if(tab!=="sim") return;
+    const B=M.q("#amBox");
+    const redraw=()=>{ B.innerHTML=sim(); wire(); };
+    const setA=v=>{ sa=Math.min(200,Math.max(10,Math.round((+v||10)/10)*10));
+      sb=Math.min(sb,sa); redraw(); };
+    const setB=v=>{ sb=Math.min(sa,Math.max(0,Math.round(+v||0))); redraw(); };
+    const setR=v=>{ sr=Math.min(2,Math.max(0,(+v||0)/100)); redraw(); };
+    M.q("#smA").oninput=e=>setA(e.target.value);
+    M.q("#smAn").onchange=e=>setA(e.target.value);
+    M.q("#smB").oninput=e=>setB(e.target.value);
+    M.q("#smBn").onchange=e=>setB(e.target.value);
+    M.q("#smR").oninput=e=>setR(e.target.value);
+    M.q("#smRn").onchange=e=>setR(e.target.value);
+    M.qa("[data-smv]").forEach(b=>b.onclick=()=>{ sview=b.dataset.smv; redraw(); });
+  };
+  const show=()=>{ M.q("#amBox").innerHTML=(tab==="easy"?easy():tab==="pro"?pro():sim()); wire(); };
+  M.qa("#amTab button").forEach(b=>b.onclick=()=>{
+    tab=b.dataset.am;
+    M.qa("#amTab button").forEach(x=>x.classList.toggle("on",x===b));
+    show();
+  });
+  show();
+}
+
+/* ══════════════════════════════════════════════════════════
+   素数探偵モード
+   ──────────────────────────────────────────────────────────
+   ・6つの選択肢のうち、素数はただ1つ。制限時間は5秒
+   ・不正解の選択肢は、素因数分解したとき最小の素因数が 7 以上
+     （2・3・5 で割り切れる数は出ません＝見た目で外せません）
+   ・レベル n は、小さい方から数えて (20n+1) 番目〜(20n+20) 番目の素数
+   ・選択肢は正解にかなり近い値で、毎回違う組み合わせになります
+   ══════════════════════════════════════════════════════════ */
+const K_DT="sa-detective-v1";
+const DT_PER=20;                      /* 1レベルあたりの素数の数 */
+const DT_SEC=5;                       /* 制限時間（秒） */
+let DT=ls(K_DT,{lv:0,best:{},seen:{},plays:0,solved:0});
+const dtSave=()=>{ try{ localStorage.setItem(K_DT,JSON.stringify(DT)); }catch(e){} };
+/** レベルの上限（素数表から決まります） */
+function dtMaxLv(){ return Math.max(0,Math.floor(pbPrimes().length/DT_PER)-1); }
+/** レベル n の素数 20個 */
+function dtLvPrimes(lv){
+  const P=pbPrimes(), a=Math.max(0,Math.round(lv))*DT_PER;
+  return P.slice(a,a+DT_PER);
+}
+/** 最小の素因数 */
+function dtSpf(n){
+  if(n%2===0) return 2;
+  for(let d=3;d*d<=n;d+=2) if(n%d===0) return d;
+  return n;
+}
+/** 選択肢に使える数か（素数でない ＆ 最小の素因数が 7 以上） */
+let DT_OKC=null;
+function dtCandOk(n){
+  if(n<49) return false;
+  if(n%2===0||n%3===0||n%5===0) return false;
+  return dtSpf(n)!==n;                /* 素数はだめ */
+}
+/** 正解に近い値の 5つを、毎回違う形で選びます */
+function dtPick(ans){
+  const pool=[];
+  let w=Math.max(24,Math.round(ans*0.22));
+  for(let t=0;t<9 && pool.length<16;t++){
+    pool.length=0;
+    const lo=Math.max(49,ans-w), hi=ans+w;
+    for(let m=lo;m<=hi;m++) if(m!==ans&&dtCandOk(m)) pool.push(m);
+    w=Math.round(w*1.9)+24;
+  }
+  /* 近い順に並べ、上位のかたまりから 別々に 5つ取ります */
+  pool.sort((a,b)=>Math.abs(a-ans)-Math.abs(b-ans));
+  const near=pool.slice(0,Math.max(8,Math.min(22,pool.length)));
+  const out=[];
+  while(out.length<5&&near.length) out.push(near.splice(Math.floor(Math.random()*near.length),1)[0]);
+  /* それでも足りなければ、遠い所から足します */
+  let g=ans+7;
+  while(out.length<5){ g+=2; if(dtCandOk(g)&&out.indexOf(g)<0) out.push(g); if(g>ans+40000) break; }
+  return out;
+}
+/** 1問つくります */
+function dtMake(lv){
+  const P=dtLvPrimes(lv);
+  const ans=P[Math.floor(Math.random()*P.length)];
+  const opts=dtPick(ans).concat([ans]);
+  for(let i=opts.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
+    [opts[i],opts[j]]=[opts[j],opts[i]]; }
+  return {ans, opts};
+}
+/* ── あそぶ ── */
+let DTQ=null;
+function dtShow(){
+  const lv=Math.min(dtMaxLv(),Math.max(0,+DT.lv||0));
+  const P=dtLvPrimes(lv);
+  const M=modal(`<h2>素数探偵モード</h2>
+    <div id="dtBody"></div>`,{w:720});
+  DTQ={M, lv, live:false, i:0, ok:0, streak:0, t0:0, timer:null, q:null};
+  dtHome();
+}
+function dtStop(){ if(DTQ&&DTQ.timer){ clearInterval(DTQ.timer); DTQ.timer=null; } }
+function dtHome(){
+  dtStop();
+  if(!DTQ) return;
+  const lv=DTQ.lv, P=dtLvPrimes(lv), mx=dtMaxLv();
+  const best=+(DT.best[lv]||0);
+  DTQ.M.q("#dtBody").innerHTML=`
+    <p class="muted" style="margin-top:-6px">6つの数の中から、
+      <b>素数</b>をただ1つ選びます。制限時間は <b>${DT_SEC}秒</b>。</p>
+    <div class="hintbox"><span class="tiny">
+      不正解の選択肢は、必ず <b>最小の素因数が 7 以上</b> です。
+      2・3・5 で割り切れる数は出ないので、見た目では外せません。</span></div>
+    <div class="frow" style="align-items:flex-end">
+      <div style="flex:1"><label class="fl">レベル（Lv.0 〜 Lv.${jp(mx)}）</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn sm" id="dtLvM">−</button>
+          <input type="range" id="dtLvR" min="0" max="${mx}" step="1" value="${lv}" style="flex:1">
+          <button class="btn sm" id="dtLvP">＋</button>
+        </div></div>
+      <div class="lsbox" style="min-width:140px;text-align:center">
+        <div class="t">Lv.</div><div class="v" style="font-size:1.7rem" id="dtLvV">${jp(lv)}</div>
+        <div class="s" id="dtLvS">${jp(P[0])} 〜 ${jp(P[P.length-1])}</div></div>
+    </div>
+    <p class="tiny" style="color:var(--dim2)" id="dtLvN">
+      小さい方から ${jp(lv*DT_PER+1)}番目 〜 ${jp(lv*DT_PER+DT_PER)}番目の素数です。
+      連続正解の記録 <b>${jp(best)}</b></p>
+    <div class="tools">
+      <button class="btn pri" id="dtGo">開始する</button>
+      <button class="btn" id="dtBook">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+        素数帳</button>
+      <button class="btn" id="dtX">閉じる</button></div>`;
+  const draw=()=>{
+    const p=dtLvPrimes(DTQ.lv);
+    DTQ.M.q("#dtLvV").textContent=jp(DTQ.lv);
+    DTQ.M.q("#dtLvS").textContent=`${jp(p[0])} 〜 ${jp(p[p.length-1])}`;
+    DTQ.M.q("#dtLvR").value=DTQ.lv;
+    DTQ.M.q("#dtLvN").innerHTML=`小さい方から ${jp(DTQ.lv*DT_PER+1)}番目 〜 `
+      +`${jp(DTQ.lv*DT_PER+DT_PER)}番目の素数です。`
+      +`連続正解の記録 <b>${jp(+(DT.best[DTQ.lv]||0))}</b>`;
+    DT.lv=DTQ.lv; dtSave();
+  };
+  const set=v=>{ DTQ.lv=Math.min(dtMaxLv(),Math.max(0,Math.round(v)||0)); draw(); };
+  DTQ.M.q("#dtLvR").oninput=e=>set(+e.target.value);
+  DTQ.M.q("#dtLvM").onclick=()=>set(DTQ.lv-1);
+  DTQ.M.q("#dtLvP").onclick=()=>set(DTQ.lv+1);
+  DTQ.M.q("#dtBook").onclick=()=>dtBookShow(DTQ.lv);
+  DTQ.M.q("#dtX").onclick=()=>{ dtStop(); DTQ.M.close(); DTQ=null; };
+  DTQ.M.q("#dtGo").onclick=()=>{ DTQ.i=0; DTQ.ok=0; DTQ.streak=0; DTQ.live=true; dtNext(); };
+}
+function dtNext(){
+  dtStop();
+  if(!DTQ) return;
+  DTQ.i++;
+  DTQ.q=dtMake(DTQ.lv);
+  DTQ.t0=Date.now();
+  dtDraw();
+  DTQ.timer=setInterval(()=>{
+    if(!DTQ||!DTQ.live) return dtStop();
+    const left=DTQ.t0+DT_SEC*1000-Date.now();
+    const bar=DTQ.M.q("#dtBar"), tv=DTQ.M.q("#dtLeft");
+    if(bar) bar.style.width=Math.max(0,Math.min(100,left/(DT_SEC*1000)*100)).toFixed(1)+"%";
+    if(tv) tv.textContent=(Math.max(0,left)/1000).toFixed(2);
+    if(left<=0) dtAnswer(null);
+  },50);
+}
+function dtDraw(){
+  if(!DTQ||!DTQ.q) return;
+  const best=+(DT.best[DTQ.lv]||0);
+  DTQ.M.q("#dtBody").innerHTML=`
+    <div class="tools" style="margin-top:0">
+      <span class="tiny">Lv.<b>${jp(DTQ.lv)}</b>　<b>${jp(DTQ.i)}</b> 問目</span>
+      <span class="tiny" style="margin-left:auto">連続正解
+        <b style="color:var(--acc2)">${jp(DTQ.streak)}</b>　記録 ${jp(best)}</span>
+    </div>
+    <div class="arbar"><i id="dtBar" style="width:100%"></i></div>
+    <div class="tiny" style="text-align:right">残り <b id="dtLeft">${DT_SEC.toFixed(2)}</b> 秒</div>
+    <h3 style="text-align:center;margin:10px 0 4px">素数はどれ？</h3>
+    <div class="dtgrid" id="dtOpts">
+      ${DTQ.q.opts.map(v=>`<button class="dtopt" data-dtv="${v}">${jp(v)}</button>`).join("")}
+    </div>
+    <div class="tiny" id="dtRes" style="min-height:1.4em;text-align:center"></div>
+    <div class="tools"><button class="btn" id="dtEnd">終了する</button></div>`;
+  DTQ.M.qa("[data-dtv]").forEach(b=>{
+    b.addEventListener("pointerdown",e=>{ e.preventDefault(); dtAnswer(+b.dataset.dtv); },{passive:false});
+    b.addEventListener("click",e=>e.preventDefault());
+    b.addEventListener("contextmenu",e=>e.preventDefault());
+  });
+  DTQ.M.q("#dtEnd").onclick=()=>{ DTQ.live=false; dtStop(); dtOver(); };
+}
+function dtAnswer(v){
+  if(!DTQ||!DTQ.live||!DTQ.q) return;
+  dtStop();
+  const ms=Date.now()-DTQ.t0;
+  const ans=DTQ.q.ans, hit=(v===ans);
+  DTQ.live=false;
+  if(hit){
+    DTQ.ok++; DTQ.streak++;
+    DT.solved=(+DT.solved||0)+1;
+    DT.seen[ans]=Math.min(+DT.seen[ans]||1e9, Math.round(ms));
+    if(DTQ.streak>(+DT.best[DTQ.lv]||0)) DT.best[DTQ.lv]=DTQ.streak;
+    dtSave();
+  }
+  DTQ.M.qa("[data-dtv]").forEach(b=>{
+    const n=+b.dataset.dtv;
+    if(n===ans) b.classList.add("ok");
+    else if(v!=null&&n===v) b.classList.add("ng");
+    else b.classList.add("off");
+  });
+  const r=DTQ.M.q("#dtRes");
+  if(r) r.innerHTML=hit
+    ? `<b style="color:var(--acc2)">正解！</b> ${jp(ans)} は素数です
+       <span class="tiny">（${(ms/1000).toFixed(2)} 秒）</span>`
+    : `<b style="color:var(--bad)">${v==null?"時間切れ":"不正解"}</b>
+       <span class="tiny">正解は <b>${jp(ans)}</b>${v!=null
+         ?`／${jp(v)} ＝ ${esc(arFacText(v))}`:""}</span>`;
+  if(hit) setTimeout(()=>{ if(DTQ){ DTQ.live=true; dtNext(); } },700);
+  else setTimeout(()=>{ if(DTQ) dtOver(); },1500);
+}
+function dtOver(){
+  if(!DTQ) return;
+  dtStop();
+  DT.plays=(+DT.plays||0)+1; dtSave();
+  const best=+(DT.best[DTQ.lv]||0);
+  DTQ.M.q("#dtBody").innerHTML=`
+    <div class="lsbox" style="text-align:center">
+      <div class="t">Lv.${jp(DTQ.lv)}　連続正解</div>
+      <div class="v" style="font-size:2.2rem;color:var(--acc2)">${jp(DTQ.streak)}</div>
+      <div class="s">自己最高 ${jp(best)}　　挑戦 ${jp(DTQ.i)} 問中 ${jp(DTQ.ok)} 問正解</div></div>
+    <div class="tools">
+      <button class="btn pri" id="dtAgain">もう一度</button>
+      <button class="btn" id="dtBack">レベルを選ぶ</button>
+      <button class="btn" id="dtX2">閉じる</button></div>`;
+  DTQ.M.q("#dtAgain").onclick=()=>{ DTQ.i=0; DTQ.ok=0; DTQ.streak=0; DTQ.live=true; dtNext(); };
+  DTQ.M.q("#dtBack").onclick=dtHome;
+  DTQ.M.q("#dtX2").onclick=()=>{ DTQ.M.close(); DTQ=null; };
+}
+/* ── 素数帳 ── */
+let dtBookLv=0;
+function dtBookShow(lv){
+  dtBookLv=Math.min(dtMaxLv(),Math.max(0,Math.round(+lv>=0?+lv:(+DT.lv||0))));
+  const M=modal(`<h2>
+    <svg viewBox="0 0 24 24" class="ico" style="width:20px;height:20px"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+    素数帳</h2>
+    <div id="dtBk"></div>
+    <div class="tools"><button class="btn" id="dtBkX">閉じる</button></div>`,{w:720});
+  M.q("#dtBkX").onclick=M.close;
+  const draw=()=>{
+    const mx=dtMaxLv(), P=dtLvPrimes(dtBookLv);
+    const got=P.filter(n=>DT.seen[n]!=null).length;
+    M.q("#dtBk").innerHTML=`
+      <div class="frow" style="align-items:flex-end">
+        <div style="flex:1"><label class="fl">レベル</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn sm" id="bkM">−</button>
+            <input type="range" id="bkR" min="0" max="${mx}" step="1" value="${dtBookLv}" style="flex:1">
+            <button class="btn sm" id="bkP">＋</button></div></div>
+        <div class="lsbox" style="min-width:150px;text-align:center">
+          <div class="t">Lv.</div><div class="v" style="font-size:1.7rem">${jp(dtBookLv)}</div>
+          <div class="s">正解済み ${jp(got)} / ${DT_PER}</div></div>
+      </div>
+      <p class="tiny" style="color:var(--dim2)">
+        小さい方から ${jp(dtBookLv*DT_PER+1)}番目 〜 ${jp(dtBookLv*DT_PER+DT_PER)}番目の素数。
+        数字を押すと詳しく見られます。</p>
+      <div class="dtbook">
+        ${P.map((n,i)=>`<button class="dtcell ${DT.seen[n]!=null?"got":""}" data-bkn="${n}">
+          <b>${jp(n)}</b><span>${jp(dtBookLv*DT_PER+i+1)}番目</span></button>`).join("")}
+      </div>`;
+    M.q("#bkR").oninput=e=>{ dtBookLv=Math.min(mx,Math.max(0,+e.target.value||0)); draw(); };
+    M.q("#bkM").onclick=()=>{ dtBookLv=Math.max(0,dtBookLv-1); draw(); };
+    M.q("#bkP").onclick=()=>{ dtBookLv=Math.min(mx,dtBookLv+1); draw(); };
+    M.qa("[data-bkn]").forEach(b=>b.onclick=()=>arNumShow(+b.dataset.bkn));
+  };
+  draw();
+}
+
 /* ══════════════════════════════════════════════════════════
    Prime Bingo
    ──────────────────────────────────────────────────────────
    ・2〜99,999 の素数（9,592個）だけが出てきます
-   ・その中から100個えらんで、10×10 のビンゴカードを作ります
+   ・その中から100個選んで、10×10 のビンゴカードを作ります
    ・LSやりこみを1回クリアするごとに、素数が1つ抽選されます
    ・カードにあれば、そのマスが空きます
    ・1ライン そろうごとに Prime Coin を1枚もらえます
@@ -11316,7 +12111,7 @@ document.addEventListener("keydown",e=>{
    ══════════════════════════════════════════════════════════ */
 const K_PB="sa-pb-v1", K_PBLOG="sa-pblog-v1";
 const PB_W=100, PB_H=96;              /* 排出表は 100×96 ＝ 9,600マス */
-/** 2〜99,999 の素数をぜんぶ作ります（はじめの1回だけ） */
+/** 2〜99,999 の素数を全部作ります（最初の1回だけ） */
 let PB_PRIMES=null;
 function pbPrimes(){
   if(PB_PRIMES) return PB_PRIMES;
@@ -11329,10 +12124,10 @@ function pbPrimes(){
   return PB_PRIMES;
 }
 /* ──────────────────────────────────────────────────────────
-   出た素数の覚えかた
-   前は「出た番号を全部ならべた配列」で持っていました。
+   出た素数の覚え方
+   前は「出た番号を全部並べた配列」で持っていました。
    9,592回ぶんだと、
-     ・出るたびに毎回すべて数えなおす（どんどん遅くなる）
+     ・出るたびに毎回全て数えなおす（どんどん遅くなる）
      ・保存のたびに 5万文字ぶん書きだす
    ということが起きていました。
    いまは「出たかどうか」を1ビットずつの旗（1,199バイト）で持ちます。
@@ -11356,7 +12151,7 @@ function pbMaskStr(){
     s2+=String.fromCharCode.apply(null,PB_MASK.subarray(i,Math.min(i+CH,PB_MASK.length)));
   try{ return btoa(s2); }catch(e){ return ""; }
 }
-/** 文字から旗にもどします */
+/** 文字から旗に戻します */
 function pbMaskLoad(str){
   const n=pbBytes();
   const out=new Uint8Array(n);
@@ -11419,7 +12214,7 @@ function pbFix(){
   if(!(+PB.startAt>0)) PB.startAt=Date.now();
   if(!Array.isArray(PB.tail)) PB.tail=[];
   /* 旗をまだ作っていなければ、ここで作ります */
-  /* ★ 旗が無い時か、保存されている文字と ちがう時は、読み直します。
+  /* ★ 旗が無い時か、保存されている文字と 違う時は、読み直します。
      （よその端末から受け取った時も、ここで必ず読み直されます）*/
   if(!PB_MASK||PB_MASK.length!==pbBytes()||PB_MASK_SRC!==(PB.mask||"")){
     PB_MASK=pbMaskLoad(PB.mask);
@@ -11437,7 +12232,7 @@ function pbFix(){
     PB_REST=null;
   }
   /* ★ 回数は、旗に立っている数（＝出た素数の個数）を正とします。
-     こうしておくと、もし食いちがいが起きても「何回目」がずれません。 */
+     こうしておくと、もし食い違いが起きても「何回目」がずれません。 */
   const real=pbCount();
   if(PB.n!==real) PB.n=real;
   return PB;
@@ -11468,7 +12263,7 @@ function pbDone(hit){
   }
   return n;
 }
-/** 新しいカードを作ります（第n回のはじまり） */
+/** 新しいカードを作ります（第n回の始まり） */
 function pbNewCard(){
   const P=pbPrimes();
   const pick=new Set();
@@ -11543,7 +12338,7 @@ function pbDraw(){
   let opened=false, newLines=0;
   if(at>=0 && !PB.hit[at]){
     PB.hit[at]=true; opened=true;
-    /* ★ そのマスが入っている線だけを調べます（22本すべては見ません）*/
+    /* ★ そのマスが入っている線だけを調べます（22本全ては見ません）*/
     PB_OF[at].forEach(li=>{
       const l=PB_LINES[li];
       let ok=true;
@@ -11582,19 +12377,19 @@ async function pbHit(){
     }
     pbStatDraw();
   }
-  /* ② カードの100マスがぜんぶ埋まった（All Bingo） */
+  /* ② カードの100マスが全部埋まった（All Bingo） */
   if(r.opened && !PB.allb && PB.hit.every(Boolean)){
     PB.allb=1; pbSave(true);
     const n=Math.max(0,+BGCFG.allbingo||0);
     const got=n>0?await pbBonus(n,"Prime Bingo All Bingo"):0;
-    pbCheer("All Bingo！",`カードの100マスが ぜんぶ うまりました`,got);
+    pbCheer("All Bingo！",`カードの100マスが 全部 埋まりました`,got);
   }
-  /* ③ 9,592個ぜんぶ出しきった（パーフェクト） */
+  /* ③ 9,592個全部出しきった（パーフェクト） */
   if(!PB.perf && (+PB.n||0)>=9592){
     PB.perf=1; pbSave(true);
     const n=Math.max(0,+BGCFG.perfect||0);
     const got=n>0?await pbBonus(n,"Prime Bingo パーフェクト"):0;
-    pbCheer("パーフェクト！",`9,592個の素数を ぜんぶ 出しきりました`,got);
+    pbCheer("パーフェクト！",`9,592個の素数を 全部 出しきりました`,got);
   }
 }
 /** ボーナスのお祝い */
@@ -11700,7 +12495,7 @@ const pbPrevText=()=>{
 };
 
 /* ── 出た素数の表は「絵」で描きます ──
-   9,600個の四角をひとつずつ画面に置くと、それだけで重くなります。
+   9,600個の四角を1つずつ画面に置くと、それだけで重くなります。
    1枚の絵に描けば、変わった1マスだけ塗り直すだけで済みます。 */
 let PB_CV=null, PB_CTX=null, PB_CELL=6;
 function pbGridBuild(canvas){
@@ -11767,9 +12562,9 @@ function bgDraw(){
         <button id="bgOn" class="${BGCFG.on?"on":""}">全員に公開</button></div>
     </div>
     <div class="frow">
-      ${num("bgLine",BGCFG.line,"ビンゴ達成（1ラインごと）","たて・よこ・ななめ。ぜんぶで22ラインあります")}
-      ${num("bgAll",BGCFG.allbingo,"All Bingo ボーナス","カードの100マスがぜんぶ埋まった時（1回につき1度）")}
-      ${num("bgPerf",BGCFG.perfect,"パーフェクトボーナス","9,592個をぜんぶ出しきった時（1回につき1度）")}
+      ${num("bgLine",BGCFG.line,"ビンゴ達成（1ラインごと）","たて・よこ・ななめ。全部で22ラインあります")}
+      ${num("bgAll",BGCFG.allbingo,"All Bingo ボーナス","カードの100マスが全部埋まった時（1回につき1度）")}
+      ${num("bgPerf",BGCFG.perfect,"パーフェクトボーナス","9,592個を全部出しきった時（1回につき1度）")}
     </div>`;
   const setOn=v=>{ BGCFG.on=v;
     $("#bgOn").classList.toggle("on",v); $("#bgOff").classList.toggle("on",!v);
@@ -11811,7 +12606,7 @@ function pbRuleHTML(){
     <b>Prime Bingo のルール</b><br>
     <span class="tiny">
     ・出てくる数字は<b>素数だけ</b>です（2 から 99,999 までの <b>9,592個</b>）<br>
-    ・その中から100個をえらんで、<b>10×10 のビンゴカード</b>を作ります<br>
+    ・その中から100個を選んで、<b>10×10 のビンゴカード</b>を作ります<br>
     ・<b>LSやりこみを1回クリアするごとに、素数が1つ抽選</b>されます<br>
     ・その素数がカードにあれば、そのマスが空きます<br>
     ・同じ回のあいだに、<b>同じ素数が2回出ることはありません</b><br>
@@ -11821,11 +12616,11 @@ function pbRuleHTML(){
   <div class="scroll"><table><thead><tr><th>できたこと</th><th class="n">${COIN}</th><th>説明</th>
     </tr></thead><tbody>
     <tr><td><b>ビンゴ達成</b></td><td class="n"><b style="color:#ffd45e">${jp(L)}</b> 枚</td>
-      <td class="tiny">たて・よこ・ななめの1ライン そろうごと（ぜんぶで22ライン）</td></tr>
+      <td class="tiny">たて・よこ・ななめの1ライン そろうごと（全部で22ライン）</td></tr>
     <tr><td><b>All Bingo ボーナス</b></td><td class="n"><b style="color:#ffd45e">${jp(A)}</b> 枚</td>
-      <td class="tiny">カードの100マスが ぜんぶ うまった時（1回につき1度）</td></tr>
+      <td class="tiny">カードの100マスが 全部 埋まった時（1回につき1度）</td></tr>
     <tr><td><b>パーフェクトボーナス</b></td><td class="n"><b style="color:#ffd45e">${jp(P)}</b> 枚</td>
-      <td class="tiny">9,592個の素数を ぜんぶ 出しきった時（1回につき1度）</td></tr>
+      <td class="tiny">9,592個の素数を 全部 出しきった時（1回につき1度）</td></tr>
   </tbody></table></div>
   <p class="tiny" style="color:var(--dim2)">枚数は管理者が決めています。変わることがあります。</p>`;
 }
@@ -11843,7 +12638,7 @@ function pbRender(){
     box.innerHTML=pbRuleHTML()
       +`<div class="tools"><button class="btn pri" id="pbMake">ビンゴカードを作成する</button></div>`;
     const mk=$("#pbMake");
-    if(mk) mk.onclick=()=>{ pbNewCard(); pbRender(); toast("第1回をはじめました"); };
+    if(mk) mk.onclick=()=>{ pbNewCard(); pbRender(); toast("第1回を始めました"); };
     return;
   }
   box.innerHTML=pbStatHTML()
@@ -11913,7 +12708,7 @@ function pbOpen(){
       +`<span class="tiny">時間は、新しいカードを作った時から数え直します。</span>`,
       "新しくする")) return;
     pbCloseRound(); pbNewCard(); PB_DETAIL=false;
-    close(); pbRender(); toast(`第${jp(PB.no)}回をはじめました`);
+    close(); pbRender(); toast(`第${jp(PB.no)}回を始めました`);
   };
   M.q("#pbLog").onclick=pbLogShow;
   M.q("#pbRule2").onclick=pbRuleShow;
@@ -11929,7 +12724,7 @@ function pbLogShow(){
     <p class="muted" style="margin-top:-8px">これまでの回の記録です。</p>
     ${all.length?`<div class="scroll" style="max-height:56vh"><table><thead><tr>
       <th>回</th><th class="n">抽選した回数</th><th class="n">開いたマス</th>
-      <th class="n">ライン</th><th class="n">${COIN}</th><th>開催した時間</th><th>はじめた日時</th>
+      <th class="n">ライン</th><th class="n">${COIN}</th><th>開催した時間</th><th>始めた日時</th>
       </tr></thead><tbody>`+
       all.map(r=>`<tr class="${r.now?"used":""}">
         <td><b>第${jp(r.no)}回</b>${r.now?'<span class="sbtag certified">開催中</span>':""}</td>
@@ -11971,8 +12766,8 @@ function lsSaveOpen(){
     <p class="tiny" style="color:var(--dim2);margin-top:6px">
       送信すると、預けてあった記録は<b>この端末の記録に置きかわります</b>。
       読み込むと、この端末の記録が<b>預けてあった記録に置きかわります</b>。<br>
-      どちらも、押す前に中身をくらべて確かめられます。前の内容は30回ぶん残るので、
-      まちがえても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>
+      どちらも、押す前に中身を比べて確かめられます。前の内容は30回ぶん残るので、
+      間違えても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>
     <div class="tools"><button class="btn" id="lsSvX">閉じる</button></div>`,{w:720});
   M.q("#lsSvX").onclick=M.close;
   lsSaveEnter();
@@ -12005,7 +12800,7 @@ function lsViewOpen(){
       <b>隠しても、値はいつもどおり計算されています</b>（見えなくなるだけです）。</p>
     <div id="lsView" class="picks"></div>
     <div class="tools" style="margin-top:8px">
-      <button class="btn sm" id="lsViewAll">ぜんぶ表示</button>
+      <button class="btn sm" id="lsViewAll">全部表示</button>
       <button class="btn sm" id="lsViewMin">最小にする</button>
       <button class="btn" id="lsVwX">閉じる</button>
     </div>`,{w:720});
@@ -12216,7 +13011,7 @@ async function loadRoleReq(){
    審査の人が値を直しても、それだけでは自分の「個人データ」は
    古いままでした。ここで、直された記録を拾って入れ直します。
    ══════════════════════════════════════════════════════════ */
-/** 審査で直された、自分の記録をさがします */
+/** 審査で直された、自分の記録を探します */
 function subFixed(){
   return (SUBS||[]).filter(s=>{
     if(s.mine===false) return false;
@@ -12400,11 +13195,11 @@ const RV_HINT={
   m:"スーパーバイザーの審査員審査をチェックします。ジャッジマンが行った審査員審査は、公平のためスーパーバイザーもチェックできます。",
   msg:"通報された投稿です。審査員が3人「削除する」に入れるか、スーパーバイザー以上が1人入れると消えます。",
   ach:"公式アチーブメントの提出です。内容が正しいかを見て、達成しているかどうかをチェックで示してから承認します。",
-  dj:"自分が審査した記録です。承認・修正・却下のすべてが残ります。上位者のチェック結果も見られます。",
+  dj:"自分が審査した記録です。承認・修正・却下の全てが残ります。上位者のチェック結果も見られます。",
   ds:"自分が審査員審査した記録です。",
   dm:"自分がスーパーバイザー審査した記録です。",
   da:"自分が審査したアチーブメントの提出です。",
-  cj:"競技会に出された記録です。証明のリンクと、種目ごとの『元の記録』を見くらべてください。レートモードでも、換算する前の記録がそのまま出ています。",
+  cj:"競技会に出された記録です。証明のリンクと、種目ごとの『元の記録』を見比べてください。レートモードでも、換算する前の記録がそのまま出ています。",
   cs:"審査員の審査が正しかったかを見ます。ここでも『元の記録』がそのまま出ています。",
   cm:"スーパーバイザーの審査員審査をチェックします。ここで認定すると、その記録は確定します。",
   dcj:"自分が審査に関わった、競技会の記録です。"
@@ -12536,7 +13331,7 @@ function renderRvq(){
 /* ══════════════════════════════════════════════════════════
    競技会に出された記録の審査（審査 → 審査員審査 → SV審査）
    審査する人には、レートモードでも「換算する前の元の記録」を
-   かならず出します。映像と見くらべるのに、それが要るからです。
+   必ず出します。映像と見比べるのに、それが要るからです。
    ══════════════════════════════════════════════════════════ */
 const CST_N={pending:"未審査",judged:"審査ずみ",certified:"認定済み",rejected:"却下"};
 /** 審査待ちの1件ぶんの見た目 */
@@ -13483,6 +14278,35 @@ function tstRpc(name,b){
       want:b.p_want,status:"pending",reason:b.p_reason}); return null; }
   if(name==="appoint_role") return null;
   if(name==="my_review_stats") return [tstStat()];
+  /* ── 素因数分解アリーナ（テストモードでも一通り動かせるようにします）── */
+  if(name==="arena_begin"){
+    const qn=Math.round(+b.p_qn||0);
+    if(qn<10||qn>200||qn%10) bad("問題数は 10問きざみで 10〜200 にしてください");
+    const free=!!AR.free, cost=free?0:Math.max(0,+ARCFG.cost||0)*(qn/10);
+    if(!free&&cost>0){
+      if((PC?(+PC.coins||0):0)<cost) bad("Prime Coin が足りません");
+      PC=Object.assign({},PC,{coins:(+PC.coins||0)-cost});
+    }
+    return {ok:true, qn, cost, free, prs:+AR.prs||0, max:arMax()};
+  }
+  if(name==="arena_finish"){
+    const it=Array.isArray(b.p_items)?b.p_items:[];
+    if(!it.length) bad("1問も答えていません");
+    const cnt=it.length, okn=it.filter(x=>x&&x.ok).length;
+    let vs=0;
+    it.forEach(x=>{ if(!x||!x.ok) return;
+      vs+=Math.min(arExp(+x.n||2)/Math.max((+x.ms||0)/1000,0.15),2)/2; });
+    const acc=okn/cnt, vavg=vs/cnt;
+    const sA=Math.pow(Math.max((acc-0.5)/0.5,0),1.5);
+    const sS=0.65*sA+0.35*vavg, g=(sS-0.58)*2.6;
+    const m=Math.max(Math.min((acc-0.82)/0.16,1),0), rel=arRel(cnt);
+    let d=(g>0)?(g*m*rel):(g*0.30*rel);
+    d=Math.max(Math.min(d,1.6),-0.60);
+    const before=+AR.prs||0, nxt=Math.max(before+d,0);
+    return {prs:nxt, before, delta:d, ok:okn, ng:cnt-okn, n:cnt, acc, speed:vavg,
+      score:sS, rel, gate:m, max:arMax(before), next_max:arMax(nxt), free:!!AR.free};
+  }
+  if(name==="arena_practice") return null;
   return null;
 }
 let REAL_ROLE=null, TEST_REC_BAK=null;
@@ -13823,7 +14647,7 @@ function rvStageOf(s){
   if(!s.judge_id) return "j";          /* 審査 */
   if(!s.sv_id)    return "s";          /* 審査員審査 */
   if(!s.jm_id)    return "m";          /* スーパーバイザー審査 */
-  return null;                          /* ぜんぶ終わっています */
+  return null;                          /* 全部終わっています */
 }
 const RV_STAGE_N={j:"審査",s:"審査員審査",m:"スーパーバイザー審査"};
 /** その段階を、いま自分ができるか */
@@ -13859,7 +14683,7 @@ async function rvDetail(subId, entryId, cupId, doReview, hint){
         s=(r&&r[0])||null; }catch(e){}
     }
   }
-  /* 古い投稿には提出のIDが付いていないので、大会と@IDからさがします */
+  /* 古い投稿には提出のIDが付いていないので、大会と@IDから探します */
   if(!s&&hint&&hint.cup&&hint.handle){
     try{
       const r=await sb(`submissions?select=*&cup_id=eq.${encodeURIComponent(hint.cup)}`
@@ -13921,7 +14745,7 @@ async function rvDetail(subId, entryId, cupId, doReview, hint){
            +`<button class="btn sm" data-rd="fix">修正</button>`
            +(stage==="j"?`<button class="btn sm" data-rd="reject">却下</button>`:""):"")
     +(doReview&&!canDo?`<span class="tiny">${own?"自分の記録は審査できません"
-      :!stage?"すべての審査が終わっています"
+      :!stage?"全ての審査が終わっています"
       :"いま自分が審査できる段階ではありません（"+esc(RV_STAGE_N[stage]||"")+"）"}</span>`:"")
     +(!doReview&&s&&!!stage&&rvCanStage(s,stage)
       ?`<button class="btn sm pri" id="rdGo">この記録を${esc(RV_STAGE_N[stage]||"審査")}する</button>`
@@ -13933,7 +14757,7 @@ async function rvDetail(subId, entryId, cupId, doReview, hint){
   M.qa("[data-rd]").forEach(b=>b.onclick=async()=>{
     M.close();
     if(!RVQ.find(x=>x.id===s.id)) await loadRvq();
-    /* 読み直したあとの、いまの段階でもう一度たしかめます */
+    /* 読み直したあとの、いまの段階でもう一度確かめます */
     const s2=RVQ.find(x=>x.id===s.id)||s;
     const st2=rvStageOf(s2);
     if(!st2||!rvCanStage(s2,st2)) return toast("いま自分が審査できる段階ではありません");
@@ -14043,7 +14867,7 @@ async function openProfile(handle){
       pr.trophies=(aw&&aw[0])?aw[0].trophies:0; pr.stars=(aw&&aw[0])?aw[0].stars:0; }catch(e){}
     let rc=null;
     try{ rc=await sb("rpc/get_records",{method:"POST",body:JSON.stringify({p_handle:handle})}); }catch(e){}
-    /* 取れなかった時は、公開プロフィールから直接もう一度さがします */
+    /* 取れなかった時は、公開プロフィールから直接もう一度探します */
     if(!rc||typeof rc!=="object"||!Object.keys(rc).length){
       try{
         const p2=await sb(`profiles_public?select=records&handle=eq.${encodeURIComponent(handle)}&limit=1`);
@@ -14216,7 +15040,7 @@ $("#roomEdit").onclick=()=>roomForm(curRoom);
 $("#roomDel").onclick=async()=>{
   if(!curRoom) return;
   if(!await askYN("この部屋を消しますか？",
-    `<b>${esc(curRoom.title)}</b><br>中の投稿もすべて消えます。`,"消す")) return;
+    `<b>${esc(curRoom.title)}</b><br>中の投稿も全て消えます。`,"消す")) return;
   try{ await callRpc("room_del",{p_id:curRoom.id}); toast("消しました");
     await loadRooms(); backToRooms(); }
   catch(e){ toast(String(e.message||e).slice(0,90)); }
@@ -14499,7 +15323,7 @@ function pcupTable(rows,cup){
         data-all="${cup.id}|${esc(e.handle||"")}">全データ閲覧${+e.n_subs>1?"（"+e.n_subs+"）":""}</button></td>
     </tr>`).join("")+"</tbody></table></div>";
 }
-/** 入力された1回ぶんずつの記録をすべて見せます（誰でも見られます） */
+/** 入力された1回ぶんずつの記録を全て見せます（誰でも見られます） */
 function cupDetail(cid,idx){
   const cup=PCUPS.find(c=>c.id===cid), e=(PCUPENT[cid]||[])[idx];
   if(!cup||!e) return;
@@ -14564,7 +15388,7 @@ function pcupJoin(id){
       <div class="lsbox"><div class="t">合計スコア</div><div class="v" id="jSum" style="font-size:1.5rem">0</div>
         <div class="s">この値で順位がつきます</div></div>
     </div>
-    <h3 style="margin-top:14px">提出のしかた</h3>
+    <h3 style="margin-top:14px">提出の仕方</h3>
     <label class="pk" style="display:inline-flex"><input type="checkbox" id="jDis"> Discord に出す</label>
     <div id="jLinkWrap">
       <label class="fl">${c.img_ok?"提出するリンク（X・YouTube・画像のどれでも／複数可）"
@@ -14736,7 +15560,7 @@ function bodyHTML(t){
 let TAGQ="", TAGS=[], FSTAT=null, LASTUP=null;
 let FQ={word:"",from:"",to:"",who:"",kind:""};
 const K_TAGSEEN="sa-tagseen-v1", K_TAGWATCH="sa-tagwatch-v1", K_AUTOPOST="sa-autopost-v1";
-/** 通知を受け取るタグ。空なら「自分が使ったタグすべて」 */
+/** 通知を受け取るタグ。空なら「自分が使ったタグ全て」 */
 let tagWatch=ls(K_TAGWATCH,null);
 const saveWatch=()=>{try{localStorage.setItem(K_TAGWATCH,JSON.stringify(tagWatch));}catch(e){}};
 /** 自動投稿の設定 */
@@ -14865,7 +15689,7 @@ function tagSeen(list){
 }
 /** いま何かで絞り込んでいるか */
 const feedActive=()=>!!(TAGQ||FQ.word||FQ.from||FQ.to||FQ.who||FQ.kind);
-/** 1件が条件に合うか。検索はすべて手元で行うので、通信は増えません */
+/** 1件が条件に合うか。検索は全て手元で行うので、通信は増えません */
 function feedMatch(p){
   if(TAGQ){
     const ok=tagsOf(p.body).includes(TAGQ)
@@ -15087,16 +15911,16 @@ function renderAch(){
       ?`<button class="btn" id="achSec">部門を作る</button>`
       +`<button class="btn" id="achPos">${achPos?"位置の編集をやめる":"位置を編集する"}</button>`
       +`<button class="btn ${unpub?"pri":""}" id="achPub" ${unpub?"":"disabled"}>`
-      +`編集したアチーブメントをすべて公開する${unpub?"（"+unpub+"）":""}</button>`:"");
+      +`編集したアチーブメントを全て公開する${unpub?"（"+unpub+"）":""}</button>`:"");
   note.textContent = achKind==="official"
-    ? (canOffAch()?"ジャッジマンだけが作れます。作ったものは「すべて公開する」を押すまで、ほかの人には見えません。"
+    ? (canOffAch()?"ジャッジマンだけが作れます。作ったものは「全て公開する」を押すまで、ほかの人には見えません。"
                   :"公式アチーブメントはジャッジマンが用意します。挑みたいメダルを押してください。")
     : "誰でも作れます。トロフィーのランクはありません。";
   if($("#achNew")) $("#achNew").onclick=()=>achForm(null);
   if($("#achSec")) $("#achSec").onclick=achSecForm;
   if($("#achPos")) $("#achPos").onclick=()=>{ achPos=!achPos; renderAch(); };
   if($("#achPub")) $("#achPub").onclick=async()=>{
-    if(!await askYN("編集したものをすべて公開しますか？",
+    if(!await askYN("編集したものを全て公開しますか？",
       "未公開・編集中の <b>"+unpub+"件</b> が、いちどに全員に見えるようになります。","公開する")) return;
     try{ await callRpc("ach_publish_all",{}); toast("公開しました");
       await loadAch(); renderAch(); }catch(e){ toast(String(e.message||e).slice(0,90)); }
@@ -15204,7 +16028,7 @@ function achForm(id){
       <div id="afRules"></div>
       <div class="tools" style="margin-top:6px">
         <button class="btn sm" id="afRuleAdd">＋ 条件を増やす</button>
-        <span class="tiny">すべての条件を満たしたら達成になります</span>
+        <span class="tiny">全ての条件を満たしたら達成になります</span>
       </div>`}
     <h3 style="margin-top:16px">ランキング</h3>
     <div class="tools" style="margin-top:0">
@@ -15216,12 +16040,12 @@ function achForm(id){
         ${a&&a.auto_done?"checked":""}> 提出したら達成にする</label>
       <div class="tools" style="margin-top:6px">
         <label class="pk"><input type="radio" name="afK" value="best" ${!a||a.keep!=="all"?"checked":""}> 最高記録だけ出す</label>
-        <label class="pk"><input type="radio" name="afK" value="all" ${a&&a.keep==="all"?"checked":""}> すべての提出を出す</label>
+        <label class="pk"><input type="radio" name="afK" value="all" ${a&&a.keep==="all"?"checked":""}> 全ての提出を出す</label>
       </div>`}
     <div class="tools"><button class="btn pri" id="afGo">${a?"保存する":"作る"}</button>
       ${a&&a.can_edit?`<button class="btn" id="afDel" style="border-color:#7a3030;color:#ff8a8a">消す</button>`:""}
       <span class="tiny" id="afM"></span></div>
-    ${off?`<p class="tiny">公式は「すべて公開する」を押すまで、ほかの人には見えません。</p>`:""}`,
+    ${off?`<p class="tiny">公式は「全て公開する」を押すまで、ほかの人には見えません。</p>`:""}`,
     {w:820});
 
   const drawFields=()=>{
@@ -15247,7 +16071,7 @@ function achForm(id){
   M.q("#afSheet").onclick=()=>xlEditor(fields,sheet,r=>{ sheet=r;
     M.q("#afSheet").textContent="表計算を用いる"+(sheet?"（設定ずみ）":""); });
   if(M.q("#afDel")) M.q("#afDel").onclick=async()=>{
-    if(!await askYN("このアチーブメントを消しますか？","提出された記録もすべて消えます。","消す")) return;
+    if(!await askYN("このアチーブメントを消しますか？","提出された記録も全て消えます。","消す")) return;
     try{ await callRpc("ach_del",{p_id:id}); M.close(); await loadAch(); renderAch(); toast("消しました"); }
     catch(e){ toast(String(e.message||e).slice(0,90)); }
   };
@@ -15316,7 +16140,7 @@ function achForm(id){
     if(!t) return toast("名前を入れてください");
     if(!b) return toast("内容を書いてください");
     if(!noVal&&(!fields.length||fields.some(f=>!f.label.trim())))
-      return toast("記入してもらう値の名前をすべて書いてください");
+      return toast("記入してもらう値の名前を全て書いてください");
     const need=(M.qa('input[name="afN"]').find(x=>x.checked)||{}).value||"either";
     const ranked=noVal?false:((M.qa('input[name="afR"]').find(x=>x.checked)||{}).value==="1");
     const body={p_id:id||null,p_kind:kind,p_title:t,p_body:b,p_how:M.q("#afH").value.trim()||null,
@@ -15411,7 +16235,7 @@ async function achDetail(id){
     ${a.kind==="official"&&a.dirty?'<p class="tiny" style="color:var(--warn)">（編集中）直した内容はまだ公開されていません。</p>':""}
     <h3>内容</h3>
     <div style="white-space:pre-wrap;font-size:.88rem">${esc(a.body||"")}</div>
-    ${a.how?`<h3 style="margin-top:14px">提出のしかた</h3>
+    ${a.how?`<h3 style="margin-top:14px">提出の仕方</h3>
       <div style="white-space:pre-wrap;font-size:.88rem">${esc(a.how)}</div>`:""}
     <p class="tiny">出せるのは ${a.need==="video"?"動画のリンクだけ":a.need==="image"?"画像のリンクだけ":"動画でも画像でも構いません"}
       （X または YouTube）。記入する値：${(a.fields||[]).map(f=>esc(f.label||f.key)).join("、")}</p>
@@ -15469,7 +16293,7 @@ function achSubmit(a){
   const fs=a.fields||[];
   const links=[{url:"",note:""}];
   const M=modal(`<h2>${esc(a.title)} に出す</h2>
-    ${a.how?`<div class="hintbox" style="margin-top:0"><b>提出のしかた</b><br>
+    ${a.how?`<div class="hintbox" style="margin-top:0"><b>提出の仕方</b><br>
       <span class="tiny" style="white-space:pre-wrap">${esc(a.how)}</span></div>`:""}
     <p class="tiny">出せるのは ${a.need==="video"?"<b>動画</b>のリンクだけ":a.need==="image"?"<b>画像</b>のリンクだけ":"動画でも画像でも構いません"}
       （X または YouTube）。</p>
@@ -15490,7 +16314,7 @@ function achSubmit(a){
       ?"公式アチーブメントは、審査員の審査を通ると達成になります。それまでは「審査中」です。"
       :(a.auto_done?"提出すると達成になります。"
         :(a.rules&&a.rules.length
-          ?"次の条件をすべて満たすと達成になります（審査はありません）。<br>"
+          ?"次の条件を全て満たすと達成になります（審査はありません）。<br>"
             +a.rules.map(r=>`　<b>${esc(r.k)}</b> が <b>${jp(+r.v||0)}</b> `
               +(RULE_TXT[r.op]||"以上")).join("<br>")
           :"作った人の決めた条件で達成が決まります。"))}</p>`,
@@ -15520,7 +16344,7 @@ function achSubmit(a){
     /* 0 でも提出できます。空欄だけをはじきます */
     if(fs.some(f=>{ const el=M.q(`[data-v="${CSS.escape(f.key)}"]`);
       return !el||String(el.value).trim()===""; }))
-      return toast("すべての値を記入してください（0でもかまいません）");
+      return toast("全ての値を記入してください（0でもかまいません）");
     const LK=cleanLinks(links);
     if(!LK.length) return toast("証明のリンクを1つ以上入れてください");
     const c=calc();
@@ -15620,7 +16444,7 @@ function cupMore(cid){
   M.q("#cmDel").onclick=()=>{
     M.close();
     confirmCode(kindN+"を消しますか？",
-      `<b>${esc(c.title)}</b><br>参加した人の記録もすべて消えます。`,
+      `<b>${esc(c.title)}</b><br>参加した人の記録も全て消えます。`,
       "消す",
       async()=>{
         try{ await callRpc("delete_pcup",{p_id:cid}); toast("消しました");
@@ -15632,7 +16456,7 @@ function cupMore(cid){
 function cupEditForm(c){
   const kindN=c.kind==="official"?"競技会":"チャレンジ";
   const M=modal(`<h2>${esc(c.title)} の説明を書きかえる</h2>
-    <p class="muted" style="margin-top:-8px">${kindN}の<b>説明文</b>と<b>提出のしかた</b>だけを直せます。<br>
+    <p class="muted" style="margin-top:-8px">${kindN}の<b>説明文</b>と<b>提出の仕方</b>だけを直せます。<br>
       <span class="tiny">名前とルールは変えられません（すでに出された記録とずれてしまうためです）。</span></p>
     <label class="fl">説明（色や太字が使えます）</label>
     ${richEditHTML("ceIEd","ルールの補足、注意すること、参加する人へのお願いなど")}
@@ -15880,7 +16704,7 @@ function nthOf(cup,pd,d){
   return n>=1?n:null;        /* 始まる前は回数がありません */
 }
 const nthTxt=n=>n?`第${n}回`:"開催前";
-/* 期間の名札（YYYY-MM-DD / IYYY-Www / YYYY-MM）から日付にもどします */
+/* 期間の名札（YYYY-MM-DD / IYYY-Www / YYYY-MM）から日付に戻します */
 function keyDate(pd,k){
   k=String(k||"");
   if(pd==="day"){ const m=k.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return null;
@@ -15888,7 +16712,7 @@ function keyDate(pd,k){
   if(pd==="month"){ const m=k.match(/^(\d{4})-(\d{2})$/); if(!m) return null;
     return new Date(+m[1],+m[2]-1,1); }
   if(pd==="week"){ const m=k.match(/^(\d{4})-W(\d{2})$/); if(!m) return null;
-    /* ISO週：その年の1月4日を含む週の月曜日が第1週のはじまり */
+    /* ISO週：その年の1月4日を含む週の月曜日が第1週の始まり */
     const j4=new Date(+m[1],0,4), w=(j4.getDay()+6)%7;
     const mon=new Date(j4.getFullYear(),j4.getMonth(),j4.getDate()-w);
     return new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+(+m[2]-1)*7); }
@@ -16079,7 +16903,7 @@ async function pastRanking(cid){
       box.querySelectorAll(".calday").forEach(el=>el.onclick=()=>show(el.dataset.d));
     }
     else if(pd==="week"){
-      /* その月の日を含む週を、すべて帯にして並べます */
+      /* その月の日を含む週を、全て帯にして並べます */
       const first=new Date(y,m,1), last=new Date(y,m+1,0);
       const mon=new Date(first); mon.setDate(first.getDate()-((first.getDay()+6)%7));
       const bands=[];
@@ -16771,7 +17595,7 @@ function hsChart(rows, opt){
   const pred=((o.pred||[])
     .filter(p=>p&&p.v!=null && (!lastReal||p.d>lastReal) && !seen.has(p.d))
     .map(p=>Object.assign({},p,{pred:true})));
-  /* 日付順に、ひとつながりにします */
+  /* 日付順に、一続きにします */
   const all=real.concat(pred).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
   const pts=all.filter(r=>r.v!=null);
   if(pts.length<1) return `<p class="muted">この月には、まだ記録がありません。</p>`;
@@ -17079,7 +17903,7 @@ function mdWord(v){
   ws.forEach(x=>{ if(v>=(+x.min||0)) r=x; });
   return [+r.min||0, r.text||"—", r.color||"#93a4c0"];
 }
-/** タグから、Xに送るお願いの文を作ります（yml と同じ作りかた） */
+/** タグから、Xに送るお願いの文を作ります（yml と同じ作り方） */
 function moodQuery(cfg){
   const c=cfg||MCFG;
   const tags=(c.tags||[]).map(t=>String(t).trim().replace(/^#/,"")).filter(Boolean);
@@ -17121,7 +17945,7 @@ async function moodLoad(){
     return;
   }
   if(!sbOn()){ MOOD=[]; MOOD_D=[]; MOODW=null; MOODST=null; return; }
-  /* 期間を指定しません＝はじめの日から今日まで、ぜんぶ読みます。
+  /* 期間を指定しません＝最初の日から今日まで、全部読みます。
      mood_daily は1日1行しか増えないので、何年ぶんでも軽いままです。
      サーバー側でも古い日を消す処理はどこにも入れていません。 */
   const from=null;
@@ -17941,7 +18765,7 @@ $("#chPop").onclick=async e=>{
     const x=Array.isArray(r)?r[0]:r;
     if(x){ CH.total=+x.total; CH.today=+x.today; chLeft=+x.left_n; renderCheer(); }
   }catch(err){
-    /* 断られたぶんは、今週・今月・今年もすべて元に戻します */
+    /* 断られたぶんは、今週・今月・今年も全て元に戻します */
     chAdd(-1);
     chLeft=0;
     renderCheer(); toast(String(err.message||err).slice(0,90));
@@ -18056,7 +18880,7 @@ function lbWindow(gain,bonus){
     </div>
     ${calHTML(month)}
     <div class="tools" style="margin-top:12px;justify-content:center">
-      <button class="btn pri" id="lbOk">はじめる</button></div>`,{sticky:true,w:520});
+      <button class="btn pri" id="lbOk">始める</button></div>`,{sticky:true,w:520});
   M.q("#lbOk").onclick=()=>M.close();
 }
 
@@ -18135,7 +18959,7 @@ function lsCoinFx(n){
 /* ══════════════════════════════════════════════════════════
    管理者エディターモード（画面の文章を書きかえる）
    ──────────────────────────────────────────────────────────
-   考えかた
+   考え方
    ・画面の中から「文字を持っているかたまり」だけを取り出します
    ・その中身から鍵（合言葉）を作り、書きかえた文をその鍵で預けます
    ・出す時は「もとの文が今も同じか」を確かめてから当てます。
@@ -18169,7 +18993,7 @@ function uiHash(str){
   for(let i=str.length-1;i>=0;i--){ h2=((h2<<5)+h2)^str.charCodeAt(i); h2=h2>>>0; }
   return ("00000000"+h.toString(16)).slice(-8)+("00000000"+h2.toString(16)).slice(-8);
 }
-/** 画面の中から、書きかえられるかたまりを全部さがします */
+/** 画面の中から、書きかえられるかたまりを全部探します */
 function uiScan(){
   const out=[];
   const root=document.body; if(!root) return out;
@@ -18313,7 +19137,7 @@ document.addEventListener("contextmenu",e=>{
   e.preventDefault(); e.stopPropagation();
   uiEditOne(el);
 },true);
-/** ひとつぶんの文章を書きかえる窓 */
+/** 1つ分の文章を書きかえる窓 */
 function uiEditOne(el){
   const key=el.dataset.uikey; if(!key) return;
   const orig=uiOrigOf(el);
@@ -18328,7 +19152,7 @@ function uiEditOne(el){
     ${richEditHTML("uiEd","ここに出したい文章を書きます")}
     <div class="tools">
       <button class="btn pri" id="uiOk">この文章にする</button>
-      <button class="btn" id="uiRev">もとの文にもどす</button>
+      <button class="btn" id="uiRev">もとの文に戻す</button>
       <button class="btn" id="uiNo">やめる</button></div>
     <p class="tiny" style="color:var(--dim2);margin-top:6px">
       「この文章にする」を押すと、この画面ではすぐ変わります。<br>
@@ -18339,7 +19163,7 @@ function uiEditOne(el){
   M.q("#uiRev").onclick=()=>{
     if(UIT.texts) delete UIT.texts[key];
     el.innerHTML=orig; delete el.dataset.uiOn;
-    UIT_DIRTY=true; uiBarDraw(); M.close(); toast("もとの文にもどしました");
+    UIT_DIRTY=true; uiBarDraw(); M.close(); toast("もとの文に戻しました");
   };
   M.q("#uiOk").onclick=()=>{
     const html=get();
@@ -18359,7 +19183,7 @@ async function uiPublish(){
   const n=uiCount();
   if(!await askYN("この内容を全員に反映しますか？",
     `書きかえた文章 <b>${jp(n)} か所</b>と、タブの決まりを、みんなの画面に反映します。<br><br>
-     <span class="tiny">ひとつ前の内容は控えとして残るので、あとから戻せます。</span>`,
+     <span class="tiny">1つ前の内容は控えとして残るので、あとから戻せます。</span>`,
     "全員に反映する")) return;
   uiMsg("送っています…");
   try{
@@ -18412,7 +19236,7 @@ function uiListShow(){
   };
   M.q("#uiClrAll").onclick=async()=>{
     if(!await askYN("全部もとに戻しますか？",
-      "書きかえた文章をすべて消して、はじめの文にもどします。<br>タブの決まりも消えます。","全部もどす")) return;
+      "書きかえた文章を全て消して、最初の文に戻します。<br>タブの決まりも消えます。","全部戻す")) return;
     UIT={texts:{},tabs:{}}; UIT_DIRTY=true; uiApply(); if(UIT_ON) uiMark(); uiBarDraw();
     M.close(); toast("もとに戻しました（まだ全員には届いていません）");
   };
@@ -18487,7 +19311,7 @@ function uiCardInit(){
 }
 
 /* ══════════ タブの名前と並び順 ══════════ */
-/* ★ 追加の道具が足したタブは、ここでは絶対にあつかいません。
+/* ★ 追加の道具が足したタブは、ここでは絶対に扱いません。
       名前や並び順を預けると、みんなに見えてしまうためです。 */
 function uiTabList(){
   const own=new Set(["profile","pgbc","stats","card","input","plan","analysis","hist",
@@ -18529,7 +19353,7 @@ function uiTabsEdit(){
   const M=modal(`<h2>タブの名前と並び順</h2>
     <p class="muted" style="margin-top:-8px">タブの名前を変えたり、並べかえたり、隠したりできます。<br>
       <span class="tiny">並べかえは、同じグループの中だけでできます。
-      名前を空にすると、もとの名前にもどります。</span></p>
+      名前を空にすると、もとの名前に戻ります。</span></p>
     ${Object.keys(byG).map(g=>`<h3>${esc(grpName[g]||g)}</h3>
       <label class="fl">グループの名前</label>
       <input type="text" class="txt" data-utg="${esc(g)}" maxlength="20"
@@ -18538,7 +19362,7 @@ function uiTabsEdit(){
         <th>もとの名前</th><th>出す名前</th><th></th><th>並び</th></tr></thead>
         <tbody>${rows(g)}</tbody></table></div>`).join("")}
     <div class="hintbox" style="margin-top:10px">
-      <span class="tiny">ここに出ていないタブ（管理者だけのものなど）は、あつかいません。</span></div>
+      <span class="tiny">ここに出ていないタブ（管理者だけのものなど）は、扱いません。</span></div>
     <div class="tools">
       <button class="btn pri" id="utOk">この決まりにする</button>
       <button class="btn" id="utRev">もとに戻す</button>
@@ -18617,10 +19441,10 @@ function uiTabsApply(){
 }
 
 /* ══════════════════════════════════════════════════════════
-   かんたんな文字かざり（太字・色・大きさなど）
+   簡単な文字かざり（太字・色・大きさなど）
    ・書いた人が付けられるのは、下の決まった飾りだけです
    ・出す時は必ず「安全な形に直して」から出します
-     （知らないタグや、あぶない書き方はぜんぶ捨てます）
+     （知らないタグや、危ない書き方は全部捨てます）
    ══════════════════════════════════════════════════════════ */
 const RICH_TAGS={B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,BR:1,DIV:1,P:1,SPAN:1,
   UL:1,OL:1,LI:1,A:1,H3:1,H4:1,CODE:1,FONT:1,MARK:1,SMALL:1,BIG:1};
@@ -18650,7 +19474,7 @@ function sanitizeRich(html){
       if(n.nodeType===3){ to.appendChild(document.createTextNode(n.nodeValue)); return; }
       if(n.nodeType!==1) return;
       const tag=n.tagName;
-      if(RICH_DROP[tag]) return;                            /* あぶないタグは、中身ごと捨てます */
+      if(RICH_DROP[tag]) return;                            /* 危ないタグは、中身ごと捨てます */
       if(!RICH_TAGS[tag]){ walk(n,to,depth+1); return; }    /* 知らないタグは、中身だけ残します */
       const name=(tag==="FONT"||tag==="BIG")?"SPAN":tag;
       const el=document.createElement(name);
@@ -18701,7 +19525,7 @@ function sanitizeRich(html){
           el.setAttribute("href",href);
           el.setAttribute("target","_blank");
           el.setAttribute("rel","noopener noreferrer");
-        }else{ walk(n,to,depth+1); return; }   /* あぶないリンクは、ただの文字にします */
+        }else{ walk(n,to,depth+1); return; }   /* 危ないリンクは、ただの文字にします */
       }
       to.appendChild(el);
       walk(n,el,depth+1);
@@ -18984,7 +19808,7 @@ const pdParse=t=>{ const m=String(t||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
   return m?new Date(+m[1],+m[2]-1,+m[3]):null; };
 const pdStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const pdSlash=d=>`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
-/** その日以降で、いちばん早い「回のはじまり」を返します */
+/** その日以降で、いちばん早い「回の始まり」を返します */
 function pzNextStart(kind,fromISO){
   const f=pdParse(fromISO); if(!f) return null;
   if(kind==="day"||kind==="cup") return f;
@@ -18999,7 +19823,7 @@ function pzNextStart(kind,fromISO){
   }
   return f;
 }
-/** その「回のはじまり」の期間キー（第n回を出すのに使います）*/
+/** その「回の始まり」の期間キー（第n回を出すのに使います）*/
 function pzPeriodKey(kind,d){
   if(kind==="day") return pdStr(d);
   if(kind==="month") return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
@@ -19205,7 +20029,7 @@ if($("#pzSave")) $("#pzSave").onclick=async()=>{
 };
 if($("#pzReload")) $("#pzReload").onclick=async()=>{ await pzEnter(); pzMsg("読み直しました"); };
 if($("#pzDef")) $("#pzDef").onclick=()=>{ PZEDIT=JSON.parse(JSON.stringify(PZ_DEF)); pzDraw();
-  pzMsg("はじめの形に戻しました（保存はまだです）"); };
+  pzMsg("初期の形に戻しました（保存はまだです）"); };
 /** 賞品を変えたことを、全員にお知らせします */
 async function pzNotice(cfg,from){
   const f=pdParse(from)||new Date();
@@ -19512,7 +20336,7 @@ if($("#ccDef")) $("#ccDef").onclick=()=>{ CCEDIT=JSON.parse(JSON.stringify(CC_DE
 /* ══════════════════════════════════════════════════════════════
    一時停止のスイッチ
    ・管理者が止めると、みんなの画面は「いまお休みしています」だけになります
-   ・データは何も消えません。もどせばすぐ元どおりです
+   ・データは何も消えません。戻せばすぐ元どおりです
    ・管理者（ジャッジマン以上）は、止まっていても中に入れます
    ══════════════════════════════════════════════════════════════ */
 const K_PAUSE="sa-pause-v1";
@@ -19569,7 +20393,7 @@ if($("#pwRetry")) $("#pwRetry").onclick=async()=>{
   $("#pwRetry").disabled=false;
   if(!applyPause()) location.reload();
 };
-/** 止まっているあいだも、30秒ごとに「もどったか」を見に行きます */
+/** 止まっているあいだも、30秒ごとに「戻ったか」を見に行きます */
 setInterval(async()=>{
   if(!(PAUSE&&PAUSE.on)) return;
   if(document.hidden) return;
@@ -19822,7 +20646,7 @@ role:`<h3>審査の仕組み</h3>
 <p class="tiny">却下には必ず理由が付きます。理由は提出した人だけが読めます。
 納得できない時は、その記録から不服を申し立てられます。ジャッジマンが確認します。</p>`,
 
-cup:`<h3>提出のしかた（動画と画像）</h3>
+cup:`<h3>提出の仕方（動画と画像）</h3>
 <p class="tiny">提出はふつう<b>動画</b>です（X・YouTube・Discord）。全プレイが映っている必要があります。</p>
 <p class="tiny">ただし、作った人が <b>「画像でもOK」</b>にしている場合は、
 <b>スクリーンショットのリンク</b>でも出せます。一覧に <span class="sbtag"
@@ -19846,14 +20670,14 @@ X の動画は長さの制限があるので、長いチャレンジではこち
 <tr><td><b>合計モード</b></td><td>選んだ種目の記録を、そのまま足します</td><td>同じ種類の種目だけを集めた時</td></tr>
 <tr><td><b>スコアモード</b></td><td>種目ごとに比重をかけて足します</td><td>特定の種目を重くしたい時</td></tr>
 <tr><td><b>レートモード</b></td><td>記録を「その種目の中でのすごさ」に直してから足します</td>
-  <td><b>むずかしさの違う種目や、スコアとタイムを混ぜる時</b></td></tr>
+  <td><b>難しさの違う種目や、スコアとタイムを混ぜる時</b></td></tr>
 </tbody></table></div>
 <p class="tiny"><b>レートモードのしくみ</b><br>
-その種目のボーダー（1位・5位・10位…200位）と見くらべて、記録を <b>0〜1,000点</b> に直します。
+その種目のボーダー（1位・5位・10位…200位）と見比べて、記録を <b>0〜1,000点</b> に直します。
 1位ボーダーちょうどで 1,000点、200位ボーダーで少しの点、という具合です。<br>
 世界記録が9万点の種目でも8.5万点の種目でも、<b>「1位なら1,000点」</b>でそろうので、
 どの種目が得意でも公平に競えます。タイムの種目は「短いほど高い点」に自動で直ります。</p>
-<p class="tiny">18種目ぜんぶを1つずつ計算する必要はありません。種目を選ぶだけで、
+<p class="tiny">18種目全部を1つずつ計算する必要はありません。種目を選ぶだけで、
 アプリがボーダーを見て自動でそろえます。比重をかけることもできます。</p>
 
 <h3 style="margin-top:16px">大会とチャレンジの違い</h3>
@@ -19867,7 +20691,7 @@ X の動画は長さの制限があるので、長いチャレンジではこち
 <div class="scroll"><table><thead><tr><th>モード</th><th>意味</th><th>例</th></tr></thead><tbody>
 <tr><td>順番モード</td><td>やる順番を決める</td><td>lv.1 → lv.2 → lv.3</td></tr>
 <tr><td>連続モード</td><td>同じ種目を続けてやる</td><td>lv.1 を5回</td></tr>
-<tr><td>ノーミスモード</td><td>すべての記録でノーミス</td><td>下の表を参照</td></tr>
+<tr><td>ノーミスモード</td><td>全ての記録でノーミス</td><td>下の表を参照</td></tr>
 </tbody></table></div>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto;margin-top:10px">
   暗素因数分解 Lv.1 を5回 → lv.2 を3回 → lv.3 を1回
@@ -19881,7 +20705,7 @@ X の動画は長さの制限があるので、長いチャレンジではこち
     <td><b>ノーミス回答率が100%</b></td></tr>
 <tr><td>暗素因数分解 lv.1・lv.2・lv.3</td><td><b>ノースキップ回答率が100%</b></td></tr>
 </tbody></table></div>
-<h3 style="margin-top:16px">提出のしかた</h3>
+<h3 style="margin-top:16px">提出の仕方</h3>
 <p class="tiny">提出できるのは <b>X か YouTube の動画リンク</b>だけです。画像はこのサイトに保存しません。
 リンクは何本でも足せて、それぞれに説明を書けます。「ツール」を押すと種目名をそのまま入れられます。</p>
 <p class="tiny">出し直すと、良いほうの記録だけが残ります。出し直した記録はもう一度審査を受けます。</p>`,
@@ -19890,9 +20714,9 @@ ach:`<h3>アチーブメントは2種類</h3>
 <div class="scroll"><table><thead><tr><th></th><th>公式アチーブメント</th><th>みんなのアチーブメント</th></tr></thead><tbody>
 <tr><td>だれが作れる</td><td>ジャッジマンだけ</td><td>だれでも</td></tr>
 <tr><td>トロフィーのランク</td><td>ブロンズ／シルバー／ゴールド／プラチナ</td><td>なし</td></tr>
-<tr><td>達成のしかた</td><td><b>審査員の審査を通ると達成</b></td><td>作った人の設定どおり（提出したら達成にもできる）</td></tr>
+<tr><td>達成の仕方</td><td><b>審査員の審査を通ると達成</b></td><td>作った人の設定どおり（提出したら達成にもできる）</td></tr>
 <tr><td>出せる回数</td><td>何回でも（達成後は記録更新の申請になります）</td><td>何回でも</td></tr>
-<tr><td>公開のしかた</td><td>「すべて公開する」を押すまで見えません</td><td>作るとすぐ見えます</td></tr>
+<tr><td>公開の仕方</td><td>「全て公開する」を押すまで見えません</td><td>作るとすぐ見えます</td></tr>
 </tbody></table></div>
 <h3 style="margin-top:16px">達成までの流れ（公式）</h3>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
@@ -19936,7 +20760,7 @@ ach:`<h3>アチーブメントは2種類</h3>
 <tr><td>なし</td><td>公開ずみ</td><td>いまの内容が見えます</td></tr>
 </tbody></table></div>
 <p class="tiny">1つずつ出すと誤解を招くので、直し終わったら
-<b>「編集したアチーブメントをすべて公開する」</b>を押して、いちどに公開します。</p>
+<b>「編集したアチーブメントを全て公開する」</b>を押して、いちどに公開します。</p>
 <h3 style="margin-top:16px">ランキングを作る／作らない</h3>
 <div class="scroll"><table><thead><tr><th></th><th>並び方</th><th>色</th></tr></thead><tbody>
 <tr><td>作る</td><td>メインの値の大きい順。未達成の人も並びます</td><td>達成者は<b style="color:#ffd45e">金色</b>、提出だけの人は白</td></tr>
@@ -20114,7 +20938,7 @@ tool:`<h3>画面の地図</h3>
 </tbody></table></div>
 <p class="tiny">条件に合わない部屋は<b>あることすら見えません</b>。
 未読があると部屋の右上に赤い数字が出て、三重線が赤く点滅します。
-公式タグの投稿はすべて<b>雑談部屋</b>に流れます。</p>
+公式タグの投稿は全て<b>雑談部屋</b>に流れます。</p>
 
 <h3 style="margin-top:16px">大切な操作の確かめ方</h3>
 <pre class="tiny" style="background:#0d1524;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto">
@@ -20206,7 +21030,7 @@ X の数を今すぐ知りたい時は、GitHub の Actions タブから手で�
 <tr><td>2つ以上</td><td class="mono">(#素数あつめ OR #素数大富豪) -is:retweet</td></tr>
 </tbody></table></div>
 <p class="tiny">「おまけの条件」はそのまま後ろに付きます。よく使うもの：</p>
-<div class="scroll"><table><thead><tr><th>書きかた</th><th>意味</th></tr></thead><tbody>
+<div class="scroll"><table><thead><tr><th>書き方</th><th>意味</th></tr></thead><tbody>
 <tr><td class="mono">-is:retweet</td><td>リポストを数えない（お勧め）</td></tr>
 <tr><td class="mono">-is:reply</td><td>返信を数えない</td></tr>
 <tr><td class="mono">lang:ja</td><td>日本語の投稿だけ数える</td></tr>
@@ -20344,10 +21168,10 @@ Prime Coin が入ります。<br>
 1日だけ大きく動いても急には変わらないので、界隈の調子をならして見られます。
 記録がない日は 0 点として数えます。</p>
 <p class="tiny"><b>過去のデータは消えません。</b>1日ぶんが1行として毎日たまっていき、
-はじめの日から今日までぜんぶ残ります。7日より前のぶんも、グラフと表でいつでも見られます。
+最初の日から今日まで全部残ります。7日より前のぶんも、グラフと表でいつでも見られます。
 上の「保存されている日数」で、いま何日ぶん残っているか分かります。</p>
 
-<h3 style="margin-top:16px">記録の見かた</h3>
+<h3 style="margin-top:16px">記録の見方</h3>
 <p class="tiny">1日ごと・1週間ごと・1か月ごとに切り替えられます。
 グラフの下の表に、点になる4つの内訳（X の投稿・アチーブメント達成・記録の提出・大会への提出）が出ます。</p>
 
@@ -20366,7 +21190,7 @@ Prime Coin が入ります。<br>
 rule:`<h3>このサイトについて（安心して使えます）</h3>
 <div class="lockbox" style="margin-bottom:12px">
 <p class="tiny" style="margin:0"><b>素数あつめ RATING は、広告も課金もない非営利のサイトです。</b>
-運営でお金は一切受け取っていません（サーバーもすべて無料の範囲で動かしています）。</p>
+運営でお金は一切受け取っていません（サーバーも全て無料の範囲で動かしています）。</p>
 <p class="tiny">2026年8月、<b>総務省に直接問い合わせて確認しました。</b>
 その結果、<b>本サイトは電気通信事業法の適用外</b>であることが分かりました。
 利益が発生していないため「事業」にあたらず、届出も登録も必要ありません。</p>
@@ -20413,7 +21237,7 @@ rule:`<h3>このサイトについて（安心して使えます）</h3>
 損害について、運営は責任を負いません。大事な記録は、ご自身でも控えを取ってください。</p>
 
 <h3 style="margin-top:16px">6. Prime Coin について</h3>
-<p class="tiny">Prime Coin は本サイトの中だけのしるしです。
+<p class="tiny">Prime Coin は本サイトの中だけの印です。
 <b>お金と交換したり、売り買いしたりはできません。</b>他の人にわたすこともできません。
 運営がやめた時に、なくなります。</p>
 
@@ -20472,8 +21296,8 @@ privacy:`<h3>プライバシーポリシー</h3>
 
 etc:`<h3>管理者だけができること</h3>
 <p class="tiny">次のことは、<b>管理者だけ</b>ができます。画面に出ないだけでなく、
-<b>サーバー側でも毎回たしかめて</b>います。ほかの人が直接呼び出しても断られます。
-だれが何をしたかは、すべて記録に残ります。</p>
+<b>サーバー側でも毎回確かめて</b>います。ほかの人が直接呼び出しても断られます。
+だれが何をしたかは、全て記録に残ります。</p>
 <div class="scroll"><table><thead><tr><th>できること</th><th>どこから</th></tr></thead><tbody>
 <tr><td>ランクの名前・色・レートの区切り</td><td>ランクの編集</td></tr>
 <tr><td>RANK（やりこみ）の設定・公開</td><td>ランクの編集 → RANK</td></tr>
@@ -20642,7 +21466,7 @@ function rpHelpSteps(){
       <td class="n mono">${esc(rpFmt(x.v))}</td></tr>`).join("")
     +`</tbody></table></div>
     ${flat>0?`<h3 style="margin-top:16px">RANK ${jp(st.length)} から先</h3>
-      <p class="tiny">ここから先は、<b>${esc(rpFmt(flat))} RP ふえるごとに1ランク</b>です。
+      <p class="tiny">ここから先は、<b>${esc(rpFmt(flat))} RP 増えるごとに1ランク</b>です。
         だんだん重くなることはありません。<b>上限もありません。</b></p>
       <div class="scroll"><table><tbody>
         <tr><td>いまのランク</td><td class="mono">${jp(st.length)} ＋ 切り捨て（（RP − ${esc(rpFmt(last))}）÷ ${esc(rpFmt(flat))}）</td></tr>
@@ -20664,7 +21488,7 @@ function moodHelpNow(){
     </tbody></table></div>
     <p class="tiny" style="color:var(--dim2)">${MCFG_AT
       ? "この内容は "+esc(jstStamp(new Date(MCFG_AT).toISOString()))+" にサーバーから読みました。"
-      : "サーバーからまだ読めていないので、はじめの設定を出しています。"}</p>`;
+      : "サーバーからまだ読めていないので、初期の設定を出しています。"}</p>`;
 }
 function moodHelpWords(){
   const ws=(MCFG.words||[]).slice().sort((a,b)=>(+a.min||0)-(+b.min||0));
@@ -20960,7 +21784,7 @@ const K_GH="sa-gh-v1";
 let gh=ls(K_GH,{owner:"",repo:"",branch:"main",path:"data.json",token:""});
 const saveGh=()=>{try{localStorage.setItem(K_GH,JSON.stringify(gh));}catch(e){}};
 const ghReady=()=>!!(gh.owner&&gh.repo&&gh.token);
-/** 失敗した時の、直しかたの案内 */
+/** 失敗した時の、直し方の案内 */
 function ghHint(m){
   m=String(m||"");
   if(/Bad credentials|401/i.test(m))
@@ -21035,7 +21859,7 @@ function devEditor(box,close){
 
   <h3>公開を止める・戻す</h3>
   <p class="tiny" style="margin-top:-4px">止めると、ほかの人には「いまお休みしています」だけが出ます。
-    <b>データは何も消えません。</b>もどせばすぐ元どおりです。管理者は止めていても中に入れます。</p>
+    <b>データは何も消えません。</b>戻せばすぐ元どおりです。管理者は止めていても中に入れます。</p>
   <div class="lockbox" id="dvPwState" style="margin-bottom:8px"></div>
   <label class="fl">お休み中に出す文（空でもかまいません）</label>
   <textarea id="dvPwMsg" class="txt" rows="2"
@@ -21247,8 +22071,8 @@ function devEditor(box,close){
       const at=new Date().toISOString();
       await callRpc("app_state_set",{p_key:"border",p_value:{at}});
       BORDER_AT=at; tickClock(); cdState();
-      m2.innerHTML='<span class="win">はじめました。次の土曜0時まで数えます。</span>';
-      toast("カウントダウンをはじめました");
+      m2.innerHTML='<span class="win">始めました。次の土曜0時まで数えます。</span>';
+      toast("カウントダウンを始めました");
     }catch(e){ m2.innerHTML='<span class="lose">失敗：'+esc(String(e.message||e)).slice(0,160)+'</span>'; }
   };
   /* 公開を止める・戻す */
@@ -21278,7 +22102,7 @@ function devEditor(box,close){
       pwState(); applyPause();
       out.innerHTML=on
         ? '<span class="win">止めました。ほかの人には見えなくなりました。</span>'
-        : '<span class="win">もどしました。またみんなが使えます。</span>';
+        : '<span class="win">戻しました。またみんなが使えます。</span>';
       const b=$("#pauseBanner"); if(b&&!on) b.hidden=true;
     }catch(e){ out.innerHTML='<span class="lose">'+esc(String(e.message||e).slice(0,90))+'</span>'; }
   };
@@ -21670,7 +22494,7 @@ function renderFriday(){
   if(jstDay!==5||localStorage.getItem(key)==="1"){ b.hidden=true; return; }
   b.hidden=false;
   $("#friMsg").innerHTML=`<b>本日は金曜日です。記録を入力しましょう。</b>`+
-    `生成した乱数の累積やスコアの累積など、すべての記録を入力してください。`+
+    `生成した乱数の累積やスコアの累積など、全ての記録を入力してください。`+
     `<br><span class="tiny">入力済みの記録が消えることはありません。`+
     `素数ゲームの記録更新は難しいので、まずは L値・S値（生成した乱数の累積・スコアの累積）の更新から試してみてください。もちろん任意です。</span>`;
   $("#friGo").onclick=()=>goTab("input");
@@ -21871,7 +22695,7 @@ function openHistory(latestOnly){
   q("#hkWeek").innerHTML=WEEKS.map((w,i)=>
     `<option value="${i}">${w.date}</option>`).join("");
   q("#hkWeek").value=WEEKS.length-1;
-  /* 年月を選ぶと、その月に更新された回がすべて帯で出ます */
+  /* 年月を選ぶと、その月に更新された回が全て帯で出ます */
   let hkM=(()=>{ const d=new Date(WEEKS[WEEKS.length-1].date+"T12:00:00+09:00");
     return new Date(d.getFullYear(),d.getMonth(),1); })();
   const bands=()=>{
@@ -22003,7 +22827,7 @@ function normalize(j){
   /* 見はりは、あとからログインしても効くように、いつでも用意しておきます */
   try{ stWatch(); }catch(e){}
   /* ★ 追加の道具は、LSやりこみをそろえる前に読み込みます。
-     あとにすると、その道具のデータが「知らないもの」あつかいになり、
+     あとにすると、その道具のデータが「知らないもの」扱いになり、
      送る時にサーバーから消えてしまいます。 */
   try{ await extLoad(); }catch(e){}
   /* ★ LSやりこみは専用の入れものでそろえます（5分おき） */
