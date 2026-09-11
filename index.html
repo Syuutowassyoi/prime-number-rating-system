@@ -112,7 +112,12 @@ html[data-theme="light"] .adcell,html[data-theme="light"] .arkey{
 html[data-theme="light"] .arinbox{background:#ffffff;color:#0b6fa4}
 html[data-theme="light"] .arcard{background:#ffffff}
 html[data-theme="light"] .arq{color:var(--tx)}
-html[data-theme="light"] .pbc{background:#eef2f7;border-color:var(--line2)}
+html[data-theme="light"] .pbc{background:#eef2f7;border-color:var(--line2);color:#64748b}
+/* ★ 空いたマスは、ライトモードでも 中までしっかり色をつけます
+   （前は上の行の指定が勝ってしまい、外わくだけ光って見えていました）*/
+html[data-theme="light"] .pbc.on{
+  background:linear-gradient(160deg,#ffc93c,#ff8f1f);
+  border-color:#e08a00;color:#3d2600;box-shadow:0 0 8px #ffc93c88}
 html[data-theme="light"] .uiflag{background:#ffffffee}
 html[data-theme="light"] .uifhead{background:linear-gradient(90deg,#dbe7f8,#ffffff);color:var(--tx)}
 html[data-theme="light"] footer{color:var(--dim2)}
@@ -455,7 +460,7 @@ hr{border:none;border-top:1px solid var(--line);margin:18px 0}
 
 header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .menubar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.mbtn{width:44px;height:40px;border-radius:11px;background:#182233;border:1px solid var(--line);
+.mbtn{width:44px;height:40px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);
   display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer;flex:0 0 auto}
 .mbtn span{display:block;width:20px;height:2px;background:var(--tx);border-radius:2px;transition:.2s}
 .mbtn.on span:nth-child(1){transform:translateY(7px) rotate(45deg)}
@@ -2748,7 +2753,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v115";
+const APP_VERSION = "v116";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3427,6 +3432,10 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v116":[
+    "Prime Bingo の「出た数字」が同期で消えてしまう不具合を修正しました",
+    "「画面の作り」の切りかえが押せない・確認画面が出ない不具合を修正しました",
+    "横3本のボタンと、Prime Bingo の空いたマスが、ライトモードで暗いままだったのを修正しました"],
   "v115":[
     "ライトモードが行きわたっていなかった所（データ帯・分析・LSやりこみ・Prime SNS・カレンダー）を直しました",
     "画面の作りを変える時に、確認してから画面を読み込み直すようにしました",
@@ -4418,6 +4427,9 @@ function lsId(x){
 }
 /** この端末の中身を、ひとつのかたまりにします */
 function lsPack(){
+  /* Prime Bingo は、まとめ書きを待たずに ここで書き出します
+     （待っているあいだに同期すると、古い旗が送られてしまうためです）*/
+  try{ if(typeof PB!=="undefined"&&PB) pbSave(true); }catch(e){}
   const o={};
   LS_ALL().forEach(k=>{
     const raw=localStorage.getItem(k);
@@ -4743,7 +4755,9 @@ function lsReload(){
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
-    if(typeof PB!=="undefined"){ PB=ls(K_PB,null); PBLOG=ls(K_PBLOG,[]); }
+    if(typeof PB!=="undefined"){ PB=ls(K_PB,null); PBLOG=ls(K_PBLOG,[]);
+      PB_MASK=null; PB_MASK_SRC=null; PB_REST=null;   /* 旗は読み直します */
+      try{ pbFix(); pbRender(); }catch(e){} }
     if(typeof lsDay!=="undefined") lsDay=ls(K_LSDAY,{});
     if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
     if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
@@ -4902,7 +4916,9 @@ function stReload(quiet){
     if(typeof lsCfg!=="undefined") lsCfg=Object.assign(lsCfg,ls(K_LS,{}));
     if(typeof lsLog!=="undefined") lsLog=ls(K_LSLOG,[]);
     if(typeof lsAll!=="undefined") lsAll=ls(K_LSALL,0);
-    if(typeof PB!=="undefined"){ PB=ls(K_PB,null); PBLOG=ls(K_PBLOG,[]); }
+    if(typeof PB!=="undefined"){ PB=ls(K_PB,null); PBLOG=ls(K_PBLOG,[]);
+      PB_MASK=null; PB_MASK_SRC=null; PB_REST=null;   /* 旗は読み直します */
+      try{ pbFix(); pbRender(); }catch(e){} }
     if(typeof lsBase!=="undefined") lsBase=ls(K_LSBASE,{score:null,rand:null,at:0});
     if(typeof lsCB!=="undefined") lsCB=ls(K_LSB,{bS:null,bR:null,nS:0,nR:0,at:0});
     if(typeof autoPost!=="undefined") autoPost=ls(K_AUTOPOST,{rec:true,cup:true,ach:true});
@@ -8065,6 +8081,9 @@ function admShow(){
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
   if($("#bgCard")) $("#bgCard").hidden=!isAdmin();
+  /* ★ 役職が分かったあとに、下の帯と「見た目」の行を出し直します */
+  try{ navBuild(); }catch(e){}
+  try{ skinApply(); }catch(e){}
   if($("#navCard")) $("#navCard").hidden=!isAdmin();
   /* 素因数分解アリーナのボタン。公開していなければ管理者だけに出ます */
   const ab=$("#arBtn");
@@ -8185,6 +8204,7 @@ function renderSettings(){
   $("#autoOn").classList.toggle("on",!!autoSync);
   $("#autoOff").classList.toggle("on",!autoSync);
   renderSupporter();
+  try{ skinApply(); }catch(e){}      /* 「画面の作り」の行を出すため */
   $("#adminCard").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
   if($("#prizeCard")) $("#prizeCard").hidden=!isAdmin();
@@ -10946,6 +10966,10 @@ function pbPrimes(){
    ・保存も 1.6千文字ほどで済みます
    ────────────────────────────────────────────────────────── */
 let PB_MASK=null;      /* Uint8Array。1ビット＝1つの素数 */
+let PB_MASK_SRC=null;  /* ★ いまの旗が、どの文字から作られたか。
+                          これは保存も同期もしない、この場かぎりの目印です。
+                          前は PB の中に入れていたので一緒に同期されてしまい、
+                          よその端末の「出た数字」を読み直せませんでした。 */
 let PB_REST=null;      /* 残りが少なくなった時だけ作る「まだ出ていない番号」 */
 const pbBytes=()=>Math.ceil(9592/8);
 const pbHas=i=>!!(PB_MASK&&(PB_MASK[i>>3]>>(i&7))&1);
@@ -10993,7 +11017,9 @@ function pbSave(now){
     pbSaveWait=false;
     PB.at=Date.now();
     PB.mask=pbMaskStr();
+    PB_MASK_SRC=PB.mask;
     delete PB.drawn;               /* 昔の形は、もう持ちません */
+    delete PB._m;                  /* 昔の目印は、保存しません */
     try{ localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
     try{ lsSoon(); }catch(e){}
   };
@@ -11019,7 +11045,9 @@ function pbFix(){
   if(!(+PB.startAt>0)) PB.startAt=Date.now();
   if(!Array.isArray(PB.tail)) PB.tail=[];
   /* 旗をまだ作っていなければ、ここで作ります */
-  if(!PB_MASK||PB_MASK.length!==pbBytes()||PB._m!==PB.mask){
+  /* ★ 旗が無い時か、保存されている文字と ちがう時は、読み直します。
+     （よその端末から受け取った時も、ここで必ず読み直されます）*/
+  if(!PB_MASK||PB_MASK.length!==pbBytes()||PB_MASK_SRC!==(PB.mask||"")){
     PB_MASK=pbMaskLoad(PB.mask);
     /* 昔の形（出た番号の配列）が残っていたら、旗に移しかえます */
     if(Array.isArray(PB.drawn)&&PB.drawn.length){
@@ -11030,7 +11058,8 @@ function pbFix(){
       PB.mask=pbMaskStr();
       try{ localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
     }
-    PB._m=PB.mask;
+    PB_MASK_SRC=PB.mask||"";
+    delete PB._m;
     PB_REST=null;
   }
   /* ★ 回数は、旗に立っている数（＝出た素数の個数）を正とします。
@@ -11074,10 +11103,9 @@ function pbNewCard(){
   for(let i=card.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
     [card[i],card[j]]=[card[j],card[i]]; }
   const no=(PB&&+PB.no>0)?(+PB.no+1):((PBLOG.length||0)+1);
-  PB_MASK=new Uint8Array(pbBytes()); PB_REST=null;
+  PB_MASK=new Uint8Array(pbBytes()); PB_REST=null; PB_MASK_SRC="";
   PB={no, card, hit:new Array(100).fill(false), n:0, tail:[], mask:"",
       lines:0, coins:0, allb:0, perf:0, startAt:Date.now(), at:Date.now()};
-  PB._m=""; 
   pbSave(true);
   return PB;
 }
@@ -21615,7 +21643,7 @@ function normalize(j){
   try{ await uiLoad(); uiApply(); }catch(e){}
   try{ await pbCfgLoad(); }catch(e){}
   try{ await arCfgLoad(); }catch(e){}
-  try{ await navCfgLoad(); navBuild(); }catch(e){}
+  try{ await navCfgLoad(); navBuild(); skinApply(); }catch(e){}
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
