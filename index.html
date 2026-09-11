@@ -2890,7 +2890,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v123";
+const APP_VERSION = "v124";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3569,6 +3569,14 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v124":[
+    "PRS・挑戦した回数・最高記録が 0 のまま動かなかった不具合を修正しました",
+    "　原因：自分のレートを読む arena_me を「ログインしていない接続」で呼んでいたため、",
+    "　サーバー側で自分が誰か分からず、いつでも 0 が返っていました",
+    "レートモードが終わったら、その場で画面に反映されるようにしました",
+    "起動してログインが確認できた時、同期した時、画面に戻ってきた時にも読み直します",
+    "「新しい範囲が解放されました」が いつも出ていた不具合も、あわせて直りました",
+    "レートを読み込めなかった時は、0 を出さずに その旨を表示します"],
   "v123":[
     "PRS の数字がつぶれて表示されていた不具合を修正（Impact に太字を重ねていました）",
     "アリーナの公開状態が、公開後も「まだ公開していません」のままだった不具合を修正",
@@ -6582,6 +6590,13 @@ function toggleMenu(open){
   }
 }
 $("#menuBtn").onclick=()=>toggleMenu();
+/* ★ アリーナを見ている時に画面へ戻ってきたら、PRS を静かに読み直します */
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden) return;
+  const t=$("#arena");
+  if(!t||t.hidden) return;
+  if(typeof arRefresh==="function") arRefresh().catch(()=>{});
+});
 const K_TAB="sa-tab-v1";
 const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
@@ -8339,6 +8354,7 @@ async function syncAll(btn){
     await pushMe(true);
     rkCache={key:"",at:0,rows:null}; feedCache={at:0,rows:null};
     await loadMe();
+    try{ await arRefresh(); }catch(e){}
     fillInputs(); render(); renderSettings(); renderMeCards();
     try{ if(snsShown("rank")) loadRanking(true); }catch(e){}
     try{ drawCard(); }catch(e){}
@@ -11112,12 +11128,35 @@ async function arCfgLoad(){
     if(r&&typeof r==="object"){ arCfgPut(r); ARCFG.err=""; }
     else ARCFG.err="設定が空でした";
   }catch(e){ ARCFG.err=String(e&&e.message||e).slice(0,80); }
-  try{
-    const m=await sb("rpc/arena_me",{method:"POST",body:"{}"});
-    if(m&&typeof m==="object"){ AR={prs:+m.prs||0, plays:+m.plays||0, best:+m.best||0,
-      solved:+m.solved||0, free:!!m.free}; arSave(); }
-  }catch(e){}
+  await arMeLoad();
   return ARCFG;
+}
+/** 自分の PRS をサーバーから読み直します。
+    ★ arena_me はサーバーで auth.uid() を見ます。匿名の接続（sb）で呼ぶと
+       いつでも「まだ何もしていない人」＝ PRS 0・1回無料 が返ってきてしまい、
+       せっかく計算したレートが 0 に上書きされていました。
+       かならずログイン済みの接続（sbAuth）で呼びます。 */
+let AR_ERR="";
+async function arMeLoad(){
+  if(TEST) return AR;
+  /* ログインしていない時は、手元に持っている値を消しません */
+  if(!(sess&&sbOn())) return AR;
+  try{
+    const m=await sbAuth("rpc/arena_me",{method:"POST",body:"{}"});
+    if(m&&typeof m==="object"){
+      AR={prs:+m.prs||0, plays:+m.plays||0, best:+m.best||0,
+          solved:+m.solved||0, free:!!m.free};
+      arSave();
+      AR_ERR="";
+    }
+  }catch(e){ AR_ERR=String(e&&e.message||e).slice(0,80); }
+  return AR;
+}
+/** 読み直して、画面にも反映します */
+async function arRefresh(){
+  await arMeLoad();
+  try{ arHome(); }catch(e){}
+  return AR;
 }
 function arHome(){
   const box=$("#arHome"); if(!box) return;
@@ -11137,7 +11176,10 @@ function arHome(){
     <div class="lsgrid">
       <div class="lsbox"><div class="t">PRS</div>
         <div class="v">${prsHTML(AR.prs,2.2)}</div>
-        <div class="s">Prime Rating System</div></div>
+        <div class="s">${AR_ERR
+          ? `<b style="color:var(--bad)">読み込みに失敗しました</b>`
+          : (!(sess&&sbOn())&&!TEST) ? "この端末に残っている値です（未登録）"
+          : "Prime Rating System"}</div></div>
       <div class="lsbox"><div class="t">出題できる数</div>
         <div class="v" style="font-size:1.5rem">2 〜 ${jp(max)}</div>
         <div class="s">PRSの整数部分が1増えるごとに 1,000ずつ広がります</div></div>
@@ -11266,6 +11308,7 @@ async function arRatedStart(){
       const r=await callRpc("arena_begin",{p_qn:qn});
       if(r&&r.free) AR.free=false;
       if(r&&r.prs!=null){ AR.prs=+r.prs; arSave(); }
+      arHome();
       try{ if(!TEST){ await loadCoins(); renderCoins(); } else renderCoins(); }catch(e){}
       M.close();
       arStart(true,qn);
@@ -11569,11 +11612,14 @@ async function arFinish(){
     try{
       const items=q.list.map(x=>({n:x.n, ok:!!x.ok, ms:Math.max(0,Math.round(x.ms))}));
       const r=await callRpc("arena_finish",{p_items:items});
-      try{ if(!TEST){ await loadCoins(); renderCoins(); } else renderCoins(); }catch(e){}
+      /* まず、返ってきた結果をその場で手元に写します（すぐ画面に出ます）*/
       if(r&&r.prs!=null){ AR.prs=+r.prs; AR.plays=(+AR.plays||0)+1;
         AR.best=Math.max(+AR.best||0,+r.prs); AR.free=false; arSave(); }
+      arHome();
       arResult(q,true,r);
-      try{ await arCfgLoad(); }catch(e){}
+      /* そのあとサーバーの正しい値で上書きして、確実にそろえます */
+      try{ if(!TEST){ await loadCoins(); renderCoins(); } else renderCoins(); }catch(e){}
+      try{ await arRefresh(); }catch(e){}
     }catch(e){
       arResult(q,true,null,String(e.message||e));
     }
@@ -23026,6 +23072,9 @@ function normalize(j){
     try{ await askAwards(); await loadMyAwards(); }catch(e){}
     /* ★ 画面を見せる前に、今日のログインボーナス */
     try{ await loginBonusBoot(); }catch(e){}
+    /* ★ 自分の PRS は、ログインが確かめられてから読み直します
+          （ログイン前に読むと、いつでも 0 が返ってきます）*/
+    try{ await arMeLoad(); arHome(); }catch(e){}
   }
   $("#devBtn").hidden=!isAdmin();
   if($("#devCard")) $("#devCard").hidden=!isAdmin();
