@@ -338,16 +338,64 @@ body.phoneui #tabs{display:none !important}
 .arinbox{margin-top:10px;min-height:2.2em;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-family:Impact,"Arial Black",sans-serif;
   font-size:clamp(1.4rem,6vw,2.2rem);color:#8fe9ff;letter-spacing:.12em;word-break:break-all}
-.arinbox.bad{border-color:#ff5e5e;color:#ff9d9d}
-.arkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;
-  max-width:340px;margin-left:auto;margin-right:auto}
+/* ★ まちがっていても見た目は変えません（正解するまで教えません）*/
+/* キーボードと、その横のパス。早打ちしても ずれません */
+.arwrap{display:flex;gap:8px;align-items:stretch;justify-content:center;margin-top:12px;
+  max-width:430px;margin-left:auto;margin-right:auto;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation}
+.arkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1;max-width:340px}
 .arkey{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--tx2);
   font-size:1.5rem;font-weight:800;padding:14px 0;cursor:pointer;
-  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .arkey:active{background:var(--line2)}
 .arkey.sp{font-size:.9rem;color:var(--acc2)}
-.arkey.del{font-size:.9rem;color:var(--warn)}
-.arkey.wide{grid-column:span 1}
+.arkey[data-ark="back"]{font-size:.9rem;color:var(--warn)}
+/* パスは はしに置きます。1回目で赤く光り、2回目でパスします */
+.arpass{width:74px;flex:none;background:var(--panel2);border:1px solid var(--line2);
+  border-radius:10px;color:var(--dim);font-size:.92rem;font-weight:800;cursor:pointer;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:background .12s,color .12s,border-color .12s;line-height:1.3;padding:0 4px}
+.arpass:active{filter:brightness(1.15)}
+.arpass.arm{background:#c4223a;border-color:#ff5e5e;color:#fff;
+  box-shadow:0 0 12px #ff5e5e88;animation:arpulse .9s ease-in-out infinite}
+@keyframes arpulse{0%,100%{box-shadow:0 0 10px #ff5e5e66}50%{box-shadow:0 0 18px #ff5e5ecc}}
+html[data-theme="light"] .arpass{background:#f2f5fa;color:var(--dim);border-color:var(--line2)}
+html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
+/* ══════════ 入場のアニメ（紫の線のゲート）══════════ */
+.argate{position:fixed;inset:0;z-index:99998;background:#07050f;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  perspective:520px;cursor:pointer;transition:opacity .4s ease}
+.argate.out{opacity:0;pointer-events:none}
+.argin{position:absolute;inset:0;transform-style:preserve-3d}
+/* 1本ずつが「ゲートのわく」。奥から手前へ通りすぎていきます */
+.argate i{position:absolute;left:50%;top:50%;width:52vmin;height:52vmin;
+  margin:-26vmin 0 0 -26vmin;border:2px solid #a855f7;border-radius:8px;
+  box-shadow:0 0 18px #a855f7aa, inset 0 0 18px #a855f755;
+  opacity:0;transform:translateZ(-1400px);
+  animation:argz 3s linear infinite;animation-delay:var(--dl)}
+@keyframes argz{
+  0%  {opacity:0;   transform:translateZ(-1400px) rotate(0deg)}
+  12% {opacity:.95}
+  78% {opacity:.85}
+  100%{opacity:0;   transform:translateZ(420px) rotate(14deg)}}
+.argtxt{position:relative;z-index:2;color:#e9d5ff;font-weight:800;
+  letter-spacing:.34em;font-size:clamp(.95rem,3.4vw,1.5rem);
+  text-shadow:0 0 16px #a855f7cc;animation:argt 3s ease-out both}
+@keyframes argt{0%{opacity:0;letter-spacing:1.1em}
+  30%{opacity:1;letter-spacing:.34em}80%{opacity:1}100%{opacity:.85}}
+/* ══════════ 練習の記録（ヒストグラム）══════════ */
+.arhist{display:flex;align-items:flex-end;gap:4px;height:132px;margin-top:8px;
+  padding:8px 6px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.arhb{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:center;height:100%;min-width:0}
+.arhb i{display:block;width:100%;background:linear-gradient(180deg,#a855f7,#6d28d9);
+  border-radius:3px 3px 0 0;transition:height .3s}
+.arhb .n{font-size:.6rem;color:var(--dim);line-height:1.4}
+.arhb .d{font-size:.56rem;color:var(--dim2);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* 図鑑 */
 .adgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:5px;
   margin-top:8px;max-height:50vh;overflow:auto}
@@ -2769,7 +2817,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v120";
+const APP_VERSION = "v121";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3448,6 +3496,16 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v121":[
+    "素因数分解アリーナのレートを作り直しました（50問固定・打つ手数と時間で公平に採点）",
+    "出題範囲のほとんどを解けるようにならないと、レートが上がらないようにしました",
+    "まちがえても教えないようにし、わからない時の「パス」（2回押し）を足しました",
+    "早打ちしても拡大や文字選択が起きないキーボードにしました",
+    "入場のアニメーションを追加しました",
+    "練習の記録（今日・今週・今月・これまで）を表とヒストグラムで見られます",
+    "「復習」「だんだん」の出しかたを足しました",
+    "レートモードの前に、途中でやめられない旨の警告を出します",
+    "新しい範囲が開いたあとの最初の1回は、Prime Coin を使いません"],
   "v120":[
     "パソコンの見た目の時に、スマホ用の下の帯が残ってしまう不具合を修正しました",
     "下の帯は「スマホの見た目」の時だけ出るようにしました（2つが同時に出なくなります）"],
@@ -6457,7 +6515,10 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="help") renderHelp();
   if(b.dataset.tab==="pgbc") pgRender();
   if(b.dataset.tab==="stats") stEnter();
-  if(b.dataset.tab==="arena"){ arCfgLoad().then(arHome); arHome(); }
+  if(b.dataset.tab==="arena"){
+    if(arVisible()) arGate(()=>{ arCfgLoad().then(arHome); arHome(); });
+    else { arCfgLoad().then(arHome); arHome(); }
+  }
   /* 画面を作り直した所にも、書きかえた文章を当て直します */
   try{ if(uiCount()||UIT_ON){ uiApply(); if(UIT_ON) uiMark(); } }catch(e){}
   if(b.dataset.tab==="cheer") cheerEnter();
@@ -10379,9 +10440,38 @@ window.addEventListener("resize",()=>{
    ・PRS（Prime Rating System）で、どれだけ極めたかを表します
    ══════════════════════════════════════════════════════════ */
 const K_AR="sa-arena-v1", K_ARDEX="sa-arenadex-v1", K_ARCOL="sa-arenacol-v1";
+const K_ARDAY="sa-arenaday-v1";   /* 日ごとに、何問解いたか */
 let ARCFG={on:false,cost:5,qn:30,per:0.020,sec:15};
 let AR=ls(K_AR,{prs:0,plays:0,best:0});          /* 自分のPRS */
 let ARDEX=ls(K_ARDEX,{});                        /* 数ごとの成績 {n:{q,ok,ms}} */
+let ARDAY=ls(K_ARDAY,{});                        /* 日ごとの解答数 {"2026-09-12":37} */
+const arSaveDay=()=>{ try{ localStorage.setItem(K_ARDAY,JSON.stringify(ARDAY)); }catch(e){} };
+/** きょう1問解いた、と記録します */
+function arDayHit(n){
+  const d=hsDay();
+  ARDAY[d]=(+ARDAY[d]||0)+(n||1);
+  /* 500日ぶんだけ残します */
+  const ks=Object.keys(ARDAY).sort();
+  while(ks.length>500){ delete ARDAY[ks.shift()]; }
+  arSaveDay();
+}
+/** 今日・今週・今月・ぜんぶ の解答数 */
+function arCounts(){
+  const today=hsDay();
+  const d0=new Date(today+"T00:00:00+09:00");
+  const dow=(d0.getDay()+6)%7;                   /* 月曜を0に */
+  const wk=new Date(d0); wk.setDate(d0.getDate()-dow);
+  const wkKey=`${wk.getFullYear()}-${String(wk.getMonth()+1).padStart(2,"0")}-${String(wk.getDate()).padStart(2,"0")}`;
+  const mo=today.slice(0,7);
+  let t=0,w=0,m=0,all=0;
+  Object.keys(ARDAY).forEach(k=>{
+    const v=+ARDAY[k]||0; all+=v;
+    if(k===today) t+=v;
+    if(k>=wkKey&&k<=today) w+=v;
+    if(k.slice(0,7)===mo) m+=v;
+  });
+  return {today:t, week:w, month:m, all};
+}
 const arSave=()=>{ try{ localStorage.setItem(K_AR,JSON.stringify(AR)); }catch(e){} };
 let arDexT=null;
 const arSaveDex=()=>{ if(arDexT) return;
@@ -10410,6 +10500,19 @@ function arFactor(n){
   return out;
 }
 const arIsPrime=n=>arFactor(n).length===1&&n>=2;
+/** 打つ手数（数字のけた数＋あいだの区切り）。
+    8 は「2 2 2」で5打、8192 は「2 …13個」で25打です。 */
+function arKeys(n){
+  const f=arFactor(n);
+  return f.reduce((a,p)=>a+String(p).length,0)+Math.max(0,f.length-1);
+}
+/** その数を解くのに「これくらいはかかるだろう」という秒数。
+    手数のぶんと、見つけるのにかかるぶんを足します。
+    これで、手数の多い問題ばかりで損をすることがなくなります。 */
+function arExp(n){
+  const f=arFactor(n), lpf=f.length?f[f.length-1]:2;
+  return 0.90 + 0.16*arKeys(n) + 0.28*(Math.log(Math.max(lpf,2))/Math.LN2);
+}
 /** 素因数分解を見せる形にします（2 3 5 → 2×3×5）*/
 const arFacText=n=>arFactor(n).join(" × ");
 
@@ -10438,18 +10541,31 @@ function arCheck(n, text){
 function arDexOf(n){ const d=ARDEX[n]||{}; return {q:+d.q||0, ok:+d.ok||0, ms:+d.ms||0}; }
 function arDexPut(n, ok, ms){
   const d=arDexOf(n);
-  ARDEX[n]={q:d.q+1, ok:d.ok+(ok?1:0), ms:d.ms+(ok?Math.max(0,ms|0):0)};
+  ARDEX[n]={q:d.q+1, ok:d.ok+(ok?1:0), ms:d.ms+(ok?Math.max(0,ms|0):0),
+    /* ★ 間隔をあけて復習するための、次に出す時刻と間かく */
+    i: ok?Math.min((+d.i||0)+1,6):0,
+    due: Date.now()+(ok?AR_IVL[Math.min((+d.i||0)+1,6)]:AR_IVL[0])};
   arSaveDex();
+  arDayHit(1);
 }
+/* 復習の間かく（分）。正解するほど、次に出るまでが長くなります */
+const AR_IVL=[10*60e3, 60*60e3, 6*3600e3, 24*3600e3, 3*86400e3, 7*86400e3, 21*86400e3];
 const arRate=n=>{ const d=arDexOf(n); return d.q?(d.ok/d.q*100):null; };
 const arAvg =n=>{ const d=arDexOf(n); return d.ok?(d.ms/d.ok/1000):null; };
 
 /* ── 出題のえらび方 ── */
+/* ★ おぼえるのに効く出しかたを足しました。
+   ・復習：まちがえた数を少しあとで、覚えた数はずっとあとで出します
+     （間かくをあけて思い出すのが、いちばん記憶に残る方法です）
+   ・だんだん：できたら少しずつ大きい数へ、まちがえたら小さい数へ戻ります */
 const AR_MODES=[["random","ランダム","出題できる数の中から、でたらめに出します"],
+                ["review","復習","まちがえた数は少しあとで、おぼえた数はずっとあとで出します。いちばん記憶に残ります"],
+                ["ladder","だんだん","できたら少しずつ大きい数へ、まちがえたら小さい数へ戻ります"],
                 ["new","ニューナンバー","まだ出したことのない数を先に出します"],
                 ["weak","苦手","正答率の低い数・時間のかかる数を先に出します"],
                 ["limit","縛り","はんいを自分で決めて出します"]];
 let arMode="random", arLimLo=2, arLimHi=999;
+let arLadder=0;                 /* だんだんモードの、いまの高さ */
 /** 次の問題をえらびます */
 function arPick(max, used){
   const lo=(arMode==="limit")?Math.max(2,arLimLo):2;
@@ -10471,6 +10587,35 @@ function arPick(max, used){
     }
     if(!best.length) return rnd();
     return best[Math.floor(Math.random()*best.length)];
+  }
+  /* 復習：出す時刻が来たものから。来ていなければ、まだ出していない数 */
+  if(arMode==="review"){
+    const now=Date.now();
+    let due=[], fresh=[];
+    for(let v=lo; v<=N; v++){
+      if(used&&used.has(v)) continue;
+      const d=arDexOf(v);
+      if(!d.q){ if(fresh.length<300) fresh.push(v); continue; }
+      if((+d.due||0)<=now) due.push({v, d:+d.due||0});
+    }
+    if(due.length){
+      due.sort((a,b)=>a.d-b.d);
+      const top=due.slice(0,Math.max(1,Math.ceil(due.length*0.3)));
+      return top[Math.floor(Math.random()*top.length)].v;
+    }
+    if(fresh.length) return fresh[Math.floor(Math.random()*fresh.length)];
+    return rnd();
+  }
+  /* だんだん：いまの高さのあたりから出します */
+  if(arMode==="ladder"){
+    if(!(arLadder>=lo)) arLadder=lo;
+    const hi2=Math.min(N,Math.max(lo+20,Math.round(arLadder)));
+    const lo2=Math.max(lo,Math.round(hi2*0.6));
+    for(let t=0;t<60;t++){
+      const v=lo2+Math.floor(Math.random()*(hi2-lo2+1));
+      if(!used||!used.has(v)) return v;
+    }
+    return rnd();
   }
   /* 苦手：正答率が低い順、同じなら時間のかかる順。出したことのない数は後まわし */
   const list=[];
@@ -10668,6 +10813,69 @@ function arColShow(after){
   };
 }
 
+/* ══════════ アリーナ：入場のアニメ ══════════
+   紫の線だけでゲートを表します。線が次々と手前に来て、
+   その中へ入っていくように見せます（3秒）。 */
+let arGateSeen=false;
+function arGate(after){
+  /* 一度見たら、その画面のあいだは出しません */
+  if(arGateSeen){ if(after) after(); return; }
+  arGateSeen=true;
+  const g=document.createElement("div");
+  g.className="argate"; g.id="arGate";
+  const N=9;
+  g.innerHTML=`<div class="argin">`+
+    [...Array(N)].map((_,i)=>`<i style="--i:${i};--dl:${(i*0.33).toFixed(2)}s"></i>`).join("")+
+    `</div><div class="argtxt">素因数分解アリーナ</div>`;
+  document.body.appendChild(g);
+  const done=()=>{ g.classList.add("out");
+    setTimeout(()=>{ g.remove(); if(after) after(); },420); };
+  const t=setTimeout(done,3000);
+  g.onclick=()=>{ clearTimeout(t); done(); };   /* 押せば すぐ入れます */
+}
+
+/* ══════════ アリーナ：練習した数 ══════════ */
+function arStatsHTML(){
+  const c=arCounts();
+  /* 直近14日ぶんの棒グラフ */
+  const days=[];
+  const base=new Date(hsDay()+"T00:00:00+09:00");
+  for(let i=13;i>=0;i--){
+    const d=new Date(base); d.setDate(base.getDate()-i);
+    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    days.push({k, v:+ARDAY[k]||0, lab:`${d.getMonth()+1}/${d.getDate()}`});
+  }
+  const mx=Math.max(1,...days.map(d=>d.v));
+  return `<div class="lsgrid">
+      <div class="lsbox"><div class="t">今日</div><div class="v">${jp(c.today)}</div><div class="s">問</div></div>
+      <div class="lsbox"><div class="t">今週</div><div class="v">${jp(c.week)}</div><div class="s">月曜から</div></div>
+      <div class="lsbox"><div class="t">今月</div><div class="v">${jp(c.month)}</div><div class="s">問</div></div>
+      <div class="lsbox"><div class="t">これまで</div><div class="v">${jp(c.all)}</div><div class="s">ぜんぶで</div></div>
+    </div>
+    <h3 style="margin-top:14px">この2週間</h3>
+    <div class="arhist">${days.map(d=>`<div class="arhb" title="${esc(d.k)}　${jp(d.v)}問">
+      <i style="height:${d.v?Math.max(4,Math.round(d.v/mx*100)):0}%"></i>
+      <span class="n">${d.v?jp(d.v):""}</span><span class="d">${esc(d.lab)}</span></div>`).join("")}</div>
+    <h3 style="margin-top:14px">まとめ</h3>
+    <div class="scroll"><table><thead><tr><th>いつ</th><th class="n">解いた数</th><th>ようす</th>
+      </tr></thead><tbody>
+      <tr><td>今日</td><td class="n"><b>${jp(c.today)}</b></td>
+        <td class="tiny">${c.today>=50?"よく練習しています":c.today>0?"つづけましょう":"まだ0問です"}</td></tr>
+      <tr><td>今週</td><td class="n"><b>${jp(c.week)}</b></td>
+        <td class="tiny">1日あたり ${jp(Math.round(c.week/7))} 問</td></tr>
+      <tr><td>今月</td><td class="n"><b>${jp(c.month)}</b></td>
+        <td class="tiny">1日あたり ${jp(Math.round(c.month/Math.max(1,+hsDay().slice(8))))} 問</td></tr>
+      <tr class="used"><td><b>これまで</b></td><td class="n"><b>${jp(c.all)}</b></td>
+        <td class="tiny">おぼえた数 ${jp(Object.keys(ARDEX).length)} 個</td></tr>
+    </tbody></table></div>`;
+}
+function arStatsShow(){
+  const M=modal(`<h2>練習の記録</h2>
+    <div id="arStBox">${arStatsHTML()}</div>
+    <div class="tools"><button class="btn" id="arStX">閉じる</button></div>`,{w:760});
+  M.q("#arStX").onclick=M.close;
+}
+
 /* ══════════ アリーナ：入口の画面 ══════════ */
 async function arCfgLoad(){
   if(TEST||!sbOn()) return ARCFG;
@@ -10701,7 +10909,13 @@ function arHome(){
       <div class="lsbox"><div class="t">挑戦した回数</div>
         <div class="v" style="font-size:1.5rem">${jp(+AR.plays||0)}</div>
         <div class="s">いちばん高かった PRS ${(+AR.best||0).toFixed(3)}</div></div>
+      <div class="lsbox"><div class="t">今日 解いた数</div>
+        <div class="v" style="font-size:1.5rem">${jp(arCounts().today)}</div>
+        <div class="s">これまで ${jp(arCounts().all)} 問</div></div>
     </div>
+    ${AR.free?`<div class="hintbox" style="border-color:var(--acc2);margin-top:10px">
+      <b style="color:var(--acc2)">新しい範囲が開きました。</b>
+      つぎのレートモードは ${COIN} を使いません（1回だけ）。</div>`:""}
     <h3 style="margin-top:14px">出しかたをえらぶ</h3>
     <div class="segs" id="arModes" style="grid-template-columns:repeat(4,1fr)">
       ${AR_MODES.map(([k,n])=>`<button data-arm="${k}" class="${k===arMode?"on":""}">${esc(n)}</button>`).join("")}
@@ -10721,6 +10935,7 @@ function arHome(){
       <button class="btn pri" id="arFree">れんしゅうする</button>
       <button class="btn" id="arRated">レートモード（${COIN} ${jp(+ARCFG.cost||0)}枚）</button>
       <button class="btn" id="arDex">図鑑</button>
+      <button class="btn" id="arStats">練習の記録</button>
       <button class="btn" id="arRule">ルール</button>
       ${isAdmin()?`<button class="btn sm" id="arAdm">開発者モード</button>`:""}
     </div>
@@ -10734,20 +10949,31 @@ function arHome(){
   $("#arFree").onclick=()=>arStart(false);
   $("#arRated").onclick=arRatedStart;
   $("#arDex").onclick=arDexShow;
+  $("#arStats").onclick=arStatsShow;
   $("#arRule").onclick=arRuleShow;
   if($("#arAdm")) $("#arAdm").onclick=arAdmShow;
 }
 async function arRatedStart(){
   const cost=Math.max(0,+ARCFG.cost||0);
   if(!(TEST||(sess&&sbOn()))) return toast("レートモードにはログインが必要です");
+  const free=!!AR.free;                      /* 新しい範囲が開いた後の1回は ただ */
   const have=PC?(+PC.coins||0):0;
-  if(have<cost) return toast(`${COIN} が ${jp(cost)}枚 必要です（いま ${jp(have)}枚）`);
-  if(!await askYN("レートモードに挑戦しますか？",
-    `${COIN} を <b>${jp(cost)}枚</b> つかいます。<br>`
-    +`<b>${jp(+ARCFG.qn||30)}問</b>を、1問 ${jp(+ARCFG.sec||15)}秒 で解きます。<br><br>`
-    +`PRSは（正解 − まちがい）× ${(+ARCFG.per||0.02).toFixed(3)} だけ動きます。<br>`
-    +`<span class="tiny">とちゅうでやめても、そこまでの結果でレートが動きます。</span>`,
-    "挑戦する")) return;
+  if(!free&&have<cost) return toast(`${COIN} が ${jp(cost)}枚 必要です（いま ${jp(have)}枚）`);
+  const qn=Math.max(1,+ARCFG.qn||50), sec=Math.max(3,+ARCFG.sec||15);
+  const mins=Math.ceil(qn*sec/60);
+  if(!await askYN("時間は十分にありますか？",
+    `<div class="hintbox" style="border-color:var(--warn);margin-top:0">
+       <b style="color:var(--warn)">レートモードは 一度始めると、
+       試験が終わるまで 途中で止めたり やめたりできません。</b><br>
+       <span class="tiny">画面を閉じたり ほかのタブに移ると、そこまでの成績で終わります。
+       静かな所で、最後まで続けられる時にはじめてください。</span></div>
+     <br><b>${jp(qn)}問</b>を、1問 <b>${jp(sec)}秒</b> で解きます
+     （ぜんぶで 最大 ${jp(mins)}分ほど）。<br>
+     ${free?`<b style="color:var(--acc2)">新しい範囲が開いたので、この1回は ${COIN} を使いません。</b>`
+           :`${COIN} を <b>${jp(cost)}枚</b> つかいます（いま ${jp(have)}枚）。`}<br><br>
+     <span class="tiny">出題は 2 〜 ${jp(arMax())} の中から、はんぜんたいに ちらして出します。
+     ほとんど解けるようになっていないと、レートは上がりません。</span>`,
+    "はじめる","やめておく")) return;
   arStart(true);
 }
 function arRuleShow(){
@@ -10819,18 +11045,36 @@ function arAdmShow(){
 let ARQ=null;    /* いま進んでいる勝負 */
 function arStart(rated){
   const max=arMax();
-  ARQ={rated:!!rated, max, qn:rated?Math.max(1,+ARCFG.qn||30):0,
+  const qn=Math.max(1,+ARCFG.qn||50);
+  ARQ={rated:!!rated, max, qn:rated?qn:0,
        i:0, ok:0, ng:0, ms:0, list:[], used:new Set(),
-       n:0, text:"", t0:0, left:0, timer:null, over:false};
+       n:0, text:"", t0:0, left:0, timer:null, over:false, passArm:false,
+       /* レートモードは、範囲ぜんたいに ちらして出します
+          （かたよらせない＝範囲ぜんたいを覚えていないと点が出ません）*/
+       plan:rated?arPlan(max,qn):null};
   $("#arPlayCard").hidden=false;
   arNext();
-  $("#arPlayCard").scrollIntoView({behavior:"smooth",block:"start"});
+  try{ const pc2=$("#arPlayCard");
+    if(pc2&&pc2.scrollIntoView) pc2.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
+}
+/** レートモード用：2〜max を問題数ぶんに区切って、1つずつえらびます */
+function arPlan(max,qn){
+  const out=[];
+  for(let i=0;i<qn;i++){
+    const a=2+Math.floor((max-2)*i/qn), b=2+Math.floor((max-2)*(i+1)/qn);
+    out.push(Math.max(2,a+Math.floor(Math.random()*Math.max(1,b-a))));
+  }
+  /* 順番はまぜます */
+  for(let i=out.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
+    [out[i],out[j]]=[out[j],out[i]]; }
+  return out;
 }
 function arNext(){
   if(!ARQ) return;
   if(ARQ.rated&&ARQ.i>=ARQ.qn){ arFinish(); return; }
   ARQ.i++;
-  ARQ.n=arPick(ARQ.max, ARQ.used);
+  ARQ.passArm=false;
+  ARQ.n=(ARQ.plan&&ARQ.plan.length)?ARQ.plan.shift():arPick(ARQ.max, ARQ.used);
   ARQ.used.add(ARQ.n);
   ARQ.text=""; ARQ.t0=Date.now(); ARQ.left=Math.max(3,+ARCFG.sec||15)*1000;
   arDrawPlay();
@@ -10857,7 +11101,8 @@ function arTimeUp(){
   const ms=Math.max(3,+ARCFG.sec||15)*1000;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms});
   arDexPut(ARQ.n,false,ms);
-  arFlash(false, ARQ.n);
+  if(arMode==="ladder") arLadder=Math.max(2,Math.round((arLadder||ARQ.n)*0.85));
+  arFlash(false, ARQ.n, ms);
   setTimeout(()=>{ if(ARQ) arNext(); },900);
 }
 /** 打つたびに呼ばれます */
@@ -10868,26 +11113,55 @@ function arType(ch){
   else ARQ.text+=ch;
   const inp=$("#arIn"); if(inp) inp.textContent=ARQ.text||" ";
   const r=arCheck(ARQ.n, ARQ.text);
-  const box=$("#arInBox");
-  if(box) box.classList.toggle("bad", !!r.bad);
+  /* ★ まちがっていても、何も知らせません。
+     正解するまでは、ふつうの見た目のままにします。 */
   if(r.done&&r.ok){
     arTimerStop();
     const ms=Date.now()-ARQ.t0;
     ARQ.ok++; ARQ.ms+=ms; ARQ.list.push({n:ARQ.n, ok:true, ms});
     arDexPut(ARQ.n,true,ms);
     arFlash(true, ARQ.n, ms);
+    /* だんだんモードは、できたら少し上へ */
+    if(arMode==="ladder") arLadder=Math.min(ARQ.max, Math.round((arLadder||ARQ.n)*1.12+6));
     setTimeout(()=>{ if(ARQ) arNext(); },520);
   }
 }
+/** パス（わからない時）。2回続けて押すと、その問題をとばします */
+function arPass(){
+  if(!ARQ||ARQ.over) return;
+  const b=$("#arPassBtn");
+  if(!ARQ.passArm){
+    ARQ.passArm=true;
+    if(b){ b.classList.add("arm"); b.textContent="もう一度でパス"; }
+    return;
+  }
+  ARQ.passArm=false;
+  if(b){ b.classList.remove("arm"); b.textContent="パス"; }
+  arTimerStop();
+  const ms=Date.now()-ARQ.t0;
+  ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms, pass:true});
+  arDexPut(ARQ.n,false,ms);
+  if(arMode==="ladder") arLadder=Math.max(2,Math.round((arLadder||ARQ.n)*0.85));
+  arFlash(false, ARQ.n, ms, true);
+  setTimeout(()=>{ if(ARQ) arNext(); },900);
+}
+/** パスの構えを解きます（ほかの所を押した時） */
+function arPassReset(){
+  if(!ARQ||!ARQ.passArm) return;
+  ARQ.passArm=false;
+  const b=$("#arPassBtn");
+  if(b){ b.classList.remove("arm"); b.textContent="パス"; }
+}
 /** 正解・不正解の合図 */
-function arFlash(ok,n,ms){
+function arFlash(ok,n,ms,pass){
   const c=$("#arCard"); if(!c) return;
   c.classList.remove("okf","ngf"); void c.offsetWidth;
   c.classList.add(ok?"okf":"ngf");
   const r=$("#arRes");
   if(r) r.innerHTML=ok
     ? `<b style="color:var(--acc2)">正解！</b> <span class="tiny">${(ms/1000).toFixed(2)} 秒</span>`
-    : `<b style="color:var(--bad)">時間切れ</b> <span class="tiny">${esc(String(n))} ＝ ${esc(arFacText(n))}</span>`;
+    : `<b style="color:var(--warn)">${pass?"パスしました":"時間切れ"}</b>`
+      +` <span class="tiny">${esc(String(n))} ＝ ${esc(arFacText(n))}</span>`;
 }
 function arDrawPlay(){
   const box=$("#arPlay"); if(!box||!ARQ) return;
@@ -10906,22 +11180,45 @@ function arDrawPlay(){
       <div class="arinbox" id="arInBox"><span id="arIn">&nbsp;</span></div>
       <div class="tiny" id="arRes" style="min-height:1.2em"></div>
     </div>
-    <div class="arkeys" id="arKeys">
-      ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="arkey" data-ark="${d}">${d}</button>`).join("")}
-      <button class="arkey wide" data-ark="0">0</button>
-      <button class="arkey sp" data-ark=" ">空白</button>
-      <button class="arkey del" data-ark="back">消す</button>
+    <div class="arwrap">
+      <div class="arkeys" id="arKeys">
+        ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="arkey" data-ark="${d}">${d}</button>`).join("")}
+        <button class="arkey" data-ark="back">消す</button>
+        <button class="arkey" data-ark="0">0</button>
+        <button class="arkey sp" data-ark=" ">空白</button>
+      </div>
+      <button class="arpass" id="arPassBtn" data-arpass>パス</button>
     </div>
     <div class="tools">
       <button class="btn" id="arGiveUp">やめる</button>
-      <span class="tiny">キーボードでも打てます（数字と空白）</span>
+      <span class="tiny">キーボードでも打てます（数字・空白・BackSpace・Enterでパス）</span>
     </div>`;
-  box.querySelectorAll("[data-ark]").forEach(b=>{
-    /* 押した時に画面が動かないよう、touchstart で受けます */
-    const go=e=>{ e.preventDefault(); arType(b.dataset.ark); };
-    b.addEventListener("touchstart",go,{passive:false});
-    b.addEventListener("click",e=>{ if(e.detail===0) return; go(e); });
+  /* ★ 早打ちに耐えるようにします。
+     ・pointerdown で1回だけ受けます（touch と click の二重反応を防ぎます）
+     ・preventDefault で、ダブルタップの拡大と「選択ツール」を止めます */
+  box.querySelectorAll("[data-ark],[data-arpass]").forEach(b=>{
+    const isPass=b.hasAttribute("data-arpass");
+    const go=e=>{
+      e.preventDefault(); e.stopPropagation();
+      if(isPass) arPass();
+      else { arPassReset(); arType(b.dataset.ark); }
+    };
+    if(window.PointerEvent){
+      b.addEventListener("pointerdown",go,{passive:false});
+      b.addEventListener("click",e=>{ e.preventDefault(); });
+    }else{
+      b.addEventListener("touchstart",go,{passive:false});
+      b.addEventListener("click",e=>{ if(e.detail===0) return; go(e); });
+    }
+    b.addEventListener("contextmenu",e=>e.preventDefault());
+    b.addEventListener("dblclick",e=>e.preventDefault());
   });
+  /* キーボード以外を押したら、パスの構えを解きます */
+  const pc=$("#arPlay");
+  if(pc) pc.addEventListener("pointerdown",e=>{
+    if(e.target.closest&&e.target.closest("[data-arpass]")) return;
+    arPassReset();
+  },true);
   const gv=$("#arGiveUp");
   if(gv) gv.onclick=()=>{ if(ARQ&&ARQ.rated) return arFinish(); arQuit(); };
 }
@@ -10940,14 +11237,20 @@ async function arFinish(){
   $("#arPlayCard").hidden=true;
   if(q.rated){
     try{
-      const r=await callRpc("arena_finish",{p_ok:q.ok,p_ng:q.ng,p_ms:Math.round(q.ms)});
+      const items=q.list.map(x=>({n:x.n, ok:!!x.ok, ms:Math.max(0,Math.round(x.ms))}));
+      const r=await callRpc("arena_finish",{p_items:items});
       if(r&&r.prs!=null){ AR.prs=+r.prs; AR.plays=(+AR.plays||0)+1;
-        AR.best=Math.max(+AR.best||0,+r.prs); arSave(); }
+        AR.best=Math.max(+AR.best||0,+r.prs); AR.free=false; arSave(); }
       arResult(q,true,r);
+      try{ await arCfgLoad(); }catch(e){}
     }catch(e){
       arResult(q,true,null,String(e.message||e));
     }
-  }else arResult(q,false);
+  }else{
+    arResult(q,false);
+    /* 練習したぶんも、サーバーに数を伝えます */
+    try{ if(q.list.length) callRpc("arena_practice",{p_n:q.list.length}); }catch(e){}
+  }
   arHome();
 }
 function arResult(q,rated,r,err){
@@ -10968,10 +11271,23 @@ function arResult(q,rated,r,err){
     ${err?`<div class="hintbox" style="border-color:var(--bad)">
       <b style="color:var(--bad)">レートを送れませんでした</b><br>
       <span class="tiny">${esc(err).slice(0,160)}</span></div>`:""}
-    ${(rated&&r)?`<div class="hintbox">
-      <b>PRS</b>　${(+r.before||0).toFixed(3)} → <b style="color:var(--acc2)">${(+r.prs||0).toFixed(3)}</b>
-      <span class="tiny">（正解 ${jp(q.ok)} − まちがい ${jp(q.ng)}）× ${(+ARCFG.per||0.02).toFixed(3)}</span><br>
-      <span class="tiny">出題できる数：2 〜 ${jp(arMax(+r.prs||0))}</span></div>`:""}
+    ${(rated&&r)?(()=>{
+      const d=+r.delta||0;
+      const up=d>0.0005, dn=d<-0.0005;
+      return `<div class="hintbox" style="border-color:${up?"var(--acc2)":dn?"var(--warn)":"var(--line)"}">
+      <b>PRS</b>　${(+r.before||0).toFixed(3)} →
+        <b style="color:${up?"var(--acc2)":dn?"var(--warn)":"var(--tx)"}">${(+r.prs||0).toFixed(3)}</b>
+        <b style="color:${up?"var(--acc2)":dn?"var(--warn)":"var(--dim)"}">（${d>=0?"+":""}${d.toFixed(3)}）</b><br>
+      <span class="tiny">正解 ${jp(+r.ok||0)} / ${jp((+r.ok||0)+(+r.ng||0))} 問
+        （正答率 ${((+r.acc||0)*100).toFixed(1)}%）　速さ ${((+r.speed||0)*200).toFixed(0)}%
+        　総合 ${((+r.score||0)*100).toFixed(1)}点</span><br>
+      <span class="tiny">${r.free?"この回は "+COIN+" を使いませんでした。<br>":""}
+        出題できる数：2 〜 ${jp(+r.next_max||arMax(+r.prs||0))}
+        ${(+r.next_max||0)>(+r.max||0)?'<b style="color:var(--acc2)">（広がりました！）</b>':""}</span><br>
+      <span class="tiny" style="color:var(--dim2)">
+        ${(+r.acc||0)<0.82?"※ 8割ちょっと解けるようになると、レートが上がりはじめます"
+          :(+r.acc||0)<0.98?"※ ほぼ全問そろうと、いちばん大きく上がります":"※ 満点です！"}</span>
+      </div>`;})():""}
     <div class="scroll" style="max-height:44vh"><table><thead><tr>
       <th>#</th><th>数</th><th>素因数分解</th><th class="n">時間</th><th></th>
       </tr></thead><tbody>${rows}</tbody></table></div>
@@ -21725,7 +22041,7 @@ function normalize(j){
     ["profile","pgbc","stats","arena","plan","analysis","hist","mood","ls","card",
      "input","sns","settings","rprank","rankedit","help","cheer"].forEach(id=>{
       const el=$("#"+id); if(el) el.hidden=(id!=="arena"); });
-    arCfgLoad().then(arHome); arHome();
+    arGate(()=>{ arCfgLoad().then(arHome); arHome(); });
     scrollTo({top:0,behavior:"smooth"});
   };
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
