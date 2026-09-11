@@ -2769,7 +2769,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v119";
+const APP_VERSION = "v120";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3448,6 +3448,9 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v120":[
+    "パソコンの見た目の時に、スマホ用の下の帯が残ってしまう不具合を修正しました",
+    "下の帯は「スマホの見た目」の時だけ出るようにしました（2つが同時に出なくなります）"],
   "v119":[
     "パソコンで「この端末に合わせる」にしても、スマホの見た目のままだった不具合を修正しました",
     "下の帯があっても、パソコンでは上のメニュー（横3本）が使えるようにしました"],
@@ -10008,14 +10011,17 @@ function navAdmDraw(){
       <div class="s">${NAVON?"みんなの画面に出ています":"あなたにだけ出ています"}</div></div>
     <div class="lsbox"><div class="t">この端末</div>
       <div class="v" style="font-size:1.3rem">${isPhone()?"スマホ":"パソコン"}</div>
-      <div class="s">${jp(sz.w)} × ${jp(scrH())} ピクセル</div></div>
+      <div class="s">${jp(sz.w)} × ${jp(scrH())} ピクセル<br>
+        ${isPhone()?"下の帯が出ています":"下の帯は出ません（上のメニューを使います）"}</div></div>
     <div class="lsbox"><div class="t">ボタンの大きさ</div>
       <div class="v" style="font-size:1.3rem">${sz.ico} px</div>
       <div class="s">文字 ${sz.fs}px／帯の高さ ${sz.h}px（自動）</div></div>
   </div>
   <p class="tiny" style="color:var(--dim2);margin-top:8px">
-    画面のはばに合わせて、ボタンと文字の大きさは自動で変わります。
-    画面の大きさを変えると、すぐに作り直します。</p>`;
+    下の帯は<b>スマホの見た目の時だけ</b>出ます。パソコンの見た目では、これまでどおり
+    上のメニュー（横3本）を使います。<br>
+    パソコンでも試したい時は、設定の「見た目」→「スマホの見た目」をえらんでください。<br>
+    画面のはばに合わせて、ボタンと文字の大きさは自動で変わります。</p>`;
 }
 async function navAdmEnter(){
   if(!isAdmin()) return;
@@ -10058,7 +10064,7 @@ function skinApply(){
      ★ ただし「スマホの見た目」をえらんでいる間は、かならず出します。
        そうしないと、もどす方法が無くなってしまいます。 */
   try{ const row=$("#skPhoneRow");
-    if(row) row.hidden=!(navOn()||SKIN.phone==="phone"); }catch(e){
+    if(row) row.hidden=!(navAllow()||SKIN.phone==="phone"); }catch(e){
     try{ const row2=$("#skPhoneRow");
       if(row2&&SKIN.phone==="phone") row2.hidden=false; }catch(e2){}
   }
@@ -10119,8 +10125,12 @@ function isPhone(){
 /** いまの画面の大きさ（ピクセル） */
 const scrW=()=>window.innerWidth||document.documentElement.clientWidth||360;
 const scrH=()=>window.innerHeight||document.documentElement.clientHeight||640;
-/** 新しい画面を出すか */
-const navOn=()=>!!(NAVON||isAdmin());
+/** 新しい画面（下の帯）を使ってよい人か */
+const navAllow=()=>!!(NAVON||isAdmin());
+/** ★ 下の帯を実際に出すか。
+   スマホの見た目の時だけ出します。パソコンの見た目では出しません。
+   （両方出すと、上のメニューと下の帯が同時に出て ちぐはぐになります）*/
+const navOn=()=>navAllow()&&isPhone();
 async function navCfgLoad(){
   if(TEST||!sbOn()) return NAVON;
   try{
@@ -10355,7 +10365,9 @@ function navSnsSlide(d){
 let navT=null;
 window.addEventListener("resize",()=>{
   clearTimeout(navT);
-  navT=setTimeout(()=>{ if(navOn()){ navSize(); navSnsBuild(); } },160);
+  /* はばが変わると スマホ／パソコンの見わけも変わることがあるので、
+     帯そのものを作り直します */
+  navT=setTimeout(()=>{ try{ navBuild(); }catch(e){} },160);
 });
 
 /* ══════════════════════════════════════════════════════════
