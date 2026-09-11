@@ -13,7 +13,31 @@
   --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
   --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
   --serif:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif;
+  /* 見た目のえらび（ユーザーが変えられます） */
+  --font:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
+  --navico:22px; --navfs:11px; --navpad:7px; --navh:56px;
 }
+/* 明朝体をえらんだ時 */
+html[data-font="mincho"]{
+  --font:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho","Noto Serif JP",Georgia,serif;
+}
+/* ライトモード */
+html[data-theme="light"]{
+  --bg:#f4f7fc; --card:#ffffff; --card2:#eef3fa; --line:#c9d6e8;
+  --tx:#16202f; --dim:#5a6b83; --dim2:#8195ad;
+  --acc:#1d6fd0; --acc2:#18915f; --warn:#a96a00; --bad:#c53347;
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(900px 500px at 12% -10%,#cfe0f855,transparent 60%),
+    radial-gradient(900px 500px at 88% 0%,#d3f0e855,transparent 60%),
+    linear-gradient(180deg,#f4f7fc,#eaf0f8 60%,#f4f7fc)}
+html[data-theme="light"] .card{box-shadow:0 2px 10px #16202f14}
+html[data-theme="light"] input,html[data-theme="light"] textarea,
+html[data-theme="light"] select{background:#ffffff;color:var(--tx)}
+html[data-theme="light"] .btn{background:#ffffff}
+html[data-theme="light"] .navbar,html[data-theme="light"] .navsns{
+  background:#ffffffee;border-color:var(--line)}
 *{box-sizing:border-box}
 /* ダブルタップで画面が拡大しないようにします（応援ボタンなどの連打で困るためです）*/
 html{touch-action:manipulation;-webkit-text-size-adjust:100%}
@@ -26,7 +50,7 @@ body{background:
     radial-gradient(900px 500px at 88% 0%,#1d5e5a44,transparent 60%),
     linear-gradient(180deg,#0d1220,#0a0f1a 60%,#0d1220);
   background-attachment:fixed;color:var(--tx);
-  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
+  font-family:var(--font);
   font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;min-height:100vh}
 .wrap{max-width:980px;margin:0 auto;padding:20px 16px 100px}
 @media(max-width:640px){
@@ -83,6 +107,40 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .richbar .btn{padding:2px 8px;font-size:.76rem}
 .richbar select{height:26px;font-size:.74rem;max-width:130px}
 /* 管理者エディターモード */
+/* ══════════ 下の帯（新しい画面） ══════════ */
+.navbar{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;
+  background:#0b1524ee;border-top:1px solid var(--line);backdrop-filter:blur(8px);
+  padding-bottom:env(safe-area-inset-bottom,0)}
+.navbar button{flex:1;background:none;border:0;color:var(--dim);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:var(--navpad) 2px;font-size:var(--navfs);line-height:1.2;
+  font-family:inherit;transition:color .15s}
+.navbar button i{display:block;width:var(--navico);height:var(--navico)}
+.navbar button svg{width:100%;height:100%;display:block}
+.navbar button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.navbar button.on{color:var(--acc)}
+.navbar button.on i{filter:drop-shadow(0 0 6px var(--acc))}
+body.hasnav .wrap{padding-bottom:calc(var(--navh) + 24px)}
+body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
+/* Prime SNS の帯 */
+.navsns{position:fixed;left:0;right:0;bottom:var(--navh);z-index:7999;display:flex;
+  align-items:stretch;background:#0d1a2cee;border-top:1px solid var(--line);
+  backdrop-filter:blur(8px)}
+.navsnsin{flex:1;display:flex;overflow:hidden}
+.navsns .navsnsin button{flex:1;background:none;border:0;color:var(--dim);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:calc(var(--navpad) - 1px) 2px;font-size:calc(var(--navfs) - .5px);
+  line-height:1.2;font-family:inherit;min-width:0}
+.navsns .navsnsin button i{display:block;width:calc(var(--navico) - 3px);height:calc(var(--navico) - 3px)}
+.navsns .navsnsin button svg{width:100%;height:100%;display:block}
+.navsns .navsnsin button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.navsns .navsnsin button.on{color:var(--acc2)}
+.navsns .navsnsin button.off{opacity:.35}
+.navarrow{background:none;border:0;color:var(--dim);font-size:1.4rem;width:30px;
+  cursor:pointer;flex:none;font-family:inherit}
+.navarrow:active{color:var(--acc)}
+.navpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.navpick .btn{width:100%}
 /* ══════════ 素因数分解アリーナ ══════════ */
 .arbar{height:8px;background:#16233a;border-radius:99px;overflow:hidden;margin:10px 0 2px}
 .arbar i{display:block;height:100%;background:linear-gradient(90deg,#39d98a,#ffd45e,#ff5e5e);
@@ -2333,6 +2391,24 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
     <div id="roleBox"></div>
   </div>
   <div class="card">
+    <h2>見た目</h2>
+    <p class="muted" style="margin-top:-8px">文字の形と、画面の明るさをえらべます。
+      <span class="tiny">この端末だけの設定です。</span></p>
+    <div class="row" style="margin-bottom:10px">
+      <div><b>文字の形</b><div class="tiny" id="skFontNow"></div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="skGothic">ゴシック体</button>
+        <button id="skMincho">明朝体</button></div>
+    </div>
+    <div class="row">
+      <div><b>画面の明るさ</b><div class="tiny" id="skThemeNow"></div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="skDark">ダークモード</button>
+        <button id="skLight">ライトモード</button></div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>表示と動作</h2>
     <div class="sw">
       <div><div class="t">データの公開</div>
@@ -2368,6 +2444,18 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
       <span class="tiny" id="admNote"></span></div>
   </div>
   <div id="admWrap" hidden>
+  <div class="card" id="navCard">
+    <h2>新しい画面（下の帯）</h2>
+    <p class="muted" style="margin-top:-8px">
+      画面の下に、大きなボタンの帯を出す新しい作りです。<br>
+      <span class="tiny">いまは管理者だけに出ています。よければ公開してください。</span></p>
+    <div id="navBox"></div>
+    <div class="tools">
+      <button class="btn pri" id="navPub">全員に公開する</button>
+      <button class="btn" id="navHide">管理者だけにもどす</button>
+      <span class="tiny" id="navMsg"></span>
+    </div>
+  </div>
   <div class="card" id="bgCard">
     <h2>Prime Bingo の設定</h2>
     <p class="muted" style="margin-top:-8px">公開するかどうかと、もらえる Prime Coin の枚数を決められます。<br>
@@ -2489,7 +2577,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v112";
+const APP_VERSION = "v113";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3168,6 +3256,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v113":[
+    "LSやりこみで、古いデータが同期で復活してしまう不具合を修正しました",
+    "あなたの軌跡で、今月のグラフに予測が出ない不具合を修正しました",
+    "審査室で「中身を見る」から審査員審査ができない不具合を修正しました",
+    "文字の形（ゴシック体／明朝体）と、画面の明るさ（ダーク／ライト）を選べるようにしました",
+    "画面の下にボタンの帯を出す新しい作りを用意しました（いまは管理者だけ）"],
   "v112":[
     "統計情報の「提出された記録」を、のべ回数で数えるようにしました",
     "競技会は出し直しても数が増えていませんでしたが、出すたびに1回として数えます"],
@@ -4179,6 +4273,36 @@ function lsMerge(mine, theirs){
   });
   return out;
 }
+/* ★ 「この端末のほうが古い」かどうかを、やりこんだ回数で見わけます。
+   端末の回数が、預けてある回数より少なければ、その端末のデータは
+   前のもの（消したあとや、入れ直す前のもの）です。
+   そのまま混ぜると古い中身がよみがえるので、端末のぶんは捨てて、
+   預けてあるものをそのまま入れます。 */
+const lsCount=o=>{
+  const v=(o||{})["sa-lsall-v1"];
+  const n=(typeof v==="string")?(()=>{try{return JSON.parse(v);}catch(e){return 0;}})():v;
+  const x=+(n&&typeof n==="object"?n.n:n);
+  return isFinite(x)?x:0;
+};
+/** 端末のほうが古いか（true なら、預けてあるものをそのまま使います）*/
+function lsStale(mine, theirs){
+  const a=lsCount(mine), b=lsCount(theirs);
+  return (b>a);
+}
+/** 預けてあるものを、そのまま端末に入れます（端末のぶんは捨てます）*/
+function lsTakeTheirs(theirs){
+  const keep=new Set(Object.keys(theirs||{}).concat(Object.keys(lsExtra||{})));
+  LS_ALL().forEach(k=>{
+    if(keep.has(k)) return;
+    const cur=localStorage.getItem(k);
+    if(cur==null) return;
+    stKeep(k,cur);                      /* 控えてから消します */
+    try{ localStorage.removeItem(k); }catch(e){}
+  });
+  const changed=[];
+  lsUnpack(theirs||{},changed);
+  return changed;
+}
 /** サーバーとそろえます。何度呼んでも安全です */
 async function lsSync(showToast){
   if(lsBusy||!stCan()) return false;
@@ -4199,8 +4323,16 @@ async function lsSync(showToast){
         lsBusy=false; return true;
       }
       if(r&&r.conflict){
-        /* ほかの端末が先に書いていた → 混ぜて、もう一度 */
+        /* ほかの端末が先に書いていた */
         lsKeepExtra(r.data||{});
+        if(lsStale(mine, r.data||{})){
+          /* ★ こちらが古いので、混ぜずに 相手のものを入れます */
+          const ch=lsTakeTheirs(r.data||{});
+          lsRev=+r.rev||0; lsSaveRev();
+          if(ch.length) lsReload();
+          lsMark(`預けてあった新しい記録を入れました（${jp(lsCount(r.data||{}))} 回）`);
+          lsBusy=false; return true;
+        }
         mine=Object.assign({},lsExtra,lsMerge(mine, r.data||{}));
         lsRev=+r.rev||0; lsSaveRev();
         continue;
@@ -4222,9 +4354,15 @@ async function lsStart(){
     if(g){
       lsKeepExtra(g.data||{});     /* まだ知らないものを預かっておきます */
       const mine=lsPack(), theirs=g.data||{};
-      const merged=lsMerge(mine, theirs);
-      const changed=[];
-      lsUnpack(merged,changed);
+      let changed;
+      if(lsStale(mine,theirs)){
+        /* ★ この端末のほうが古いので、混ぜずに、預けてあるものを入れます */
+        changed=lsTakeTheirs(theirs);
+        lsMark(`預けてあった新しい記録を入れました（${jp(lsCount(theirs))} 回）`);
+      }else{
+        changed=[];
+        lsUnpack(lsMerge(mine, theirs),changed);
+      }
       lsRev=+g.rev||0; lsSaveRev();
       if(changed.length) lsReload();
     }
@@ -7717,6 +7855,7 @@ function admShow(){
   if($("#rkEditGo")) $("#rkEditGo").hidden=!isAdmin();
   if($("#coinCard")) $("#coinCard").hidden=!isAdmin();
   if($("#bgCard")) $("#bgCard").hidden=!isAdmin();
+  if($("#navCard")) $("#navCard").hidden=!isAdmin();
   /* 素因数分解アリーナのボタン。公開していなければ管理者だけに出ます */
   const ab=$("#arBtn");
   if(ab) ab.hidden=!(typeof arVisible==="function"&&arVisible());
@@ -7864,11 +8003,11 @@ function admGate(){
     b.textContent=admOpen?"管理者メニューを閉じる":"管理者メニューを開く";
     if(!b.dataset.on){ b.dataset.on="1";
       b.onclick=()=>{ admOpen=!admOpen; admGate();
-        if(admOpen){ renderAdmin(); ccEnter(); pzEnter(); uiCardInit(); bgEnter();
+        if(admOpen){ renderAdmin(); ccEnter(); pzEnter(); uiCardInit(); bgEnter(); navAdmEnter();
           const el=$("#admWrap");
           if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); } }; }
   }
-  if(admOpen){ uiCardInit(); bgEnter(); }
+  if(admOpen){ uiCardInit(); bgEnter(); navAdmEnter(); }
   const note=$("#admNote");
   if(note) note.textContent=admOpen
     ? "管理者エディターモード・開発者メニュー・Prime Coin の配り方・大会の賞品・"
@@ -9589,6 +9728,268 @@ const lsOpenKeyFn=()=>{
     M.q("#mKeyNow").textContent="スペース"; lsCfgView(); toast("スペースに戻しました");};
   M.q("#mKeyX").onclick=()=>{ document.removeEventListener("keydown",onKey,true); M.close(); };
 };
+
+/* ══════════ 新しい画面の公開（管理者だけ）══════════ */
+const navMsg=(t,cls)=>{ const e=$("#navMsg");
+  if(e) e.innerHTML=cls?`<span style="color:var(--${cls})">${t}</span>`:t; };
+function navAdmDraw(){
+  const b=$("#navBox"); if(!b) return;
+  const sz=navSize();
+  b.innerHTML=`<div class="lsgrid">
+    <div class="lsbox"><div class="t">いまの状態</div>
+      <div class="v" style="font-size:1.3rem;color:${NAVON?"var(--acc2)":"var(--warn)"}">
+        ${NAVON?"全員に公開ずみ":"管理者だけ"}</div>
+      <div class="s">${NAVON?"みんなの画面に出ています":"あなたにだけ出ています"}</div></div>
+    <div class="lsbox"><div class="t">この端末</div>
+      <div class="v" style="font-size:1.3rem">${isPhone()?"スマホ":"パソコン"}</div>
+      <div class="s">${jp(sz.w)} × ${jp(scrH())} ピクセル</div></div>
+    <div class="lsbox"><div class="t">ボタンの大きさ</div>
+      <div class="v" style="font-size:1.3rem">${sz.ico} px</div>
+      <div class="s">文字 ${sz.fs}px／帯の高さ ${sz.h}px（自動）</div></div>
+  </div>
+  <p class="tiny" style="color:var(--dim2);margin-top:8px">
+    画面のはばに合わせて、ボタンと文字の大きさは自動で変わります。
+    画面の大きさを変えると、すぐに作り直します。</p>`;
+}
+async function navAdmEnter(){
+  if(!isAdmin()) return;
+  const c=$("#navCard"); if(c) c.hidden=false;
+  await navCfgLoad(); navAdmDraw(); navMsg("");
+}
+async function navPubSet(on){
+  if(!isAdmin()) return;
+  if(!await askYN(on?"新しい画面を全員に公開しますか？":"管理者だけにもどしますか？",
+    on?"みんなの画面の下に、ボタンの帯が出るようになります。<br><span class='tiny'>いつでも元にもどせます。</span>"
+      :"あなた以外には、下の帯が出なくなります。",
+    on?"公開する":"もどす")) return;
+  navMsg("送っています…");
+  try{
+    await callRpc("nav_cfg_set",{p_on:!!on});
+    await navCfgLoad(); navAdmDraw(); navBuild();
+    navMsg(on?"公開しました（全員に反映）":"管理者だけにもどしました","acc2");
+  }catch(e){ navMsg(esc(String(e.message||e)).slice(0,120),"bad"); }
+}
+if($("#navPub"))  $("#navPub").onclick=()=>navPubSet(true);
+if($("#navHide")) $("#navHide").onclick=()=>navPubSet(false);
+
+/* ══════════ 見た目のえらび（この端末だけ）══════════ */
+const K_SKIN="sa-skin-v1";
+let SKIN=Object.assign({font:"gothic",theme:"dark"},ls(K_SKIN,{}));
+function skinApply(){
+  const r=document.documentElement;
+  r.setAttribute("data-font", SKIN.font==="mincho"?"mincho":"gothic");
+  r.setAttribute("data-theme", SKIN.theme==="light"?"light":"dark");
+  const f=$("#skFontNow"), t=$("#skThemeNow");
+  if(f) f.textContent=SKIN.font==="mincho"?"いまは 明朝体":"いまは ゴシック体";
+  if(t) t.textContent=SKIN.theme==="light"?"いまは ライトモード":"いまは ダークモード";
+  const on=(id,v)=>{ const b=$("#"+id); if(b) b.classList.toggle("on",v); };
+  on("skGothic",SKIN.font!=="mincho"); on("skMincho",SKIN.font==="mincho");
+  on("skDark",SKIN.theme!=="light");   on("skLight",SKIN.theme==="light");
+}
+function skinSet(k,v){
+  SKIN[k]=v;
+  try{ localStorage.setItem(K_SKIN,JSON.stringify(SKIN)); }catch(e){}
+  skinApply();
+}
+skinApply();
+document.addEventListener("DOMContentLoaded",()=>{
+  const wire=(id,k,v)=>{ const b=document.getElementById(id); if(b) b.onclick=()=>skinSet(k,v); };
+  wire("skGothic","font","gothic"); wire("skMincho","font","mincho");
+  wire("skDark","theme","dark");    wire("skLight","theme","light");
+  skinApply();
+});
+
+/* ══════════════════════════════════════════════════════════
+   下の帯（新しい画面）
+   ──────────────────────────────────────────────────────────
+   ・スマホか パソコンかを見わけます
+   ・画面の横はばをピクセルで見て、ボタンの大きさを自動で決めます
+   ・できあがるまでは管理者だけに見せて、よければ公開します
+   ══════════════════════════════════════════════════════════ */
+let NAVON=false;               /* 全員に公開しているか */
+/** スマホかどうか。指でさわる画面で、はばがせまいものをスマホとします */
+function isPhone(){
+  try{
+    const coarse=window.matchMedia&&window.matchMedia("(pointer: coarse)").matches;
+    const touch=(navigator.maxTouchPoints||0)>1||("ontouchstart" in window);
+    const w=window.innerWidth||document.documentElement.clientWidth||0;
+    return !!((coarse||touch) && w<900);
+  }catch(e){ return false; }
+}
+/** いまの画面の大きさ（ピクセル） */
+const scrW=()=>window.innerWidth||document.documentElement.clientWidth||360;
+const scrH=()=>window.innerHeight||document.documentElement.clientHeight||640;
+/** 新しい画面を出すか */
+const navOn=()=>!!(NAVON||isAdmin());
+async function navCfgLoad(){
+  if(TEST||!sbOn()) return NAVON;
+  try{
+    const r=await sb("rpc/nav_cfg",{method:"POST",body:"{}"});
+    if(r&&typeof r==="object") NAVON=!!r.on;
+  }catch(e){}
+  return NAVON;
+}
+
+/* ── 絵文字ではなく、線で描いたマークを使います（どの端末でも同じ形になります）── */
+const ICO={
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-6h5v6"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.5" r="3.6"/><path d="M4.5 20.5c0-4.2 3.4-6.5 7.5-6.5s7.5 2.3 7.5 6.5"/></svg>',
+  sns:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.6"/><circle cx="17.5" cy="6" r="2.6"/><circle cx="17.5" cy="18" r="2.6"/><path d="M8.3 10.8 15.2 7.2M8.3 13.2l6.9 3.6"/></svg>',
+  tool:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.8" width="14" height="18.4" rx="2.2"/><rect x="7.6" y="5.6" width="8.8" height="3.4" rx="1"/><path d="M8.2 12.6h.01M12 12.6h.01M15.8 12.6h.01M8.2 15.6h.01M12 15.6h.01M15.8 15.6h.01M8.2 18.4h.01M12 18.4h.01M15.8 18.4h.01"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 14.5a7 7 0 0 0-9.7-9.7l3.4 3.4-2 2-3.4-3.4a7 7 0 0 0 9.7 9.7"/><path d="M13.4 13.4 20 20"/></svg>',
+  feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5a7.2 7.2 0 0 1-9.9 6.7L4 21l1.8-6.1A7.2 7.2 0 1 1 20 12.5Z"/></svg>',
+  cup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 5.5H4.5V8a3 3 0 0 0 3 3M17 5.5h2.5V8a3 3 0 0 1-3 3"/><path d="M12 14v3.5M8.5 20.5h7"/></svg>',
+  ach:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.4 6.7 19.2l1.1-5.9L3.5 9.2l5.9-.8Z"/></svg>',
+  rank:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="12" width="4.5" height="8.5" rx="1"/><rect x="9.8" y="4.5" width="4.5" height="16" rx="1"/><rect x="16" y="9" width="4.5" height="11.5" rx="1"/></svg>',
+  fr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c0-3.6 2.8-5.6 6.2-5.6s6.2 2 6.2 5.6"/><path d="M17.5 7.5v5M20 10h-5"/></svg>',
+  rv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/><path d="m8 10.5 1.8 1.8L13 9"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9.5" cy="10.5" r="2.4"/><path d="M5.6 17c.6-2 2-3 3.9-3s3.3 1 3.9 3"/><path d="M15 9.5h3.5M15 13h3.5"/></svg>'
+};
+/* 下の帯にならべるもの */
+const NAV_MAIN=[
+  {k:"profile", n:"ホーム",       i:"home"},
+  {k:"__me",    n:"ユーザーデータ", i:"user"},
+  {k:"sns",     n:"Prime SNS",   i:"sns"},
+  {k:"__tool",  n:"ツール",       i:"tool"},
+  {k:"settings",n:"設定",         i:"gear"}
+];
+/* 「ユーザーデータ」「ツール」は、いくつかのタブのまとめです */
+const NAV_GROUP={
+  __me:  ["card","input","hist","mood","ls"],
+  __tool:["pgbc","stats","arena","plan","analysis","rprank"]
+};
+const NAV_SNS=[
+  {k:"feed",n:"タイムライン",i:"feed"},
+  {k:"cup", n:"大会",        i:"cup"},
+  {k:"ach", n:"アチーブメント",i:"ach"},
+  {k:"rank",n:"ランキング",  i:"rank"},
+  {k:"fr",  n:"フレンド",    i:"fr"},
+  {k:"rv",  n:"審査室",      i:"rv"},
+  {k:"me",  n:"プロフィール", i:"me"}
+];
+/** 画面の横はばに合わせて、ボタンの大きさを決めます */
+function navSize(){
+  const w=scrW();
+  /* せまいほど小さく、広いほど大きく。行きすぎないように上と下で止めます */
+  const ico=Math.max(18, Math.min(26, Math.round(w/19)));
+  const fs =Math.max(9,  Math.min(13, Math.round(w/34)));
+  const pad=Math.max(4,  Math.min(10, Math.round(w/60)));
+  const h  =ico+fs+pad*2+8;
+  const root=document.documentElement;
+  root.style.setProperty("--navico", ico+"px");
+  root.style.setProperty("--navfs",  fs+"px");
+  root.style.setProperty("--navpad", pad+"px");
+  root.style.setProperty("--navh",   h+"px");
+  return {w, ico, fs, pad, h};
+}
+/* いま下の帯のどれを選んでいるか */
+let navNow="profile";
+/** 下の帯を作ります */
+function navBuild(){
+  let bar=$("#navBar");
+  if(!navOn()){ if(bar) bar.remove(); document.body.classList.remove("hasnav"); return; }
+  if(!bar){
+    bar=document.createElement("nav"); bar.id="navBar"; bar.className="navbar";
+    document.body.appendChild(bar);
+  }
+  navSize();
+  document.body.classList.add("hasnav");
+  bar.innerHTML=NAV_MAIN.map(x=>`<button data-nav="${x.k}" class="${x.k===navNow?"on":""}">
+      <i>${ICO[x.i]||""}</i><span>${esc(x.n)}</span></button>`).join("");
+  bar.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>navGo(b.dataset.nav));
+  navSnsBuild();
+}
+/** 下の帯のボタンを押した時 */
+function navGo(k){
+  navNow=k;
+  $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===k));
+  const snsBar=$("#navSns"); if(snsBar) snsBar.hidden=(k!=="sns");
+  document.body.classList.toggle("hassns", k==="sns");
+  if(k==="__me"||k==="__tool") return navGroupShow(k);
+  const btn=document.querySelector(`#tabs button[data-tab="${CSS.escape(k)}"]`);
+  if(btn) btn.click();
+  scrollTo({top:0,behavior:"smooth"});
+}
+/** まとめのボタンを押すと、中身をえらべます */
+function navGroupShow(k){
+  const list=(NAV_GROUP[k]||[]).map(t=>{
+    const b=document.querySelector(`#tabs button[data-tab="${CSS.escape(t)}"]`);
+    return (b&&!b.hidden)?{t, n:b.textContent.trim()}:null;
+  }).filter(Boolean);
+  const title=(NAV_MAIN.find(x=>x.k===k)||{}).n||"";
+  const M=modal(`<h2>${esc(title)}</h2>
+    <div class="navpick">${list.map(x=>
+      `<button class="btn" data-ng="${esc(x.t)}">${esc(x.n)}</button>`).join("")}</div>
+    <div class="tools"><button class="btn" id="ngX">閉じる</button></div>`,{w:520});
+  M.q("#ngX").onclick=M.close;
+  M.qa("[data-ng]").forEach(b=>b.onclick=()=>{
+    M.close();
+    const t=document.querySelector(`#tabs button[data-tab="${CSS.escape(b.dataset.ng)}"]`);
+    if(t) t.click();
+    scrollTo({top:0,behavior:"smooth"});
+  });
+}
+/* ── Prime SNS の帯（7つ・ぐるぐる回ります）── */
+let navSnsI=0;
+function navSnsBuild(){
+  if(!navOn()){ const o=$("#navSns"); if(o) o.remove(); return; }
+  let bar=$("#navSns");
+  if(!bar){
+    bar=document.createElement("div"); bar.id="navSns"; bar.className="navsns";
+    bar.hidden=true;
+    document.body.appendChild(bar);
+  }
+  /* 見せる数は、画面のはばで決めます（せまければ3つ、広ければ7つ） */
+  const w=scrW();
+  const show=Math.max(3, Math.min(NAV_SNS.length, Math.floor(w/92)));
+  bar.dataset.show=show;
+  const items=[];
+  for(let j=0;j<show;j++){
+    const x=NAV_SNS[((navSnsI+j)%NAV_SNS.length+NAV_SNS.length)%NAV_SNS.length];
+    /* 審査室は、審査できる人にだけ */
+    items.push(x);
+  }
+  bar.innerHTML=`<button class="navarrow" data-nsa="-1" aria-label="前へ">‹</button>
+    <div class="navsnsin">${items.map(x=>{
+      const hide=(x.k==="rv"&&myLv()<2);
+      return `<button data-nsv="${x.k}" class="${x.k===snsView?"on":""}${hide?" off":""}">
+        <i>${ICO[x.i]||""}</i><span>${esc(x.n)}</span></button>`;
+    }).join("")}</div>
+    <button class="navarrow" data-nsa="1" aria-label="次へ">›</button>`;
+  bar.querySelectorAll("[data-nsa]").forEach(b=>b.onclick=()=>navSnsSlide(+b.dataset.nsa));
+  bar.querySelectorAll("[data-nsv]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.nsv;
+    if(k==="rv"&&myLv()<2) return toast("審査室は 審査員以上が入れます");
+    snsGo(k); navSnsBuild();
+  });
+  /* 指でなぞって動かせます */
+  let x0=null;
+  const inb=bar.querySelector(".navsnsin");
+  inb.addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true});
+  inb.addEventListener("touchend",e=>{
+    if(x0==null) return;
+    const dx=(e.changedTouches[0].clientX-x0);
+    if(Math.abs(dx)>36) navSnsSlide(dx<0?1:-1);
+    x0=null;
+  },{passive:true});
+  /* マウスのホイールでも動かせます */
+  inb.addEventListener("wheel",e=>{
+    if(Math.abs(e.deltaX)<Math.abs(e.deltaY)) return;
+    e.preventDefault(); navSnsSlide(e.deltaX>0?1:-1);
+  },{passive:false});
+}
+/** 帯をずらします。端と端はつながっています */
+function navSnsSlide(d){
+  const n=NAV_SNS.length;
+  navSnsI=((navSnsI+d)%n+n)%n;
+  navSnsBuild();
+}
+/* 画面の大きさが変わったら、作り直します */
+let navT=null;
+window.addEventListener("resize",()=>{
+  clearTimeout(navT);
+  navT=setTimeout(()=>{ if(navOn()){ navSize(); navSnsBuild(); } },160);
+});
 
 /* ══════════════════════════════════════════════════════════
    素因数分解アリーナ
@@ -12703,6 +13104,38 @@ function neonHTML(p){
   return "";
 }
 /** タイムラインからでも、その場で記録の中身を見て審査できます */
+/* ★ その記録が、いまどの段階にいるかを見ます。
+   前はいつも第1段階（審査）を呼んでいたので、審査員審査の記録で
+   「その記録はすでに審査されています」というエラーになっていました。 */
+function rvStageOf(s){
+  if(!s) return null;
+  if(s.status==="removed") return null;
+  if(!s.judge_id) return "j";          /* 審査 */
+  if(!s.sv_id)    return "s";          /* 審査員審査 */
+  if(!s.jm_id)    return "m";          /* スーパーバイザー審査 */
+  return null;                          /* ぜんぶ終わっています */
+}
+const RV_STAGE_N={j:"審査",s:"審査員審査",m:"スーパーバイザー審査"};
+/** その段階を、いま自分ができるか */
+function rvCanStage(s,stage){
+  if(!s||!stage) return false;
+  const my=myId(), lv=myLv();
+  if(s.user_id&&s.user_id===my) return false;          /* 自分の記録 */
+  if(stage==="j") return lv>=2;
+  if(stage==="s") return lv>=3 && s.judge_id!==my;
+  if(stage==="m"){
+    const svLv=(s.sv_lv!=null)?+s.sv_lv:0;
+    return (lv>=4||(lv>=3&&svLv>=4)) && s.sv_id!==my && s.judge_id!==my;
+  }
+  return false;
+}
+/** ボタンの動きを、段階に合わせた名前に直します */
+function rvActOf(stage,kind){
+  if(stage==="j") return kind;                          /* approve / fix / reject */
+  if(stage==="s") return kind==="fix"?"sv-fix":"sv-accept";
+  if(stage==="m") return kind==="fix"?"jm-fix":"jm-accept";
+  return kind;
+}
 async function rvDetail(subId, entryId, cupId, doReview, hint){
   let s=null;
   if(subId){
@@ -12766,26 +13199,36 @@ async function rvDetail(subId, entryId, cupId, doReview, hint){
              :(s&&s.proof_url&&s.proof_url!=="discord"&&s.proof_url!=="restored")
                ?[{url:s.proof_url,note:""}]:[];
   const own = s && String(s.handle||"").toLowerCase()===String(pro.handle||"").toLowerCase();
-  const canDo = doReview && s && myLv()>=2 && s.status!=="certified" && !own;
+  /* ★ いまの段階を見て、その段階のボタンを出します */
+  const stage = rvStageOf(s);
+  const canDo = doReview && !!stage && rvCanStage(s,stage);
+  const okLabel = (stage==="j")?"承認":"認定";
   M.q("#rdAct").innerHTML=
     (links.length?`<button class="btn pri" id="rdLink">リンクに飛ぶ</button>`:"")
     +(ent&&ent.discord?`<span class="tiny">Discord に提出されています</span>`:"")
-    +(canDo?`<button class="btn sm pri" data-rd="approve">承認</button>`
+    +(canDo?`<span class="tiny" style="margin-right:6px">${esc(RV_STAGE_N[stage]||"")}</span>`
+           +`<button class="btn sm pri" data-rd="approve">${okLabel}</button>`
            +`<button class="btn sm" data-rd="fix">修正</button>`
-           +`<button class="btn sm" data-rd="reject">却下</button>`:"")
+           +(stage==="j"?`<button class="btn sm" data-rd="reject">却下</button>`:""):"")
     +(doReview&&!canDo?`<span class="tiny">${own?"自分の記録は審査できません"
-      :(s&&s.status==="certified")?"すでに認定済みです":"いま自分が審査できる段階ではありません"}</span>`:"")
-    +(!doReview&&s&&myLv()>=2&&!own&&s.status!=="certified"
-      ?`<button class="btn sm pri" id="rdGo">この記録を審査する</button>`
+      :!stage?"すべての審査が終わっています"
+      :"いま自分が審査できる段階ではありません（"+esc(RV_STAGE_N[stage]||"")+"）"}</span>`:"")
+    +(!doReview&&s&&!!stage&&rvCanStage(s,stage)
+      ?`<button class="btn sm pri" id="rdGo">この記録を${esc(RV_STAGE_N[stage]||"審査")}する</button>`
       :(!doReview&&myLv()>=2
-        ?`<button class="btn sm done" disabled>${own?"自分の記録は審査できません":"審査済み"}</button>`:""));
+        ?`<button class="btn sm done" disabled>${own?"自分の記録は審査できません"
+          :!stage?"審査済み":"いまは審査できません"}</button>`:""));
   if(M.q("#rdGo")) M.q("#rdGo").onclick=()=>{ M.close(); rvDetail(s.id,null,null,true); };
   if(M.q("#rdLink")) M.q("#rdLink").onclick=()=>showProof(links);
   M.qa("[data-rd]").forEach(b=>b.onclick=async()=>{
     M.close();
     if(!RVQ.find(x=>x.id===s.id)) await loadRvq();
-    rvMode="do"; rvTab="j";
-    await rvAct(s.id,b.dataset.rd);
+    /* 読み直したあとの、いまの段階でもう一度たしかめます */
+    const s2=RVQ.find(x=>x.id===s.id)||s;
+    const st2=rvStageOf(s2);
+    if(!st2||!rvCanStage(s2,st2)) return toast("いま自分が審査できる段階ではありません");
+    rvMode="do"; rvTab=(st2==="j")?"j":(st2==="s")?"s":"m";
+    await rvAct(s2.id, rvActOf(st2, b.dataset.rd));
   });
 }
 /** アチーブメントの名前から、その中身を開きます */
@@ -15606,9 +16049,14 @@ function hsChart(rows, opt){
      ・線は「全部の数」で、点と日付は「実際の記録の数」で場所を決めていたため
        線と点が横にずれる
      という2つの崩れが起きていました。 */
-  const real=(rows||[]).map(r=>Object.assign({},r));
+  let real=(rows||[]).map(r=>Object.assign({},r));
   const lastReal=(()=>{ for(let i=real.length-1;i>=0;i--) if(real[i].v!=null) return real[i].d;
                         return null; })();
+  /* ★ 最後の記録より後ろにある「空の行」は、月末までの場所とりです。
+     ここを残したままだと、予測の日付とぶつかって予測が消えてしまうので、
+     予測を出す時だけ、先に取りのぞきます。 */
+  if((o.pred||[]).length && lastReal)
+    real=real.filter(r=>r.v!=null || r.d<=lastReal);
   const seen=new Set(real.map(r=>r.d));
   const pred=((o.pred||[])
     .filter(p=>p&&p.v!=null && (!lastReal||p.d>lastReal) && !seen.has(p.d))
@@ -20859,6 +21307,7 @@ function normalize(j){
   try{ await uiLoad(); uiApply(); }catch(e){}
   try{ await pbCfgLoad(); }catch(e){}
   try{ await arCfgLoad(); }catch(e){}
+  try{ await navCfgLoad(); navBuild(); }catch(e){}
   try{ pgBuildTicker(); }catch(e){}
   try{ await extLoad(); }catch(e){}
   if(sess&&sbOn()){ try{ await loadMe(); }catch(e){ console.error(e); } try{ renderSettings(); }catch(e){}
