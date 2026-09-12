@@ -455,6 +455,8 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
   background:var(--panel2);border:1px solid var(--line);color:var(--tx)}
 .ftd:hover{border-color:var(--acc2)}
 .ftd.on{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+.ftd.lockd{opacity:.45;cursor:not-allowed}
+.ftd.lockd:hover{border-color:var(--line)}
 .ftd .fti{font-size:1.15rem;line-height:1}
 .ftd b{font-size:.92rem}
 .ftd .fts{font-size:.68rem;color:var(--dim2);line-height:1.35}
@@ -3002,7 +3004,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v126";
+const APP_VERSION = "v127";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3489,14 +3491,6 @@ const num=s=>{const v=parseFloat(String(s??"").replace(/[,\s　]/g,""));return i
 const f3=v=>v.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3});
 const pctf=v=>(v*100).toFixed(2)+"%";
 const jp=v=>v.toLocaleString("ja-JP");
-/** 「3日2時間15分前」のような相対表示 */
-function agoText(t){
-  const ms=Date.now()-new Date(t).getTime();
-  if(!isFinite(ms)) return "—";
-  if(ms<60000) return "たった今";
-  const d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000);
-  return (d?`${d}日`:"")+((d||h)?`${h}時間`:"")+`${m}分前`;
-}
 /** 更新の新しさ。3日以内=hot(赤)、7日以内=warm(黄) */
 function freshClass(t){
   if(!t) return "";
@@ -3681,6 +3675,21 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v127":[
+    "仲間さがしで、正しく選んでいたのに不正解になる不具合を修正しました",
+    "　制限時間が先に切れると、選んでいた内容を捨てて不正解にしていました。",
+    "　時間切れでも、選んでいるものがあれば その内容で判定します",
+    "　また、1つ選ぶたびに画面を作り直していたのをやめ、二重に反応しないようにしました",
+    "　仲間さがしの制限時間を 15秒 → 25秒 にしました",
+    "半素数で 49 ばかり出ていた不具合を修正しました",
+    "　候補が21個そろう Lv.11 から使えるようにし、それより下では鍵をかけました",
+    "むずかしさで絞った時、そのクラス以外の数が混ざっていた不具合を修正しました",
+    "逆算・段階分解のキーパッドから空白を外し、代わりに「全部消す」を置きました",
+    "　空白が入ると、打ちかけの数で判定されてしまうことがありました",
+    "割り切れる？で、○と×の両方が作れる割る数だけを使うようにしました",
+    "仲間さがしの成績を、正解の数それぞれに付けるようにしました",
+    "数の詳細に、Unlike Point・トレーニングの成績・むずかしさを追加しました",
+    "同じ名前の関数が2つあり、種目ごとの新記録の「◯日前」が出ていなかったのを修正"],
   "v126":[
     "苦手克服モードの問題数を 5問きざみにしました",
     "苦手克服モードに ループモードを追加（終了を押すまで回り続けます）",
@@ -11990,6 +11999,21 @@ function arNumShow(n){
       <tr><td>想定解答時間</td><td class="n"><b>${arExp(n).toFixed(2)}</b> 秒</td></tr>
       <tr><td>解答した回数</td><td class="n"><b>${jp(mine.length)}</b> 回
         （正解 ${jp(okn.length)}）</td></tr>
+      ${(()=>{ const u=upOf(n);
+        return `<tr><td>Unlike Point（苦手度）</td><td class="n">
+          <b style="color:${upBand(u.up).c}">${u.up.toFixed(1)}</b>
+          <span class="tiny">（${upBand(u.up).n}）</span></td></tr>`;})()}
+      ${(()=>{ if(typeof ftStatOf!=="function") return "";
+        const v=ftStatOf(n); if(!v.q) return "";
+        return `<tr><td>トレーニングでの成績</td><td class="n">
+          <b>${jp(v.ok)} / ${jp(v.q)}</b>
+          <span class="tiny">（${((v.ok/v.q)*100).toFixed(0)}%${
+            v.ok?`・平均 ${(v.ms/v.ok/1000).toFixed(2)}秒`:""}）</span></td></tr>`;})()}
+      ${(()=>{ if(f.length===1) return "";
+        const c=(typeof ftCls==="function")?ftCls(n):null;
+        return c?`<tr><td>むずかしさ</td><td class="n">
+          <b style="color:${FT_CLS[c].c}">${FT_CLS[c].n}</b>
+          <span class="tiny">（最小の素因数が ${jp(ftSpf(n))}）</span></td></tr>`:"";})()}
       ${okn.length?`<tr><td>最速</td><td class="n"><b>${
         (Math.min(...okn.map(x=>x.ms))/1000).toFixed(2)}</b> 秒</td></tr>`:""}
     </tbody></table></div>
@@ -13329,11 +13353,47 @@ function ftPool(lv,cls){
   const f=all.filter(n=>ftCls(n)===cls);
   return f.length?f:all;
 }
-/** Lv.0 〜 いまのレベル をぜんぶ混ぜた池（下のレベルも忘れないように）*/
+/** Lv.0 〜 いまのレベル をぜんぶ混ぜた池（下のレベルも忘れないように）
+    ★ クラスで絞る時は、レベルごとではなく まとめて絞ります。
+      （レベルごとに絞ると、そのクラスが無いレベルだけ全部入ってしまいます）*/
 function ftPoolUpTo(lv,cls){
-  const out=[];
-  for(let k=0;k<=lv;k++) out.push(...ftPool(k,cls));
-  return out.length?out:ftLvNums(lv);
+  const all=[];
+  for(let k=0;k<=lv;k++) all.push(...ftLvNums(k));
+  if(!cls||cls==="all") return all;
+  const f=all.filter(n=>ftCls(n)===cls);
+  return f.length?f:all;
+}
+/** 半素数（2つの素数のかけ算で、小さい方が7以上）の池 */
+const FT_SEMI_MIN=20;       /* これを超えたら 半素数ドリルを出します */
+let FT_SEMI={key:"",list:null};
+function ftSemiPool(lv){
+  const key=lv+"|"+arMax();
+  if(FT_SEMI.list&&FT_SEMI.key===key) return FT_SEMI.list;
+  const list=ftPoolUpTo(lv,"all").filter(v=>{
+    const f=arFactor(v); return f.length===2 && f[0]>=7; });
+  FT_SEMI={key,list};
+  return list;
+}
+/** 半素数ドリルが使えるようになる いちばん低いレベル */
+let FT_SEMI_LV=null;
+function ftSemiMinLv(){
+  if(FT_SEMI_LV!==null) return FT_SEMI_LV;
+  const cap=ftCap();
+  for(let lv=0; lv<=cap; lv++){
+    if(ftSemiPool(lv).length>FT_SEMI_MIN){ FT_SEMI_LV=lv; return lv; }
+  }
+  FT_SEMI_LV=cap+1;
+  return FT_SEMI_LV;
+}
+/** そのドリルが、このレベルで使えるか */
+function ftAvail(k,lv){
+  if(k!=="semi") return {ok:true};
+  const n=ftSemiPool(lv).length, need=FT_SEMI_MIN+1, min=ftSemiMinLv();
+  if(n>=need) return {ok:true, n};
+  return {ok:false, n, min,
+    why:`いまの Lv.${jp(lv)} までに、2つの素数のかけ算は <b>${jp(n)}個</b>しかありません。`
+       +`同じ問題ばかりになってしまうので、<b>${jp(need)}個</b>そろう `
+       +`<b>Lv.${jp(min)}</b> から使えるようにしています。`};
 }
 
 /* ── 成績 ── */
@@ -13347,13 +13407,16 @@ function ftStatPut(n,ok,ms,drill){
   v.q++; if(ok){ v.ok++; v.ms+=Math.max(0,ms|0); v.b=v.b?Math.min(v.b,ms):ms; }
   v.t=Date.now();
   FT.num[n]={q:v.q,ok:v.ok,ms:v.ms,b:v.b,t:v.t};
-  const st=FT.stat[drill]||{q:0,ok:0,ms:0};
-  st.q++; if(ok){ st.ok++; st.ms+=Math.max(0,ms|0); }
-  FT.stat[drill]=st;
-  FT.asked=(+FT.asked||0)+1;
-  if(ok) FT.ok=(+FT.ok||0)+1;
-  /* 出題した数は、練習記録にも足します（1問ずつの正誤は残しません）*/
-  arDayHit(1);
+  /* drill が null の時は「1問」として数えません（仲間さがしの2個目以降）*/
+  if(drill){
+    const st=FT.stat[drill]||{q:0,ok:0,ms:0};
+    st.q++; if(ok){ st.ok++; st.ms+=Math.max(0,ms|0); }
+    FT.stat[drill]=st;
+    FT.asked=(+FT.asked||0)+1;
+    if(ok) FT.ok=(+FT.ok||0)+1;
+    /* 出題した数は、練習記録にも足します（1問ずつの正誤は残しません）*/
+    arDayHit(1);
+  }
   ftSave();
 }
 const ftDrillStat=k=>Object.assign({q:0,ok:0,ms:0},FT.stat[k]||{});
@@ -13416,8 +13479,10 @@ const FT_DRILLS=[
    const L=ftComposites(arMax());
    const hiIdx=Math.min(L.length,(lv+1)*FT_PER);
    const range=L.slice(0,hiIdx);
-   const ds=lv<3?[7,11,13]:[7,11,13,17,19,23];
-   const d=pick1(ds);
+   const ds0=lv<3?[7,11,13]:[7,11,13,17,19,23];
+   /* ○になる数と ×になる数の両方がある割る数だけを使います */
+   const ds=ds0.filter(x=>range.some(v=>v%x===0)&&range.some(v=>v%x!==0));
+   const d=pick1(ds.length?ds:ds0);
    const want=Math.random()<0.5;
    let cand=range.filter(v=>(v%d===0)===want);
    if(!cand.length) cand=range;
@@ -13449,7 +13514,7 @@ const FT_DRILLS=[
      ans:n, hint:`答えは ${String(n).length} けたの数です`,
      why:`${arFacText(n)} ＝ <b>${jp(n)}</b>`};
  }},
-{k:"pick", n:"仲間さがし", sec:15, ico:"🎣", force:1,
+{k:"pick", n:"仲間さがし", sec:25, ico:"🎣", force:1,
  short:"8つの中から、ある数の倍数を全部",
  desc:"1つずつではなく、まとめて見分ける練習です。"
      +"「この中に 7 の倍数はどれ？」と探す目ができると、分解の見通しが良くなります。",
@@ -13477,20 +13542,11 @@ const FT_DRILLS=[
 {k:"semi", n:"半素数", sec:12, ico:"🧩", force:3,
  short:"2つの素数のかけ算だけ。いちばんむずかしい形",
  desc:"91＝7×13、143＝11×13 のように、7以上の素数どうしのかけ算です。"
-     +"割り算では見つけにくいので、形で覚えるのがいちばん速くなります。",
+     +"割り算では見つけにくいので、形で覚えるのがいちばん速くなります。"
+     +"同じ問題ばかりにならないよう、候補が21個以上そろったレベルから使えます。",
  make(lv,cls){
-   const pool=ftPoolUpTo(lv,"all").filter(v=>{
-     const f=arFactor(v); return f.length===2 && f[0]>=7; });
-   if(!pool.length){
-     /* そのレベルにまだ無い時は、範囲ぜんぶから探します */
-     const L=ftComposites(arMax());
-     const w=L.filter(v=>{ const f=arFactor(v); return f.length===2&&f[0]>=7; });
-     if(!w.length) return FT_DRILLS[0].make(lv,cls);
-     const n=w[Math.floor(Math.random()*Math.min(w.length,(lv+1)*6+20))]||w[0];
-     return {kind:"keypad", n, ask:`<b>${jp(n)}</b> を素因数分解すると？`, ans:n, two:true,
-       hint:`2つの素数のかけ算です。小さい方は ${jp(ftSpf(n))}`,
-       why:`${jp(n)} ＝ ${arFacText(n)}`};
-   }
+   const pool=ftSemiPool(lv);
+   if(!pool.length) return FT_DRILLS[0].make(lv,cls);
    const n=pick1(pool);
    return {kind:"keypad", n, ask:`<b>${jp(n)}</b> を素因数分解すると？`, ans:n, two:true,
      hint:`2つの素数のかけ算です。小さい方は ${jp(ftSpf(n))}`,
@@ -13567,15 +13623,20 @@ function ftHome(){
 
     <h3>ドリルを選ぶ</h3>
     <div class="ftgrid" id="ftDrills">
-      ${FT_DRILLS.map(d=>{ const s=ftDrillStat(d.k);
-        return `<button class="ftd ${d.k===FTQ.drill?"on":""}" data-ftd="${d.k}">
-          <span class="fti">${d.ico}</span>
+      ${FT_DRILLS.map(d=>{ const s=ftDrillStat(d.k), av=ftAvail(d.k,FTQ.lv);
+        return `<button class="ftd ${d.k===FTQ.drill?"on":""}${av.ok?"":" lockd"}"
+            data-ftd="${d.k}" ${av.ok?"":"disabled"}>
+          <span class="fti">${av.ok?d.ico:"🔒"}</span>
           <b>${esc(d.n)}</b>
-          <span class="fts">${esc(d.short)}</span>
+          <span class="fts">${av.ok?esc(d.short):`Lv.${jp(av.min)} から使えます（いま候補 ${jp(av.n)}個）`}</span>
           <span class="ftq">${s.q?`${jp(s.q)}問　正答率 ${((s.ok/s.q)*100).toFixed(0)}%`:"まだ未挑戦"}</span>
         </button>`; }).join("")}
     </div>
     <p class="tiny" style="color:var(--dim2)">${esc(D.desc)}</p>
+    ${(()=>{const av=ftAvail(FTQ.drill,FTQ.lv);
+      return av.ok?"":`<div class="hintbox" style="border-color:var(--warn)">
+        <b style="color:var(--warn)">このレベルでは まだ使えません</b><br>
+        <span class="tiny">${av.why}</span></div>`;})()}
 
     <h3 style="margin-top:12px">レベル（Lv.0 〜 Lv.${jp(top)}）</h3>
     <div class="frow" style="align-items:flex-end">
@@ -13601,9 +13662,10 @@ function ftHome(){
       ${["a","b","c"].map(k=>`<button data-ftc="${k}" class="${FTQ.cls===k?"on":""}"
         ${cnt[k]?"":"disabled"}>${FT_CLS[k].n}（${jp(cnt[k])}）</button>`).join("")}
     </div>
-    <p class="tiny" style="color:var(--dim2)">${esc(FT_CLS[FTQ.cls==="all"?"b":FTQ.cls].d)}
-      ${FTQ.cls==="all"?"　※「全部」はこのレベルの合成数をすべて使います":""}
-      　いま選んでいる池：<b>${jp(ftPoolUpTo(FTQ.lv,FTQ.cls).length)}</b> 個</p>
+    <p class="tiny" style="color:var(--dim2)">${FTQ.cls==="all"
+      ? "むずかしさで絞らず、Lv.0 〜 Lv."+jp(FTQ.lv)+" の合成数をすべて使います"
+      : esc(FT_CLS[FTQ.cls].d)}
+      　いま出る数：<b>${jp(ftPoolUpTo(FTQ.lv,FTQ.cls).length)}</b> 個</p>
 
     <div class="row" style="margin-top:10px">
       <div><b>ループモード</b><div class="tiny" id="ftLoopN"></div></div>
@@ -13613,7 +13675,7 @@ function ftHome(){
     </div>
 
     <div class="tools">
-      <button class="btn pri" id="ftGo">始める</button>
+      <button class="btn pri" id="ftGo" ${ftAvail(FTQ.drill,FTQ.lv).ok?"":"disabled"}>始める</button>
       <button class="btn" id="ftBook">
         <svg viewBox="0 0 24 24" class="ico"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
         合成数帳</button>
@@ -13625,12 +13687,13 @@ function ftHome(){
     ? "まちがえても続きます。「終了する」を押すまで終わりません"
     : "1問まちがえた時点で終わります（連続正解をのばす遊びかた）";
   FTQ.M.qa("[data-ftd]").forEach(b=>b.onclick=()=>{
+    if(b.disabled) return;
     FTQ.drill=b.dataset.ftd; FT.drill=FTQ.drill; ftSave(); ftHome(); });
   FTQ.M.qa("[data-ftc]").forEach(b=>b.onclick=()=>{
     if(b.disabled) return;
     FTQ.cls=b.dataset.ftc; FT.cls=FTQ.cls; ftSave(); ftHome(); });
   const set=v=>{ FTQ.lv=Math.min(ftTop(),Math.max(0,Math.round(v)||0));
-    FT.lv=FTQ.lv; ftSave(); ftHome(); };
+    FT.lv=FTQ.lv; FT_SEMI={key:"",list:null}; ftSave(); ftHome(); };
   q("#ftLvR").oninput=e=>set(+e.target.value);
   q("#ftLvM").onclick=()=>set(FTQ.lv-1);
   q("#ftLvP").onclick=()=>set(FTQ.lv+1);
@@ -13642,10 +13705,12 @@ function ftHome(){
   q("#ftRule").onclick=ftRuleShow;
   q("#ftStat").onclick=ftStatShow;
   q("#ftX").onclick=ftClose;
-  q("#ftGo").onclick=ftBegin;
+  if(q("#ftGo")&&!q("#ftGo").disabled) q("#ftGo").onclick=ftBegin;
 }
 function ftBegin(){
   if(!FTQ) return;
+  const av=ftAvail(FTQ.drill,FTQ.lv);
+  if(!av.ok){ toast(`「半素数」は Lv.${jp(av.min)} から使えます`); return; }
   FTQ.i=0; FTQ.ok=0; FTQ.streak=0; FTQ.upped=0; FTQ.live=true;
   FT.plays=(+FT.plays||0)+1; ftSave();
   ftNext();
@@ -13654,7 +13719,13 @@ function ftNext(){
   ftStop(); if(!FTQ) return;
   FTQ.i++; FTQ.lock=false; FTQ.text=""; FTQ.sel=[]; FTQ.flip=false;
   const D=ftDrill(FTQ.drill);
-  FTQ.q=D.make(FTQ.lv,FTQ.cls);
+  try{ FTQ.q=D.make(FTQ.lv,FTQ.cls); }
+  catch(e){ FTQ.q=null; }
+  if(!FTQ.q||!FTQ.q.kind){
+    FTQ.live=false;
+    toast("この設定では問題が作れませんでした");
+    return ftHome();
+  }
   FTQ.steps=(FTQ.q.kind==="step")?[FTQ.q.n]:[];
   FTQ.t=Date.now();
   ftDraw();
@@ -13665,7 +13736,13 @@ function ftNext(){
       const bar=FTQ.M.q("#ftBar"), tv=FTQ.M.q("#ftLeft");
       if(bar) bar.style.width=Math.max(0,Math.min(100,left/(D.sec*1000)*100)).toFixed(1)+"%";
       if(tv) tv.textContent=(Math.max(0,left)/1000).toFixed(2);
-      if(left<=0) ftJudge(null);
+      if(left<=0){
+        /* ★ 時間切れでも、すでに選んでいるものがあれば それで判定します。
+              （正しく選んでいたのに、時計だけで不正解にしないため）*/
+        if(FTQ.q&&FTQ.q.kind==="multi"&&FTQ.sel.length)
+          ftJudge(FTQ.sel.slice().sort((a,b)=>a-b));
+        else ftJudge(null);
+      }
     },50);
   }
 }
@@ -13685,10 +13762,10 @@ function ftDraw(){
       <button class="ftynb yes" data-ftv="1">割り切れる<span>○</span></button>
       <button class="ftynb no"  data-ftv="0">割り切れない<span>×</span></button></div>`;
   }else if(Q.kind==="multi"){
-    body=`<div class="dtgrid ft4">${Q.opts.map(v=>
+    body=`<div class="dtgrid ft4" id="ftOpts">${Q.opts.map(v=>
       `<button class="dtopt ${FTQ.sel.indexOf(v)>=0?"sel":""}" data-ftm="${v}">${jp(v)}</button>`).join("")}</div>
       <div class="tools" style="justify-content:center">
-        <button class="btn pri" id="ftDone">これで決定（${jp(FTQ.sel.length)}個）</button></div>`;
+        <button class="btn pri" id="ftDone">これで決定（<span id="ftSelN">${jp(FTQ.sel.length)}</span>個）</button></div>`;
   }else if(Q.kind==="step"){
     const cur=FTQ.steps[FTQ.steps.length-1];
     body=`<div class="ftsteps">${FTQ.steps.map((v,i)=>
@@ -13734,12 +13811,16 @@ function ftDraw(){
   ftWire();
 }
 function ftKeypadHTML(){
+  /* ★ 空白が要るのは「半素数」だけです。
+        ほかで空白が打てると、打ちかけの数が切れて判定されてしまいます。 */
+  const needSp=!!(FTQ.q&&FTQ.q.kind==="keypad"&&FTQ.q.two);
   return `<div class="arinbox ftin"><span id="ftIn">${esc(FTQ.text||" ")}</span></div>
     <div class="arwrap"><div class="arkeys">
       ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="arkey" data-ftk="${d}">${d}</button>`).join("")}
       <button class="arkey" data-ftk="back">消す</button>
       <button class="arkey" data-ftk="0">0</button>
-      <button class="arkey sp" data-ftk=" ">空白</button>
+      ${needSp?`<button class="arkey sp" data-ftk=" ">空白</button>`
+              :`<button class="arkey sp" data-ftk="clear">全部消す</button>`}
     </div></div>`;
 }
 function ftWire(){
@@ -13749,21 +13830,40 @@ function ftWire(){
       ftJudge(Q.kind==="yesno"?(b.dataset.ftv==="1"):(+b.dataset.ftv)); },{passive:false});
     b.addEventListener("click",e=>e.preventDefault());
   });
+  /* ★ 選ぶたびに画面ぜんぶを作り直すと、押した指が離れる時に
+        別のボタンに当たったり、二重に反応したりします。
+        ここでは 押したボタンの色と「決定」の数だけを書きかえます。 */
   FTQ.M.qa("[data-ftm]").forEach(b=>{
-    b.addEventListener("pointerdown",e=>{ e.preventDefault();
-      if(FTQ.lock) return;
+    let armed=0;
+    const toggle=e=>{
+      e.preventDefault(); e.stopPropagation();
+      const now=Date.now();
+      if(now-armed<350) return;      /* 同じ指の二重反応を止めます */
+      armed=now;
+      if(!FTQ||FTQ.lock||!FTQ.live) return;
       const v=+b.dataset.ftm, i=FTQ.sel.indexOf(v);
       if(i>=0) FTQ.sel.splice(i,1); else FTQ.sel.push(v);
-      ftDraw();
-    },{passive:false});
-    b.addEventListener("click",e=>e.preventDefault());
+      b.classList.toggle("sel", FTQ.sel.indexOf(v)>=0);
+      const c=FTQ.M.q("#ftSelN"); if(c) c.textContent=jp(FTQ.sel.length);
+    };
+    if(window.PointerEvent){
+      b.addEventListener("pointerdown",toggle,{passive:false});
+      b.addEventListener("click",e=>e.preventDefault());
+    }else{
+      b.addEventListener("touchstart",toggle,{passive:false});
+      b.addEventListener("click",e=>{ if(e.detail===0) return; toggle(e); });
+    }
+    b.addEventListener("contextmenu",e=>e.preventDefault());
   });
   FTQ.M.qa("[data-ftk]").forEach(b=>{
     b.addEventListener("pointerdown",e=>{ e.preventDefault(); ftType(b.dataset.ftk); },{passive:false});
     b.addEventListener("click",e=>e.preventDefault());
     b.addEventListener("contextmenu",e=>e.preventDefault());
   });
-  if(q("#ftDone")) q("#ftDone").onclick=()=>ftJudge(FTQ.sel.slice().sort((a,b)=>a-b));
+  if(q("#ftDone")) q("#ftDone").onclick=()=>{
+    if(!FTQ||FTQ.lock||!FTQ.live) return;
+    ftJudge(FTQ.sel.slice().sort((a,b)=>a-b));
+  };
   if(q("#ftFlip")) q("#ftFlip").onclick=()=>{ FTQ.flip=true; ftDraw(); };
   const c=q("#ftCard"); if(c) c.onclick=()=>{ FTQ.flip=!FTQ.flip; ftDraw(); };
   [["#ftC0",0],["#ftC1",1],["#ftC2",2]].forEach(([id,g])=>{ if(q(id)) q(id).onclick=()=>ftCard(g); });
@@ -13775,6 +13875,7 @@ function ftWire(){
 function ftType(ch){
   if(!FTQ||!FTQ.live||FTQ.lock) return;
   if(ch==="back") FTQ.text=FTQ.text.slice(0,-1);
+  else if(ch==="clear") FTQ.text="";
   else FTQ.text+=ch;
   const el=FTQ.M.q("#ftIn"); if(el) el.textContent=FTQ.text||" ";
   const Q=FTQ.q;
@@ -13804,8 +13905,9 @@ function ftType(ch){
       if(r.done&&r.ok) return ftJudge(true);
       return;
     }
-    if(FTQ.text.length>=String(Q.ans).length){
-      return ftJudge(parseInt(FTQ.text,10));
+    const t=FTQ.text.replace(/\D/g,"");
+    if(t.length>=String(Q.ans).length){
+      return ftJudge(parseInt(t,10));
     }
   }
 }
@@ -13825,7 +13927,13 @@ function ftJudge(v){
   else if(Q.kind==="step")    hit=(v===true);
   else if(Q.kind==="multi")   hit=(Array.isArray(v)&&v.length===Q.ans.length&&
                                    v.every((x,i)=>x===Q.ans[i]));
-  ftStatPut(Q.n||(Q.opts&&Q.opts[0])||2, hit, ms, FTQ.drill);
+  if(Q.kind==="multi"){
+    /* 仲間さがしは「どの数か」が1つに決まらないので、正解の数ぜんぶに付けます */
+    const ns=(Q.ans&&Q.ans.length)?Q.ans:[Q.opts&&Q.opts[0]||4];
+    ns.forEach((x,i)=>ftStatPut(x, hit, Math.round(ms/ns.length), i?null:FTQ.drill));
+  }else{
+    ftStatPut(Q.n||(Q.opts&&Q.opts[0])||4, hit, ms, FTQ.drill);
+  }
   let opened=-1;
   if(hit){
     FTQ.ok++; FTQ.streak++;
@@ -13857,7 +13965,8 @@ function ftJudge(v){
   }
   const r=FTQ.M.q("#ftRes");
   if(r) r.innerHTML=(hit
-      ? `<b style="color:var(--acc2)">正解！</b> <span class="tiny">${(ms/1000).toFixed(2)} 秒</span>　`
+      ? `<b style="color:var(--acc2)">正解！</b> <span class="tiny">${
+          (Math.min(ms,D.sec?D.sec*1000:ms)/1000).toFixed(2)} 秒</span>　`
       : `<b style="color:var(--bad)">${v===null?"時間切れ":"ちがいます"}</b>　`)
     +`<span class="tiny">${Q.why}</span>`
     +(opened>=0?`<br><b style="color:var(--acc)">Lv.${jp(opened)} が解放されました！ そのまま挑戦します。</b>`:"");
@@ -20165,10 +20274,16 @@ function jstStamp(iso){
   const g=k=>(f.find(x=>x.type===k)||{}).value||"";
   return `${g("year")}/${g("month")}/${g("day")} ${g("hour")}:${g("minute")}`;
 }
-/** どれくらい前か */
-function agoText(iso){
-  if(!iso) return "";
-  const ms=Date.now()-Date.parse(iso); if(!(ms>=0)) return "";
+/** どれくらい前か。
+    ★ 同じ名前の関数が2つあり、あとの1つだけが効いていました。
+       そのせいで「ミリ秒の数値」を渡していた所（種目ごとの新記録の表示）が
+       いつも空になっていたので、1つにまとめて どちらでも受けられるようにします。 */
+function agoText(t){
+  if(t===null||t===undefined||t==="") return "";
+  const at=(typeof t==="number")?t
+    :(t instanceof Date)?t.getTime()
+    :Date.parse(t);
+  const ms=Date.now()-at; if(!(ms>=0)) return "";
   const m=Math.floor(ms/60000);
   if(m<1) return "たった今";
   if(m<60) return `${jp(m)}分前`;
