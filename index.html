@@ -447,6 +447,44 @@ html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
   border:1px solid var(--line)}
 .arsvg{width:100%;height:auto;display:block}
 table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
+/* 素因数トレーニング */
+.ftgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
+@media(max-width:860px){.ftgrid{grid-template-columns:repeat(2,1fr)}}
+.ftd{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:10px 11px;border-radius:12px;cursor:pointer;text-align:left;
+  background:var(--panel2);border:1px solid var(--line);color:var(--tx)}
+.ftd:hover{border-color:var(--acc2)}
+.ftd.on{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+.ftd .fti{font-size:1.15rem;line-height:1}
+.ftd b{font-size:.92rem}
+.ftd .fts{font-size:.68rem;color:var(--dim2);line-height:1.35}
+.ftd .ftq{font-size:.64rem;color:var(--dim);font-variant-numeric:tabular-nums;margin-top:2px}
+.ftask{text-align:center;font-size:1.15rem;line-height:1.6;margin:12px 0 8px}
+.ftask b{font-size:1.9rem;font-variant-numeric:tabular-nums;
+  font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing:.02em}
+.dtgrid.ft4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:620px){.dtgrid.ft4{grid-template-columns:repeat(2,1fr)}}
+.dtopt.sel{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,transparent)}
+.ftyn{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
+.ftynb{padding:22px 10px;border-radius:14px;cursor:pointer;font-size:1.05rem;font-weight:700;
+  background:var(--panel2);border:2px solid var(--line);color:var(--tx);
+  display:flex;flex-direction:column;align-items:center;gap:4px}
+.ftynb span{font-size:1.8rem;line-height:1}
+.ftynb.yes:hover{border-color:var(--acc2);color:var(--acc2)}
+.ftynb.no:hover{border-color:var(--bad);color:var(--bad)}
+.ftynb.ok{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 18%,transparent);color:var(--acc2)}
+.ftynb.ng{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.ftynb.off{opacity:.42}
+.ftsteps{display:flex;flex-wrap:wrap;align-items:center;gap:4px;justify-content:center;margin:6px 0}
+.ftst{padding:3px 9px;border-radius:8px;background:var(--panel0);border:1px solid var(--line);
+  font-variant-numeric:tabular-nums;font-size:.9rem;color:var(--dim2)}
+.ftst.now{border-color:var(--acc2);color:var(--acc2);font-weight:700;font-size:1.05rem}
+.ftsteps i{color:var(--dim);font-style:normal;font-size:.8rem}
+.ftnow{text-align:center;font-size:.9rem;margin:6px 0}
+.ftnow b{font-size:1.5rem;font-variant-numeric:tabular-nums;color:var(--acc2)}
+.arinbox.ftin{margin:6px auto;max-width:320px;text-align:center}
+button.lnk{background:none;border:0;color:var(--acc2);cursor:pointer;
+  text-decoration:underline;font-family:inherit;font-size:inherit;padding:0}
 /* 素数探偵モード */
 .dtgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0}
 @media(max-width:520px){.dtgrid{grid-template-columns:repeat(2,1fr)}}
@@ -475,8 +513,10 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 /* アリーナ入口の 大きなボタン */
 .arbig{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
 .arbig5{grid-template-columns:repeat(5,1fr)}
+.arbig6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:1180px){.arbig6{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:980px){.arbig5{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:760px){.arbig,.arbig5{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.arbig,.arbig5,.arbig6{grid-template-columns:repeat(2,1fr)}}
 .arbigb{display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:6px;padding:16px 10px;border-radius:14px;cursor:pointer;
   background:var(--panel2);border:1px solid var(--line);color:var(--tx);
@@ -495,6 +535,8 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .arbigb.dt:hover{border-color:var(--acc)}
 .arbigb.wk svg{stroke:var(--bad)}
 .arbigb.wk:hover{border-color:var(--bad)}
+.arbigb.tr svg{stroke:#8fe9ff}
+.arbigb.tr:hover{border-color:#8fe9ff}
 .btn svg.ico{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px}
 /* PRS の数字。整数は大きく、小数は小さく */
@@ -2960,7 +3002,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v125";
+const APP_VERSION = "v126";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3639,6 +3681,18 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v126":[
+    "苦手克服モードの問題数を 5問きざみにしました",
+    "苦手克服モードに ループモードを追加（終了を押すまで回り続けます）",
+    "　ループは終わりがないので、100問目から図鑑に記録します",
+    "素因数トレーニングを追加しました。合成数の素因数分解を覚えるためのモードです",
+    "　7つのドリル：最小素因数さがし・割り切れる？・段階分解・逆算・仲間さがし・半素数・暗記カード",
+    "　合成数を20個ずつのレベルに分け、最小素因数でむずかしさも分けました",
+    "　最高レベルで20問連続正解すると、途中でも次のレベルが解放されます",
+    "　合成数帳で、数ごとの正答率・平均時間・最速を見られます",
+    "　7・11・13 などの「割り切れるかの見分けかた」早見表をつけました",
+    "　いまいちばん弱いドリルを、おすすめとして出します",
+    "トレーニングで解いた数も、練習記録に加算されます"],
   "v125":[
     "Prime SNS の帯が、下の帯と重なることがあった不具合を修正しました",
     "　帯の高さを実際に測って積むようにしたので、セーフエリアのある機種でも重なりません",
@@ -10699,7 +10753,7 @@ const arSaveLog=()=>{ if(arLogT) return;
 /** 1問ぶんを記録に残します（新しいものが先頭）*/
 function arLogPut(n,ok,ms,rated){
   ARLOG.unshift({n, ok:!!ok, ms:Math.max(0,ms|0), at:Date.now(), r:rated?1:0,
-    w:(ARQ&&ARQ.weak)?1:0, nr:(ARQ&&ARQ.rec===false)?1:0});
+    w:(ARQ&&ARQ.weak)?1:0, nr:(ARQ&&!arRecNow())?1:0});
   while(ARLOG.length>4000) ARLOG.pop();
   arSaveLog();
 }
@@ -10818,9 +10872,18 @@ function arDexPut(n, ok, ms){
   arDayHit(1);
   upBust();
 }
-/** 1問ぶんの記録。ARQ.rec が false の時は、図鑑には入れず 数だけ数えます */
+/** いま図鑑に記録してよいか。
+    ★ ループの苦手克服モードは、はじめの 99問は記録せず 100問目から記録します
+      （はじめのうちは答えを覚えているので、入れると克服したように見えるためです）*/
+function arRecNow(){
+  if(!ARQ) return true;
+  if(ARQ.rec) return true;
+  if(ARQ.loop && ARQ.i>=WK_MIN_REC) return true;
+  return false;
+}
+/** 1問ぶんの記録。記録しない時は、図鑑に入れず 数だけ数えます */
 function arPut(n, ok, ms){
-  if(ARQ&&ARQ.rec===false){ arDayHit(1); return; }
+  if(!arRecNow()){ arDayHit(1); return; }
   arDexPut(n, ok, ms);
 }
 /* 記録に残すのは、呼んだ側からまとめて行います */
@@ -11145,7 +11208,8 @@ function arRangeHTML(mode,max,compact){
        「克服した」と見えてしまうためです）
    ══════════════════════════════════════════════════════════ */
 const WK_MIN_REC=100;                 /* これ以上なら図鑑に記録します */
-let wkQn=50, wkPre=true, wkNew=false;
+const WK_STEP=5;                      /* 問題数は5問きざみ */
+let wkQn=50, wkPre=true, wkNew=false, wkLoop=false;
 function arWeakShow(){
   const mx=arMax();
   const R=upRank(mx);
@@ -11188,23 +11252,36 @@ function arWeakShow(){
             `<b>${jp(r.n)}</b>(${r.up.toFixed(0)})`).join("　")}`
           :"まだ1問も解いていないので、苦手はまだ分かりません。まず「練習する」をどうぞ。"}</p>
 
-      <h3 style="margin-top:14px">問題数（10問きざみ）</h3>
+      <div class="row" style="margin-top:14px">
+        <div><b>ループモード</b><div class="tiny" id="wkLoopN"></div></div>
+        <div class="toggle" style="margin-left:auto">
+          <button id="wkLoopOff" class="${wkLoop?"":"on"}">問題数を決める</button>
+          <button id="wkLoopOn" class="${wkLoop?"on":""}">ループ</button></div>
+      </div>
+      <h3 style="margin-top:12px">${wkLoop?`1周の問題数（${WK_STEP}問きざみ）`:`問題数（${WK_STEP}問きざみ）`}</h3>
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="btn sm" id="wkM">−10</button>
-        <input type="range" id="wkR" min="10" max="200" step="10" value="${wkQn}" style="flex:1">
-        <button class="btn sm" id="wkP">＋10</button>
+        <button class="btn sm" id="wkM">−${WK_STEP}</button>
+        <input type="range" id="wkR" min="${WK_STEP}" max="200" step="${WK_STEP}" value="${wkQn}" style="flex:1">
+        <button class="btn sm" id="wkP">＋${WK_STEP}</button>
         <b style="min-width:70px;text-align:right;font-size:1.3rem">${jp(wkQn)} 問</b>
       </div>
       <div class="hintbox" style="border-color:${rec?"var(--acc2)":"var(--warn)"}">
         <b style="color:${rec?"var(--acc2)":"var(--warn)"}">
-          ${rec?"図鑑の正解数・解答時間に記録します":"図鑑には記録しません（練習だけ）"}</b><br>
+          ${wkLoop
+            ? `${jp(WK_MIN_REC)}問目からは、図鑑に記録します`
+            : rec ? "図鑑の正解数・解答時間に記録します" : "図鑑には記録しません（練習だけ）"}</b><br>
         <span class="tiny">
-          ${rec
+          ${wkLoop
+            ? `ループモードは終わりがないので、<b>はじめの ${jp(WK_MIN_REC-1)}問は記録せず</b>、
+               ${jp(WK_MIN_REC)}問目から先の正誤と解答時間だけを図鑑に反映します。
+               はじめのうちは答えをその場で覚えているので、そこを入れてしまうと
+               まだ苦手なのに「克服した」と見えてしまうためです。`
+            : rec
             ? `${jp(WK_MIN_REC)}問以上なので、この回の正誤と解答時間は図鑑に反映され、Unlike Point も更新されます。`
             : `${jp(WK_MIN_REC)}問未満だと、出た答えをその場で覚えてしまいます。
                それを正答率や解答時間に入れると、まだ苦手なのに「克服した」と見えてしまうので、
                <b>図鑑には記録しません</b>。あと <b>${jp(WK_MIN_REC-wkQn)}問</b>増やすと記録されます。`}
-          <br>どちらの場合も、練習記録の「解答した問題数」には数えます。</span>
+          <br>どの場合も、練習記録の「解答した問題数」には数えます。</span>
       </div>
       <div class="row" style="margin-top:8px">
         <div><b>先に問題を見る（予習）</b>
@@ -11220,7 +11297,7 @@ function arWeakShow(){
           <button id="wkNewOff" class="${wkNew?"":"on"}">混ぜない</button>
           <button id="wkNewOn" class="${wkNew?"on":""}">混ぜる</button></div>
       </div>
-      <h3 style="margin-top:14px">この回に出る ${jp(plan.length)} 問</h3>
+      <h3 style="margin-top:14px">${wkLoop?`1周ぶん（${jp(plan.length)} 問）`:`この回に出る ${jp(plan.length)} 問`}</h3>
       <p class="tiny" style="color:var(--dim2)">
         Unlike Point の高い順です。平均 <b>${avg.toFixed(1)}</b>　
         いちばん高い <b>${ups.length?ups[0].toFixed(1):"—"}</b>　
@@ -11242,7 +11319,7 @@ function arWeakShow(){
       </tbody></table></div>
       <div class="tools">
         <button class="btn pri" id="wkGo" ${plan.length?"":"disabled"}>
-          ${wkPre?"予習してから始める":"始める"}</button>
+          ${wkPre?"予習してから始める":"始める"}${wkLoop?"（ループ）":""}</button>
         <button class="btn" id="wkCard">単語帳で見る</button>
         <button class="btn" id="wkWhy">Unlike Point とは</button>
         <button class="btn" id="wkX">閉じる</button></div>`;
@@ -11252,10 +11329,15 @@ function arWeakShow(){
     M.q("#wkNewN").textContent=wkNew
       ? "苦手な数が足りない時、まだ解いたことのない数で埋めます"
       : "解いたことのある数だけから出します（本当の苦手だけを狙います）";
-    const set=v=>{ wkQn=Math.min(200,Math.max(10,Math.round(v/10)*10)); draw(); };
-    M.q("#wkR").oninput=e=>set(+e.target.value||10);
-    M.q("#wkM").onclick=()=>set(wkQn-10);
-    M.q("#wkP").onclick=()=>set(wkQn+10);
+    M.q("#wkLoopN").textContent=wkLoop
+      ? "「終了する」を押すまで、ずっと出し続けます。1周まわると、その時の苦手さで並べ直します"
+      : "決めた問題数で終わります";
+    M.q("#wkLoopOn").onclick=()=>{ wkLoop=true; draw(); };
+    M.q("#wkLoopOff").onclick=()=>{ wkLoop=false; draw(); };
+    const set=v=>{ wkQn=Math.min(200,Math.max(WK_STEP,Math.round(v/WK_STEP)*WK_STEP)); draw(); };
+    M.q("#wkR").oninput=e=>set(+e.target.value||WK_STEP);
+    M.q("#wkM").onclick=()=>set(wkQn-WK_STEP);
+    M.q("#wkP").onclick=()=>set(wkQn+WK_STEP);
     M.q("#wkPreOn").onclick=()=>{ wkPre=true; draw(); };
     M.q("#wkPreOff").onclick=()=>{ wkPre=false; draw(); };
     M.q("#wkNewOn").onclick=()=>{ wkNew=true; draw(); };
@@ -11276,13 +11358,16 @@ function arWeakShow(){
 /** 予習：出る問題と答えを、先に見せます */
 function arWeakPre(plan){
   let i=0;
-  const M=modal(`<h2>予習　<span class="tiny">この回に出る ${jp(plan.length)} 問</span></h2>
+  const M=modal(`<h2>予習　<span class="tiny">${wkLoop
+      ?`1周ぶん ${jp(plan.length)} 問（ループ）`:`この回に出る ${jp(plan.length)} 問`}</span></h2>
     <div id="wkPreBody"></div>`,{w:820});
   const draw=()=>{
     M.q("#wkPreBody").innerHTML=`
       <div class="hintbox" style="margin-top:0"><span class="tiny">
         出る問題と答えを、先に全部お見せします。よく見て覚えてから始めてください。<br>
-        ${plan.length>=WK_MIN_REC
+        ${wkLoop
+          ? `ループモードです。<b>${jp(WK_MIN_REC)}問目から</b>図鑑に記録します。`
+          : plan.length>=WK_MIN_REC
           ? `この回は <b>${jp(plan.length)}問</b>なので、結果は図鑑に記録されます。`
           : `この回は ${jp(plan.length)}問なので、<b>図鑑には記録しません</b>。`}</span></div>
       <div class="wkpre">
@@ -11301,10 +11386,12 @@ function arWeakPre(plan){
   draw();
 }
 /** 苦手克服モードを始めます */
-function arWeakStart(plan){
-  const rec=plan.length>=WK_MIN_REC;
+function arWeakStart(plan,loop){
+  loop=(loop===undefined)?wkLoop:!!loop;
+  /* ループは「終わりがない」ので、はじめは記録せず 100問目から記録します */
+  const rec=loop?false:(plan.length>=WK_MIN_REC);
   arMode="weak";
-  arStart(false, plan.length, {plan:plan.slice(), weak:true, rec});
+  arStart(false, plan.length, {plan:plan.slice(), weak:true, rec, loop});
 }
 
 /** Unlike Point の説明 */
@@ -12008,7 +12095,7 @@ function arHome(){
       <p class="tiny" style="color:var(--dim2)">現在の出題範囲は 2 〜 ${jp(max)} です。範囲外は出題されません。</p>
     </div>
 
-    <div class="arbig arbig5">
+    <div class="arbig arbig6">
       <button class="arbigb" id="arFree">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16V9M11 16V5M15 16v-5M19 16v-8"/></svg>
         <b>練習する</b><span>${COIN}は不要</span></button>
@@ -12022,6 +12109,9 @@ function arHome(){
       <button class="arbigb dt" id="arDetec">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21"/></svg>
         <b>素数探偵</b><span>6択・5秒で素数を選ぶ</span></button>
+      <button class="arbigb tr" id="arTrain">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V7M9 18V4M14 18v-8M19 18v-5"/><path d="M2 21h20"/></svg>
+        <b>素因数トレーニング</b><span>合成数の分解を覚える 7つのドリル</span></button>
       <button class="arbigb log" id="arStats">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg>
         <b>練習記録</b><span>全ての解答を保存</span></button>
@@ -12047,6 +12137,7 @@ function arHome(){
   $("#arRated").onclick=arRatedStart;
   $("#arWeak").onclick=arWeakShow;
   $("#arDetec").onclick=dtShow;
+  $("#arTrain").onclick=ftShow;
   $("#arCard").onclick=arCardShow;
   $("#arDex").onclick=arDexShow;
   $("#arBook").onclick=dtBookShow;
@@ -12219,13 +12310,14 @@ function arStart(rated,qnWant,opt){
   const qn=opt.plan?opt.plan.length
     :Math.max(10,Math.round((+qnWant||+ARCFG.qn||50)/10)*10);
   ARQ={rated:!!rated, max, qn:(rated||opt.weak)?qn:0,
-       weak:!!opt.weak,
+       weak:!!opt.weak, loop:!!opt.loop, lap:1,
        /* ★ 図鑑（正解数・解答時間）に記録してよいか。
              苦手克服モードで 100問未満の時だけ false になります。 */
        rec:(opt.rec===undefined)?true:!!opt.rec,
        i:0, ok:0, ng:0, ms:0, list:[], used:new Set(),
        n:0, text:"", t0:0, left:0, timer:null, over:false, passArm:false, lock:true,
-       plan:opt.plan?opt.plan.slice():(rated?arPlan(max,qn):null)};
+       plan:opt.plan?opt.plan.slice():(rated?arPlan(max,qn):null),
+       plan0:opt.plan?opt.plan.slice():null};
   $("#arPlayCard").hidden=false;
   arNext();
   try{ const pc2=$("#arPlayCard");
@@ -12245,7 +12337,17 @@ function arPlan(max,qn){
 }
 function arNext(){
   if(!ARQ) return;
-  if((ARQ.rated||ARQ.weak)&&ARQ.i>=ARQ.qn){ arFinish(); return; }
+  if((ARQ.rated||ARQ.weak)&&ARQ.i>=ARQ.qn){
+    if(ARQ.weak&&ARQ.loop){
+      /* ★ ループ：いまの苦手さで並べ直して、また回ります */
+      ARQ.lap++;
+      ARQ.qn+=Math.max(1,(ARQ.plan0||[]).length||ARQ.qn);
+      const fresh=arWeakPlan((ARQ.plan0||[]).length||10,{addNew:wkNew});
+      ARQ.plan=fresh;
+      ARQ.plan0=fresh.slice();
+      ARQ.used=new Set();
+    }else{ arFinish(); return; }
+  }
   ARQ.i++;
   ARQ.passArm=false;
   ARQ.lock=false;                 /* ここでやっと入力を受け付けます */
@@ -12353,8 +12455,10 @@ function arDrawPlay(){
   box.innerHTML=`
     <div class="tools" style="margin-top:0">
       <span class="tiny">${ARQ.rated?`レートモード　<b>${jp(ARQ.i)}</b> / ${jp(ARQ.qn)} 問`
-        :ARQ.weak?`苦手克服　<b>${jp(ARQ.i)}</b> / ${jp(ARQ.qn)} 問${
-          ARQ.rec?"":'　<span style="color:var(--warn)">図鑑に記録しません</span>'}`
+        :ARQ.weak?`苦手克服${ARQ.loop?`　<b style="color:var(--acc)">ループ ${jp(ARQ.lap)}周目</b>`:""}
+          　<b>${jp(ARQ.i)}</b>${ARQ.loop?"":` / ${jp(ARQ.qn)}`} 問${
+          arRecNow()?"":`　<span style="color:var(--warn)">${
+            ARQ.loop?`図鑑に記録するまで あと ${jp(WK_MIN_REC-ARQ.i)}問`:"図鑑に記録しません"}</span>`}`
         :`練習　<b>${jp(ARQ.i)}</b> 問目`}</span>
       <span class="tiny" style="margin-left:auto">正解 <b style="color:var(--acc2)">${jp(ARQ.ok)}</b>
         　間違い <b style="color:var(--bad)">${jp(ARQ.ng)}</b></span>
@@ -12382,7 +12486,8 @@ function arDrawPlay(){
       <button class="arpass" id="arPassBtn" data-arpass>パス</button>
     </div>
     <div class="tools">
-      <button class="btn" id="arGiveUp">${ARQ.rated?"中止して結果を見る":"終了する"}</button>
+      <button class="btn ${ARQ.loop?"pri":""}" id="arGiveUp">${
+        ARQ.rated?"中止して結果を見る":"終了する"}</button>
       <span class="tiny">キーボードでも入力できます（数字・空白・BackSpace・Enterでパス）
         ${ARQ.rated?"／中止してもここまでの解答でレートを計算します":""}</span>
     </div>`;
@@ -13139,6 +13244,902 @@ function dtBookShow(lv){
     M.qa("[data-bkn]").forEach(b=>b.onclick=()=>arNumShow(+b.dataset.bkn));
   };
   draw();
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   素因数トレーニング（合成数の素因数分解を覚える）
+   ──────────────────────────────────────────────────────────
+   素因数分解が速い人は、丸ごと暗記しているわけではありません。
+   次の3つの力を持っています。
+
+     力1　最小の素因数を一瞬で見つける
+          2・3・5 は見ればわかります。むずかしいのは 7・11・13 で、
+          これは「割り切れるかの見分けかた」を知っているかどうかで決まります。
+     力2　割ったあとの数を、頭の中で持ったまま次へ進む
+          924 → 462 → 231 → 77 → 11 のように、段を追う力です。
+     力3　よく出る合成数を、形で覚えている
+          91＝7×13、143＝11×13、187＝11×17 など。
+          ここは「見た瞬間に思い出す」ところなので、暗記が効きます。
+
+   そこで、この7つのドリルを用意しました。
+     ① 最小素因数さがし … 力1
+     ② 割り切れる？　　 … 力1（7・11・13 の見分けかた）
+     ③ 段階分解　　　　 … 力2
+     ④ 逆算　　　　　　 … 力3（かけ算から数を思い出す）
+     ⑤ 仲間さがし　　　 … 力1＋力3（倍数をまとめて見つける）
+     ⑥ 半素数　　　　　 … 力3（いちばんむずかしい形）
+     ⑦ 暗記カード　　　 … 力3（間隔をあけて思い出す）
+   ══════════════════════════════════════════════════════════ */
+const K_FT="sa-ftrain-v1";
+const FT_PER=20;                      /* 1レベルあたりの合成数の数 */
+const FT_UP=20;                       /* 連続正解が この数で次のレベルが解放されます */
+let FT=ls(K_FT,{lv:0,max:0,drill:"spf",cls:"all",loop:false,
+                best:{},stat:{},num:{},srs:{},plays:0,asked:0,ok:0});
+(function ftFix(){
+  FT.best=FT.best||{}; FT.stat=FT.stat||{}; FT.num=FT.num||{}; FT.srs=FT.srs||{};
+  FT.max=Math.max(0,Math.round(+FT.max||0));
+})();
+const ftSave=()=>{ try{ localStorage.setItem(K_FT,JSON.stringify(FT)); }catch(e){} };
+
+/* ── 合成数の一覧 ── */
+let FT_COMP={max:0,list:null};
+/** 4 〜 max の合成数（素数でない2以上の数）を、小さい順に */
+function ftComposites(max){
+  max=Math.max(4,Math.round(max||arMax()));
+  if(FT_COMP.list&&FT_COMP.max===max) return FT_COMP.list;
+  const N=max, sieve=new Uint8Array(N+1);
+  for(let i=2;i*i<=N;i++) if(!sieve[i]) for(let j=i*i;j<=N;j+=i) sieve[j]=1;
+  const out=[];
+  for(let i=4;i<=N;i++) if(sieve[i]) out.push(i);
+  FT_COMP={max,list:out};
+  return out;
+}
+/** 最小の素因数 */
+function ftSpf(n){
+  if(n%2===0) return 2;
+  for(let d=3;d*d<=n;d+=2) if(n%d===0) return d;
+  return n;
+}
+/** むずかしさのクラス（最小素因数で決まります）*/
+function ftCls(n){
+  const p=ftSpf(n);
+  if(p<=5) return "a";
+  if(p<=13) return "b";
+  return "c";
+}
+const FT_CLS={a:{n:"やさしい",d:"最小の素因数が 2・3・5。見ればわかります",c:"var(--acc2)"},
+              b:{n:"ふつう",  d:"最小の素因数が 7・11・13。見分けかたを知っていれば速いです",c:"var(--warn)"},
+              c:{n:"むずかしい",d:"最小の素因数が 17以上。ほとんどが半素数で、覚えるのが近道です",c:"var(--bad)"}};
+/** いま出せる いちばん上のレベル（出題できる数の上限で切ります）*/
+function ftCap(){
+  const L=ftComposites(arMax());
+  return Math.max(0, Math.floor(L.length/FT_PER)-1);
+}
+function ftTop(){ return Math.max(0, Math.min(Math.round(+FT.max||0), ftCap())); }
+/** レベル lv の合成数 20個 */
+function ftLvNums(lv){
+  const L=ftComposites(arMax()), a=Math.max(0,Math.round(lv))*FT_PER;
+  return L.slice(a,a+FT_PER);
+}
+/** そのレベルで、いま選んでいるクラスに合う数 */
+function ftPool(lv,cls){
+  const all=ftLvNums(lv);
+  if(!cls||cls==="all") return all;
+  const f=all.filter(n=>ftCls(n)===cls);
+  return f.length?f:all;
+}
+/** Lv.0 〜 いまのレベル をぜんぶ混ぜた池（下のレベルも忘れないように）*/
+function ftPoolUpTo(lv,cls){
+  const out=[];
+  for(let k=0;k<=lv;k++) out.push(...ftPool(k,cls));
+  return out.length?out:ftLvNums(lv);
+}
+
+/* ── 成績 ── */
+function ftStatOf(n){
+  const v=FT.num[n];
+  if(!v||typeof v!=="object") return {q:0,ok:0,ms:0,b:0,t:0};
+  return {q:+v.q||0, ok:+v.ok||0, ms:+v.ms||0, b:+v.b||0, t:+v.t||0};
+}
+function ftStatPut(n,ok,ms,drill){
+  const v=ftStatOf(n);
+  v.q++; if(ok){ v.ok++; v.ms+=Math.max(0,ms|0); v.b=v.b?Math.min(v.b,ms):ms; }
+  v.t=Date.now();
+  FT.num[n]={q:v.q,ok:v.ok,ms:v.ms,b:v.b,t:v.t};
+  const st=FT.stat[drill]||{q:0,ok:0,ms:0};
+  st.q++; if(ok){ st.ok++; st.ms+=Math.max(0,ms|0); }
+  FT.stat[drill]=st;
+  FT.asked=(+FT.asked||0)+1;
+  if(ok) FT.ok=(+FT.ok||0)+1;
+  /* 出題した数は、練習記録にも足します（1問ずつの正誤は残しません）*/
+  arDayHit(1);
+  ftSave();
+}
+const ftDrillStat=k=>Object.assign({q:0,ok:0,ms:0},FT.stat[k]||{});
+
+/* ── 割り切れるかの見分けかた ── */
+const FT_RULES=[
+  [2, "下1桁が 0・2・4・6・8", "1738 → 下1桁が 8 なので割り切れる"],
+  [3, "すべての桁を足して 3 の倍数", "1743 → 1+7+4+3＝15 → 3の倍数"],
+  [4, "下2桁が 4 の倍数", "1736 → 36 は 4×9"],
+  [5, "下1桁が 0 か 5", "1735 → 下1桁が 5"],
+  [6, "2 でも 3 でも割り切れる", "174 → 偶数で、1+7+4＝12 なので 3 でも割れる"],
+  [8, "下3桁が 8 の倍数", "9104 → 104＝8×13"],
+  [9, "すべての桁を足して 9 の倍数", "1746 → 1+7+4+6＝18"],
+  [11,"一の位から 交互に ＋−して 0 か 11の倍数", "2453 → 3−5+4−2＝0"],
+  [7, "下1桁を2倍して、残りの数から引く", "343 → 34−(3×2)＝28 → 7×4"],
+  [13,"下1桁を4倍して、残りの数に足す", "247 → 24+(7×4)＝52 → 13×4"],
+  [17,"下1桁を5倍して、残りの数から引く", "221 → 22−(1×5)＝17"],
+  [19,"下1桁を2倍して、残りの数に足す", "247 → 24+(7×2)＝38 → 19×2"],
+  [23,"下1桁を7倍して、残りの数に足す", "253 → 25+(3×7)＝46 → 23×2"]
+];
+const ftRuleOf=d=>(FT_RULES.find(r=>r[0]===d)||[d,"",""])[1];
+
+
+/* ══════════ 7つのドリル ══════════
+   それぞれ make(lv,cls) で1問つくります。返す形は
+     {kind, n, ask, ans, opts?, hint, why}
+   kind は、答えかたの形です。
+     choice … 6つから1つ選ぶ
+     yesno  … ○か×
+     keypad … 数字を打つ
+     multi  … あてはまるものを全部選ぶ
+     step   … 1段ずつ割っていく
+     card   … めくって自分で判定する
+   ══════════════════════════════════ */
+const FT_PRIMES=[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71];
+const shuf=a=>{ const b=a.slice();
+  for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; }
+  return b; };
+const pick1=a=>a[Math.floor(Math.random()*a.length)];
+
+const FT_DRILLS=[
+{k:"spf", n:"最小素因数さがし", sec:8, ico:"🔍", force:1,
+ short:"いちばん小さい素因数はどれ？",
+ desc:"素因数分解のはじめの一歩です。2・3・5 はすぐ分かりますが、"
+     +"7・11・13 は見分けかたを知らないと止まってしまいます。ここを速くすると全体が速くなります。",
+ make(lv,cls){
+   const n=pick1(ftPoolUpTo(lv,cls));
+   const ans=ftSpf(n);
+   const pool=FT_PRIMES.filter(p=>p!==ans&&p<=Math.max(43,ans*3));
+   const opts=shuf(shuf(pool).slice(0,5).concat([ans]));
+   return {kind:"choice", n, ask:`<b>${jp(n)}</b> を最初に割れる素数は？`,
+     ans, opts, hint:`${jp(ans)} の見分けかた：${ftRuleOf(ans)}`,
+     why:`${jp(n)} ＝ ${arFacText(n)}　いちばん小さい素因数は <b>${jp(ans)}</b>`};
+ }},
+{k:"div", n:"割り切れる？", sec:6, ico:"➗", force:1,
+ short:"7・11・13 で割り切れるかを、○か×で",
+ desc:"7・11・13 の見分けかたを体にしみこませるドリルです。"
+     +"ここができると、最小素因数さがしが一気に速くなります。",
+ make(lv,cls){
+   const L=ftComposites(arMax());
+   const hiIdx=Math.min(L.length,(lv+1)*FT_PER);
+   const range=L.slice(0,hiIdx);
+   const ds=lv<3?[7,11,13]:[7,11,13,17,19,23];
+   const d=pick1(ds);
+   const want=Math.random()<0.5;
+   let cand=range.filter(v=>(v%d===0)===want);
+   if(!cand.length) cand=range;
+   const n=pick1(cand);
+   const ans=(n%d===0);
+   return {kind:"yesno", n, d, ask:`<b>${jp(n)}</b> は <b>${jp(d)}</b> で割り切れる？`,
+     ans, hint:`${jp(d)} の見分けかた：${ftRuleOf(d)}`,
+     why:ans?`${jp(n)} ÷ ${jp(d)} ＝ ${jp(n/d)}　割り切れます`
+            :`${jp(n)} ÷ ${jp(d)} は割り切れません（${jp(n)} ＝ ${arFacText(n)}）`};
+ }},
+{k:"step", n:"段階分解", sec:24, ico:"🪜", force:2,
+ short:"1段ずつ割って、1 になるまで",
+ desc:"割ったあとの数を持ったまま次へ進む力を鍛えます。"
+     +"商が画面に出るので、大きい数でも迷いません。順番は自由で、素因数ならどれでも通ります。",
+ make(lv,cls){
+   const pool=ftPoolUpTo(lv,cls).filter(v=>arFactor(v).length>=2);
+   const n=pick1(pool.length?pool:ftPoolUpTo(lv,cls));
+   return {kind:"step", n, ask:`<b>${jp(n)}</b> を、1段ずつ割っていきます`,
+     ans:null, hint:`いまの数の 最小素因数は ${jp(ftSpf(n))} です`,
+     why:`${jp(n)} ＝ ${arFacText(n)}`};
+ }},
+{k:"rev", n:"逆算", sec:10, ico:"↩", force:3,
+ short:"かけ算の形から、もとの数を当てる",
+ desc:"「2×2×3×7 は？」のように、答えから数を思い出します。"
+     +"行き（数→分解）と帰り（分解→数）の両方を通しておくと、記憶がぐんと強くなります。",
+ make(lv,cls){
+   const n=pick1(ftPoolUpTo(lv,cls));
+   return {kind:"keypad", n, ask:`<b>${esc(arFacText(n))}</b> ＝ ？`,
+     ans:n, hint:`答えは ${String(n).length} けたの数です`,
+     why:`${arFacText(n)} ＝ <b>${jp(n)}</b>`};
+ }},
+{k:"pick", n:"仲間さがし", sec:15, ico:"🎣", force:1,
+ short:"8つの中から、ある数の倍数を全部",
+ desc:"1つずつではなく、まとめて見分ける練習です。"
+     +"「この中に 7 の倍数はどれ？」と探す目ができると、分解の見通しが良くなります。",
+ make(lv,cls){
+   const L=ftComposites(arMax());
+   const range=L.slice(0,Math.min(L.length,(lv+1)*FT_PER+40));
+   const ds=lv<2?[3,7,11]:[7,11,13,17,19];
+   let d=pick1(ds), yes=[], no=[];
+   for(let t=0;t<ds.length;t++){
+     yes=range.filter(v=>v%d===0); no=range.filter(v=>v%d!==0);
+     if(yes.length>=2&&no.length>=4) break;
+     d=ds[(ds.indexOf(d)+1)%ds.length];
+   }
+   if(yes.length<2||no.length<4){
+     d=2; yes=range.filter(v=>v%2===0); no=range.filter(v=>v%2!==0);
+   }
+   const k=Math.max(1,Math.min(4,Math.min(yes.length,1+Math.floor(Math.random()*3))));
+   const A=shuf(yes).slice(0,k), B=shuf(no).slice(0,8-k);
+   const opts=shuf(A.concat(B));
+   return {kind:"multi", n:0, d, ask:`この中から <b>${jp(d)}</b> の倍数を <b>全部</b> 選んでください`,
+     ans:A.slice().sort((x,y)=>x-y), opts,
+     hint:`${jp(d)} の見分けかた：${ftRuleOf(d)}`,
+     why:`${jp(d)} の倍数は ${A.sort((x,y)=>x-y).map(v=>`${jp(v)}（＝${arFacText(v)}）`).join("、")}`};
+ }},
+{k:"semi", n:"半素数", sec:12, ico:"🧩", force:3,
+ short:"2つの素数のかけ算だけ。いちばんむずかしい形",
+ desc:"91＝7×13、143＝11×13 のように、7以上の素数どうしのかけ算です。"
+     +"割り算では見つけにくいので、形で覚えるのがいちばん速くなります。",
+ make(lv,cls){
+   const pool=ftPoolUpTo(lv,"all").filter(v=>{
+     const f=arFactor(v); return f.length===2 && f[0]>=7; });
+   if(!pool.length){
+     /* そのレベルにまだ無い時は、範囲ぜんぶから探します */
+     const L=ftComposites(arMax());
+     const w=L.filter(v=>{ const f=arFactor(v); return f.length===2&&f[0]>=7; });
+     if(!w.length) return FT_DRILLS[0].make(lv,cls);
+     const n=w[Math.floor(Math.random()*Math.min(w.length,(lv+1)*6+20))]||w[0];
+     return {kind:"keypad", n, ask:`<b>${jp(n)}</b> を素因数分解すると？`, ans:n, two:true,
+       hint:`2つの素数のかけ算です。小さい方は ${jp(ftSpf(n))}`,
+       why:`${jp(n)} ＝ ${arFacText(n)}`};
+   }
+   const n=pick1(pool);
+   return {kind:"keypad", n, ask:`<b>${jp(n)}</b> を素因数分解すると？`, ans:n, two:true,
+     hint:`2つの素数のかけ算です。小さい方は ${jp(ftSpf(n))}`,
+     why:`${jp(n)} ＝ ${arFacText(n)}`};
+ }},
+{k:"card", n:"暗記カード", sec:0, ico:"🗂", force:3,
+ short:"めくって、自分で「わかった／あやしい」を選ぶ",
+ desc:"間隔をあけて思い出すと、いちばん記憶に残ります。"
+     +"「わかった」を選ぶほど次に出るまでの間かくがのび、「わからない」だとすぐまた出ます。",
+ make(lv,cls){
+   const pool=ftPoolUpTo(lv,cls);
+   const now=Date.now();
+   const due=pool.filter(v=>{ const s=FT.srs[v]; return !s||((+s.due||0)<=now); });
+   const n=pick1(due.length?due:pool);
+   return {kind:"card", n, ask:`<b>${jp(n)}</b>`, ans:n,
+     hint:`最小の素因数は ${jp(ftSpf(n))}`, why:`${jp(n)} ＝ ${arFacText(n)}`};
+ }}
+];
+const FT_IVL=[5*60e3, 30*60e3, 3*3600e3, 24*3600e3, 3*86400e3, 10*86400e3, 30*86400e3];
+const ftDrill=k=>FT_DRILLS.find(d=>d.k===k)||FT_DRILLS[0];
+
+
+/* ══════════ トレーニングの本体 ══════════ */
+let FTQ=null;
+function ftShow(){
+  const M=modal(`<h2>素因数トレーニング　<span class="tiny">合成数の素因数分解を覚える</span></h2>
+    <div id="ftBody"></div>`,{w:880});
+  FTQ={M, drill:FT.drill||"spf", lv:Math.min(ftTop(),Math.max(0,+FT.lv||0)),
+       cls:FT.cls||"all", loop:!!FT.loop, live:false, lock:false,
+       i:0, ok:0, streak:0, t:0, timer:null, q:null, bag:[], upped:0,
+       text:"", steps:[], sel:[], flip:false};
+  ftHome();
+}
+function ftStop(){ if(FTQ&&FTQ.timer){ clearInterval(FTQ.timer); FTQ.timer=null; } }
+function ftClose(){ ftStop(); if(FTQ&&FTQ.M) FTQ.M.close(); FTQ=null; }
+/** いま いちばん弱いドリルを教えます */
+function ftAdvice(){
+  const rows=FT_DRILLS.map(d=>{ const s=ftDrillStat(d.k);
+    return {k:d.k, n:d.n, q:s.q, r:s.q?s.ok/s.q:null}; });
+  const none=rows.filter(r=>!r.q);
+  if(none.length) return {k:none[0].k, why:`まだ「${none[0].n}」をやっていません。まずここから。`};
+  const done=rows.filter(r=>r.q>=10).sort((a,b)=>a.r-b.r);
+  if(done.length&&done[0].r<0.85)
+    return {k:done[0].k, why:`「${done[0].n}」の正答率が ${(done[0].r*100).toFixed(1)}% です。ここを重点的に。`};
+  const few=rows.filter(r=>r.q<10).sort((a,b)=>a.q-b.q);
+  if(few.length) return {k:few[0].k, why:`「${few[0].n}」はまだ ${jp(few[0].q)}問だけです。もう少し試してみましょう。`};
+  return {k:"semi", why:"どれも良い成績です。いちばんむずかしい「半素数」に挑戦してみましょう。"};
+}
+function ftHome(){
+  ftStop(); if(!FTQ) return;
+  FTQ.live=false;
+  const top=ftTop(), cap=ftCap();
+  if(FTQ.lv>top) FTQ.lv=top;
+  const D=ftDrill(FTQ.drill);
+  const nums=ftLvNums(FTQ.lv);
+  const pool=ftPool(FTQ.lv,FTQ.cls);
+  const adv=ftAdvice();
+  const cnt={a:0,b:0,c:0};
+  nums.forEach(n=>cnt[ftCls(n)]++);
+  const st=ftDrillStat(FTQ.drill);
+  const best=+((FT.best[FTQ.drill]||{})[FTQ.lv]||0);
+  FTQ.M.q("#ftBody").innerHTML=`
+    <div class="hintbox" style="margin-top:-4px"><span class="tiny">
+      素因数分解が速い人は、丸ごと暗記しているのではなく
+      <b>①最小の素因数をすぐ見つける</b>・<b>②割ったあとの数を持ったまま進む</b>・
+      <b>③よく出る形を覚えている</b> の3つを持っています。
+      下のドリルは、その3つを分けて鍛えるものです。
+      <button class="lnk" id="ftHelp">くわしい覚えかた</button></span></div>
+
+    <div class="hintbox" style="border-color:var(--acc)">
+      <b style="color:var(--acc)">おすすめ</b>
+      <span class="tiny">${esc(adv.why)}</span>
+      <button class="btn sm" id="ftAdv">「${esc(ftDrill(adv.k).n)}」にする</button></div>
+
+    <h3>ドリルを選ぶ</h3>
+    <div class="ftgrid" id="ftDrills">
+      ${FT_DRILLS.map(d=>{ const s=ftDrillStat(d.k);
+        return `<button class="ftd ${d.k===FTQ.drill?"on":""}" data-ftd="${d.k}">
+          <span class="fti">${d.ico}</span>
+          <b>${esc(d.n)}</b>
+          <span class="fts">${esc(d.short)}</span>
+          <span class="ftq">${s.q?`${jp(s.q)}問　正答率 ${((s.ok/s.q)*100).toFixed(0)}%`:"まだ未挑戦"}</span>
+        </button>`; }).join("")}
+    </div>
+    <p class="tiny" style="color:var(--dim2)">${esc(D.desc)}</p>
+
+    <h3 style="margin-top:12px">レベル（Lv.0 〜 Lv.${jp(top)}）</h3>
+    <div class="frow" style="align-items:flex-end">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn sm" id="ftLvM">−</button>
+          <input type="range" id="ftLvR" min="0" max="${top}" step="1" value="${FTQ.lv}" style="flex:1">
+          <button class="btn sm" id="ftLvP">＋</button></div></div>
+      <div class="lsbox" style="min-width:170px;text-align:center">
+        <div class="t">Lv.</div><div class="v" style="font-size:1.7rem">${jp(FTQ.lv)}</div>
+        <div class="s">${jp(nums[0])} 〜 ${jp(nums[nums.length-1])}</div></div>
+    </div>
+    <p class="tiny" style="color:var(--dim2)">
+      小さい方から ${jp(FTQ.lv*FT_PER+1)}番目 〜 ${jp(FTQ.lv*FT_PER+FT_PER)}番目の<b>合成数</b>です。
+      Lv.0 から このレベルまでを混ぜて出します（下のレベルも忘れないように）。
+      このレベルでの連続正解の記録 <b>${jp(best)}</b>。
+      最高レベルで <b>${FT_UP}問連続正解</b>すると、途中でも次が解放されます。
+      ${top<cap?"":`<br>※ Lv.${jp(cap)} より上は、出題できる数（2 〜 ${jp(arMax())}）を超えるため出せません。`}</p>
+
+    <h3 style="margin-top:12px">むずかしさで絞る</h3>
+    <div class="segs" id="ftCls" style="grid-template-columns:repeat(4,1fr)">
+      <button data-ftc="all" class="${FTQ.cls==="all"?"on":""}">全部（${jp(nums.length)}）</button>
+      ${["a","b","c"].map(k=>`<button data-ftc="${k}" class="${FTQ.cls===k?"on":""}"
+        ${cnt[k]?"":"disabled"}>${FT_CLS[k].n}（${jp(cnt[k])}）</button>`).join("")}
+    </div>
+    <p class="tiny" style="color:var(--dim2)">${esc(FT_CLS[FTQ.cls==="all"?"b":FTQ.cls].d)}
+      ${FTQ.cls==="all"?"　※「全部」はこのレベルの合成数をすべて使います":""}
+      　いま選んでいる池：<b>${jp(ftPoolUpTo(FTQ.lv,FTQ.cls).length)}</b> 個</p>
+
+    <div class="row" style="margin-top:10px">
+      <div><b>ループモード</b><div class="tiny" id="ftLoopN"></div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="ftLoopOff" class="${FTQ.loop?"":"on"}">まちがえたら終わり</button>
+        <button id="ftLoopOn" class="${FTQ.loop?"on":""}">ずっと続ける</button></div>
+    </div>
+
+    <div class="tools">
+      <button class="btn pri" id="ftGo">始める</button>
+      <button class="btn" id="ftBook">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+        合成数帳</button>
+      <button class="btn" id="ftRule">見分けかた早見表</button>
+      <button class="btn" id="ftStat">成績</button>
+      <button class="btn" id="ftX">閉じる</button></div>`;
+  const q=x=>FTQ.M.q(x);
+  q("#ftLoopN").textContent=FTQ.loop
+    ? "まちがえても続きます。「終了する」を押すまで終わりません"
+    : "1問まちがえた時点で終わります（連続正解をのばす遊びかた）";
+  FTQ.M.qa("[data-ftd]").forEach(b=>b.onclick=()=>{
+    FTQ.drill=b.dataset.ftd; FT.drill=FTQ.drill; ftSave(); ftHome(); });
+  FTQ.M.qa("[data-ftc]").forEach(b=>b.onclick=()=>{
+    if(b.disabled) return;
+    FTQ.cls=b.dataset.ftc; FT.cls=FTQ.cls; ftSave(); ftHome(); });
+  const set=v=>{ FTQ.lv=Math.min(ftTop(),Math.max(0,Math.round(v)||0));
+    FT.lv=FTQ.lv; ftSave(); ftHome(); };
+  q("#ftLvR").oninput=e=>set(+e.target.value);
+  q("#ftLvM").onclick=()=>set(FTQ.lv-1);
+  q("#ftLvP").onclick=()=>set(FTQ.lv+1);
+  q("#ftLoopOn").onclick=()=>{ FTQ.loop=true; FT.loop=true; ftSave(); ftHome(); };
+  q("#ftLoopOff").onclick=()=>{ FTQ.loop=false; FT.loop=false; ftSave(); ftHome(); };
+  q("#ftAdv").onclick=()=>{ FTQ.drill=adv.k; FT.drill=adv.k; ftSave(); ftHome(); };
+  q("#ftHelp").onclick=ftHelpShow;
+  q("#ftBook").onclick=()=>ftBookShow(FTQ.lv);
+  q("#ftRule").onclick=ftRuleShow;
+  q("#ftStat").onclick=ftStatShow;
+  q("#ftX").onclick=ftClose;
+  q("#ftGo").onclick=ftBegin;
+}
+function ftBegin(){
+  if(!FTQ) return;
+  FTQ.i=0; FTQ.ok=0; FTQ.streak=0; FTQ.upped=0; FTQ.live=true;
+  FT.plays=(+FT.plays||0)+1; ftSave();
+  ftNext();
+}
+function ftNext(){
+  ftStop(); if(!FTQ) return;
+  FTQ.i++; FTQ.lock=false; FTQ.text=""; FTQ.sel=[]; FTQ.flip=false;
+  const D=ftDrill(FTQ.drill);
+  FTQ.q=D.make(FTQ.lv,FTQ.cls);
+  FTQ.steps=(FTQ.q.kind==="step")?[FTQ.q.n]:[];
+  FTQ.t=Date.now();
+  ftDraw();
+  if(D.sec>0){
+    FTQ.timer=setInterval(()=>{
+      if(!FTQ||!FTQ.live) return ftStop();
+      const left=FTQ.t+D.sec*1000-Date.now();
+      const bar=FTQ.M.q("#ftBar"), tv=FTQ.M.q("#ftLeft");
+      if(bar) bar.style.width=Math.max(0,Math.min(100,left/(D.sec*1000)*100)).toFixed(1)+"%";
+      if(tv) tv.textContent=(Math.max(0,left)/1000).toFixed(2);
+      if(left<=0) ftJudge(null);
+    },50);
+  }
+}
+
+
+/** 問題を描きます */
+function ftDraw(){
+  if(!FTQ||!FTQ.q) return;
+  const D=ftDrill(FTQ.drill), Q=FTQ.q;
+  const best=+((FT.best[FTQ.drill]||{})[FTQ.lv]||0);
+  let body="";
+  if(Q.kind==="choice"){
+    body=`<div class="dtgrid">${Q.opts.map(v=>
+      `<button class="dtopt" data-ftv="${v}">${jp(v)}</button>`).join("")}</div>`;
+  }else if(Q.kind==="yesno"){
+    body=`<div class="ftyn">
+      <button class="ftynb yes" data-ftv="1">割り切れる<span>○</span></button>
+      <button class="ftynb no"  data-ftv="0">割り切れない<span>×</span></button></div>`;
+  }else if(Q.kind==="multi"){
+    body=`<div class="dtgrid ft4">${Q.opts.map(v=>
+      `<button class="dtopt ${FTQ.sel.indexOf(v)>=0?"sel":""}" data-ftm="${v}">${jp(v)}</button>`).join("")}</div>
+      <div class="tools" style="justify-content:center">
+        <button class="btn pri" id="ftDone">これで決定（${jp(FTQ.sel.length)}個）</button></div>`;
+  }else if(Q.kind==="step"){
+    const cur=FTQ.steps[FTQ.steps.length-1];
+    body=`<div class="ftsteps">${FTQ.steps.map((v,i)=>
+      `<span class="ftst ${i===FTQ.steps.length-1?"now":""}">${jp(v)}</span>`).join('<i>÷</i>')}</div>
+      <div class="ftnow">いま <b>${jp(cur)}</b>　→　次に割る素数は？</div>
+      ${ftKeypadHTML()}`;
+  }else if(Q.kind==="card"){
+    body=`<div class="accard ${FTQ.flip?"flip":""}" id="ftCard">
+        <div class="acfront"><div class="act">おぼえていますか？</div>
+          <div class="acn">${jp(Q.n)}</div><div class="acs">押すと答えが出ます</div></div>
+        <div class="acback"><div class="act">${jp(Q.n)} ＝</div>
+          <div class="aca">${esc(arFacText(Q.n))}</div>
+          <div class="acs">下から、どれくらい分かったかを選んでください</div></div>
+      </div>
+      ${FTQ.flip?`<div class="tools" style="justify-content:center">
+        <button class="btn" id="ftC0" style="border-color:var(--bad);color:var(--bad)">わからない</button>
+        <button class="btn" id="ftC1" style="border-color:var(--warn);color:var(--warn)">あやしい</button>
+        <button class="btn pri" id="ftC2">わかった</button></div>`
+      :`<div class="tools" style="justify-content:center">
+        <button class="btn pri" id="ftFlip">答えを見る</button></div>`}`;
+  }else{
+    body=ftKeypadHTML();
+  }
+  FTQ.M.q("#ftBody").innerHTML=`
+    <div class="tools" style="margin-top:0">
+      <span class="tiny">${esc(D.ico)} <b>${esc(D.n)}</b>　Lv.${jp(FTQ.lv)}
+        ${FTQ.cls==="all"?"":`　${esc(FT_CLS[FTQ.cls].n)}`}
+        ${FTQ.loop?'　<b style="color:var(--acc)">ずっと続ける</b>':""}
+        　<b>${jp(FTQ.i)}</b> 問目</span>
+      <span class="tiny" style="margin-left:auto">連続正解
+        <b style="color:var(--acc2)">${jp(FTQ.streak)}</b> / ${FT_UP}　記録 ${jp(best)}</span>
+    </div>
+    ${D.sec>0?`<div class="arbar"><i id="ftBar" style="width:100%"></i></div>
+      <div class="tiny" style="text-align:right">残り <b id="ftLeft">${D.sec.toFixed(2)}</b> 秒</div>`:""}
+    <div class="ftask" id="ftAsk">${Q.ask}</div>
+    ${body}
+    <div class="tiny" id="ftRes" style="min-height:1.5em;text-align:center"></div>
+    <div class="tools">
+      <button class="btn sm" id="ftHint">ヒント</button>
+      <button class="btn" id="ftEnd">終了する</button>
+      <span class="tiny" id="ftHintT" style="color:var(--dim2)"></span>
+    </div>`;
+  ftWire();
+}
+function ftKeypadHTML(){
+  return `<div class="arinbox ftin"><span id="ftIn">${esc(FTQ.text||" ")}</span></div>
+    <div class="arwrap"><div class="arkeys">
+      ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="arkey" data-ftk="${d}">${d}</button>`).join("")}
+      <button class="arkey" data-ftk="back">消す</button>
+      <button class="arkey" data-ftk="0">0</button>
+      <button class="arkey sp" data-ftk=" ">空白</button>
+    </div></div>`;
+}
+function ftWire(){
+  const q=x=>FTQ.M.q(x), Q=FTQ.q;
+  FTQ.M.qa("[data-ftv]").forEach(b=>{
+    b.addEventListener("pointerdown",e=>{ e.preventDefault();
+      ftJudge(Q.kind==="yesno"?(b.dataset.ftv==="1"):(+b.dataset.ftv)); },{passive:false});
+    b.addEventListener("click",e=>e.preventDefault());
+  });
+  FTQ.M.qa("[data-ftm]").forEach(b=>{
+    b.addEventListener("pointerdown",e=>{ e.preventDefault();
+      if(FTQ.lock) return;
+      const v=+b.dataset.ftm, i=FTQ.sel.indexOf(v);
+      if(i>=0) FTQ.sel.splice(i,1); else FTQ.sel.push(v);
+      ftDraw();
+    },{passive:false});
+    b.addEventListener("click",e=>e.preventDefault());
+  });
+  FTQ.M.qa("[data-ftk]").forEach(b=>{
+    b.addEventListener("pointerdown",e=>{ e.preventDefault(); ftType(b.dataset.ftk); },{passive:false});
+    b.addEventListener("click",e=>e.preventDefault());
+    b.addEventListener("contextmenu",e=>e.preventDefault());
+  });
+  if(q("#ftDone")) q("#ftDone").onclick=()=>ftJudge(FTQ.sel.slice().sort((a,b)=>a-b));
+  if(q("#ftFlip")) q("#ftFlip").onclick=()=>{ FTQ.flip=true; ftDraw(); };
+  const c=q("#ftCard"); if(c) c.onclick=()=>{ FTQ.flip=!FTQ.flip; ftDraw(); };
+  [["#ftC0",0],["#ftC1",1],["#ftC2",2]].forEach(([id,g])=>{ if(q(id)) q(id).onclick=()=>ftCard(g); });
+  if(q("#ftHint")) q("#ftHint").onclick=()=>{
+    const t=q("#ftHintT"); if(t) t.innerHTML=esc(Q.hint||""); };
+  if(q("#ftEnd")) q("#ftEnd").onclick=()=>{ FTQ.live=false; ftStop(); ftOver(); };
+}
+/** 数字を打ちます（逆算・半素数・段階分解）*/
+function ftType(ch){
+  if(!FTQ||!FTQ.live||FTQ.lock) return;
+  if(ch==="back") FTQ.text=FTQ.text.slice(0,-1);
+  else FTQ.text+=ch;
+  const el=FTQ.M.q("#ftIn"); if(el) el.textContent=FTQ.text||" ";
+  const Q=FTQ.q;
+  if(Q.kind==="step"){
+    const cur=FTQ.steps[FTQ.steps.length-1];
+    const v=parseInt(FTQ.text.trim(),10);
+    if(!(v>=2)) return;
+    /* その数で割り切れて、しかも素数なら1段すすみます */
+    if(cur%v===0 && ftSpf(v)===v){
+      const nx=cur/v;
+      FTQ.steps.push(nx);
+      FTQ.text="";
+      if(nx===1) return ftJudge(true);
+      ftDraw(); return;
+    }
+    /* 打ちかけかどうか（前方一致する素因数があるなら待ちます）*/
+    const fs=arFactor(cur);
+    const ok=fs.some(f=>String(f).indexOf(FTQ.text.trim())===0);
+    if(!ok){ FTQ.text=""; const e2=FTQ.M.q("#ftIn"); if(e2) e2.textContent=" ";
+      const r=FTQ.M.q("#ftRes");
+      if(r) r.innerHTML='<span style="color:var(--warn)">その数では割り切れません</span>'; }
+    return;
+  }
+  if(Q.kind==="keypad"){
+    if(Q.two){
+      const r=arCheck(Q.n, FTQ.text);
+      if(r.done&&r.ok) return ftJudge(true);
+      return;
+    }
+    if(FTQ.text.length>=String(Q.ans).length){
+      return ftJudge(parseInt(FTQ.text,10));
+    }
+  }
+}
+
+
+/** 答え合わせ */
+function ftJudge(v){
+  if(!FTQ||!FTQ.live||FTQ.lock||!FTQ.q) return;
+  ftStop(); FTQ.lock=true;
+  const Q=FTQ.q, D=ftDrill(FTQ.drill);
+  const ms=Date.now()-FTQ.t;
+  let hit=false;
+  if(v===null) hit=false;
+  else if(Q.kind==="choice")  hit=(v===Q.ans);
+  else if(Q.kind==="yesno")   hit=(v===Q.ans);
+  else if(Q.kind==="keypad")  hit=(v===true)||(v===Q.ans);
+  else if(Q.kind==="step")    hit=(v===true);
+  else if(Q.kind==="multi")   hit=(Array.isArray(v)&&v.length===Q.ans.length&&
+                                   v.every((x,i)=>x===Q.ans[i]));
+  ftStatPut(Q.n||(Q.opts&&Q.opts[0])||2, hit, ms, FTQ.drill);
+  let opened=-1;
+  if(hit){
+    FTQ.ok++; FTQ.streak++;
+    const b=FT.best[FTQ.drill]||{};
+    if(FTQ.streak>(+b[FTQ.lv]||0)){ b[FTQ.lv]=FTQ.streak; FT.best[FTQ.drill]=b; }
+    if(FTQ.streak>=FT_UP && FTQ.lv>=ftTop() && FTQ.lv<ftCap()){
+      FT.max=FTQ.lv+1; opened=FT.max; FTQ.upped++;
+      FTQ.lv=FT.max; FTQ.streak=0;
+    }
+    ftSave();
+  }else{ FTQ.streak=0; }
+  /* 見た目 */
+  if(Q.kind==="choice"||Q.kind==="yesno"){
+    FTQ.M.qa("[data-ftv]").forEach(b=>{
+      const val=(Q.kind==="yesno")?(b.dataset.ftv==="1"):(+b.dataset.ftv);
+      if(val===Q.ans) b.classList.add("ok");
+      else if(v!==null&&val===v) b.classList.add("ng");
+      else b.classList.add("off");
+    });
+  }
+  if(Q.kind==="multi"){
+    FTQ.M.qa("[data-ftm]").forEach(b=>{
+      const val=+b.dataset.ftm;
+      const should=Q.ans.indexOf(val)>=0, did=FTQ.sel.indexOf(val)>=0;
+      if(should) b.classList.add("ok");
+      else if(did) b.classList.add("ng");
+      else b.classList.add("off");
+    });
+  }
+  const r=FTQ.M.q("#ftRes");
+  if(r) r.innerHTML=(hit
+      ? `<b style="color:var(--acc2)">正解！</b> <span class="tiny">${(ms/1000).toFixed(2)} 秒</span>　`
+      : `<b style="color:var(--bad)">${v===null?"時間切れ":"ちがいます"}</b>　`)
+    +`<span class="tiny">${Q.why}</span>`
+    +(opened>=0?`<br><b style="color:var(--acc)">Lv.${jp(opened)} が解放されました！ そのまま挑戦します。</b>`:"");
+  const wait=hit?(opened>=0?1600:850):2100;
+  if(hit||FTQ.loop) setTimeout(()=>{ if(FTQ&&FTQ.live!==false) ftNext(); },wait);
+  else setTimeout(()=>{ if(FTQ){ FTQ.live=false; ftOver(); } },wait);
+}
+/** 暗記カードの自己判定（0=わからない 1=あやしい 2=わかった）*/
+function ftCard(g){
+  if(!FTQ||!FTQ.q) return;
+  const n=FTQ.q.n;
+  const s=FT.srs[n]||{i:0,due:0};
+  let i=+s.i||0;
+  if(g===2) i=Math.min(i+1,FT_IVL.length-1);
+  else if(g===1) i=Math.max(0,Math.min(i,2));
+  else i=0;
+  FT.srs[n]={i, due:Date.now()+FT_IVL[i]};
+  ftStatPut(n, g===2, Date.now()-FTQ.t, "card");
+  FTQ.ok+=(g===2?1:0);
+  FTQ.streak=(g===2)?FTQ.streak+1:0;
+  const b=FT.best.card||{};
+  if(FTQ.streak>(+b[FTQ.lv]||0)){ b[FTQ.lv]=FTQ.streak; FT.best.card=b; }
+  ftSave();
+  const r=FTQ.M.q("#ftRes");
+  const lab=["わからない","あやしい","わかった"][g];
+  if(r) r.innerHTML=`<span class="tiny">${esc(lab)} → 次は <b>${
+    ftIvlText(FT_IVL[i])}</b>後に出します</span>`;
+  setTimeout(()=>{ if(FTQ&&FTQ.live) ftNext(); },700);
+}
+const ftIvlText=ms=>{ const m=Math.round(ms/60000);
+  if(m<60) return m+"分"; const h=Math.round(m/60);
+  return h<24?(h+"時間"):(Math.round(h/24)+"日"); };
+/** 終わり */
+function ftOver(){
+  if(!FTQ) return;
+  ftStop(); FTQ.live=false; ftSave();
+  const D=ftDrill(FTQ.drill);
+  const best=+((FT.best[FTQ.drill]||{})[FTQ.lv]||0);
+  FTQ.M.q("#ftBody").innerHTML=`
+    ${FTQ.upped?`<div class="hintbox" style="border-color:var(--acc)">
+      <b style="color:var(--acc)">この挑戦で ${jp(FTQ.upped)} レベル解放しました。</b>
+      いまは Lv.0 〜 Lv.${jp(ftTop())} に挑戦できます。</div>`:""}
+    <div class="lsgrid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="lsbox"><div class="t">${esc(D.n)}　連続正解</div>
+        <div class="v" style="font-size:2rem;color:var(--acc2)">${jp(FTQ.streak)}</div>
+        <div class="s">このレベルの記録 ${jp(best)}</div></div>
+      <div class="lsbox"><div class="t">この回</div>
+        <div class="v" style="font-size:1.6rem">${jp(FTQ.ok)} / ${jp(FTQ.i)}</div>
+        <div class="s">正答率 ${FTQ.i?((FTQ.ok/FTQ.i)*100).toFixed(1):"0.0"}%</div></div>
+      <div class="lsbox"><div class="t">通算（このドリル）</div>
+        <div class="v" style="font-size:1.6rem">${(()=>{const s=ftDrillStat(FTQ.drill);
+          return s.q?((s.ok/s.q)*100).toFixed(1)+"%":"—";})()}</div>
+        <div class="s">${jp(ftDrillStat(FTQ.drill).q)} 問</div></div>
+    </div>
+    <div class="tools">
+      <button class="btn pri" id="ftAgain">もう一度</button>
+      <button class="btn" id="ftBack">選びなおす</button>
+      <button class="btn" id="ftBook2">合成数帳</button>
+      <button class="btn" id="ftX2">閉じる</button></div>`;
+  FTQ.M.q("#ftAgain").onclick=ftBegin;
+  FTQ.M.q("#ftBack").onclick=ftHome;
+  FTQ.M.q("#ftBook2").onclick=()=>ftBookShow(FTQ.lv);
+  FTQ.M.q("#ftX2").onclick=ftClose;
+}
+
+/* ══════════ 合成数帳 ══════════ */
+let ftBookLv=0, ftBookSort="n";
+function ftBookShow(lv){
+  const top=ftTop();
+  ftBookLv=Math.min(top,Math.max(0,Math.round(+lv>=0?+lv:(+FT.lv||0))));
+  const M=modal(`<h2>
+    <svg viewBox="0 0 24 24" class="ico" style="width:20px;height:20px"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+    合成数帳</h2><div id="ftBk"></div>
+    <div class="tools"><button class="btn" id="ftBkX">閉じる</button></div>`,{w:860});
+  M.q("#ftBkX").onclick=M.close;
+  const draw=()=>{
+    let nums=ftLvNums(ftBookLv).slice();
+    const st=n=>ftStatOf(n);
+    if(ftBookSort==="rate") nums.sort((a,b)=>{
+      const A=st(a),B=st(b); const ra=A.q?A.ok/A.q:2, rb=B.q?B.ok/B.q:2; return ra-rb||a-b; });
+    else if(ftBookSort==="time") nums.sort((a,b)=>{
+      const A=st(a),B=st(b); const ta=A.ok?A.ms/A.ok:-1, tb=B.ok?B.ms/B.ok:-1; return tb-ta||a-b; });
+    const tot=nums.reduce((a,n)=>{const v=st(n);return {q:a.q+v.q, ok:a.ok+v.ok};},{q:0,ok:0});
+    const got=nums.filter(n=>st(n).ok>0).length;
+    M.q("#ftBk").innerHTML=`
+      <div class="frow" style="align-items:flex-end">
+        <div style="flex:1"><label class="fl">レベル（Lv.0 〜 Lv.${jp(top)}）</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn sm" id="bM">−</button>
+            <input type="range" id="bR" min="0" max="${top}" step="1" value="${ftBookLv}" style="flex:1">
+            <button class="btn sm" id="bP">＋</button></div></div>
+        <div class="lsbox" style="min-width:170px;text-align:center">
+          <div class="t">Lv.</div><div class="v" style="font-size:1.7rem">${jp(ftBookLv)}</div>
+          <div class="s">正解した数 ${jp(got)} / ${FT_PER}</div></div>
+      </div>
+      <div class="lsgrid" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
+        <div class="lsbox"><div class="t">このレベルの出題数</div>
+          <div class="v" style="font-size:1.4rem">${jp(tot.q)}</div><div class="s">問</div></div>
+        <div class="lsbox"><div class="t">正解数</div>
+          <div class="v" style="font-size:1.4rem">${jp(tot.ok)}</div><div class="s">問</div></div>
+        <div class="lsbox"><div class="t">正答率</div>
+          <div class="v" style="font-size:1.4rem">${tot.q?((tot.ok/tot.q)*100).toFixed(1)+"%":"—"}</div>
+          <div class="s">正解 ÷ 出題</div></div>
+      </div>
+      <div class="segs" id="bS" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
+        <button data-bs="n" class="${ftBookSort==="n"?"on":""}">小さい順</button>
+        <button data-bs="rate" class="${ftBookSort==="rate"?"on":""}">正答率の低い順</button>
+        <button data-bs="time" class="${ftBookSort==="time"?"on":""}">時間のかかる順</button>
+      </div>
+      <p class="tiny" style="color:var(--dim2)">
+        小さい方から ${jp(ftBookLv*FT_PER+1)}番目 〜 ${jp(ftBookLv*FT_PER+FT_PER)}番目の合成数。
+        行を押すと、その数を詳しく見られます。</p>
+      <div class="scroll" style="max-height:46vh"><table><thead><tr>
+        <th>数</th><th>素因数分解</th><th class="n">最小</th><th>むずかしさ</th>
+        <th class="n">正解/出題</th><th class="n">正答率</th><th class="n">平均</th><th class="n">最速</th>
+        </tr></thead><tbody>
+        ${nums.map(n=>{ const v=st(n), c=ftCls(n), C=FT_CLS[c];
+          const rate=v.q?Math.round(v.ok/v.q*100):-1;
+          return `<tr data-ftn="${n}" style="cursor:pointer"
+            class="${rate<0?"":rate>=80?"":"lose"}">
+            <td><b>${jp(n)}</b></td>
+            <td class="tiny" style="color:var(--acc2)">${esc(arFacText(n))}</td>
+            <td class="n">${jp(ftSpf(n))}</td>
+            <td class="tiny" style="color:${C.c}">${C.n}</td>
+            <td class="n tiny">${jp(v.ok)} / ${jp(v.q)}</td>
+            <td class="n tiny">${rate<0?"—":rate+"%"}</td>
+            <td class="n tiny">${v.ok?(v.ms/v.ok/1000).toFixed(2)+"秒":"—"}</td>
+            <td class="n tiny">${v.b?(v.b/1000).toFixed(2)+"秒":"—"}</td>
+          </tr>`; }).join("")}
+      </tbody></table></div>`;
+    M.q("#bR").oninput=e=>{ ftBookLv=Math.min(top,Math.max(0,+e.target.value||0)); draw(); };
+    M.q("#bM").onclick=()=>{ ftBookLv=Math.max(0,ftBookLv-1); draw(); };
+    M.q("#bP").onclick=()=>{ ftBookLv=Math.min(top,ftBookLv+1); draw(); };
+    M.qa("[data-bs]").forEach(b=>b.onclick=()=>{ ftBookSort=b.dataset.bs; draw(); });
+    M.qa("[data-ftn]").forEach(r=>r.onclick=()=>arNumShow(+r.dataset.ftn));
+  };
+  draw();
+}
+
+
+/* ══════════ 見分けかた早見表 ══════════ */
+function ftRuleShow(){
+  const M=modal(`<h2>割り切れるかの見分けかた</h2>
+    <p class="muted" style="margin-top:-6px">
+      最小の素因数さがしは、この表を覚えているかどうかで速さが決まります。</p>
+    <div class="scroll"><table><thead><tr>
+      <th class="n">割る数</th><th>見分けかた</th><th>例</th></tr></thead><tbody>
+      ${FT_RULES.map(([d,r,e])=>`<tr>
+        <td class="n"><b>${jp(d)}</b></td>
+        <td class="tiny">${esc(r)}</td>
+        <td class="tiny" style="color:var(--dim2)">${esc(e)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <h3 style="margin-top:14px">7 の見分けかたを もう少し</h3>
+    <div class="hintbox"><span class="tiny">
+      <b>下1桁を2倍して、残りの数から引く</b>を、2桁になるまでくり返します。<br>
+      例：<b>1729</b> → 172 − (9×2)=154 → 15 − (4×2)=7 → <b>7の倍数</b><br>
+      例：<b>861</b> → 86 − (1×2)=84 → 8 − (4×2)=0 → <b>7の倍数</b><br>
+      例：<b>1234</b> → 123 − (4×2)=115 → 11 − (5×2)=1 → 7の倍数ではない</span></div>
+    <h3>11 の見分けかた</h3>
+    <div class="hintbox"><span class="tiny">
+      一の位から <b>＋ − ＋ −</b> と交互に足し引きして、0 か 11 の倍数なら割り切れます。<br>
+      例：<b>918082</b> → 2−8+0−8+1−9 = −22 → 11の倍数<br>
+      例：<b>143</b> → 3−4+1 = 0 → 11の倍数（143＝11×13）</span></div>
+    <h3>覚えておくと得をする数</h3>
+    <div class="scroll"><table><thead><tr><th>数</th><th>分解</th><th>おぼえかた</th></tr></thead><tbody>
+      ${[[91,"7×13","9と1で91。7×13 は最頻出"],[119,"7×17","120の1つ手前"],
+         [133,"7×19","7×19＝133"],[143,"11×13","11と13のとなりどうし"],
+         [161,"7×23","7×23"],[187,"11×17","11×17"],[209,"11×19","11×19"],
+         [221,"13×17","13×17"],[247,"13×19","13×19"],[253,"11×23","11×23"],
+         [289,"17×17","17の2乗"],[299,"13×23","13×23"],[323,"17×19","17×19＝18²−1"],
+         [361,"19×19","19の2乗"],[391,"17×23","17×23"],[437,"19×23","19×23"],
+         [1001,"7×11×13","7・11・13 が一度に出る有名な数"],
+         [111,"3×37","111＝3×37。222・333 も同じ形"]]
+        .map(([n,f,m])=>`<tr><td><b>${jp(n)}</b></td>
+          <td class="tiny" style="color:var(--acc2)">${esc(f)}</td>
+          <td class="tiny">${esc(m)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="tools"><button class="btn" id="frX">閉じる</button></div>`,{w:820});
+  M.q("#frX").onclick=M.close;
+}
+/* ══════════ 覚えかたの考えかた ══════════ */
+function ftHelpShow(){
+  const M=modal(`<h2>合成数の素因数分解を覚えるには</h2>
+    <p class="muted" style="margin-top:-6px">
+      素数は「覚えるだけ」ですが、合成数は数が多すぎて丸暗記できません。
+      速い人がやっているのは、次の3つを分けて身につけることです。</p>
+    <h3>力1　最小の素因数を、一瞬で見つける</h3>
+    <div class="hintbox"><span class="tiny">
+      どんな合成数も、いちばん小さい素因数は <b>√n 以下</b>です。
+      n が 1,000 までなら 31 まで、10,000 までなら 97 まで調べれば必ず見つかります。<br>
+      とはいえ 2・3・5 で ほとんどが片づきます。残るのが 7・11・13 で、
+      ここは<b>見分けかた</b>を覚えるのがいちばん速い方法です。<br>
+      → ドリル<b>①最小素因数さがし</b>・<b>②割り切れる？</b>・<b>⑤仲間さがし</b></span></div>
+    <h3>力2　割ったあとの数を、持ったまま進む</h3>
+    <div class="hintbox"><span class="tiny">
+      924 → 462 → 231 → 77 → 11 のように、割った先を覚えていられるかどうかです。
+      ここは「暗記」ではなく「作業に慣れる」ところなので、
+      商を画面に出しながら、何度も通すのが効きます。<br>
+      → ドリル<b>③段階分解</b></span></div>
+    <h3>力3　よく出る形を、見た瞬間に思い出す</h3>
+    <div class="hintbox"><span class="tiny">
+      91＝7×13、143＝11×13、187＝11×17 のような
+      <b>2つの素数のかけ算（半素数）</b>は、割り算では見つけにくい代わりに、
+      数が多くありません。1,000 までなら、7以上の素数どうしの積は
+      <b>${(()=>{const L=ftComposites(999);return jp(L.filter(v=>{const f=arFactor(v);
+        return f.length===2&&f[0]>=7;}).length);})()}個</b>しかありません。
+      ここは覚えてしまうのが圧倒的に速いです。<br>
+      また、<b>行き（数→分解）</b>だけでなく<b>帰り（分解→数）</b>も通しておくと、
+      記憶の引き出しが2本になって思い出しやすくなります。<br>
+      → ドリル<b>④逆算</b>・<b>⑥半素数</b>・<b>⑦暗記カード</b></span></div>
+    <h3>おすすめの進めかた</h3>
+    <div class="scroll"><table><thead><tr><th>順</th><th>やること</th><th>ねらい</th></tr></thead><tbody>
+      <tr><td>1</td><td class="tiny"><b>②割り切れる？</b>を Lv.0〜2 で 7・11・13 だけ</td>
+        <td class="tiny">見分けかたを体に入れる</td></tr>
+      <tr><td>2</td><td class="tiny"><b>①最小素因数さがし</b>で 20問連続を目指す</td>
+        <td class="tiny">はじめの一歩を速くする</td></tr>
+      <tr><td>3</td><td class="tiny"><b>③段階分解</b>で最後まで通す</td>
+        <td class="tiny">手順を体に入れる</td></tr>
+      <tr><td>4</td><td class="tiny"><b>⑥半素数</b>＋<b>⑦暗記カード</b>をくり返す</td>
+        <td class="tiny">むずかしい形を覚える</td></tr>
+      <tr><td>5</td><td class="tiny"><b>④逆算</b>と<b>⑤仲間さがし</b>を混ぜる</td>
+        <td class="tiny">記憶を別の角度からも固める</td></tr>
+      <tr class="used"><td>6</td><td class="tiny">アリーナの<b>苦手克服モード</b>へ</td>
+        <td class="tiny">実際の分解で仕上げる</td></tr>
+    </tbody></table></div>
+    <div class="tools"><button class="btn" id="fhR">見分けかた早見表</button>
+      <button class="btn" id="fhX">閉じる</button></div>`,{w:820});
+  M.q("#fhX").onclick=M.close;
+  M.q("#fhR").onclick=()=>{ M.close(); ftRuleShow(); };
+}
+/* ══════════ トレーニングの成績 ══════════ */
+function ftStatShow(){
+  const rows=FT_DRILLS.map(d=>{ const s=ftDrillStat(d.k);
+    return {d, s, rate:s.q?s.ok/s.q:null, avg:s.ok?s.ms/s.ok/1000:null}; });
+  const tq=rows.reduce((a,r)=>a+r.s.q,0), tok=rows.reduce((a,r)=>a+r.s.ok,0);
+  const nums=Object.keys(FT.num).map(Number);
+  const weak=nums.map(n=>{ const v=ftStatOf(n);
+      return {n, q:v.q, ok:v.ok, r:v.q?v.ok/v.q:1, avg:v.ok?v.ms/v.ok/1000:null}; })
+    .filter(x=>x.q>=2).sort((a,b)=>a.r-b.r||b.q-a.q).slice(0,20);
+  const M=modal(`<h2>トレーニングの成績</h2>
+    <div class="lsgrid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="lsbox"><div class="t">解いた問題</div>
+        <div class="v" style="font-size:1.6rem">${jp(tq)}</div><div class="s">問</div></div>
+      <div class="lsbox"><div class="t">正解</div>
+        <div class="v" style="font-size:1.6rem">${jp(tok)}</div>
+        <div class="s">正答率 ${tq?((tok/tq)*100).toFixed(1)+"%":"—"}</div></div>
+      <div class="lsbox"><div class="t">出会った合成数</div>
+        <div class="v" style="font-size:1.6rem">${jp(nums.length)}</div>
+        <div class="s">種類</div></div>
+      <div class="lsbox"><div class="t">いま挑戦できる</div>
+        <div class="v" style="font-size:1.6rem">Lv.${jp(ftTop())}</div>
+        <div class="s">上限 Lv.${jp(ftCap())}</div></div>
+    </div>
+    <h3 style="margin-top:14px">ドリル別</h3>
+    <div class="scroll"><table><thead><tr>
+      <th>ドリル</th><th class="n">問</th><th class="n">正解</th><th class="n">正答率</th>
+      <th class="n">平均時間</th><th class="n">連続記録</th></tr></thead><tbody>
+      ${rows.map(r=>{ const b=FT.best[r.d.k]||{};
+        const mx=Object.keys(b).reduce((a,k)=>Math.max(a,+b[k]||0),0);
+        return `<tr class="${r.rate!==null&&r.rate<0.8?"lose":""}">
+          <td><b>${esc(r.d.ico)} ${esc(r.d.n)}</b></td>
+          <td class="n">${jp(r.s.q)}</td><td class="n">${jp(r.s.ok)}</td>
+          <td class="n">${r.rate===null?"—":(r.rate*100).toFixed(1)+"%"}</td>
+          <td class="n">${r.avg===null?"—":r.avg.toFixed(2)+"秒"}</td>
+          <td class="n">${jp(mx)}</td></tr>`; }).join("")}
+    </tbody></table></div>
+    <h3 style="margin-top:14px">苦手な合成数（2回以上出たもの）</h3>
+    ${weak.length?`<div class="scroll"><table><thead><tr>
+      <th>数</th><th>素因数分解</th><th class="n">最小</th>
+      <th class="n">正解/出題</th><th class="n">正答率</th><th class="n">平均</th>
+      </tr></thead><tbody>
+      ${weak.map(x=>`<tr data-ftw="${x.n}" style="cursor:pointer" class="${x.r<0.8?"lose":""}">
+        <td><b>${jp(x.n)}</b></td>
+        <td class="tiny" style="color:var(--acc2)">${esc(arFacText(x.n))}</td>
+        <td class="n">${jp(ftSpf(x.n))}</td>
+        <td class="n tiny">${jp(x.ok)} / ${jp(x.q)}</td>
+        <td class="n tiny">${(x.r*100).toFixed(0)}%</td>
+        <td class="n tiny">${x.avg==null?"—":x.avg.toFixed(2)+"秒"}</td></tr>`).join("")}
+    </tbody></table></div>`:`<p class="muted">まだ足りません。何問か解いてみてください。</p>`}
+    <div class="tools"><button class="btn" id="fsX">閉じる</button></div>`,{w:860});
+  M.q("#fsX").onclick=M.close;
+  M.qa("[data-ftw]").forEach(r=>r.onclick=()=>arNumShow(+r.dataset.ftw));
 }
 
 /* ══════════════════════════════════════════════════════════
