@@ -21,6 +21,8 @@
   /* 見た目の選び（ユーザーが変えられます） */
   --font:"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
   --navico:22px; --navfs:11px; --navpad:7px; --navh:56px;
+  /* ★ 下の帯たちの「実際の高さ」。画面に出したあと JS が測って入れ直します */
+  --navh1:56px; --navh2:0px;
 }
 /* 明朝体を選んだ時。
    明朝体は線が細いので、そのままだと うすく見えます。
@@ -265,10 +267,13 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .navbar button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .navbar button.on{color:var(--acc)}
 .navbar button.on i{filter:drop-shadow(0 0 6px var(--acc))}
-body.hasnav .wrap{padding-bottom:calc(var(--navh) + 24px)}
-body.hasnav.hassns .wrap{padding-bottom:calc(var(--navh) * 2 + 24px)}
-/* Prime SNS の帯 */
-.navsns{position:fixed;left:0;right:0;bottom:var(--navh);z-index:7999;display:flex;
+/* ★ --navh1（下の帯の実際の高さ）と --navh2（Prime SNS の帯の実際の高さ）は、
+      画面に出したあとに測って入れます。セーフエリアぶんも入っています。 */
+body.hasnav .wrap{padding-bottom:calc(var(--navh1, var(--navh)) + 24px)}
+body.hasnav.hassns .wrap{
+  padding-bottom:calc(var(--navh1, var(--navh)) + var(--navh2, var(--navh)) + 24px)}
+/* Prime SNS の帯。かならず下の帯の「すぐ上」に置きます（重なりません）*/
+.navsns{position:fixed;left:0;right:0;bottom:var(--navh1, var(--navh));z-index:7999;display:flex;
   align-items:stretch;background:#0d1a2cee;border-top:1px solid var(--line);
   backdrop-filter:blur(8px)}
 .navsnsin{flex:1;display:flex;overflow:hidden}
@@ -364,6 +369,67 @@ body.phoneui #tabs{display:none !important}
 @keyframes arpulse{0%,100%{box-shadow:0 0 10px #ff5e5e66}50%{box-shadow:0 0 18px #ff5e5ecc}}
 html[data-theme="light"] .arpass{background:#f2f5fa;color:var(--dim);border-color:var(--line2)}
 html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
+/* マイルストーン */
+.msrow{margin:10px 0;padding:10px 12px;border-radius:11px;
+  background:var(--panel2);border:1px solid var(--line)}
+.mshead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  flex-wrap:wrap;font-size:.86rem}
+.mshead span{font-size:.76rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+.msbar{height:9px;border-radius:5px;background:var(--panel0);overflow:hidden;margin:6px 0 4px;
+  border:1px solid var(--line)}
+.msbar i{display:block;height:100%;border-radius:5px;
+  background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .4s ease}
+.mssub{font-size:.72rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+.mschips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.mschip{font-size:.64rem;padding:2px 6px;border-radius:20px;
+  border:1px solid var(--line);color:var(--dim2);font-variant-numeric:tabular-nums}
+.mschip.on{border-color:var(--acc2);color:var(--acc2);
+  background:color-mix(in srgb,var(--acc2) 14%,transparent)}
+.arhist.hr24 .arhb{min-width:0}
+.arhist.hr24 .arhb .d{font-size:.6rem}
+/* いま どんな自然数が出るのか（入口） */
+.rangebox{margin-top:8px;padding:10px 12px;border-radius:11px;
+  background:var(--panel2);border:1px solid var(--line)}
+.rangebox .rgh{font-size:.84rem;line-height:1.6;margin-bottom:6px}
+.rangebox .rgt{width:100%;border-collapse:collapse;font-size:.74rem}
+.rangebox .rgt td{padding:3px 4px;border-top:1px solid var(--line);color:var(--dim2)}
+.rangebox .rgt td.n{text-align:right;color:var(--tx);font-variant-numeric:tabular-nums}
+/* プレイ中の1行説明 */
+.rgline{font-size:.76rem;color:var(--dim2);padding:6px 9px;margin-bottom:6px;
+  border-radius:9px;background:var(--panel2);border:1px solid var(--line);
+  line-height:1.5}
+/* 苦手のようすを帯で */
+.upbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:8px 0 4px;
+  border:1px solid var(--line)}
+.upbar i{display:block;min-width:2px}
+/* 予習の一覧 */
+.wkpre{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;
+  max-height:46vh;overflow:auto;padding:4px;margin:8px 0}
+.wkcell{padding:8px 10px;border-radius:10px;background:var(--panel2);
+  border:1px solid var(--line);cursor:pointer}
+.wkcell:hover{border-color:var(--acc2)}
+.wkcell .wkq{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+.wkcell .wkq b{font-size:1.15rem;font-variant-numeric:tabular-nums}
+.wkcell .wkq span{font-size:.68rem;font-variant-numeric:tabular-nums}
+.wkcell .wka{font-size:.82rem;color:var(--acc2);margin-top:2px;
+  word-break:break-all;line-height:1.4}
+/* 単語帳 */
+.accard{position:relative;min-height:190px;border-radius:16px;cursor:pointer;
+  background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  padding:18px;text-align:center;transition:border-color .15s ease,transform .1s ease}
+.accard:hover{border-color:var(--acc2)}
+.accard:active{transform:scale(.995)}
+.accard .acfront,.accard .acback{display:none;width:100%}
+.accard:not(.flip) .acfront{display:block}
+.accard.flip .acback{display:block}
+.accard .act{font-size:.76rem;color:var(--dim2);font-variant-numeric:tabular-nums}
+.accard .acn{font-family:Impact,"Arial Black",sans-serif;font-weight:400;
+  font-size:clamp(2.6rem,11vw,4.4rem);line-height:1.1;color:var(--tx);
+  letter-spacing:.02em;font-variant-numeric:tabular-nums;margin:6px 0}
+.accard .aca{font-size:clamp(1.4rem,6vw,2.4rem);color:var(--acc2);font-weight:700;
+  line-height:1.3;word-break:break-all;margin:10px 0}
+.accard .acs{font-size:.7rem;color:var(--dim2)}
 /* 判定が出てから次の問題までは、キーパッドを触れなくします */
 .arwrap.lockon{pointer-events:none;opacity:.5;filter:saturate(.5)}
 .arwrap{transition:opacity .12s ease}
@@ -408,7 +474,9 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .dtcell.miss{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,transparent)}
 /* アリーナ入口の 大きなボタン */
 .arbig{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
-@media(max-width:760px){.arbig{grid-template-columns:repeat(2,1fr)}}
+.arbig5{grid-template-columns:repeat(5,1fr)}
+@media(max-width:980px){.arbig5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.arbig,.arbig5{grid-template-columns:repeat(2,1fr)}}
 .arbigb{display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:6px;padding:16px 10px;border-radius:14px;cursor:pointer;
   background:var(--panel2);border:1px solid var(--line);color:var(--tx);
@@ -425,6 +493,8 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .arbigb.rate:hover{border-color:var(--warn)}
 .arbigb.dt svg{stroke:var(--acc)}
 .arbigb.dt:hover{border-color:var(--acc)}
+.arbigb.wk svg{stroke:var(--bad)}
+.arbigb.wk:hover{border-color:var(--bad)}
 .btn svg.ico{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px}
 /* PRS の数字。整数は大きく、小数は小さく */
@@ -994,8 +1064,8 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center;
   box-shadow:0 6px 22px #0007}
 /* ★ 下の帯があるときは、その上に出します（帯の後ろに隠れないように）*/
-body.hasnav .toast{bottom:calc(var(--navh) + 18px)}
-body.hasnav.hassns .toast{bottom:calc(var(--navh) * 2 + 18px)}
+body.hasnav .toast{bottom:calc(var(--navh1, var(--navh)) + 18px)}
+body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, var(--navh)) + 18px)}
 .toast.on{opacity:1}
 .banner{background:#3a2a12;border:1px solid #6b4d1c;border-radius:10px;padding:9px 13px;
   font-size:.8rem;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -2890,7 +2960,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v124";
+const APP_VERSION = "v125";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3569,6 +3639,18 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v125":[
+    "Prime SNS の帯が、下の帯と重なることがあった不具合を修正しました",
+    "　帯の高さを実際に測って積むようにしたので、セーフエリアのある機種でも重なりません",
+    "Unlike Point（苦手度 0〜1000）を追加。正答率の低さ・解答の遅さ・久しぶりさから計算します",
+    "苦手克服モードを追加。Unlike Point の高い順に出題します",
+    "苦手克服モードは 10問きざみ。100問以上の時だけ図鑑に記録します",
+    "　100問未満だと答えを覚えてしまい、まだ苦手なのに克服したと見えてしまうためです",
+    "苦手克服モードに「先に問題を見る（予習）」を追加しました",
+    "単語帳を追加。Unlike Point の高い順に、数と素因数分解をめくって確かめられます",
+    "練習記録に、連続日数・時間帯・曜日・伸びぐあい・マイルストーンを追加しました",
+    "PRS を小数第4位まで表示するようにしました（2 → 2.0000）",
+    "出題方法の説明を詳しくし、いまどの自然数が出るのかを数値で常に表示するようにしました"],
   "v124":[
     "PRS・挑戦した回数・最高記録が 0 のまま動かなかった不具合を修正しました",
     "　原因：自分のレートを読む arena_me を「ログインしていない接続」で呼んでいたため、",
@@ -10368,6 +10450,39 @@ function navSize(){
   root.style.setProperty("--navh",   h+"px");
   return {w, ico, fs, pad, h};
 }
+/** ★ 下の帯たちの「本当の高さ」を測って、CSS に伝えます。
+    --navh は計算で出した目安なので、セーフエリア（iPhone のホームバーの帯）や
+    文字の行送りでずれます。ずれたまま Prime SNS の帯を置くと、下の帯と重なります。
+    ここで実測すれば、どの機種でも ぴたりと上に積めます。 */
+let NAV_RO=null;
+function navMeasure(){
+  const root=document.documentElement;
+  const bar=document.getElementById("navBar");
+  const sns=document.getElementById("navSns");
+  const h1=(bar&&!bar.hidden)?Math.round(bar.getBoundingClientRect().height):0;
+  const h2=(sns&&!sns.hidden)?Math.round(sns.getBoundingClientRect().height):0;
+  root.style.setProperty("--navh1", h1+"px");
+  root.style.setProperty("--navh2", h2+"px");
+  return {h1,h2};
+}
+/** 帯の大きさが変わったら、すぐ測り直します */
+function navWatch(){
+  const bar=document.getElementById("navBar");
+  const sns=document.getElementById("navSns");
+  if(typeof ResizeObserver==="function"){
+    if(!NAV_RO) NAV_RO=new ResizeObserver(()=>navMeasure());
+    else NAV_RO.disconnect();
+    if(bar) NAV_RO.observe(bar);
+    if(sns) NAV_RO.observe(sns);
+  }
+  /* 描き終わってから測ります（字の折り返しが決まったあと）*/
+  navMeasure();
+  requestAnimationFrame(()=>navMeasure());
+  setTimeout(navMeasure,120);
+  setTimeout(navMeasure,400);
+}
+addEventListener("resize",()=>{ try{ navMeasure(); }catch(e){} });
+addEventListener("orientationchange",()=>{ setTimeout(()=>{ try{ navMeasure(); }catch(e){} },250); });
 /* いま下の帯のどれを選んでいるか */
 let navNow="profile";
 /** 下の帯を作ります */
@@ -10378,6 +10493,9 @@ function navBuild(){
     const sns=$("#navSns"); if(sns) sns.remove();
     /* ★ 印を外し忘れると、上のメニューが消えたまま戻せなくなります */
     document.body.classList.remove("hasnav","hassns","phoneui");
+    const root=document.documentElement;
+    root.style.setProperty("--navh1","0px"); root.style.setProperty("--navh2","0px");
+    if(NAV_RO){ NAV_RO.disconnect(); }
     try{ navSheetClose(true); }catch(e){}
     return;
   }
@@ -10397,6 +10515,7 @@ function navBuild(){
       <i>${ICO[x.i]||""}</i><span>${esc(x.n)}</span></button>`).join("");
   bar.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>navGo(b.dataset.nav));
   navSnsBuild();
+  navWatch();
 }
 /* いま開いている、せり出しメニュー */
 let navOpenK=null;
@@ -10410,6 +10529,7 @@ function navGo(k){
     $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===k));
     const snsBar=$("#navSns"); if(snsBar) snsBar.hidden=false;
     document.body.classList.add("hassns");
+    navWatch();
     const btn=document.querySelector('#tabs button[data-tab="sns"]');
     if(btn) btn.click();
     scrollTo({top:0,behavior:"smooth"});
@@ -10470,6 +10590,7 @@ function navPick(tab,k){
   $$("#navBar [data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===navNow));
   const snsBar=$("#navSns"); if(snsBar) snsBar.hidden=true;
   document.body.classList.remove("hassns");
+  try{ navMeasure(); }catch(e){}
   const t=document.querySelector(`#tabs button[data-tab="${CSS.escape(tab)}"]`);
   if(t) t.click();
   scrollTo({top:0,behavior:"smooth"});
@@ -10528,6 +10649,7 @@ function navSnsBuild(){
     if(Math.abs(e.deltaX)<Math.abs(e.deltaY)) return;
     e.preventDefault(); navSnsSlide(e.deltaX>0?1:-1);
   },{passive:false});
+  navWatch();
 }
 /** 帯をずらします。端と端はつながっています */
 function navSnsSlide(d){
@@ -10556,10 +10678,12 @@ const K_AR="sa-arena-v1", K_ARDEX="sa-arenadex-v1", K_ARCOL="sa-arenacol-v1";
 const K_ARDAY="sa-arenaday-v1";   /* 日ごとに、何問解いたか */
 const K_ARLOG="sa-arenalog-v1";   /* 解いた1問ずつの記録 */
 /** PRS を、整数は大きく・小数は小さく出します（書体は Impact）*/
+const PRS_DIG=4;                       /* PRS は小数第4位まで出します（2 → 2.0000）*/
+const prsText=v=>Math.max(0,+v||0).toFixed(PRS_DIG);
 function prsHTML(v,size){
-  const x=Math.max(0,+v||0).toFixed(3);
+  const x=prsText(v);
   const i=x.indexOf(".");
-  const big=(size||2.4), small=big*0.56;
+  const big=(size||2.4), small=big*0.52;
   return `<span class="prsnum" style="font-size:${big}rem">${esc(x.slice(0,i))}`
     +`<span class="prsdec" style="font-size:${small}rem">${esc(x.slice(i))}</span></span>`;
 }
@@ -10574,7 +10698,8 @@ const arSaveLog=()=>{ if(arLogT) return;
     try{ localStorage.setItem(K_ARLOG,JSON.stringify(ARLOG)); }catch(e){} },600); };
 /** 1問ぶんを記録に残します（新しいものが先頭）*/
 function arLogPut(n,ok,ms,rated){
-  ARLOG.unshift({n, ok:!!ok, ms:Math.max(0,ms|0), at:Date.now(), r:rated?1:0});
+  ARLOG.unshift({n, ok:!!ok, ms:Math.max(0,ms|0), at:Date.now(), r:rated?1:0,
+    w:(ARQ&&ARQ.weak)?1:0, nr:(ARQ&&ARQ.rec===false)?1:0});
   while(ARLOG.length>4000) ARLOG.pop();
   arSaveLog();
 }
@@ -10671,15 +10796,32 @@ function arCheck(n, text){
   return {done:false};
 }
 /* ── 図鑑の成績 ── */
-function arDexOf(n){ const d=ARDEX[n]||{}; return {q:+d.q||0, ok:+d.ok||0, ms:+d.ms||0}; }
+function arDexOf(n){
+  const d=ARDEX[n]||{};
+  /* t＝最後に解いた時刻。古い記録には無いので、次に出す時刻から逆算します */
+  let t=+d.t||0;
+  if(!t&&d.due) t=(+d.due||0)-AR_IVL[Math.min(Math.max(+d.i||0,0),6)];
+  return {q:+d.q||0, ok:+d.ok||0, ms:+d.ms||0, i:+d.i||0, due:+d.due||0, t,
+          last:+d.last||0, streak:+d.streak||0};
+}
 function arDexPut(n, ok, ms){
   const d=arDexOf(n);
+  const now=Date.now();
   ARDEX[n]={q:d.q+1, ok:d.ok+(ok?1:0), ms:d.ms+(ok?Math.max(0,ms|0):0),
     /* ★ 間隔をあけて復習するための、次に出す時刻と間かく */
     i: ok?Math.min((+d.i||0)+1,6):0,
-    due: Date.now()+(ok?AR_IVL[Math.min((+d.i||0)+1,6)]:AR_IVL[0])};
+    due: now+(ok?AR_IVL[Math.min((+d.i||0)+1,6)]:AR_IVL[0]),
+    t: now,                                   /* 最後に解いた時刻 */
+    last: ok?Math.max(0,ms|0):0,              /* 最後にかかった時間（正解した時）*/
+    streak: ok?(d.streak+1):0};               /* 続けて正解した回数 */
   arSaveDex();
   arDayHit(1);
+  upBust();
+}
+/** 1問ぶんの記録。ARQ.rec が false の時は、図鑑には入れず 数だけ数えます */
+function arPut(n, ok, ms){
+  if(ARQ&&ARQ.rec===false){ arDayHit(1); return; }
+  arDexPut(n, ok, ms);
 }
 /* 記録に残すのは、呼んだ側からまとめて行います */
 /* 復習の間かく（分）。正解するほど、次に出るまでが長くなります */
@@ -10687,17 +10829,150 @@ const AR_IVL=[10*60e3, 60*60e3, 6*3600e3, 24*3600e3, 3*86400e3, 7*86400e3, 21*86
 const arRate=n=>{ const d=arDexOf(n); return d.q?(d.ok/d.q*100):null; };
 const arAvg =n=>{ const d=arDexOf(n); return d.ok?(d.ms/d.ok/1000):null; };
 
+
+/* ══════════════════════════════════════════════════════════
+   Unlike Point（UP）── どれくらい苦手かを 0〜1000 で表します
+   ──────────────────────────────────────────────────────────
+   苦手さは、次の3つから決めます。
+     A  正答率の低さ   … まちがえるほど大きい
+     T  解答の遅さ     … 正解していても、想定より時間がかかるほど大きい
+     F  久しぶりさ     … 最後に解いてから日がたつほど、少しだけ大きい
+   さらに、解いた回数が少ないうちは「まだよく分からない」ので、
+   C（たしかさ）を掛けて、決めつけないようにします。
+   ══════════════════════════════════════════════════════════ */
+const UP_A0=4;        /* 正答率をならす強さ（回） */
+const UP_P0=0.75;     /* 何も分からない時に、とりあえず置く正答率 */
+const UP_TMAX=3.0;    /* 想定の何倍まで遅さを見るか */
+const UP_TPOW=0.85;   /* 遅さのききめの曲がりぐあい */
+const UP_FDAY=30;     /* 久しぶりさが いっぱいになる日数 */
+/* ★ 3つの重み（合計はちょうど 1 ＝ 最大 1000point）。
+      「正答率の低さ」を いちばん重くしています。そうしないと
+      「当たるけれど遅い数」が「半分しか当たらない数」より苦手に見えてしまいます。 */
+const UP_WA=0.70, UP_WT=0.24, UP_WF=0.06;
+const UP_C0=0.55, UP_CK=4;                  /* たしかさの下限と、立ち上がりの速さ */
+/** その数の Unlike Point と、その内訳 */
+function upOf(n){
+  n=Math.max(2,Math.round(+n||2));
+  const d=arDexOf(n), E=arExp(n);
+  const q=d.q, ok=d.ok;
+  /* A：正答率の低さ。少ない回数で決めつけないよう、ならしてから見ます */
+  const acc=(ok+UP_A0*UP_P0)/(q+UP_A0);
+  const A=Math.min(1,Math.max(0,1-acc));
+  /* T：遅さ。正解した時の平均を、想定秒数とくらべます */
+  let rho=null, T;
+  if(ok>0){
+    const avg=(d.ms/ok)/1000;
+    rho=avg/Math.max(0.2,E);
+    T=Math.pow(Math.min(1,Math.max(0,(rho-1)/(UP_TMAX-1))),UP_TPOW);
+  }else{
+    T=1;                        /* 一度も正解していないなら、いちばん遅いのと同じ扱い */
+  }
+  /* F：久しぶりさ */
+  const days=d.t?Math.max(0,(Date.now()-d.t)/86400000):0;
+  const F=d.t?Math.min(1,days/UP_FDAY):0;
+  /* C：たしかさ */
+  const C=UP_C0+(1-UP_C0)*(1-Math.exp(-q/UP_CK));
+  const raw=(UP_WA*A+UP_WT*T+UP_WF*F)*C;
+  const up=Math.min(1000,Math.max(0,raw*1000));
+  return {n, up, A, T, F, C, acc, rho, days, q, ok, E,
+          avg: ok?(d.ms/ok/1000):null, seen:q>0};
+}
+const upPoint=n=>upOf(n).up;
+/** UP の高さを、言葉と色にします */
+function upBand(up){
+  if(up>=700) return {k:"vh", n:"かなり苦手", c:"var(--bad)"};
+  if(up>=500) return {k:"h",  n:"苦手",       c:"var(--warn)"};
+  if(up>=300) return {k:"m",  n:"あと少し",   c:"var(--acc)"};
+  if(up>=150) return {k:"l",  n:"だいたい大丈夫", c:"var(--acc2)"};
+  return {k:"vl", n:"得意", c:"var(--acc2)"};
+}
+let UP_REV=0;                          /* 図鑑が変わるたびに1つ増やして、作り置きを捨てます */
+/** まだ一度も解いていない数の UP。どの数でも同じ値になります */
+function upNew(){
+  return (UP_WA*(1-UP_P0) + UP_WT*1) * UP_C0 * 1000;
+}
+/** 出題できる範囲の中で、解いたことのある数を UP の高い順に並べます。
+    ★ まだ解いていない数は、どれも同じ UP なので、いちいち並べず個数だけ数えます
+       （出題上限が 100,000 でも重くなりません）。 */
+let UP_CACHE={key:"", at:0, rows:[], sum:null};
+function upRank(max, opt){
+  opt=opt||{};
+  const mx=Math.max(2,Math.round(max||arMax()));
+  const lo=Math.max(2,opt.lo||2);
+  const key=lo+"|"+mx+"|"+Object.keys(ARDEX).length+"|"+UP_REV;
+  if(UP_CACHE.key===key && Date.now()-UP_CACHE.at<15000) return UP_CACHE;
+  const rows=[];
+  let sum=0;
+  Object.keys(ARDEX).forEach(k=>{
+    const v=+k;
+    if(!(v>=lo&&v<=mx)) return;
+    const r=upOf(v);
+    if(!r.q) return;
+    rows.push({n:v, up:r.up, q:r.q, ok:r.ok, acc:r.acc, avg:r.avg, rho:r.rho,
+               E:r.E, A:r.A, T:r.T, F:r.F, C:r.C, seen:true});
+    sum+=r.up;
+  });
+  rows.sort((a,b)=>(b.up-a.up)||(a.n-b.n));
+  const seen=rows.length;
+  const all=Math.max(0,mx-lo+1);
+  const none=Math.max(0,all-seen);
+  const nu=upNew();
+  UP_CACHE={key, at:Date.now(), rows,
+    sum:{all, seen, none, newUp:nu,
+         avgSeen: seen?sum/seen:0,
+         avgAll: all?((sum+none*nu)/all):0,
+         vh: rows.filter(r=>r.up>=700).length,
+         h:  rows.filter(r=>r.up>=500&&r.up<700).length,
+         m:  rows.filter(r=>r.up>=300&&r.up<500).length,
+         l:  rows.filter(r=>r.up>=150&&r.up<300).length,
+         vl: rows.filter(r=>r.up<150).length,
+         weak: rows.filter(r=>r.up>=500).length,
+         top: rows.slice(0,10)}};
+  return UP_CACHE;
+}
+/** 苦手な順に、問題を qn 個えらびます */
+function arWeakPlan(qn, opt){
+  opt=opt||{};
+  const mx=arMax();
+  const R=upRank(mx);
+  const out=R.rows.filter(r=>opt.minUp?r.up>=opt.minUp:true).slice(0,qn).map(r=>r.n);
+  /* 足りないぶんは、まだ解いていない数から足します（どれも同じ UP なので でたらめに）*/
+  if(out.length<qn && opt.addNew!==false){
+    const have=new Set(out.concat(Object.keys(ARDEX).map(Number)));
+    let guard=0;
+    while(out.length<qn && guard++<qn*400){
+      const v=2+Math.floor(Math.random()*(mx-1));
+      if(!have.has(v)){ have.add(v); out.push(v); }
+    }
+  }
+  return out;
+}
+const upBust=()=>{ UP_REV++; UP_CACHE.key=""; };
 /* ── 出題の選び方 ── */
 /* ★ 覚えるのに効く出し方を足しました。
    ・復習：間違えた数を少しあとで、覚えた数はずっとあとで出します
      （間かくをあけて思い出すのが、いちばん記憶に残る方法です）
    ・だんだん：できたら少しずつ大きい数へ、間違えたら小さい数へ戻ります */
-const AR_MODES=[["random","ランダム","出題できる数の中から、でたらめに出します"],
-                ["review","復習","間違えた数は少しあとで、覚えた数はずっとあとで出します。いちばん記憶に残ります"],
-                ["ladder","だんだん","できたら少しずつ大きい数へ、間違えたら小さい数へ戻ります"],
-                ["new","ニューナンバー","まだ出したことのない数を先に出します"],
-                ["weak","苦手","正答率の低い数・時間のかかる数を先に出します"],
-                ["limit","縛り","はんいを自分で決めて出します"]];
+const AR_MODES=[
+ ["random","ランダム",
+  "出題できる数の中から、まったくでたらめに1つ選びます。どの数も同じ確率です"],
+ ["review","復習",
+  "1問ごとに「次にいつ出すか」を決めておき、その時刻が来た数から出します。"
+ +"まちがえた数は10分後、正解するたびに 1時間 → 6時間 → 1日 → 3日 → 7日 → 21日 と間かくがのびます。"
+ +"出す時刻が来た数のうち、時刻の古い方から3割を候補にして、その中からでたらめに選びます。"
+ +"時刻が来た数が1つも無ければ、まだ出していない数を出します"],
+ ["ladder","だんだん",
+  "「足場」という数を1つ持っていて、その足場の 0.6倍 〜 足場 の間から出します。"
+ +"正解すると足場が 1.12倍＋6 に上がり、まちがえると 0.85倍に下がります。"
+ +"解けるぎりぎりの大きさが続くので、少しずつ上を目指せます"],
+ ["new","ニューナンバー",
+  "出題回数がいちばん少ない数から出します。回数が同じ数どうしは でたらめに選びます。"
+ +"はじめは「まだ1度も出していない数」ばかりが出ます"],
+ ["weak","苦手",
+  "Unlike Point（苦手度 0〜1000）の高い順に並べ、上位 12%（多くても40個）の中から、"
+ +"前にあるものほど出やすくなるように選びます。まとめて挑戦したい時は「苦手克服」ボタンからどうぞ"],
+ ["limit","縛り",
+  "出す数の下限と上限を自分で決めます。決めた範囲の中からでたらめに出します"]];
 let arMode="random", arLimLo=2, arLimHi=999;
 let arLadder=0;                 /* だんだんモードの、いまの高さ */
 /** 次の問題を選びます */
@@ -10751,23 +11026,407 @@ function arPick(max, used){
     }
     return rnd();
   }
-  /* 苦手：正答率が低い順、同じなら時間のかかる順。出したことのない数は後まわし */
-  const list=[];
-  for(let v=lo; v<=N; v++){
-    if(used&&used.has(v)) continue;
-    const d=arDexOf(v);
-    if(!d.q) continue;
-    const r=d.ok/d.q;
-    list.push({v, r, t:d.ok?(d.ms/d.ok):999999});
-  }
+  /* 苦手：Unlike Point の高い順。前にあるものほど出やすくします */
+  const R=upRank(N,{lo});
+  const list=R.rows.filter(r=>!(used&&used.has(r.n)));
   if(!list.length) return rnd();
-  list.sort((a,b)=>(a.r-b.r)||(b.t-a.t));
-  /* いちばん苦手なものから、多くても40個。
-     前にあるものほど出やすくなるように、偏らせて選びます */
-  const k=Math.max(1,Math.min(40,Math.ceil(list.length*0.1)));
+  const k=Math.max(1,Math.min(40,Math.ceil(list.length*0.12)));
   const top=list.slice(0,k);
   const r=Math.random();
-  return top[Math.min(top.length-1,Math.floor(r*r*top.length))].v;
+  return top[Math.min(top.length-1,Math.floor(r*r*top.length))].n;
+}
+
+
+
+/** ★ いま その出しかたで「どんな自然数が出るのか」を、実際の数で説明します。
+    練習を始める前にも、遊んでいる最中にも、同じ説明を出します。 */
+function arRangeInfo(mode, max){
+  mode=mode||arMode;
+  const mx=Math.max(2,Math.round(max||arMax()));
+  const lo=(mode==="limit")?Math.max(2,arLimLo):2;
+  const hi=(mode==="limit")?Math.min(mx,arLimHi):mx;
+  const all=Math.max(0,hi-lo+1);
+  const now=Date.now();
+  const ks=Object.keys(ARDEX).map(Number).filter(v=>v>=lo&&v<=hi);
+  const seen=ks.length, none=Math.max(0,all-seen);
+  if(mode==="random")
+    return {head:`${jp(lo)} 〜 ${jp(hi)} の ${jp(all)} 個から、でたらめに1つ`,
+      rows:[["出題できる数",`${jp(lo)} 〜 ${jp(hi)}`],
+            ["候補の個数",`${jp(all)} 個`],
+            ["1つの数が出る確率",`${(100/Math.max(1,all)).toFixed(4)} %`],
+            ["解いたことのある数",`${jp(seen)} 個（未挑戦 ${jp(none)} 個）`]]};
+  if(mode==="limit")
+    return {head:`${jp(lo)} 〜 ${jp(hi)} の ${jp(all)} 個だけ`,
+      rows:[["決めた範囲",`${jp(arLimLo)} 〜 ${jp(arLimHi)}`],
+            ["実際に出る範囲",`${jp(lo)} 〜 ${jp(hi)}（出題上限 ${jp(mx)} で切ります）`],
+            ["候補の個数",`${jp(all)} 個`],
+            ["解いたことのある数",`${jp(seen)} 個（未挑戦 ${jp(none)} 個）`]]};
+  if(mode==="new"){
+    let minQ=Infinity, cnt0=none;
+    ks.forEach(v=>{ const q=arDexOf(v).q; if(q<minQ) minQ=q; });
+    if(none>0) minQ=0;
+    const same=(minQ===0)?none:ks.filter(v=>arDexOf(v).q===minQ).length;
+    return {head: none>0
+        ? `まだ1度も出していない ${jp(none)} 個から`
+        : `いちばん出題回数の少ない（${jp(minQ)}回の）${jp(same)} 個から`,
+      rows:[["いまの最小出題回数",`${jp(minQ===Infinity?0:minQ)} 回`],
+            ["その回数の数",`${jp(same)} 個`],
+            ["未挑戦の数",`${jp(none)} 個 / ${jp(all)} 個`],
+            ["進みぐあい",`${((seen/Math.max(1,all))*100).toFixed(2)} % を1度は解きました`]]};
+  }
+  if(mode==="review"){
+    let due=0, nextAt=Infinity;
+    ks.forEach(v=>{ const d=arDexOf(v); if(!d.q) return;
+      if((d.due||0)<=now) due++; else if(d.due<nextAt) nextAt=d.due; });
+    const top=ks.filter(v=>{const d=arDexOf(v);return d.q&&(d.due||0)<=now;})
+      .sort((a,b)=>arDexOf(a).due-arDexOf(b).due);
+    const pool=Math.max(1,Math.ceil(due*0.3));
+    const wait=isFinite(nextAt)?Math.max(0,nextAt-now):null;
+    const fmt=ms=>{ const m=Math.round(ms/60000);
+      if(m<60) return m+"分後"; const h=Math.round(m/60);
+      return h<24?(h+"時間後"):(Math.round(h/24)+"日後"); };
+    return {head: due>0
+        ? `出す時刻が来た ${jp(due)} 個のうち、古い方から ${jp(pool)} 個の中から`
+        : (none>0 ? `時刻が来た数はまだ0個。まだ出していない ${jp(none)} 個から`
+                  : `時刻が来た数も 未挑戦の数もありません。でたらめに出します`),
+      rows:[["出す時刻が来た数",`${jp(due)} 個`],
+            ["そのうち候補になる数",`古い方から ${jp(pool)} 個（3割）`],
+            ["次に時刻が来るまで", wait==null?"—":fmt(wait)],
+            ["待っている数",`${jp(Math.max(0,seen-due))} 個`],
+            ["未挑戦の数",`${jp(none)} 個`],
+            ["いま先頭にある数", top.length?top.slice(0,6).map(jp).join("、"):"—"]]};
+  }
+  if(mode==="ladder"){
+    const base=(arLadder>=lo)?arLadder:lo;
+    const hi2=Math.min(hi,Math.max(lo+20,Math.round(base)));
+    const lo2=Math.max(lo,Math.round(hi2*0.6));
+    return {head:`いまの足場 ${jp(Math.round(base))} → ${jp(lo2)} 〜 ${jp(hi2)} の ${jp(hi2-lo2+1)} 個から`,
+      rows:[["いまの足場",`${jp(Math.round(base))}`],
+            ["出る範囲",`${jp(lo2)} 〜 ${jp(hi2)}（足場の 0.6倍 〜 足場）`],
+            ["候補の個数",`${jp(hi2-lo2+1)} 個`],
+            ["正解したら",`足場は ${jp(Math.min(hi,Math.round(base*1.12+6)))} に上がります`],
+            ["まちがえたら",`足場は ${jp(Math.max(lo,Math.round(base*0.85)))} に下がります`],
+            ["上限",`${jp(hi)}（PRS を上げると広がります）`]]};
+  }
+  /* 苦手 */
+  const R=upRank(hi,{lo}), S=R.sum;
+  const k=Math.max(1,Math.min(40,Math.ceil(R.rows.length*0.12)));
+  const top=R.rows.slice(0,k);
+  return {head: R.rows.length
+      ? `Unlike Point の高い順に ${jp(k)} 個（${top[top.length-1].up.toFixed(0)} 〜 ${top[0].up.toFixed(0)}point）の中から`
+      : "まだ1問も解いていないので、苦手が分かりません。でたらめに出します",
+    rows:[["候補になる数",`上位 ${jp(k)} 個（解答済み ${jp(S.seen)} 個の 12%）`],
+          ["候補の Unlike Point", top.length?`${top[top.length-1].up.toFixed(1)} 〜 ${top[0].up.toFixed(1)}`:"—"],
+          ["かなり苦手（700以上）",`${jp(S.vh)} 個`],
+          ["苦手（500〜699）",`${jp(S.h)} 個`],
+          ["平均 Unlike Point",`${S.avgSeen.toFixed(1)}（解答済みの数だけで）`],
+          ["いちばん苦手な数", top.length?top.slice(0,6).map(r=>`${jp(r.n)}(${r.up.toFixed(0)})`).join("、"):"—"]]};
+}
+/** 上の説明を、画面に出す形にします */
+function arRangeHTML(mode,max,compact){
+  const info=arRangeInfo(mode,max);
+  const name=(AR_MODES.find(x=>x[0]===(mode||arMode))||[])[1]||"";
+  if(compact) return `<b style="color:var(--acc2)">${esc(name)}</b>　${esc(info.head)}`;
+  return `<div class="rangebox">
+    <div class="rgh"><b style="color:var(--acc2)">${esc(name)}</b>　いま出るのは：
+      <b>${esc(info.head)}</b></div>
+    <table class="rgt"><tbody>${info.rows.map(([a,b])=>
+      `<tr><td>${esc(a)}</td><td class="n">${b}</td></tr>`).join("")}</tbody></table>
+  </div>`;
+}
+/* ══════════════════════════════════════════════════════════
+   苦手克服モード
+   ──────────────────────────────────────────────────────────
+   ・Unlike Point の高い順に出題します
+   ・「先に問題を見る（予習）」で、出る問題を前もって確かめられます
+   ・問題数は 10問きざみ
+   ・★ 100問未満は、図鑑の正解数・解答時間に記録しません
+     （少ない問題数だと答えを覚えてしまい、まだ苦手なのに
+       「克服した」と見えてしまうためです）
+   ══════════════════════════════════════════════════════════ */
+const WK_MIN_REC=100;                 /* これ以上なら図鑑に記録します */
+let wkQn=50, wkPre=true, wkNew=false;
+function arWeakShow(){
+  const mx=arMax();
+  const R=upRank(mx);
+  const S=R.sum;
+  const M=modal(`<h2>苦手克服モード</h2><div id="wkBody"></div>`,{w:820});
+  const draw=()=>{
+    const plan=arWeakPlan(wkQn,{addNew:wkNew});
+    const ups=plan.map(n=>upOf(n).up);
+    const avg=ups.length?ups.reduce((a,b)=>a+b,0)/ups.length:0;
+    const rec=wkQn>=WK_MIN_REC;
+    M.q("#wkBody").innerHTML=`
+      <p class="muted" style="margin-top:-6px">
+        いま <b>Unlike Point</b> の高い自然数から順に出題します。
+        Unlike Point は「どれくらい苦手か」を 0〜1000 で表した数です。</p>
+
+      <h3>いまの苦手のようす</h3>
+      <div class="lsgrid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="lsbox"><div class="t">かなり苦手（700以上）</div>
+          <div class="v" style="font-size:1.6rem;color:var(--bad)">${jp(S.vh)}</div>
+          <div class="s">個</div></div>
+        <div class="lsbox"><div class="t">苦手（500〜699）</div>
+          <div class="v" style="font-size:1.6rem;color:var(--warn)">${jp(S.h)}</div>
+          <div class="s">個</div></div>
+        <div class="lsbox"><div class="t">解いたことのある数</div>
+          <div class="v" style="font-size:1.6rem">${jp(S.seen)}</div>
+          <div class="s">未挑戦 ${jp(S.none)} 個</div></div>
+        <div class="lsbox"><div class="t">平均 Unlike Point</div>
+          <div class="v" style="font-size:1.6rem">${S.avgSeen.toFixed(1)}</div>
+          <div class="s">解いたことのある数だけで</div></div>
+      </div>
+      <div class="upbar" title="Unlike Point ごとの数の割合">
+        ${[["vh",S.vh,"var(--bad)","700以上"],["h",S.h,"var(--warn)","500〜699"],
+           ["m",S.m,"var(--acc)","300〜499"],["l",S.l,"#5b8def","150〜299"],
+           ["vl",S.vl,"var(--acc2)","150未満"]].map(([k,v,c,t])=>
+          v?`<i style="flex:${v};background:${c}" title="${t}：${jp(v)}個"></i>`:"").join("")||
+          '<i style="flex:1;background:var(--line)"></i>'}
+      </div>
+      <p class="tiny" style="color:var(--dim2)">
+        ${S.seen?`いちばん苦手な数：${S.top.slice(0,5).map(r=>
+            `<b>${jp(r.n)}</b>(${r.up.toFixed(0)})`).join("　")}`
+          :"まだ1問も解いていないので、苦手はまだ分かりません。まず「練習する」をどうぞ。"}</p>
+
+      <h3 style="margin-top:14px">問題数（10問きざみ）</h3>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn sm" id="wkM">−10</button>
+        <input type="range" id="wkR" min="10" max="200" step="10" value="${wkQn}" style="flex:1">
+        <button class="btn sm" id="wkP">＋10</button>
+        <b style="min-width:70px;text-align:right;font-size:1.3rem">${jp(wkQn)} 問</b>
+      </div>
+      <div class="hintbox" style="border-color:${rec?"var(--acc2)":"var(--warn)"}">
+        <b style="color:${rec?"var(--acc2)":"var(--warn)"}">
+          ${rec?"図鑑の正解数・解答時間に記録します":"図鑑には記録しません（練習だけ）"}</b><br>
+        <span class="tiny">
+          ${rec
+            ? `${jp(WK_MIN_REC)}問以上なので、この回の正誤と解答時間は図鑑に反映され、Unlike Point も更新されます。`
+            : `${jp(WK_MIN_REC)}問未満だと、出た答えをその場で覚えてしまいます。
+               それを正答率や解答時間に入れると、まだ苦手なのに「克服した」と見えてしまうので、
+               <b>図鑑には記録しません</b>。あと <b>${jp(WK_MIN_REC-wkQn)}問</b>増やすと記録されます。`}
+          <br>どちらの場合も、練習記録の「解答した問題数」には数えます。</span>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><b>先に問題を見る（予習）</b>
+          <div class="tiny" id="wkPreN"></div></div>
+        <div class="toggle" style="margin-left:auto">
+          <button id="wkPreOff" class="${wkPre?"":"on"}">すぐ始める</button>
+          <button id="wkPreOn" class="${wkPre?"on":""}">先に見る</button></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div><b>まだ解いたことのない数も混ぜる</b>
+          <div class="tiny" id="wkNewN"></div></div>
+        <div class="toggle" style="margin-left:auto">
+          <button id="wkNewOff" class="${wkNew?"":"on"}">混ぜない</button>
+          <button id="wkNewOn" class="${wkNew?"on":""}">混ぜる</button></div>
+      </div>
+      <h3 style="margin-top:14px">この回に出る ${jp(plan.length)} 問</h3>
+      <p class="tiny" style="color:var(--dim2)">
+        Unlike Point の高い順です。平均 <b>${avg.toFixed(1)}</b>　
+        いちばん高い <b>${ups.length?ups[0].toFixed(1):"—"}</b>　
+        いちばん低い <b>${ups.length?ups[ups.length-1].toFixed(1):"—"}</b></p>
+      <div class="scroll" style="max-height:28vh"><table><thead><tr>
+        <th>#</th><th>数</th><th class="n">UP</th><th>ようす</th>
+        <th class="n">正答率</th><th class="n">平均時間</th><th class="n">想定</th>
+        </tr></thead><tbody>
+        ${plan.map((n,i)=>{ const r=upOf(n), b=upBand(r.up);
+          return `<tr data-wkn="${n}" style="cursor:pointer">
+            <td class="tiny">${i+1}</td><td><b>${jp(n)}</b></td>
+            <td class="n"><b style="color:${b.c}">${r.up.toFixed(1)}</b></td>
+            <td class="tiny" style="color:${b.c}">${b.n}</td>
+            <td class="n tiny">${r.q?((r.ok/r.q)*100).toFixed(0)+"%":"—"}
+              <span style="color:var(--dim2)">(${jp(r.ok)}/${jp(r.q)})</span></td>
+            <td class="n tiny">${r.avg!=null?r.avg.toFixed(2)+"秒":"—"}</td>
+            <td class="n tiny" style="color:var(--dim2)">${r.E.toFixed(2)}秒</td>
+          </tr>`; }).join("")||`<tr><td colspan="7" class="tiny">出す問題がありません</td></tr>`}
+      </tbody></table></div>
+      <div class="tools">
+        <button class="btn pri" id="wkGo" ${plan.length?"":"disabled"}>
+          ${wkPre?"予習してから始める":"始める"}</button>
+        <button class="btn" id="wkCard">単語帳で見る</button>
+        <button class="btn" id="wkWhy">Unlike Point とは</button>
+        <button class="btn" id="wkX">閉じる</button></div>`;
+    M.q("#wkPreN").textContent=wkPre
+      ? "出る問題と答えを先に一覧で見せます。見終わってから出題が始まります"
+      : "予習なしで、すぐ1問目が出ます";
+    M.q("#wkNewN").textContent=wkNew
+      ? "苦手な数が足りない時、まだ解いたことのない数で埋めます"
+      : "解いたことのある数だけから出します（本当の苦手だけを狙います）";
+    const set=v=>{ wkQn=Math.min(200,Math.max(10,Math.round(v/10)*10)); draw(); };
+    M.q("#wkR").oninput=e=>set(+e.target.value||10);
+    M.q("#wkM").onclick=()=>set(wkQn-10);
+    M.q("#wkP").onclick=()=>set(wkQn+10);
+    M.q("#wkPreOn").onclick=()=>{ wkPre=true; draw(); };
+    M.q("#wkPreOff").onclick=()=>{ wkPre=false; draw(); };
+    M.q("#wkNewOn").onclick=()=>{ wkNew=true; draw(); };
+    M.q("#wkNewOff").onclick=()=>{ wkNew=false; draw(); };
+    M.q("#wkX").onclick=M.close;
+    M.q("#wkCard").onclick=()=>arCardShow();
+    M.q("#wkWhy").onclick=upHelpShow;
+    M.qa("[data-wkn]").forEach(r=>r.onclick=()=>arNumShow(+r.dataset.wkn));
+    const go=M.q("#wkGo");
+    if(go) go.onclick=()=>{
+      M.close();
+      if(wkPre) arWeakPre(plan);
+      else arWeakStart(plan);
+    };
+  };
+  draw();
+}
+/** 予習：出る問題と答えを、先に見せます */
+function arWeakPre(plan){
+  let i=0;
+  const M=modal(`<h2>予習　<span class="tiny">この回に出る ${jp(plan.length)} 問</span></h2>
+    <div id="wkPreBody"></div>`,{w:820});
+  const draw=()=>{
+    M.q("#wkPreBody").innerHTML=`
+      <div class="hintbox" style="margin-top:0"><span class="tiny">
+        出る問題と答えを、先に全部お見せします。よく見て覚えてから始めてください。<br>
+        ${plan.length>=WK_MIN_REC
+          ? `この回は <b>${jp(plan.length)}問</b>なので、結果は図鑑に記録されます。`
+          : `この回は ${jp(plan.length)}問なので、<b>図鑑には記録しません</b>。`}</span></div>
+      <div class="wkpre">
+        ${plan.map((n,k)=>{ const r=upOf(n), b=upBand(r.up);
+          return `<div class="wkcell" data-wkn="${n}">
+            <div class="wkq"><b>${jp(n)}</b><span style="color:${b.c}">${r.up.toFixed(0)}</span></div>
+            <div class="wka">${esc(arFacText(n))}</div></div>`; }).join("")}
+      </div>
+      <div class="tools">
+        <button class="btn pri" id="wkPreGo">覚えた。始める</button>
+        <button class="btn" id="wkPreBack">やめる</button></div>`;
+    M.qa("[data-wkn]").forEach(c=>c.onclick=()=>arNumShow(+c.dataset.wkn));
+    M.q("#wkPreGo").onclick=()=>{ M.close(); arWeakStart(plan); };
+    M.q("#wkPreBack").onclick=M.close;
+  };
+  draw();
+}
+/** 苦手克服モードを始めます */
+function arWeakStart(plan){
+  const rec=plan.length>=WK_MIN_REC;
+  arMode="weak";
+  arStart(false, plan.length, {plan:plan.slice(), weak:true, rec});
+}
+
+/** Unlike Point の説明 */
+function upHelpShow(){
+  const R=upRank(arMax()), S=R.sum;
+  const M=modal(`<h2>Unlike Point とは</h2>
+    <p class="muted" style="margin-top:-6px">
+      「その数がどれくらい苦手か」を <b>0point（得意）〜 1000point（いちばん苦手）</b>で表したものです。</p>
+    <h3>やさしい説明</h3>
+    <div class="hintbox"><span class="tiny">
+      苦手さは、次の3つで決まります。<br>
+      <b>① まちがえやすさ</b>（重み 70%）… 正答率が低いほど大きくなります<br>
+      <b>② 遅さ</b>（重み 24%）… 正解していても、その数の<b>想定時間</b>より時間がかかるほど大きくなります。
+        想定どおりなら0、想定の3倍かかると満点です<br>
+      <b>③ 久しぶりさ</b>（重み 6%）… 最後に解いてから日がたつほど、少しだけ大きくなります（30日で満点）<br><br>
+      さらに、<b>解いた回数が少ないうちは決めつけません</b>。
+      1回しかやっていない数は、3つの合計を 0.55倍に弱めます。
+      何回もやるほど 1.00倍に近づいて、本当の苦手さが出てきます。</span></div>
+    <h3>式</h3>
+    <div class="mathb">â = (正解数 + ${UP_A0}×${UP_P0}) ／ (出題数 + ${UP_A0})　　A = 1 − â</div>
+    <div class="mathb">ρ = 平均解答時間 ÷ E(n)　　T = clip((ρ−1)/${(UP_TMAX-1).toFixed(1)}, 0, 1)<sup>${UP_TPOW}</sup></div>
+    <div class="mathb">F = clip(最後に解いてからの日数 ÷ ${UP_FDAY}, 0, 1)</div>
+    <div class="mathb">C = ${UP_C0} + ${(1-UP_C0).toFixed(2)}·(1 − e<sup>−出題数/${UP_CK}</sup>)</div>
+    <div class="mathb"><b>UP = 1000 × ( ${UP_WA}·A + ${UP_WT}·T + ${UP_WF}·F ) × C</b></div>
+    <div class="latex"><code>\hat a=\frac{c+\alpha p_0}{q+\alpha},\quad A=1-\hat a,\quad
+\rho=\frac{\bar t}{E(n)},\quad T=\mathrm{clip}\!\left(\tfrac{\rho-1}{2},0,1\right)^{0.85}</code><br>
+<code>F=\mathrm{clip}\!\left(\tfrac{\Delta d}{30},0,1\right),\quad
+C=c_0+(1-c_0)\left(1-e^{-q/k}\right)</code><br>
+<code>\mathrm{UP}=1000\,(w_A A+w_T T+w_F F)\,C,\qquad w_A+w_T+w_F=1</code></div>
+    <p class="tiny" style="color:var(--dim2)">
+      重みの合計がちょうど 1 なので、A・T・F がすべて満点で、しかも何度も解いている（C=1）時に
+      ぴったり <b>1000point</b> になります。E(n) はレートモードと同じ「想定解答時間」です
+      （打鍵数と最大素因数から決まるので、8 も 8192 も公平に比べられます）。</p>
+    <h3>目安</h3>
+    <div class="scroll"><table><thead><tr><th>Unlike Point</th><th>ようす</th><th class="n">いまの個数</th></tr></thead><tbody>
+      <tr><td><b style="color:var(--bad)">700 〜 1000</b></td><td class="tiny">かなり苦手。まず ここから</td><td class="n">${jp(S.vh)}</td></tr>
+      <tr><td><b style="color:var(--warn)">500 〜 699</b></td><td class="tiny">苦手</td><td class="n">${jp(S.h)}</td></tr>
+      <tr><td><b style="color:var(--acc)">300 〜 499</b></td><td class="tiny">あと少し</td><td class="n">${jp(S.m)}</td></tr>
+      <tr><td><b style="color:#5b8def">150 〜 299</b></td><td class="tiny">だいたい大丈夫</td><td class="n">${jp(S.l)}</td></tr>
+      <tr><td><b style="color:var(--acc2)">0 〜 149</b></td><td class="tiny">得意</td><td class="n">${jp(S.vl)}</td></tr>
+      <tr class="used"><td><b>まだ解いていない数</b></td><td class="tiny">どれも同じ ${S.newUp.toFixed(1)}point です</td><td class="n">${jp(S.none)}</td></tr>
+    </tbody></table></div>
+    <div class="tools"><button class="btn" id="upX">閉じる</button></div>`,{w:820});
+  M.q("#upX").onclick=M.close;
+}
+
+/** 単語帳：Unlike Point の高い順に、めくって確かめます */
+let arCardI=0, arCardFlip=false, arCardFil="all";
+function arCardShow(){
+  const M=modal(`<h2>単語帳　<span class="tiny">Unlike Point の高い順</span></h2>
+    <div id="acBody"></div>
+    <div class="tools"><button class="btn" id="acX">閉じる</button></div>`,{w:700});
+  M.q("#acX").onclick=M.close;
+  const draw=()=>{
+    const R=upRank(arMax());
+    let rows=R.rows;
+    if(arCardFil==="weak") rows=rows.filter(r=>r.up>=500);
+    else if(arCardFil==="mid") rows=rows.filter(r=>r.up>=300&&r.up<500);
+    else if(arCardFil==="ng") rows=rows.filter(r=>r.ok<r.q);
+    if(!rows.length){
+      M.q("#acBody").innerHTML=`
+        ${filHTML()}
+        <p class="muted">あてはまる数がありません。まず「練習する」で何問か解いてみてください。</p>`;
+      wire(); return;
+    }
+    arCardI=Math.min(Math.max(0,arCardI),rows.length-1);
+    const r=rows[arCardI], b=upBand(r.up), u=upOf(r.n);
+    M.q("#acBody").innerHTML=`
+      ${filHTML()}
+      <div class="accard ${arCardFlip?"flip":""}" id="acCard">
+        <div class="acfront">
+          <div class="act">${jp(arCardI+1)} / ${jp(rows.length)}　
+            <b style="color:${b.c}">UP ${r.up.toFixed(1)}　${b.n}</b></div>
+          <div class="acn">${jp(r.n)}</div>
+          <div class="acs">押すと答えが出ます</div>
+        </div>
+        <div class="acback">
+          <div class="act">${jp(r.n)} の素因数分解</div>
+          <div class="aca">${esc(arFacText(r.n))}</div>
+          <div class="acs">押すと数にもどります</div>
+        </div>
+      </div>
+      <div class="lsgrid" style="grid-template-columns:repeat(4,1fr);margin-top:10px">
+        <div class="lsbox"><div class="t">正答率</div>
+          <div class="v" style="font-size:1.4rem">${r.q?((r.ok/r.q)*100).toFixed(1)+"%":"—"}</div>
+          <div class="s">${jp(r.ok)} / ${jp(r.q)} 問</div></div>
+        <div class="lsbox"><div class="t">平均解答時間</div>
+          <div class="v" style="font-size:1.4rem">${r.avg!=null?r.avg.toFixed(2):"—"}</div>
+          <div class="s">想定 ${r.E.toFixed(2)} 秒</div></div>
+        <div class="lsbox"><div class="t">想定との比</div>
+          <div class="v" style="font-size:1.4rem">${r.rho!=null?r.rho.toFixed(2)+"倍":"—"}</div>
+          <div class="s">1.00倍なら想定どおり</div></div>
+        <div class="lsbox"><div class="t">内訳</div>
+          <div class="v" style="font-size:1rem">A ${u.A.toFixed(2)}／T ${u.T.toFixed(2)}／F ${u.F.toFixed(2)}</div>
+          <div class="s">たしかさ C ${u.C.toFixed(2)}</div></div>
+      </div>
+      <div class="tools" style="justify-content:center">
+        <button class="btn" id="acPrev">← 前</button>
+        <button class="btn pri" id="acFlip">${arCardFlip?"数にもどす":"答えを見る"}</button>
+        <button class="btn" id="acNext">次 →</button>
+        <button class="btn sm" id="acDetail">詳しく</button>
+      </div>`;
+    wire(rows);
+  };
+  const filHTML=()=>`<div class="segs" id="acFil" style="grid-template-columns:repeat(4,1fr)">
+      <button data-acf="all"  class="${arCardFil==="all"?"on":""}">全部</button>
+      <button data-acf="weak" class="${arCardFil==="weak"?"on":""}">苦手（500以上）</button>
+      <button data-acf="mid"  class="${arCardFil==="mid"?"on":""}">あと少し</button>
+      <button data-acf="ng"   class="${arCardFil==="ng"?"on":""}">まちがえた数</button>
+    </div>`;
+  const wire=(rows)=>{
+    M.qa("[data-acf]").forEach(b=>b.onclick=()=>{
+      arCardFil=b.dataset.acf; arCardI=0; arCardFlip=false; draw(); });
+    if(!rows) return;
+    const c=M.q("#acCard");
+    if(c) c.onclick=()=>{ arCardFlip=!arCardFlip; draw(); };
+    M.q("#acFlip").onclick=()=>{ arCardFlip=!arCardFlip; draw(); };
+    M.q("#acPrev").onclick=()=>{ arCardI=(arCardI-1+rows.length)%rows.length; arCardFlip=false; draw(); };
+    M.q("#acNext").onclick=()=>{ arCardI=(arCardI+1)%rows.length; arCardFlip=false; draw(); };
+    M.q("#acDetail").onclick=()=>arNumShow(rows[arCardI].n);
+  };
+  draw();
 }
 
 /* ══════════ アリーナ：図鑑 ══════════ */
@@ -10969,8 +11628,84 @@ function arGate(after){
 }
 
 /* ══════════ アリーナ：練習した数 ══════════ */
+/* ══════════════════════════════════════════════════════════
+   練習記録：解いた数の分析とマイルストーン
+   ══════════════════════════════════════════════════════════ */
+/** 日付の文字を1日ずらします */
+function arDayShift(k,d){
+  const t=new Date(k+"T00:00:00+09:00"); t.setDate(t.getDate()+d);
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+}
+/** 解いた数のくわしい分析 */
+function arAnalyze(){
+  const today=hsDay();
+  const keys=Object.keys(ARDAY).filter(k=>(+ARDAY[k]||0)>0).sort();
+  const all=keys.reduce((a,k)=>a+(+ARDAY[k]||0),0);
+  const days=keys.length;
+  /* 連続日数（今日か昨日から さかのぼります）*/
+  let cur=0, probe=(+ARDAY[today]||0)>0?today:arDayShift(today,-1);
+  while((+ARDAY[probe]||0)>0){ cur++; probe=arDayShift(probe,-1); }
+  /* いちばん長く続いた日数 */
+  let best=0, run=0, prev=null;
+  keys.forEach(k=>{ run=(prev&&arDayShift(prev,1)===k)?run+1:1; prev=k; if(run>best) best=run; });
+  /* いちばん多かった日 */
+  let bestDay=null, bestN=0;
+  keys.forEach(k=>{ const v=+ARDAY[k]||0; if(v>bestN){ bestN=v; bestDay=k; } });
+  /* 直近7日 と その前の7日 */
+  const sumRange=(from,n)=>{ let t=0; for(let i=0;i<n;i++) t+=(+ARDAY[arDayShift(from,-i)]||0); return t; };
+  const w1=sumRange(today,7), w2=sumRange(arDayShift(today,-7),7);
+  const m1=sumRange(today,30), m2=sumRange(arDayShift(today,-30),30);
+  /* 時間帯（記録に残っている直近ぶんから）*/
+  const hours=new Array(24).fill(0);
+  ARLOG.forEach(x=>{
+    const d=new Date(+x.at||0);
+    const h=+new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",hour12:false}).format(d);
+    if(h>=0&&h<24) hours[h]++;
+  });
+  let bh=0; hours.forEach((v,i)=>{ if(v>hours[bh]) bh=i; });
+  /* 正誤と速さ（記録に残っているぶん）*/
+  const okAll=ARLOG.filter(x=>x.ok);
+  const rate=ARLOG.length?okAll.length/ARLOG.length:0;
+  const avgMs=okAll.length?okAll.reduce((a,x)=>a+x.ms,0)/okAll.length:0;
+  const rec100=ARLOG.slice(0,100);
+  const rate100=rec100.length?rec100.filter(x=>x.ok).length/rec100.length:0;
+  /* 図鑑の進みぐあい */
+  const mx=arMax();
+  const dexIn=Object.keys(ARDEX).map(Number).filter(v=>v>=2&&v<=mx).length;
+  const S=upRank(mx).sum;
+  return {today:+ARDAY[today]||0, all, days, cur, best, bestDay, bestN,
+          w1, w2, m1, m2, hours, bh, rate, avgMs, rate100,
+          perDay: days?all/days:0, dexIn, mx, up:S,
+          first: keys.length?keys[0]:null};
+}
+/* ── マイルストーン ── */
+const MS_Q =[10,50,100,250,500,1000,2500,5000,10000,25000,50000,100000];
+const MS_D =[2,3,5,7,14,21,30,50,75,100,180,365];
+const MS_DEX=[10,25,50,100,250,500,1000,2500,5000,9999];
+const MS_NAME={q:"解いた問題数", d:"連続で練習した日数", dex:"図鑑に登録した数"};
+/** 次の目標と、そこまでの進みぐあい */
+function msNext(v,list){
+  for(let i=0;i<list.length;i++) if(v<list[i])
+    return {next:list[i], prev:i?list[i-1]:0, done:i,
+            pct:Math.min(100,(v-(i?list[i-1]:0))/(list[i]-(i?list[i-1]:0))*100)};
+  return {next:null, prev:list[list.length-1], done:list.length, pct:100};
+}
+function msRow(label,v,list,unit){
+  const m=msNext(v,list);
+  return `<div class="msrow">
+    <div class="mshead"><b>${esc(label)}</b>
+      <span>${jp(v)} ${esc(unit||"")}${m.next?`　→　次の目標 <b>${jp(m.next)}</b>`:"　<b style='color:var(--acc2)'>全て達成</b>"}</span></div>
+    <div class="msbar"><i style="width:${m.pct.toFixed(1)}%"></i></div>
+    <div class="mssub">${m.next
+      ? `あと <b>${jp(m.next-v)}</b> ${esc(unit||"")}（${m.pct.toFixed(1)}% 達成）　
+         これまでに ${jp(m.done)} / ${jp(list.length)} 個のふしめを通りました`
+      : `${jp(list.length)} 個のふしめを全て通りました`}</div>
+    <div class="mschips">${list.map(x=>
+      `<span class="mschip ${v>=x?"on":""}">${jp(x)}</span>`).join("")}</div>
+  </div>`;
+}
 function arStatsHTML(){
-  const c=arCounts();
+  const c=arCounts(), A=arAnalyze();
   /* 直近14日ぶんの棒グラフ */
   const days=[];
   const base=new Date(hsDay()+"T00:00:00+09:00");
@@ -10980,28 +11715,91 @@ function arStatsHTML(){
     days.push({k, v:+ARDAY[k]||0, lab:`${d.getMonth()+1}/${d.getDate()}`});
   }
   const mx=Math.max(1,...days.map(d=>d.v));
+  const hmx=Math.max(1,...A.hours);
+  const dow=["月","火","水","木","金","土","日"];
+  const dowSum=new Array(7).fill(0), dowCnt=new Array(7).fill(0);
+  Object.keys(ARDAY).forEach(k=>{
+    const t=new Date(k+"T00:00:00+09:00");
+    const i=(t.getDay()+6)%7;
+    dowSum[i]+=(+ARDAY[k]||0); dowCnt[i]++;
+  });
+  const trend=(a,b)=>{ if(!b) return a?`<b style="color:var(--acc2)">はじめて</b>`:"—";
+    const p=(a-b)/b*100;
+    return `<b style="color:${p>=0?"var(--acc2)":"var(--warn)"}">${p>=0?"+":""}${p.toFixed(1)}%</b>`; };
+  const paceY=Math.round(A.perDay*365);
   return `<div class="lsgrid">
       <div class="lsbox"><div class="t">今日</div><div class="v">${jp(c.today)}</div><div class="s">問</div></div>
       <div class="lsbox"><div class="t">今週</div><div class="v">${jp(c.week)}</div><div class="s">月曜から</div></div>
       <div class="lsbox"><div class="t">今月</div><div class="v">${jp(c.month)}</div><div class="s">問</div></div>
       <div class="lsbox"><div class="t">これまで</div><div class="v">${jp(c.all)}</div><div class="s">全部で</div></div>
     </div>
+    <div class="lsgrid" style="grid-template-columns:repeat(4,1fr);margin-top:8px">
+      <div class="lsbox"><div class="t">連続で練習した日数</div>
+        <div class="v" style="font-size:1.6rem;color:${A.cur?"var(--acc2)":"var(--dim)"}">${jp(A.cur)}</div>
+        <div class="s">最長 ${jp(A.best)} 日</div></div>
+      <div class="lsbox"><div class="t">練習した日数</div>
+        <div class="v" style="font-size:1.6rem">${jp(A.days)}</div>
+        <div class="s">1日あたり ${A.perDay.toFixed(1)} 問</div></div>
+      <div class="lsbox"><div class="t">いちばん多かった日</div>
+        <div class="v" style="font-size:1.6rem">${jp(A.bestN)}</div>
+        <div class="s">${A.bestDay?esc(A.bestDay):"—"}</div></div>
+      <div class="lsbox"><div class="t">よく練習する時間帯</div>
+        <div class="v" style="font-size:1.6rem">${jp(A.bh)}時台</div>
+        <div class="s">直近 ${jp(ARLOG.length)} 問から</div></div>
+    </div>
+
     <h3 style="margin-top:14px">この2週間</h3>
     <div class="arhist">${days.map(d=>`<div class="arhb" title="${esc(d.k)}　${jp(d.v)}問">
       <i style="height:${d.v?Math.max(4,Math.round(d.v/mx*100)):0}%"></i>
       <span class="n">${d.v?jp(d.v):""}</span><span class="d">${esc(d.lab)}</span></div>`).join("")}</div>
-    <h3 style="margin-top:14px">まとめ</h3>
-    <div class="scroll"><table><thead><tr><th>いつ</th><th class="n">解いた数</th><th>ようす</th>
+
+    <h3 style="margin-top:14px">伸びぐあい</h3>
+    <div class="scroll"><table><thead><tr>
+      <th>くらべる</th><th class="n">いま</th><th class="n">前</th><th class="n">差</th><th>見かた</th>
       </tr></thead><tbody>
-      <tr><td>今日</td><td class="n"><b>${jp(c.today)}</b></td>
-        <td class="tiny">${c.today>=50?"よく練習しています":c.today>0?"続けましょう":"まだ0問です"}</td></tr>
-      <tr><td>今週</td><td class="n"><b>${jp(c.week)}</b></td>
-        <td class="tiny">1日あたり ${jp(Math.round(c.week/7))} 問</td></tr>
-      <tr><td>今月</td><td class="n"><b>${jp(c.month)}</b></td>
-        <td class="tiny">1日あたり ${jp(Math.round(c.month/Math.max(1,+hsDay().slice(8))))} 問</td></tr>
-      <tr class="used"><td><b>これまで</b></td><td class="n"><b>${jp(c.all)}</b></td>
-        <td class="tiny">覚えた数 ${jp(Object.keys(ARDEX).length)} 個</td></tr>
-    </tbody></table></div>`;
+      <tr><td>直近7日</td><td class="n"><b>${jp(A.w1)}</b></td><td class="n">${jp(A.w2)}</td>
+        <td class="n">${trend(A.w1,A.w2)}</td>
+        <td class="tiny">前の7日とくらべて</td></tr>
+      <tr><td>直近30日</td><td class="n"><b>${jp(A.m1)}</b></td><td class="n">${jp(A.m2)}</td>
+        <td class="n">${trend(A.m1,A.m2)}</td>
+        <td class="tiny">前の30日とくらべて</td></tr>
+      <tr><td>正答率（通算）</td><td class="n"><b>${(A.rate*100).toFixed(2)}%</b></td>
+        <td class="n">${(A.rate100*100).toFixed(2)}%</td>
+        <td class="n">${trend(A.rate*1000,A.rate100*1000)}</td>
+        <td class="tiny">右は「直近100問」の正答率</td></tr>
+      <tr><td>平均解答時間</td><td class="n"><b>${(A.avgMs/1000).toFixed(2)} 秒</b></td>
+        <td class="n">—</td><td class="n">—</td>
+        <td class="tiny">正解した問題だけで</td></tr>
+      <tr><td>このままの調子なら</td><td class="n"><b>${jp(paceY)}</b></td>
+        <td class="n">—</td><td class="n">—</td>
+        <td class="tiny">1年で解ける問題数（1日 ${A.perDay.toFixed(1)} 問として）</td></tr>
+    </tbody></table></div>
+
+    <h3 style="margin-top:14px">時間帯べつ（直近 ${jp(ARLOG.length)} 問）</h3>
+    <div class="arhist hr24">${A.hours.map((v,i)=>`<div class="arhb" title="${i}時台　${jp(v)}問">
+      <i style="height:${v?Math.max(4,Math.round(v/hmx*100)):0}%"></i>
+      <span class="d">${i%3===0?i:""}</span></div>`).join("")}</div>
+
+    <h3 style="margin-top:14px">曜日べつ（1日あたり）</h3>
+    <div class="scroll"><table><thead><tr>${dow.map(d=>`<th class="n">${d}</th>`).join("")}</tr></thead>
+      <tbody><tr>${dowSum.map((v,i)=>`<td class="n"><b>${dowCnt[i]?Math.round(v/dowCnt[i]):0}</b></td>`).join("")}</tr>
+      <tr>${dowCnt.map(v=>`<td class="n tiny" style="color:var(--dim2)">${jp(v)}日</td>`).join("")}</tr>
+      </tbody></table></div>
+
+    <h3 style="margin-top:16px">マイルストーン</h3>
+    <p class="tiny" style="color:var(--dim2)">次のふしめまで、あとどれくらいかを出しています。</p>
+    ${msRow(MS_NAME.q, A.all, MS_Q, "問")}
+    ${msRow(MS_NAME.d, Math.max(A.cur,A.best), MS_D, "日")}
+    ${msRow(MS_NAME.dex, A.dexIn, MS_DEX, "個")}
+    <div class="hintbox"><span class="tiny">
+      <b>図鑑の進みぐあい</b>　出題できる ${jp(A.mx-1)} 個のうち、
+      <b>${jp(A.dexIn)}</b> 個（${((A.dexIn/Math.max(1,A.mx-1))*100).toFixed(3)}%）を1度は解きました。<br>
+      <b>苦手のようす</b>　かなり苦手 ${jp(A.up.vh)} 個／苦手 ${jp(A.up.h)} 個／
+      あと少し ${jp(A.up.m)} 個／だいたい大丈夫 ${jp(A.up.l)} 個／得意 ${jp(A.up.vl)} 個　
+      平均 Unlike Point <b>${A.up.avgSeen.toFixed(1)}</b><br>
+      ${A.first?`<b>はじめた日</b>　${esc(A.first)}（${jp(Math.max(1,Math.round(
+        (new Date(hsDay()+"T00:00:00+09:00")-new Date(A.first+"T00:00:00+09:00"))/86400000)+1))}日目）`:""}
+      </span></div>`;
 }
 /** 「3時間前」のような表示（数値のミリ秒から）*/
 function arWhen(at){
@@ -11185,7 +11983,7 @@ function arHome(){
         <div class="s">PRSの整数部分が1増えるごとに 1,000ずつ広がります</div></div>
       <div class="lsbox"><div class="t">挑戦した回数</div>
         <div class="v" style="font-size:1.5rem">${jp(+AR.plays||0)}</div>
-        <div class="s">最高記録 PRS ${(+AR.best||0).toFixed(3)}</div></div>
+        <div class="s">最高記録 PRS ${prsText(AR.best)}</div></div>
       <div class="lsbox"><div class="t">本日 解答した数</div>
         <div class="v" style="font-size:1.5rem">${jp(arCounts().today)}</div>
         <div class="s">通算 ${jp(arCounts().all)} 問</div></div>
@@ -11199,6 +11997,7 @@ function arHome(){
     </div>
     <p class="tiny" id="arModeNote" style="color:var(--dim2)">${
       esc((AR_MODES.find(x=>x[0]===arMode)||[])[2]||"")}</p>
+    <div id="arRange">${arRangeHTML(arMode,max)}</div>
     <div id="arLimBox" ${arMode==="limit"?"":"hidden"}>
       <div class="frow">
         <div><label class="fl">下限</label>
@@ -11209,13 +12008,17 @@ function arHome(){
       <p class="tiny" style="color:var(--dim2)">現在の出題範囲は 2 〜 ${jp(max)} です。範囲外は出題されません。</p>
     </div>
 
-    <div class="arbig">
+    <div class="arbig arbig5">
       <button class="arbigb" id="arFree">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16V9M11 16V5M15 16v-5M19 16v-8"/></svg>
         <b>練習する</b><span>${COIN}は不要</span></button>
       <button class="arbigb rate" id="arRated">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg>
         <b>レートモード</b><span>${COIN} 10問につき${jp(per10)}枚</span></button>
+      <button class="arbigb wk" id="arWeak">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3.2"/></svg>
+        <b>苦手克服</b><span>${(()=>{const S=upRank(max).sum;
+          return S.weak?`苦手な数 ${jp(S.weak)} 個`:"苦手を数値で狙う";})()}</span></button>
       <button class="arbigb dt" id="arDetec">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21"/></svg>
         <b>素数探偵</b><span>6択・5秒で素数を選ぶ</span></button>
@@ -11225,6 +12028,9 @@ function arHome(){
     </div>
     <div class="tools" style="margin-top:10px">
       <button class="btn" id="arDex">図鑑</button>
+      <button class="btn" id="arCard">
+        <svg viewBox="0 0 24 24" class="ico"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>
+        単語帳</button>
       <button class="btn" id="arBook">
         <svg viewBox="0 0 24 24" class="ico"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
         素数帳</button>
@@ -11239,7 +12045,9 @@ function arHome(){
   if(hi) hi.onchange=()=>{ arLimHi=Math.max(2,Math.round(num(hi.value))||max); };
   $("#arFree").onclick=()=>arStart(false);
   $("#arRated").onclick=arRatedStart;
+  $("#arWeak").onclick=arWeakShow;
   $("#arDetec").onclick=dtShow;
+  $("#arCard").onclick=arCardShow;
   $("#arDex").onclick=arDexShow;
   $("#arBook").onclick=dtBookShow;
   $("#arStats").onclick=arStatsShow;
@@ -11332,7 +12140,7 @@ function arRuleShow(){
       ・かかった時間は全部残して、最後にまとめて出します</span></div>
     <h3>PRS（Prime Rating System）</h3>
     <div class="hintbox"><span class="tiny">
-      ・最初は <b>0.000</b> です<br>
+      ・最初は <b>0.0000</b> です（小数第4位まで出します）<br>
       ・レートモードの結果から、<b>正答率</b>と<b>速さ</b>を合わせた総合点で増減します<br>
       ・正答率が <b>82%</b> に届くまでは上がりません。<b>98%</b> でようやく満額です<br>
       ・問題数が多いほど信頼度が上がり、増減も大きくなります（√(問題数÷50) 倍）<br>
@@ -11405,15 +12213,19 @@ function arAdmShow(){
 
 /* ══════════ アリーナ：あそぶ画面 ══════════ */
 let ARQ=null;    /* いま進んでいる勝負 */
-function arStart(rated,qnWant){
+function arStart(rated,qnWant,opt){
+  opt=opt||{};
   const max=arMax();
-  const qn=Math.max(10,Math.round((+qnWant||+ARCFG.qn||50)/10)*10);
-  ARQ={rated:!!rated, max, qn:rated?qn:0,
+  const qn=opt.plan?opt.plan.length
+    :Math.max(10,Math.round((+qnWant||+ARCFG.qn||50)/10)*10);
+  ARQ={rated:!!rated, max, qn:(rated||opt.weak)?qn:0,
+       weak:!!opt.weak,
+       /* ★ 図鑑（正解数・解答時間）に記録してよいか。
+             苦手克服モードで 100問未満の時だけ false になります。 */
+       rec:(opt.rec===undefined)?true:!!opt.rec,
        i:0, ok:0, ng:0, ms:0, list:[], used:new Set(),
        n:0, text:"", t0:0, left:0, timer:null, over:false, passArm:false, lock:true,
-       /* レートモードは、範囲全体に 散らして出します
-          （偏らせない＝範囲全体を覚えていないと点が出ません）*/
-       plan:rated?arPlan(max,qn):null};
+       plan:opt.plan?opt.plan.slice():(rated?arPlan(max,qn):null)};
   $("#arPlayCard").hidden=false;
   arNext();
   try{ const pc2=$("#arPlayCard");
@@ -11433,7 +12245,7 @@ function arPlan(max,qn){
 }
 function arNext(){
   if(!ARQ) return;
-  if(ARQ.rated&&ARQ.i>=ARQ.qn){ arFinish(); return; }
+  if((ARQ.rated||ARQ.weak)&&ARQ.i>=ARQ.qn){ arFinish(); return; }
   ARQ.i++;
   ARQ.passArm=false;
   ARQ.lock=false;                 /* ここでやっと入力を受け付けます */
@@ -11466,7 +12278,7 @@ function arTimeUp(){
   ARQ.passArm=false;
   const ms=Math.max(3,+ARCFG.sec||15)*1000;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms});
-  arDexPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
+  arPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
   if(arMode==="ladder") arLadder=Math.max(2,Math.round((arLadder||ARQ.n)*0.85));
   arFlash(false, ARQ.n, ms);
   setTimeout(()=>{ if(ARQ) arNext(); },900);
@@ -11489,7 +12301,7 @@ function arType(ch){
     ARQ.passArm=false;
     const ms=Date.now()-ARQ.t0;
     ARQ.ok++; ARQ.ms+=ms; ARQ.list.push({n:ARQ.n, ok:true, ms});
-    arDexPut(ARQ.n,true,ms); arLogPut(ARQ.n,true,ms,ARQ.rated);
+    arPut(ARQ.n,true,ms); arLogPut(ARQ.n,true,ms,ARQ.rated);
     arFlash(true, ARQ.n, ms);
     /* だんだんモードは、できたら少し上へ */
     if(arMode==="ladder") arLadder=Math.min(ARQ.max, Math.round((arLadder||ARQ.n)*1.12+6));
@@ -11511,7 +12323,7 @@ function arPass(){
   ARQ.lock=true;
   const ms=Date.now()-ARQ.t0;
   ARQ.ng++; ARQ.list.push({n:ARQ.n, ok:false, ms, pass:true});
-  arDexPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
+  arPut(ARQ.n,false,ms); arLogPut(ARQ.n,false,ms,ARQ.rated);
   if(arMode==="ladder") arLadder=Math.max(2,Math.round((arLadder||ARQ.n)*0.85));
   arFlash(false, ARQ.n, ms, true);
   setTimeout(()=>{ if(ARQ) arNext(); },900);
@@ -11526,7 +12338,7 @@ function arPassReset(){
 /** 正解・不正解の合図 */
 function arFlash(ok,n,ms,pass){
   const wr=$("#arWrap"); if(wr) wr.classList.add("lockon");
-  const c=$("#arCard"); if(!c) return;
+  const c=$("#arPlayCardBox"); if(!c) return;
   c.classList.remove("okf","ngf"); void c.offsetWidth;
   c.classList.add(ok?"okf":"ngf");
   const r=$("#arRes");
@@ -11541,13 +12353,21 @@ function arDrawPlay(){
   box.innerHTML=`
     <div class="tools" style="margin-top:0">
       <span class="tiny">${ARQ.rated?`レートモード　<b>${jp(ARQ.i)}</b> / ${jp(ARQ.qn)} 問`
+        :ARQ.weak?`苦手克服　<b>${jp(ARQ.i)}</b> / ${jp(ARQ.qn)} 問${
+          ARQ.rec?"":'　<span style="color:var(--warn)">図鑑に記録しません</span>'}`
         :`練習　<b>${jp(ARQ.i)}</b> 問目`}</span>
       <span class="tiny" style="margin-left:auto">正解 <b style="color:var(--acc2)">${jp(ARQ.ok)}</b>
         　間違い <b style="color:var(--bad)">${jp(ARQ.ng)}</b></span>
     </div>
+    <div class="rgline">${ARQ.rated
+      ? `<b style="color:var(--warn)">レートモード</b>　2 〜 ${jp(ARQ.max)} の全体に散らして出題中`
+      : ARQ.weak
+      ? `<b style="color:var(--acc)">苦手克服</b>　Unlike Point の高い順　この問題は
+         <b>${upOf(ARQ.n).up.toFixed(1)}</b>point（${esc(upBand(upOf(ARQ.n).up).n)}）`
+      : arRangeHTML(arMode,ARQ.max,true)}</div>
     <div class="arbar"><i id="arBar" style="width:100%"></i></div>
     <div class="tiny" style="text-align:right">残り <b id="arLeft">${sec.toFixed(2)}</b> 秒</div>
-    <div class="arcard" id="arCard">
+    <div class="arcard" id="arPlayCardBox">
       <div class="arq">${jp(ARQ.n)}</div>
       <div class="arinbox" id="arInBox"><span id="arIn">&nbsp;</span></div>
       <div class="tiny" id="arRes" style="min-height:1.2em"></div>
@@ -11640,7 +12460,7 @@ function arResult(q,rated,r,err){
   </tr>`).join("");
   const M=modal(`<h2>結果発表</h2>
     <div class="lsbox" style="text-align:center;margin-bottom:10px">
-      <div class="t">${rated?"レートモード":"練習"}</div>
+      <div class="t">${rated?"レートモード":(q.weak?"苦手克服モード":"練習")}</div>
       <div class="v" style="font-size:1.8rem">${jp(q.ok)}問正解　合計解答時間
         <b style="color:var(--acc2)">${total.toFixed(2)}</b> 秒</div>
       <div class="s">間違い ${jp(q.ng)} 問${q.ok?`　1問あたり ${(total/q.ok).toFixed(2)} 秒`:""}</div>
@@ -11652,9 +12472,9 @@ function arResult(q,rated,r,err){
       const d=+r.delta||0;
       const up=d>0.0005, dn=d<-0.0005;
       return `<div class="hintbox" style="border-color:${up?"var(--acc2)":dn?"var(--warn)":"var(--line)"}">
-      <b>PRS</b>　${(+r.before||0).toFixed(3)} →
-        <b style="color:${up?"var(--acc2)":dn?"var(--warn)":"var(--tx)"}">${(+r.prs||0).toFixed(3)}</b>
-        <b style="color:${up?"var(--acc2)":dn?"var(--warn)":"var(--dim)"}">（${d>=0?"+":""}${d.toFixed(3)}）</b><br>
+      <b>PRS</b>　${prsText(r.before)} →
+        <b style="color:${up?"var(--acc2)":dn?"var(--warn)":"var(--tx)"}">${prsText(r.prs)}</b>
+        <b style="color:${up?"var(--acc2)":dn?"var(--warn)":"var(--dim)"}">（${d>=0?"+":""}${d.toFixed(4)}）</b><br>
       <span class="tiny">正解 ${jp(+r.ok||0)} / ${jp((+r.ok||0)+(+r.ng||0))} 問
         （正答率 ${((+r.acc||0)*100).toFixed(1)}%）　速さ ${((+r.speed||0)*200).toFixed(0)}%
         　総合 ${((+r.score||0)*100).toFixed(1)}点</span><br>
