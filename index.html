@@ -3004,7 +3004,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v127";
+const APP_VERSION = "v128";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3675,6 +3675,18 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v128":[
+    "Prime Bingo が同期されなかった不具合を修正しました",
+    "　同期のたびに、中身が変わっていなくても保存時刻を今の時刻に進めていたため、",
+    "　開いただけの端末がいつも「いちばん新しい」ことになり、",
+    "　よその端末で引いたぶんが いつまでも届きませんでした",
+    "同期する内容に「その回で数字を引いた回数」を必ず入れるようにしました",
+    "　回数は、出た数字の旗から数え直した値を使います（ずれていても直ります）",
+    "Prime Bingo は、時刻ではなく「第何回」と「引いた回数」で どちらを残すか決めます",
+    "　端末の回数が、預けてある回数より少ない時は、端末のぶんを消して",
+    "　預けてあるものをそのまま入れます（同じ素数が二度出ないようにするため）",
+    "手で送信する時に、Prime Bingo が遅れていると はっきり知らせます",
+    "見くらべる表に「Prime Bingo 第何回」「引いた回数」を追加しました"],
   "v127":[
     "仲間さがしで、正しく選んでいたのに不正解になる不具合を修正しました",
     "　制限時間が先に切れると、選んでいた内容を捨てて不正解にしていました。",
@@ -4732,6 +4744,64 @@ function lsMark(t){
   const e=document.getElementById("lsSyncNow");
   if(e) e.textContent=t;
 }
+/* ══════════════════════════════════════════════════════════
+   Prime Bingo の同期
+   ──────────────────────────────────────────────────────────
+   ★ 「その回で数字を引いた回数」を見て、進んでいるほうを残します。
+      時刻（at）だけで決めると、端末の時計のずれや、
+      ただ開いただけの端末に負けてしまうためです。
+      端末の回数が、預けてある回数より少なければ、
+      端末のぶんは捨てて、預けてあるものをそのまま入れます。
+   ══════════════════════════════════════════════════════════ */
+/** base64 の旗の中で、立っている数を数えます（PB_MASK を使いません）*/
+function pbBitsOf(str){
+  if(typeof str!=="string"||!str) return 0;
+  let bin="";
+  try{ bin=atob(str); }catch(e){ return 0; }
+  let n=0;
+  for(let i=0;i<bin.length;i++){
+    let v=bin.charCodeAt(i)&0xff;
+    v=v-((v>>1)&0x55); v=(v&0x33)+((v>>2)&0x33); n+=(v+(v>>4))&0x0f;
+  }
+  return n;
+}
+/** かたまりの中の Prime Bingo が、どこまで進んでいるか */
+function pbProgOf(o){
+  let v=(o||{})["sa-pb-v1"];
+  if(typeof v==="string"){ try{ v=JSON.parse(v); }catch(e){ v=null; } }
+  if(!v||typeof v!=="object"||!v.card) return {has:false, no:0, n:-1, at:0};
+  /* 旗に立っている数を正とします（n がずれていても平気なように）*/
+  const bits=pbBitsOf(v.mask);
+  return {has:true, no:Math.max(1,+v.no||1), n:Math.max(bits,+v.n||0), at:+v.at||0};
+}
+/** この端末の Prime Bingo が、預けてあるものより遅れているか */
+function pbBehind(mine, theirs){
+  const a=pbProgOf(mine), b=pbProgOf(theirs);
+  if(!b.has) return false;              /* 相手に無ければ、こちらを残します */
+  if(!a.has) return true;               /* こちらに無ければ、もらいます */
+  if(b.no!==a.no) return b.no>a.no;     /* まず「第何回」が新しいほう */
+  return b.n>a.n;                       /* 同じ回なら、引いた回数が多いほう */
+}
+/** 預けてある Prime Bingo を、そのまま端末に入れます（端末のぶんは消します）*/
+function pbTakeTheirs(theirs){
+  const v=(theirs||{})["sa-pb-v1"];
+  if(v===undefined) return false;
+  try{ localStorage.removeItem(K_PB); }catch(e){}   /* まず端末のぶんを消します */
+  try{ localStorage.setItem(K_PB, (typeof v==="string")?v:JSON.stringify(v)); }catch(e){}
+  try{
+    if(typeof PB!=="undefined"){
+      PB=ls(K_PB,null);
+      PB_MASK=null; PB_MASK_SRC=null; PB_REST=null;  /* 旗は必ず読み直します */
+      pbFix(); pbRender();
+    }
+  }catch(e){}
+  return true;
+}
+/** 端末とサーバーの、Prime Bingo の進みぐあいを言葉にします */
+function pbProgText(o){
+  const p=pbProgOf(o);
+  return p.has?`第${jp(p.no)}回・${jp(p.n)}個` : "なし";
+}
 /** 2つの中身を、へらさないように混ぜます。
  *  数は大きいほう、配列は足し合わせ、○×は「どちらかが○なら○」にします */
 function keepMost(a, b){
@@ -4799,6 +4869,10 @@ function lsMerge(mine, theirs){
     if(LS_NEW.indexOf(k)>=0){ out[k]=a; return; }   /* 設定はこの端末のものを */
     /* ★ 基準やコインの進み具合は「大きいほう」ではなく「新しいほう」を残します。
        大きいほうを残すと、リセットや入力のあとに古い数が復活してしまうためです */
+    /* ★ Prime Bingo は「引いた回数」で決めます（時刻では決めません）*/
+    if(k==="sa-pb-v1"){
+      out[k]=pbBehind({"sa-pb-v1":a},{"sa-pb-v1":b})?b:a; return;
+    }
     if(LS_NEWEST.indexOf(k)>=0){
       const ta=+((a||{}).at)||0, tb=+((b||{}).at)||0;
       out[k]=(tb>ta)?b:a; return;
@@ -4868,6 +4942,14 @@ async function lsSync(showToast){
           lsMark(`預けてあった新しい記録を入れました（${jp(lsCount(r.data||{}))} 回）`);
           lsBusy=false; return true;
         }
+        /* ★ Prime Bingo だけは、引いた回数が少なければ この端末のぶんを消して
+              預けてあるものを入れます（同じ素数が二度出ないようにするため）*/
+        if(pbBehind(mine, r.data||{})){
+          pbTakeTheirs(r.data||{});
+          mine=Object.assign({},mine,{"sa-pb-v1":(r.data||{})["sa-pb-v1"]});
+          lsMark(`Prime Bingo は預けてあるほうが進んでいたので入れ替えました（`
+            +`${pbProgText(r.data||{})}）`);
+        }
         mine=Object.assign({},lsExtra,lsMerge(mine, r.data||{}));
         lsRev=+r.rev||0; lsSaveRev();
         continue;
@@ -4895,8 +4977,16 @@ async function lsStart(){
         changed=lsTakeTheirs(theirs);
         lsMark(`預けてあった新しい記録を入れました（${jp(lsCount(theirs))} 回）`);
       }else{
+        /* ★ Prime Bingo は、引いた回数が少なければ端末のぶんを消して入れ替えます */
+        const pbSwap=pbBehind(mine,theirs);
+        if(pbSwap) pbTakeTheirs(theirs);
         changed=[];
         lsUnpack(lsMerge(mine, theirs),changed);
+        if(pbSwap){
+          lsMark(`Prime Bingo は預けてあるほうが進んでいたので入れ替えました（`
+            +`${pbProgText(theirs)}）`);
+          if(changed.indexOf(K_PB)<0) changed.push(K_PB);
+        }
       }
       lsRev=+g.rev||0; lsSaveRev();
       if(changed.length) lsReload();
@@ -4936,6 +5026,9 @@ function lsBrief(o){
     logN: Array.isArray(log)?log.length:(log&&typeof log==="object"?Object.keys(log).length:0),
     perS: num(cfg.perScore), perR: num(cfg.perRand),
     coinP: (coin&&typeof coin==="object")?num(coin.p):num(coin),
+    /* Prime Bingo：第何回か と、その回で引いた回数 */
+    pbNo: pbProgOf(o).has?pbProgOf(o).no:null,
+    pbN:  pbProgOf(o).has?pbProgOf(o).n:null,
     /* 本体が持っているもの以外の数。どの道具かは、ここでは分かりません */
     ext:  Object.keys(o).filter(k=>LS_OWN.indexOf(k)<0).length
   };
@@ -4961,6 +5054,9 @@ function lsCmpHTML(a,b,an,bn){
     row("1回あたりの増加（乱数）",A.perR,B.perR)+
     row("残っている記録の数",A.logN,B.logN)+
     row("Prime Coin の進み",A.coinP,B.coinP)+
+    row("Prime Bingo　第何回",A.pbNo,B.pbNo)+
+    row("Prime Bingo　引いた回数",A.pbN,B.pbN,
+      v=>(v===null||v===undefined)?"—":jp(v)+" 個")+
     ((typeof isAdmin==="function"&&isAdmin())
       ? row("追加の道具のデータ",A.ext,B.ext,v=>v?jp(v)+" 件":"なし") : "")+
     row("預かっている項目の数",A.kazu,B.kazu)+
@@ -4982,10 +5078,17 @@ async function lsPushAll(){
   catch(e){ return lsSaveMsg("読めませんでした："+esc(String(e.message||e)).slice(0,120),"bad"); }
   lsKeepExtra(srv.data||{});
   const mine=Object.assign({},lsExtra,lsPack());
+  const pbLose=pbBehind(mine, srv.data||{});
   const ok=await askYN("この端末の記録を、まるごと送信しますか？",
     `<b>預けてある記録は、この端末の記録に置きかわります。</b><br>
      <span class="tiny">下の2つをよく見比べてください。
      違っているところは色を変えています。</span><br><br>`+
+    (pbLose?`<div class="hintbox" style="border-color:var(--bad);margin-top:0">
+      <b style="color:var(--bad)">Prime Bingo は この端末のほうが遅れています</b><br>
+      <span class="tiny">この端末は ${esc(pbProgText(mine))}、
+      預けてあるのは ${esc(pbProgText(srv.data||{}))} です。
+      このまま送信すると、<b>預けてあるほうの出た数字が消えます</b>。<br>
+      先に「送信された記録を読み込む」を押すことをおすすめします。</span></div>`:"")+
     lsCmpHTML(mine,srv.data,"この端末","いま預けてあるもの")+
     `<p class="tiny" style="margin-top:8px">前に預けてあった内容は30回ぶん残るので、
       間違えても「LSやりこみを元に戻す」（設定タブ）から戻せます。</p>`,
@@ -5014,9 +5117,15 @@ async function lsPullAll(){
     return lsSaveMsg("まだ何も預けられていません。先に「サーバーに全記録を送信する」を押してください。","warn");
   lsKeepExtra(srv.data||{});
   const mine=lsPack();
+  const pbWin=pbBehind(mine, srv.data||{});
   const ok=await askYN("預けてある記録を読み込みますか？",
     `<b>この端末の記録は、預けてある記録に置きかわります。</b><br>
      <span class="tiny">${srv.at?"預けた日時："+jstFull(srv.at)+" (JST)":""}</span><br><br>`+
+    (pbWin?`<div class="hintbox" style="border-color:var(--acc2);margin-top:0">
+      <b style="color:var(--acc2)">Prime Bingo は 預けてあるほうが進んでいます</b><br>
+      <span class="tiny">この端末は ${esc(pbProgText(mine))}、
+      預けてあるのは ${esc(pbProgText(srv.data||{}))} です。
+      読み込むと、この端末のぶんは消えて 預けてあるものに入れ替わります。</span></div>`:"")+
     lsCmpHTML(mine,srv.data,"いまの端末","読み込むもの")+
     `<p class="tiny" style="margin-top:8px">読み込む前の内容は、この端末の中に控えを残します
       （設定タブの「LSやりこみを元に戻す」から戻せます）。</p>`,
@@ -14330,19 +14439,39 @@ let PB=ls(K_PB,null);
 let PBLOG=ls(K_PBLOG,[]);
 /* 保存は、たて続けに呼ばれても1.2秒に1回にまとめます（書き出しが重いため） */
 let pbSaveT=null, pbSaveWait=false;
+/** 中身が変わったかを見分けるための、並び順の決まった文字 */
+function pbSig(p){
+  if(!p||typeof p!=="object") return "";
+  return [p.no|0, p.n|0, p.lines|0, p.coins|0, p.startAt|0,
+    (p.card||[]).join(","), (p.hit||[]).map(x=>x?1:0).join(""),
+    p.mask||"", (p.tail||[]).join(","), p.perf?1:0, p.allb?1:0].join("|");
+}
 function pbSave(now){
   if(!PB){ try{ localStorage.removeItem(K_PB); }catch(e){} return; }
   pbSaveWait=true;
   const doIt=()=>{
     pbSaveT=null; if(!pbSaveWait||!PB) return;
     pbSaveWait=false;
-    PB.at=Date.now();
     PB.mask=pbMaskStr();
     PB_MASK_SRC=PB.mask;
     delete PB.drawn;               /* 昔の形は、もう持ちません */
     delete PB._m;                  /* 昔の目印は、保存しません */
+    /* ★ 引いた回数は、旗に立っている数を正とします。
+          この値を同期でもそのまま使います。 */
+    PB.n=pbCount();
+    /* ★★ 中身が変わっていない時は、時刻（at）を進めません。
+       進めてしまうと、ただ開いただけの端末が「いちばん新しい」ことになり、
+       よその端末で引いたぶんが いつまでも届きませんでした。
+       （同期のたびに lsPack() から pbSave(true) が呼ばれるためです）*/
+    let same=false;
+    try{
+      const prev=localStorage.getItem(K_PB);
+      if(prev) same=(pbSig(JSON.parse(prev))===pbSig(PB));
+    }catch(e){}
+    /* 時刻がまだ無いものには、1度だけ入れます */
+    if(!same || !(+PB.at>0)) PB.at=Date.now();
     try{ localStorage.setItem(K_PB,JSON.stringify(PB)); }catch(e){}
-    try{ lsSoon(); }catch(e){}
+    if(!same){ try{ lsSoon(); }catch(e){} }
   };
   if(now){ if(pbSaveT) clearTimeout(pbSaveT); doIt(); return; }
   if(pbSaveT) return;
