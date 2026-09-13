@@ -471,6 +471,15 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 html[data-theme="light"] .ythead{background:#f1f5fb}
 /* 下の帯があるスマホでは、帯にかぶらないようにします */
 body.hasnav .ytbox{max-height:calc(100vh - var(--navh1, 56px) - 20px)}
+/* ながら再生：お気に入り */
+.ytfav{display:grid;gap:6px;max-height:46vh;overflow:auto;margin-top:6px}
+.ytfrow{display:flex;gap:6px;align-items:stretch}
+.ytfp{flex:1;text-align:left;padding:9px 11px;border-radius:10px;cursor:pointer;
+  background:var(--panel2);border:1px solid var(--line);color:var(--tx);
+  display:flex;flex-direction:column;gap:2px;font-family:inherit}
+.ytfp:hover{border-color:var(--acc2)}
+.ytfp b{font-size:.92rem}
+.ytfp span{font-size:.68rem;color:var(--dim2)}
 /* 素因数トレーニング */
 .ftgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
 @media(max-width:860px){.ftgrid{grid-template-columns:repeat(2,1fr)}}
@@ -3031,7 +3040,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v130";
+const APP_VERSION = "v131";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3678,6 +3687,24 @@ function askYN(title,body,okLabel,cancelLabel){
     M.q("#ayN").onclick=()=>{M.close();res(false);};
   });
 }
+/** 文字をひとつ入れてもらう窓。やめた時は null を返します */
+function askText(title,body,ph,def){
+  return new Promise(res=>{
+    const M=modal(`<h2>${esc(title)}</h2>
+      <div class="muted" style="margin-top:-6px">${esc(body||"")}</div>
+      <input type="text" class="txt" id="atV" placeholder="${esc(ph||"")}"
+        value="${esc(def||"")}" autocomplete="off" style="margin-top:8px">
+      <div class="tools"><button class="btn pri" id="atY">決定</button>
+        <button class="btn" id="atN">やめる</button></div>`,{sticky:true,w:520});
+    const done=v=>{ M.close(); res(v); };
+    M.q("#atY").onclick=()=>done(M.q("#atV").value);
+    M.q("#atN").onclick=()=>done(null);
+    M.q("#atV").addEventListener("keydown",e=>{
+      if(e.key==="Enter"){ e.preventDefault(); done(M.q("#atV").value); }
+      if(e.key==="Escape"){ e.preventDefault(); done(null); } });
+    setTimeout(()=>{ try{ M.q("#atV").focus(); M.q("#atV").select(); }catch(e){} },60);
+  });
+}
 let toastT; function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");
   clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2200);}
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
@@ -3702,6 +3729,16 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v131":[
+    "ながら再生に「さがす」を追加しました",
+    "　言葉を入れると、YouTube の検索ページが別ウィンドウで開きます",
+    "　※ 検索結果をアプリの中に取ってきて並べることは、YouTube の利用規約で",
+    "　　禁じられているため（ロボットやスクレイパーによるアクセスの禁止）行いません。",
+    "　　公式の API なら規約は守れますが、サイト全体で1日100回までのため見送りました",
+    "　開くのは YouTube そのものなので、Premium の広告なしがそのまま効きます",
+    "ながら再生に「お気に入り」を追加しました。よく使う動画・再生リストを",
+    "　名前をつけて保存し、一発で呼び出せます（この端末だけに保存します）",
+    "窓を「さがす／URLを貼る／お気に入り」の3つに整理しました"],
   "v130":[
     "ながら再生で、YouTube Premium の広告なしが効くようにしました",
     "　v129 は youtube-nocookie を使っていました。これは Cookie を使わないため",
@@ -14429,7 +14466,8 @@ const K_YT="sa-yt-v1";
 /* priv:true = youtube-nocookie（Cookieを使わない／ログインが伝わらないので広告が出ます）
    priv:false = youtube.com（ログインが伝わるので、Premium なら広告が出ません）*/
 let YT=Object.assign({on:false, id:"", list:"", t:0, x:null, y:null, w:320, mini:false,
-                      warned:false, last:"", priv:false}, ls(K_YT,{}));
+                      warned:false, last:"", priv:false, fav:[], q:""}, ls(K_YT,{}));
+if(!Array.isArray(YT.fav)) YT.fav=[];
 /* Safari かどうか。Safari は第三者Cookieを止めているので、埋めこみでは Premium が効きません */
 const ytSafari=()=>{
   try{
@@ -14601,96 +14639,206 @@ function ytWire(b){
     addEventListener("touchend",up);
   }
 }
+
+/* ── YouTube で検索する ──
+   ★ 検索結果をこちらで取ってきて並べることは、YouTube の利用規約で
+      禁じられています（ロボットやスクレイパーによるアクセスの禁止）。
+      そこで「YouTube の検索ページを開く」だけにしています。
+      これはただのリンクなので、規約にも触れず、回数の制限もありません。
+      しかも YouTube のページそのものなので、Premium の広告なしがそのまま効きます。 */
+function ytSearchUrl(q){
+  return "https://www.youtube.com/results?search_query="+encodeURIComponent(String(q||"").trim());
+}
+function ytSearch(q){
+  const t=String(q||"").trim();
+  if(!t) return toast("さがす言葉を入れてください");
+  YT.q=t; ytSave();
+  const w=Math.min(900,Math.max(480,Math.round(window.innerWidth*0.6)));
+  const h=Math.min(820,Math.max(420,Math.round(window.innerHeight*0.8)));
+  const win=window.open(ytSearchUrl(t),"sa-yt",
+    `noopener,noreferrer,width=${w},height=${h},menubar=no,toolbar=no,location=yes`);
+  if(!win) return toast("ポップアップが止められています。ブラウザの設定で許可してください");
+  try{ win.focus(); }catch(e){}
+}
+
+/* ── お気に入り ── */
+function ytFavAdd(name){
+  if(!YT.id&&!YT.list) return false;
+  const key=(YT.id||"")+"|"+(YT.list||"");
+  const nm=String(name||"").trim()||(YT.list&&!YT.id?"再生リスト":"動画")+" "+(YT.fav.length+1);
+  const i=YT.fav.findIndex(x=>((x.id||"")+"|"+(x.list||""))===key);
+  const rec={name:nm, id:YT.id, list:YT.list, t:YT.t|0, at:Date.now()};
+  if(i>=0) YT.fav[i]=rec; else YT.fav.unshift(rec);
+  while(YT.fav.length>50) YT.fav.pop();
+  ytSave();
+  return true;
+}
+function ytFavPlay(i){
+  const f=YT.fav[i]; if(!f) return;
+  YT.id=f.id||""; YT.list=f.list||""; YT.t=+f.t||0;
+  YT.on=true; YT.mini=false; ytSave();
+  ytBuild();
+}
+function ytFavDel(i){ YT.fav.splice(i,1); ytSave(); }
 /** 動画を選ぶ窓 */
 function ytShow(){
   const sf=ytSafari();
-  const M=modal('<h2>ながら再生</h2>'
-    +'<p class="muted" style="margin-top:-6px">'
-    +'YouTube の URL を貼ると、画面の上に小さなプレイヤーが浮かびます。'
-    +'タブを移っても止まりません。</p>'
-    +'<label class="fl">YouTube の URL（または動画ID・再生リストID）</label>'
-    +'<input type="text" class="txt" id="ytUrl" placeholder="https://www.youtube.com/watch?v=..." '
-    +'value="'+esc(YT.last||"")+'" autocomplete="off" spellcheck="false">'
-    +'<p class="tiny" id="ytMsg" style="min-height:1.3em;color:var(--dim2)"></p>'
-
-    +'<div class="row" style="margin-top:4px">'
-    +'<div><b>広告の出かた</b><div class="tiny" id="ytPrivN"></div></div>'
-    +'<div class="toggle" style="margin-left:auto">'
-    +'<button id="ytPrivOff" class="'+(YT.priv?"":"on")+'">広告なし優先</button>'
-    +'<button id="ytPrivOn" class="'+(YT.priv?"on":"")+'">Cookieを使わない</button>'
-    +'</div></div>'
-
-    +'<div class="hintbox" style="border-color:var(--acc2)">'
-    +'<b style="color:var(--acc2)">YouTube Premium に入っている場合</b><br>'
-    +'<span class="tiny">'
-    +'埋めこみプレイヤーで広告が出ないようにするには、YouTube 側に'
-    +'<b>「ログインしている人だ」と伝わる必要</b>があります。そのためには<br>'
-    +'① 上の切りかえを <b>「広告なし優先」</b>にしておく（ふつうの youtube.com を使います）<br>'
-    +'② そのブラウザで <b>YouTube にログインしている</b>こと<br>'
-    +'③ ブラウザが <b>youtube.com の Cookie を止めていない</b>こと<br>'
-    +'の3つが必要です。Chrome や Edge は ③ をふさいでいないので、そのまま広告なしで流れます。'
-    +'</span></div>'
-
-    +(sf?'<div class="hintbox" style="border-color:var(--warn)">'
-        +'<b style="color:var(--warn)">Safari をお使いのようです</b><br>'
-        +'<span class="tiny">Safari は よそのサイトの Cookie を止めているため、'
-        +'埋めこみプレイヤーでは Premium が効かず 広告が出ます。'
-        +'下の<b>「別ウィンドウで開く」</b>なら YouTube そのものが開くので、確実に広告なしです。'
-        +'（設定 → プライバシー →「サイト越えトラッキングを防ぐ」を切ると'
-        +'埋めこみでも効くことがあります）</span></div>':"")
-
-    +'<div class="hintbox"><span class="tiny">'
-    +'<b>そのほか</b><br>'
-    +'・スマホでは、<b>画面を消したり ほかのアプリに移ると音が止まります</b>。'
-    +'これはブラウザ側の決まりで、こちらでは変えられません<br>'
-    +'・動画によっては、作った人が外からの再生を止めていることがあります<br>'
-    +'・<b>別ウィンドウで開く</b>と、YouTube のページそのものが開きます。'
-    +'ログインがそのまま効くので <b>いちばん確実に広告が出ません</b>。'
-    +'その窓で映像を右クリック2回 →「ピクチャインピクチャ」にすると、'
-    +'小さく浮かせたまま このページに戻れます</span></div>'
-
-    +'<div class="tools">'
-    +'<button class="btn pri" id="ytGo">この中で再生する</button>'
-    +'<button class="btn" id="ytPop">別ウィンドウで開く（確実に広告なし）</button>'
-    +((YT.id||YT.list)?'<button class="btn" id="ytStop">プレイヤーを閉じる</button>':"")
-    +'<button class="btn" id="ytX2">やめる</button></div>',{w:620});
-  const q=x=>M.q(x);
-  const drawPriv=()=>{
-    q("#ytPrivN").innerHTML=YT.priv
-      ? "youtube-nocookie を使います。記録は残りませんが、<b>ログインが伝わらないので広告が出ます</b>"
-      : "ふつうの youtube.com を使います。<b>ログインが伝わるので、Premium なら広告が出ません</b>";
-    q("#ytPrivOn").classList.toggle("on",!!YT.priv);
-    q("#ytPrivOff").classList.toggle("on",!YT.priv);
+  const M=modal('<h2>ながら再生</h2><div id="ytBody"></div>',{w:640});
+  const draw=()=>{
+    M.q("#ytBody").innerHTML=
+     '<div class="segs" id="ytTab" style="grid-template-columns:repeat(3,1fr)">'
+    +'<button data-ytt="find" class="on">さがす</button>'
+    +'<button data-ytt="url">URLを貼る</button>'
+    +'<button data-ytt="fav">お気に入り（'+jp(YT.fav.length)+'）</button>'
+    +'</div><div id="ytPane" style="margin-top:10px"></div>';
+    M.qa("[data-ytt]").forEach(b=>b.onclick=()=>{
+      M.qa("[data-ytt]").forEach(x=>x.classList.toggle("on",x===b));
+      pane(b.dataset.ytt);
+    });
+    pane("find");
   };
-  const setPriv=v=>{ YT.priv=v; ytSave(); drawPriv();
-    if(YT.on&&(YT.id||YT.list)) ytBuild(); };
-  q("#ytPrivOn").onclick=()=>setPriv(true);
-  q("#ytPrivOff").onclick=()=>setPriv(false);
-  drawPriv();
-  q("#ytX2").onclick=M.close;
-  if(q("#ytStop")) q("#ytStop").onclick=()=>{ ytClose(); M.close(); toast("ながら再生を閉じました"); };
-  /* 貼られた文字を取りこみます。だめなら false を返します */
-  const take=()=>{
-    const v=q("#ytUrl").value;
-    const r=ytParse(v);
-    if(!r){ q("#ytMsg").innerHTML=
-      '<span style="color:var(--bad)">YouTube の URL として読み取れませんでした</span>'; return false; }
-    YT.id=r.id; YT.list=r.list; YT.t=r.t||0; YT.last=String(v||"").trim();
-    ytSave();
-    return true;
+  const foot=()=>
+     '<div class="tools">'
+    +((YT.id||YT.list)?'<button class="btn" id="ytPop">別ウィンドウで開く</button>'
+      +'<button class="btn" id="ytStop">プレイヤーを閉じる</button>':"")
+    +'<button class="btn" id="ytX2">閉じる</button></div>';
+  const wireFoot=()=>{
+    const q=x=>M.q(x);
+    if(q("#ytX2")) q("#ytX2").onclick=M.close;
+    if(q("#ytPop")) q("#ytPop").onclick=ytPopout;
+    if(q("#ytStop")) q("#ytStop").onclick=()=>{ ytClose(); M.close(); toast("ながら再生を閉じました"); };
   };
-  q("#ytGo").onclick=()=>{
-    if(!take()) return;
-    YT.on=true; YT.mini=false; ytSave();
-    ytBuild(); M.close();
-    toast((YT.list&&!YT.id)?"再生リストを開きました":"再生を始めます");
+  const pane=k=>{
+    const P=M.q("#ytPane");
+    if(k==="find"){
+      P.innerHTML=
+         '<p class="muted" style="margin-top:-4px">さがす言葉を入れると、'
+        +'<b>YouTube の検索ページ</b>が別ウィンドウで開きます。'
+        +'その窓で選んで、そのまま流せます。</p>'
+        +'<div style="display:flex;gap:8px">'
+        +'<input type="text" class="txt" id="ytQ" placeholder="作業用BGM　など" '
+        +'value="'+esc(YT.q||"")+'" autocomplete="off" style="flex:1">'
+        +'<button class="btn pri" id="ytQGo">さがす</button></div>'
+        +'<div class="tools" style="margin-top:6px">'
+        +['作業用BGM','lofi hip hop','ピアノ 集中','自然音 川のせせらぎ','カフェ ジャズ','ホワイトノイズ']
+            .map(x=>'<button class="btn sm" data-ytq="'+esc(x)+'">'+esc(x)+'</button>').join("")
+        +'</div>'
+        +'<div class="hintbox" style="border-color:var(--acc2)"><span class="tiny">'
+        +'<b>なぜアプリの中に検索結果を出さないのか</b><br>'
+        +'YouTube の利用規約は、ロボットやスクレイパーで検索結果を取ってくることを'
+        +'禁じています。公式の API を使えば規約は守れますが、'
+        +'<b>サイト全体で1日100回まで</b>という制限があり、みんなで使うには足りません。<br>'
+        +'その点この方法は <b>回数の制限がなく</b>、開くのは YouTube そのものなので'
+        +'<b>Premium の広告なしもそのまま効きます</b>。</span></div>'
+        +'<div class="hintbox"><span class="tiny">'
+        +'気に入った動画が見つかったら、その窓でアドレスをコピーして'
+        +'「URLを貼る」からこの中に取りこめます。'
+        +'あるいは その窓のまま、映像を右クリック2回 →「ピクチャインピクチャ」でも聴けます。'
+        +'</span></div>'+foot();
+      const go=()=>ytSearch(M.q("#ytQ").value);
+      M.q("#ytQGo").onclick=go;
+      M.q("#ytQ").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } });
+      M.qa("[data-ytq]").forEach(b=>b.onclick=()=>{ M.q("#ytQ").value=b.dataset.ytq; go(); });
+      wireFoot();
+      setTimeout(function(){ try{ M.q("#ytQ").focus(); }catch(e){} },60);
+      return;
+    }
+    if(k==="url"){
+      P.innerHTML=
+         '<label class="fl">YouTube の URL（または動画ID・再生リストID）</label>'
+        +'<input type="text" class="txt" id="ytUrl" placeholder="https://www.youtube.com/watch?v=..." '
+        +'value="'+esc(YT.last||"")+'" autocomplete="off" spellcheck="false">'
+        +'<p class="tiny" id="ytMsg" style="min-height:1.3em;color:var(--dim2)"></p>'
+        +'<div class="row" style="margin-top:4px">'
+        +'<div><b>広告の出かた</b><div class="tiny" id="ytPrivN"></div></div>'
+        +'<div class="toggle" style="margin-left:auto">'
+        +'<button id="ytPrivOff" class="'+(YT.priv?"":"on")+'">広告なし優先</button>'
+        +'<button id="ytPrivOn" class="'+(YT.priv?"on":"")+'">Cookieを使わない</button>'
+        +'</div></div>'
+        +'<div class="hintbox" style="border-color:var(--acc2)">'
+        +'<b style="color:var(--acc2)">YouTube Premium に入っている場合</b><br>'
+        +'<span class="tiny">埋めこみで広告を出さないには、YouTube 側に'
+        +'「ログインしている人だ」と伝わる必要があります。'
+        +'① 上を<b>「広告なし優先」</b>にする ② そのブラウザで YouTube にログインしている '
+        +'③ ブラウザが youtube.com の Cookie を止めていない、の3つです。'
+        +'Chrome や Edge はそのまま効きます。</span></div>'
+        +(sf?'<div class="hintbox" style="border-color:var(--warn)">'
+            +'<b style="color:var(--warn)">Safari をお使いのようです</b><br>'
+            +'<span class="tiny">Safari はよそのサイトの Cookie を止めるため、'
+            +'埋めこみでは Premium が効かず広告が出ます。'
+            +'<b>「別ウィンドウで開く」</b>なら確実に広告なしです。</span></div>':"")
+        +'<div class="hintbox"><span class="tiny">'
+        +'・スマホでは、<b>画面を消したり ほかのアプリに移ると音が止まります</b>'
+        +'（ブラウザ側の決まりで、こちらでは変えられません）<br>'
+        +'・動画によっては、作った人が外からの再生を止めていることがあります</span></div>'
+        +'<div class="tools">'
+        +'<button class="btn pri" id="ytGo">この中で再生する</button>'
+        +'<button class="btn" id="ytFav">お気に入りに入れる</button>'
+        +'</div>'+foot();
+      const q=x=>M.q(x);
+      const drawPriv=()=>{
+        q("#ytPrivN").innerHTML=YT.priv
+          ? "youtube-nocookie を使います。<b>ログインが伝わらないので広告が出ます</b>"
+          : "ふつうの youtube.com を使います。<b>Premium なら広告が出ません</b>";
+        q("#ytPrivOn").classList.toggle("on",!!YT.priv);
+        q("#ytPrivOff").classList.toggle("on",!YT.priv);
+      };
+      const setPriv=v=>{ YT.priv=v; ytSave(); drawPriv();
+        if(YT.on&&(YT.id||YT.list)) ytBuild(); };
+      q("#ytPrivOn").onclick=()=>setPriv(true);
+      q("#ytPrivOff").onclick=()=>setPriv(false);
+      drawPriv();
+      const take=()=>{
+        const v=q("#ytUrl").value;
+        const r=ytParse(v);
+        if(!r){ q("#ytMsg").innerHTML=
+          '<span style="color:var(--bad)">YouTube の URL として読み取れませんでした</span>'; return false; }
+        YT.id=r.id; YT.list=r.list; YT.t=r.t||0; YT.last=String(v||"").trim();
+        ytSave(); return true;
+      };
+      q("#ytGo").onclick=()=>{
+        if(!take()) return;
+        YT.on=true; YT.mini=false; ytSave(); ytBuild(); M.close();
+        toast((YT.list&&!YT.id)?"再生リストを開きました":"再生を始めます");
+      };
+      q("#ytFav").onclick=async()=>{
+        if(!take()) return;
+        const nm=await askText("お気に入りの名前","あとで分かる名前をつけてください","作業用BGM");
+        if(nm===null) return;
+        ytFavAdd(nm);
+        toast("お気に入りに入れました");
+        draw();
+      };
+      q("#ytUrl").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); q("#ytGo").click(); } });
+      wireFoot();
+      setTimeout(function(){ try{ q("#ytUrl").focus(); }catch(e){} },60);
+      return;
+    }
+    /* お気に入り */
+    P.innerHTML=
+       (YT.fav.length
+        ? '<p class="tiny" style="color:var(--dim2)">押すとすぐ流れます。'
+          +'この端末だけに保存しています。</p>'
+          +'<div class="ytfav">'+YT.fav.map((f,i)=>
+            '<div class="ytfrow">'
+           +'<button class="ytfp" data-ytf="'+i+'">'
+           +'<b>'+esc(f.name||"（名前なし）")+'</b>'
+           +'<span>'+(f.list&&!f.id?"再生リスト":"動画")
+           +(f.t?"　"+jp(f.t)+"秒から":"")+'</span></button>'
+           +'<button class="btn sm" data-ytd="'+i+'">消す</button></div>').join("")
+          +'</div>'
+        : '<p class="muted">まだありません。「URLを貼る」から'
+          +'「お気に入りに入れる」を押すと、ここに並びます。</p>')
+      +foot();
+    M.qa("[data-ytf]").forEach(b=>b.onclick=()=>{
+      ytFavPlay(+b.dataset.ytf); M.close(); toast("再生を始めます"); });
+    M.qa("[data-ytd]").forEach(b=>b.onclick=()=>{
+      ytFavDel(+b.dataset.ytd); draw();
+      M.qa("[data-ytt]").forEach(x=>x.classList.toggle("on",x.dataset.ytt==="fav"));
+      pane("fav"); });
+    wireFoot();
   };
-  q("#ytPop").onclick=()=>{
-    if(!(YT.id||YT.list)&&!take()) return;
-    ytPopout();
-  };
-  q("#ytUrl").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); q("#ytGo").click(); } });
-  setTimeout(function(){ try{ q("#ytUrl").focus(); }catch(e){} },60);
+  draw();
 }
 addEventListener("resize",function(){ try{ if(YT.on) ytBuild(); }catch(e){} });
 
