@@ -458,6 +458,63 @@ html[data-theme="light"] .arpass.arm{background:#c4223a;color:#fff}
   border:1px solid var(--line)}
 .arsvg{width:100%;height:auto;display:block}
 table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
+/* ══════════ 1人麻雀 ══════════ */
+/* 牌。雀魂のような、白くて角がまるい牌を 自分で描いています */
+.mjt{display:inline-block;width:var(--mjw,40px);height:calc(var(--mjw,40px)*1.36);
+  border-radius:calc(var(--mjw,40px)*0.14);background:linear-gradient(175deg,#fffefb,#eef0e8 72%,#dfe2d6);
+  border:1px solid #b9beac;box-shadow:0 2px 0 #9aa08d,0 3px 5px #0005;
+  vertical-align:bottom;position:relative;overflow:hidden;flex:none;
+  margin-right:calc(var(--mjw,40px)*0.045)}
+.mjt svg{position:absolute;inset:8% 10%;width:80%;height:84%;overflow:visible}
+.mjt .mjk{font-size:46px;text-anchor:middle;font-family:"Hiragino Mincho ProN","Yu Mincho","MS PMincho",serif;font-weight:700}
+.mjt .mjw{font-size:30px;text-anchor:middle;font-family:"Hiragino Mincho ProN","Yu Mincho","MS PMincho",serif;font-weight:700}
+.mjt .mjz{font-size:62px;text-anchor:middle;font-family:"Hiragino Mincho ProN","Yu Mincho","MS PMincho",serif;font-weight:700}
+.mjt.sm{--mjw:26px}
+.mjt.xs{--mjw:19px}
+.mjt.red{box-shadow:0 2px 0 #9aa08d,0 3px 5px #0005,0 0 0 2px #ff6b6b inset}
+.mjt.drawn{box-shadow:0 2px 0 #9aa08d,0 3px 5px #0005,0 0 0 2px var(--acc) inset}
+.mjgap{display:inline-block;width:14px}
+.mjhand{display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px 0;
+  padding:10px 8px;border-radius:12px;margin:8px 0;
+  background:linear-gradient(180deg,#14532d,#0e3d22);border:1px solid #1d6b3c;--mjw:40px}
+@media(max-width:620px){.mjhand{--mjw:30px}}
+.mjriver{display:flex;flex-wrap:wrap;gap:2px 0;min-height:30px;padding:6px;
+  border-radius:10px;background:var(--panel0);border:1px solid var(--line)}
+.mjtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.mjkyoku{font-size:1.05rem;color:var(--acc2)}
+.mjriichi{font-size:.72rem;padding:2px 9px;border-radius:20px;
+  background:color-mix(in srgb,var(--bad) 22%,transparent);
+  border:1px solid var(--bad);color:var(--bad)}
+.mjdorarow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0}
+.mjres{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+  background:var(--panel2)}
+.mjres.win{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+.mjres.ryu{border-color:var(--warn)}
+.mjwin{font-size:1.1rem}
+.mjwin b{font-size:1.7rem;color:var(--acc2)}
+.mjys{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.mjy{font-size:.72rem;padding:2px 8px;border-radius:20px;
+  border:1px solid var(--line);color:var(--tx2);background:var(--panel0)}
+.mjset{margin:10px 0}
+.mjmini{white-space:nowrap}
+.mjstat{display:grid;gap:4px;max-height:44vh;overflow:auto}
+.mjsrow{display:flex;align-items:center;gap:8px;font-size:.78rem}
+.mjsn{min-width:150px;flex:none}
+.mjsb{flex:1;height:10px;border-radius:5px;background:var(--panel0);
+  border:1px solid var(--line);overflow:hidden}
+.mjsb i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc))}
+.mjsv{min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
+/* ★ 1人麻雀の間は、残した項目を 下に小さくまとめます */
+body.mjon #ls>.card:not(#mjCard):not(#lsTopCard),
+body.mjon #ls>.lsgrid,body.mjon #ls>.lsgrid2,body.mjon #ls>.lsgoals{
+  font-size:.82rem;opacity:.9}
+body.mjon #mjCard{order:-1}
+body.mjon #ls{display:flex;flex-direction:column}
+body.mjon #ls>*{order:2}
+body.mjon #ls>#lsTopCard{order:0}
+body.mjon #ls>#mjCard{order:1}
+body.mjon #ls .lsbox{padding:8px 10px}
+body.mjon #ls .lsbox .v{font-size:1.2rem}
 /* ながら再生（浮かぶプレイヤー）
    ★ YouTube の決まりで、プレイヤーの上に何かを重ねてはいけません。
       大きさを変えるつまみは、プレイヤーの「外側」（右と下）に置いています。
@@ -1821,11 +1878,20 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
       <button class="btn pri" id="lsBtnSave">記録の保存</button>
       <button class="btn" id="lsBtnCfg">設定</button>
       <button class="btn" id="lsBtnView">表示</button>
+      <button class="btn" id="lsBtnMj" hidden title="1人麻雀（管理者だけ）">🀄 1人麻雀</button>
       <button class="btn" id="lsBtnYt" title="YouTube を見ながら・聴きながら">
         <svg viewBox="0 0 24 24" class="ico"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.2l5.2 2.8L10 14.8z"/></svg>
         ながら再生</button>
       <span class="tiny" id="lsTopNote" style="margin-left:auto"></span>
     </div>
+  </div>
+
+  <div class="card" id="mjCard" hidden>
+    <div class="tools" style="margin-top:0">
+      <h2 style="margin:0">1人麻雀　<span class="tiny">ひとりマージャン</span></h2>
+      <span class="tiny" style="margin-left:auto;color:var(--warn)">管理者だけ</span>
+    </div>
+    <div id="mjBody"></div>
   </div>
 
   <div class="card" id="pbCard" data-lsv="bingo" hidden>
@@ -3095,7 +3161,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v134";
+const APP_VERSION = "v135";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3784,6 +3850,20 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v135":[
+    "LSやりこみに「1人麻雀」を追加しました（いまは管理者だけ）",
+    "　親ひとりで18巡。ツモ和了だけ。いちばんの目標は 天和です",
+    "　牌は4人麻雀と同じ136枚。5萬・5筒・5索は すべて赤ドラ",
+    "　立直・一発・裏ドラ・暗槓（嶺上開花・槓ドラ）に対応しました",
+    "　役満はすべて実装（四暗刻・大三元・国士・九蓮宝燈 ほか）。雀魂と同じく重なります",
+    "　13翻で数え役満、26翻でダブル数え役満。本物の役満があればそちらを優先します",
+    "　1回目は東1局0本場。和了すると本場が増え、流局すると局が進みます",
+    "自動打牌システムを作りました。つまみで「和了狙い ⇔ 高打点狙い」を0〜100%で決められます",
+    "　牌は暗号用の乱数で完全にまぜています（かたよりが出ない作りです）",
+    "1回ごとの記録と、役ごとの統計を残します",
+    "1手1秒。S値が X なら (1＋X) 倍速になります",
+    "何翻以上で自動進行を止めるか、役満で止めるかを決められます",
+    "1人麻雀の間は、指定の5項目だけを小さく出します（前の設定は戻ります）"],
   "v134":[
     "文字の太さを、画面ぜんぶで Bold（700）にそろえました",
     "　これまで 400・500・600・700・800・900 がまざっていたのを 700 に統一しました",
@@ -6202,6 +6282,8 @@ let LSVIEW=ls(K_LSVIEW,{});
 const lsvOn=k=>LSVIEW[k]!==false;         /* 何も決めていなければ表示します */
 const saveLsView=()=>{ try{ localStorage.setItem(K_LSVIEW,JSON.stringify(LSVIEW)); }catch(e){} };
 function lsViewApply(){
+  /* ★ 1人麻雀の間は、指定されたものだけを 下に小さく出します */
+  document.body.classList.toggle("mjon", !!(typeof MJ!=="undefined"&&MJ.on));
   LSV_ITEMS.forEach(x=>{
     $$(`[data-lsv="${x.k}"]`).forEach(el=>{
       /* RANK の枠は、公開されていない時はそもそも出しません */
@@ -7035,7 +7117,10 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="settings"){ fillInputs(); renderSettings(); renderRole();
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
 
-  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); lsTopNote(); pbLayout(); }
+  if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); lsTopNote(); pbLayout();
+    try{ const mb=$("#lsBtnMj"); if(mb) mb.hidden=!mjVisible();
+      const mc=$("#mjCard"); if(mc) mc.hidden=!(mjVisible()&&(MJ.on||!mc.hidden));
+      if(MJ.on) mjDraw(); }catch(e){} }
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
@@ -15086,6 +15171,1313 @@ function ytPickFolder(now){
 }
 addEventListener("resize",function(){ try{ if(YT.on) ytBuild(); }catch(e){} });
 
+/* ══════════════════════════════════════════════════════════════════
+   1人麻雀（ひとりマージャン）
+   ──────────────────────────────────────────────────────────────────
+   ・親（東家）ひとりだけで打ちます。最終目標は 天和。
+   ・牌は 4人麻雀と同じ 136枚。5m・5p・5s は すべて赤ドラです。
+   ・配牌14枚。そこから 18巡（ツモ→打牌）。ツモ和了だけです。
+   ・立直・一発・裏ドラ・暗槓（嶺上開花・槓ドラ）あり。
+   ・牌の並びは crypto の乱数で決めます（かたよりが出ないようにします）。
+   ══════════════════════════════════════════════════════════════════ */
+/* 牌の番号
+     0〜 8 … 萬子 1〜9      9〜17 … 筒子 1〜9
+    18〜26 … 索子 1〜9     27〜33 … 東南西北白發中 */
+const MJ_N=34;
+const MJ_NAME=["1m","2m","3m","4m","5m","6m","7m","8m","9m",
+               "1p","2p","3p","4p","5p","6p","7p","8p","9p",
+               "1s","2s","3s","4s","5s","6s","7s","8s","9s",
+               "東","南","西","北","白","發","中"];
+const MJ_JP=["一萬","二萬","三萬","四萬","五萬","六萬","七萬","八萬","九萬",
+             "一筒","二筒","三筒","四筒","五筒","六筒","七筒","八筒","九筒",
+             "一索","二索","三索","四索","五索","六索","七索","八索","九索",
+             "東","南","西","北","白","發","中"];
+const mjIsHonor=t=>t>=27;
+const mjSuit=t=>t<9?0:t<18?1:t<27?2:3;          /* 0=萬 1=筒 2=索 3=字 */
+const mjNum=t=>t<27?(t%9)+1:0;                   /* 1〜9。字牌は0 */
+const mjIsTerm=t=>t<27&&(t%9===0||t%9===8);      /* 老頭牌（1・9） */
+const mjIsYaoc=t=>mjIsHonor(t)||mjIsTerm(t);     /* 幺九牌 */
+const mjIsRed=t=>(t===4||t===13||t===22);        /* ★ 5m・5p・5s は すべて赤ドラ */
+/* ドラ表示牌 → ドラ */
+function mjDoraOf(ind){
+  if(ind<27){
+    const s=Math.floor(ind/9), n=ind%9;
+    return s*9+((n+1)%9);
+  }
+  if(ind<31) return 27+((ind-27+1)%4);           /* 東→南→西→北→東 */
+  return 31+((ind-31+1)%3);                      /* 白→發→中→白 */
+}
+
+/* ── かたよりのない乱数 ──
+   Math.random は使いません。crypto の乱数から、余りのかたよりを
+   取りのぞいて（棄却法）0〜n-1 の整数を作ります。 */
+function mjRand(n){
+  if(n<=1) return 0;
+  const g=(typeof crypto!=="undefined"&&crypto.getRandomValues)
+    ? (a)=>crypto.getRandomValues(a)
+    : (a)=>{ for(let i=0;i<a.length;i++) a[i]=Math.floor(Math.random()*4294967296); return a; };
+  const limit=Math.floor(4294967296/n)*n;        /* ここ以上は捨てます */
+  const buf=new Uint32Array(1);
+  for(;;){
+    g(buf);
+    if(buf[0]<limit) return buf[0]%n;
+  }
+}
+/** 山を作ります（136枚をまぜます）*/
+function mjWall(){
+  const w=new Array(136);
+  let k=0;
+  for(let t=0;t<MJ_N;t++) for(let i=0;i<4;i++) w[k++]=t;
+  /* フィッシャー・イェーツ。うしろから、かたよりのない乱数で入れかえます */
+  for(let i=w.length-1;i>0;i--){
+    const j=mjRand(i+1);
+    const x=w[i]; w[i]=w[j]; w[j]=x;
+  }
+  return w;
+}
+
+/* ── シャンテン数 ──
+   ★ 速さがとても大事なところです。
+      萬子・筒子・索子・字牌 の4つに分けて別々に数え、
+      その結果を組み合わせます。1つ1つの結果は覚えておく（memo）ので、
+      何度も同じ計算をしません。 */
+const MJ_MEMO=new Map();
+/** 1つの色（9種 または 字牌7種）について、
+    取れる（面子の数, 搭子の数, 雀頭を使ったか）の組み合わせを返します */
+function mjSuitCalc(c, off, len, honor){
+  let key=honor?"z":("n"+off);
+  for(let i=0;i<len;i++) key+=c[off+i];
+  const hit=MJ_MEMO.get(key);
+  if(hit) return hit;
+  /* pareto[pairUsed] = 面子の数ごとの「搭子の最大数」 */
+  const best=[new Int8Array(5).fill(-1), new Int8Array(5).fill(-1)];
+  const a=new Int8Array(len);
+  for(let i=0;i<len;i++) a[i]=c[off+i];
+  const rec=(i,m,p,pair)=>{
+    if(i>=len){
+      if(m<=4&&best[pair][m]<p) best[pair][m]=p;
+      return;
+    }
+    if(a[i]===0) return rec(i+1,m,p,pair);
+    /* 刻子 */
+    if(a[i]>=3){ a[i]-=3; rec(i,m+1,p,pair); a[i]+=3; }
+    /* 順子 */
+    if(!honor&&i+2<len&&a[i+1]>0&&a[i+2]>0){
+      a[i]--;a[i+1]--;a[i+2]--; rec(i,m+1,p,pair); a[i]++;a[i+1]++;a[i+2]++;
+    }
+    /* 雀頭（1つだけ） */
+    if(!pair&&a[i]>=2){ a[i]-=2; rec(i,m,p,1); a[i]+=2; }
+    /* 対子（搭子として） */
+    if(a[i]>=2){ a[i]-=2; rec(i,m,p+1,pair); a[i]+=2; }
+    /* 両面・嵌張 */
+    if(!honor&&i+1<len&&a[i+1]>0){ a[i]--;a[i+1]--; rec(i,m,p+1,pair); a[i]++;a[i+1]++; }
+    if(!honor&&i+2<len&&a[i+2]>0){ a[i]--;a[i+2]--; rec(i,m,p+1,pair); a[i]++;a[i+2]++; }
+    rec(i+1,m,p,pair);
+  };
+  rec(0,0,0,0);
+  /* 面子が多いほうが必ず得なので、うしろ向きにならします */
+  for(const arr of best) for(let m=3;m>=0;m--) if(arr[m]<arr[m+1]) arr[m]=Math.max(arr[m],arr[m+1]);
+  if(MJ_MEMO.size>60000) MJ_MEMO.clear();
+  MJ_MEMO.set(key,best);
+  return best;
+}
+/** ふつうの手（4面子1雀頭）のシャンテン */
+function mjShantenNormal(c,kans){
+  kans=kans||0;
+  const g=[mjSuitCalc(c,0,9,false), mjSuitCalc(c,9,9,false),
+           mjSuitCalc(c,18,9,false), mjSuitCalc(c,27,7,true)];
+  let best=8;
+  /* 4つの色から、面子の数と雀頭の使い道を組み合わせます */
+  const walk=(i,m,p,pair)=>{
+    if(m+kans>4) return;
+    if(i===4){
+      const M=m+kans;
+      /* ★ 面子と搭子は あわせて4ブロックまで。5つめは かならず雀頭です。
+            ここを 5 にしてしまうと、雀頭の無い形を テンパイと数えてしまいます。 */
+      let P=Math.min(p,4-M);
+      if(P<0) P=0;
+      const sh=8-2*M-P-pair;
+      if(sh<best) best=sh;
+      return;
+    }
+    for(let up=0;up<2;up++){
+      if(up&&pair) continue;
+      const arr=g[i][up];
+      for(let mm=0;mm<=4;mm++){
+        const pp=arr[mm];
+        if(pp<0) continue;
+        for(let take=pp;take>=0;take--){
+          walk(i+1,m+mm,p+take,pair+up);
+          if(take===0) break;
+        }
+      }
+    }
+  };
+  walk(0,0,0,0);
+  return best;
+}
+/** 七対子 */
+function mjShantenChiitoi(c){
+  let pairs=0,kinds=0;
+  for(let i=0;i<MJ_N;i++){ if(c[i]>0) kinds++; if(c[i]>=2) pairs++; }
+  let sh=6-pairs;
+  if(kinds<7) sh+=7-kinds;
+  return sh;
+}
+/** 国士無双 */
+function mjShantenKokushi(c){
+  let kinds=0,pair=0;
+  for(let i=0;i<MJ_N;i++){
+    if(!mjIsYaoc(i)) continue;
+    if(c[i]>0) kinds++;
+    if(c[i]>=2) pair=1;
+  }
+  return 13-kinds-pair;
+}
+/** いちばん小さいシャンテン数（暗槓があると七対子・国士は不可）*/
+function mjShanten(c,kans){
+  kans=kans||0;
+  let s=mjShantenNormal(c,kans);
+  if(!kans){
+    s=Math.min(s,mjShantenChiitoi(c),mjShantenKokushi(c));
+  }
+  return s;
+}
+
+/* ── 手牌の分解（4面子1雀頭 の組み合わせを ぜんぶ出します）── */
+function mjDecompose(c){
+  const out=[];
+  const sets=[];
+  const rec=(i,pair)=>{
+    if(i>=MJ_N){
+      if(pair>=0&&sets.length>0) out.push({sets:sets.slice(),pair});
+      return;
+    }
+    if(c[i]===0) return rec(i+1,pair);
+    if(c[i]>=3){
+      c[i]-=3; sets.push({k:"kou",t:i}); rec(i,pair); sets.pop(); c[i]+=3;
+    }
+    if(!mjIsHonor(i)&&mjNum(i)<=7&&c[i+1]>0&&c[i+2]>0){
+      c[i]--;c[i+1]--;c[i+2]--; sets.push({k:"shun",t:i}); rec(i,pair);
+      sets.pop(); c[i]++;c[i+1]++;c[i+2]++;
+    }
+    if(pair<0&&c[i]>=2){
+      c[i]-=2; rec(i,i); c[i]+=2;
+    }
+  };
+  /* 雀頭を先に決めます */
+  for(let p=0;p<MJ_N;p++){
+    if(c[p]<2) continue;
+    c[p]-=2;
+    const save=sets.length;
+    const rec2=(i)=>{
+      if(i>=MJ_N){
+        let rest=0; for(let k=0;k<MJ_N;k++) rest+=c[k];
+        if(rest===0) out.push({sets:sets.slice(),pair:p});
+        return;
+      }
+      if(c[i]===0) return rec2(i+1);
+      if(c[i]>=3){ c[i]-=3; sets.push({k:"kou",t:i}); rec2(i); sets.pop(); c[i]+=3; }
+      if(!mjIsHonor(i)&&mjNum(i)<=7&&c[i+1]>0&&c[i+2]>0){
+        c[i]--;c[i+1]--;c[i+2]--; sets.push({k:"shun",t:i}); rec2(i);
+        sets.pop(); c[i]++;c[i+1]++;c[i+2]++;
+      }
+    };
+    rec2(0);
+    sets.length=save;
+    c[p]+=2;
+  }
+  /* 重なりを取りのぞきます */
+  const seen=new Set(), uniq=[];
+  out.forEach(d=>{
+    const key=d.pair+"|"+d.sets.map(s=>s.k+s.t).sort().join(",");
+    if(seen.has(key)) return;
+    seen.add(key); uniq.push(d);
+  });
+  return uniq;
+}
+
+/* ══════════ 役・符・点数 ══════════
+   雀魂の役の種類と点数計算に合わせています。
+   ・ユーザーはいつも親（東家）。自風は東。場風は局で変わります。
+   ・ツモ和了だけです。親のツモは 子3人が 2×基本点 ずつ払うので 合計 6×基本点。
+   ・役満は 48,000点（親）、ダブル役満は 96,000点。
+   ・13翻以上は 数え役満。26翻以上は ダブル数え役満。
+     ただし 本物の役満があるときは、そちらを優先します。 */
+const MJ_YAKU_ORDER=[
+  "天和","国士無双十三面待ち","国士無双","四暗刻単騎","四暗刻","大四喜","小四喜",
+  "大三元","字一色","緑一色","清老頭","四槓子","純正九蓮宝燈","九蓮宝燈",
+  "ダブル数え役満","数え役満",
+  "立直","ダブル立直","一発","門前清自摸和","嶺上開花","平和","断幺九","一盃口",
+  "役牌 白","役牌 發","役牌 中","場風 東","場風 南","場風 西","場風 北","自風 東",
+  "三色同順","一気通貫","混全帯幺九","七対子","対々和","三暗刻","三色同刻","三槓子","混老頭","小三元",
+  "二盃口","純全帯幺九","混一色","清一色"];
+
+/** 1つの分解について、役と符を出します */
+function mjScoreOne(d, ctx){
+  /* d: {sets:[{k,t,ankan?}], pair} ／ ctx: 手の情報 */
+  const win=ctx.winTile, tsumo=true, bakaze=ctx.bakaze, jikaze=27;
+  const sets=d.sets, pair=d.pair;
+  const yaku=[];              /* {n:名前, h:翻} */
+  /* ★ 役満は重なります（雀魂と同じ）。
+        大三元＋字一色 ＝ ダブル役満、のように足していきます。
+        ただし 四暗刻と四暗刻単騎 のような「上位版」は、どちらか一方だけです。 */
+  let yakuman=0;
+  const ym=(n,x)=>{ yaku.push({n,h:0,y:x||1}); yakuman+=(x||1); };
+
+  const kou=sets.filter(s=>s.k==="kou"||s.k==="kan");
+  const shun=sets.filter(s=>s.k==="shun");
+  const kans=sets.filter(s=>s.k==="kan");
+  const allT=[]; sets.forEach(s=>{
+    if(s.k==="shun"){ allT.push(s.t,s.t+1,s.t+2); }
+    else { allT.push(s.t,s.t,s.t); if(s.k==="kan") allT.push(s.t); }
+  });
+  allT.push(pair,pair);
+  const cAll=new Array(MJ_N).fill(0); allT.forEach(t=>cAll[t]++);
+  const suits=new Set(allT.map(mjSuit));
+  const hasHonor=suits.has(3);
+  const numSuits=[0,1,2].filter(s=>suits.has(s));
+
+  /* ── 待ちの形を決めます（符に効きます）── */
+  let waitType="tanki", winSetIdx=-1;
+  const waits=[];
+  if(pair===win) waits.push({w:"tanki",i:-1});
+  sets.forEach((s,i)=>{
+    if(s.k==="kan") return;                       /* 暗槓では和了できません */
+    if(s.k==="kou"&&s.t===win) waits.push({w:"shanpon",i});
+    if(s.k==="shun"){
+      const n=mjNum(s.t);
+      if(s.t+1===win) waits.push({w:"kanchan",i});
+      else if(s.t===win){ waits.push({w:(n===7)?"penchan":"ryanmen",i}); }
+      else if(s.t+2===win){ waits.push({w:(n===1)?"penchan":"ryanmen",i}); }
+    }
+  });
+  if(!waits.length) return null;
+  /* 符がいちばん高くなる待ちを選びます */
+  const wScore={ryanmen:0,shanpon:0,kanchan:2,penchan:2,tanki:2};
+  waits.sort((a,b)=>wScore[b.w]-wScore[a.w]);
+  waitType=waits[0].w; winSetIdx=waits[0].i;
+
+  /* ── 役満 ── */
+  const kouT=kou.map(s=>s.t);
+  const ankouCnt=sets.filter(s=>{
+    if(s.k==="kan") return true;                  /* 暗槓は暗刻 */
+    if(s.k!=="kou") return false;
+    /* ツモなら、和了牌で出来た刻子も暗刻 */
+    return true;
+  }).length;
+  const dragons=[31,32,33], winds=[27,28,29,30];
+  const dragKou=dragons.filter(t=>kouT.indexOf(t)>=0).length;
+  const windKou=winds.filter(t=>kouT.indexOf(t)>=0).length;
+
+  if(ctx.tenhou) ym("天和",1);
+  if(ankouCnt===4){
+    if(pair===win) ym("四暗刻単騎",2); else ym("四暗刻",1);
+  }
+  if(dragKou===3) ym("大三元",1);
+  if(windKou===4) ym("大四喜",2);
+  else if(windKou===3&&winds.indexOf(pair)>=0) ym("小四喜",1);
+  if(allT.every(mjIsHonor)) ym("字一色",1);
+  if(allT.every(t=>[19,20,21,23,25,32].indexOf(t)>=0)) ym("緑一色",1);
+  if(allT.every(mjIsTerm)) ym("清老頭",1);
+  if(kans.length===4) ym("四槓子",1);
+  /* 九蓮宝燈 */
+  if(numSuits.length===1&&!hasHonor&&!kans.length){
+    const s0=numSuits[0]*9;
+    const need=[3,1,1,1,1,1,1,1,3];
+    let ok=true, extra=-1;
+    for(let i=0;i<9;i++){
+      const d2=cAll[s0+i]-need[i];
+      if(d2<0){ ok=false; break; }
+      if(d2===1){ if(extra>=0){ ok=false; break; } extra=i; }
+      else if(d2!==0){ ok=false; break; }
+    }
+    if(ok&&extra>=0){
+      if(cAll[win]-need[win-s0]===1&&(cAll[win]===need[win-s0]+1)){
+        /* 純正＝9面待ち＝和了前が 1112345678999 */
+        const before=cAll.slice(); before[win]--;
+        let pure=true;
+        for(let i=0;i<9;i++) if(before[s0+i]!==need[i]) pure=false;
+        if(pure) ym("純正九蓮宝燈",2); else ym("九蓮宝燈",1);
+      }else ym("九蓮宝燈",1);
+    }
+  }
+
+  if(yakuman>0){
+    const each=yakuman*16000;
+    const nm=["","役満","ダブル役満","トリプル役満","四倍役満","五倍役満","六倍役満"];
+    return {yaku, yakuman, han:0, fu:0, pts:each*3, each, waitType,
+            name:nm[Math.min(yakuman,6)]||(yakuman+"倍役満")};
+  }
+
+  /* ── ふつうの役 ── */
+  let han=0;
+  const add=(n,h)=>{ yaku.push({n,h}); han+=h; };
+  if(ctx.doubleRiichi) add("ダブル立直",2);
+  else if(ctx.riichi) add("立直",1);
+  if(ctx.ippatsu) add("一発",1);
+  add("門前清自摸和",1);
+  if(ctx.rinshan) add("嶺上開花",1);
+
+  /* 平和：4順子＋雀頭が役牌でない＋両面待ち */
+  const yakuhaiPair=(pair>=31)||(pair===bakaze)||(pair===jikaze);
+  const pinfu=(shun.length===4&&!yakuhaiPair&&waitType==="ryanmen"&&!kans.length);
+  if(pinfu) add("平和",1);
+  if(allT.every(t=>!mjIsYaoc(t))) add("断幺九",1);
+  /* 一盃口・二盃口 */
+  const shunCount={};
+  shun.forEach(s=>{ shunCount[s.t]=(shunCount[s.t]||0)+1; });
+  let ipeko=0;
+  Object.keys(shunCount).forEach(k=>{ ipeko+=Math.floor(shunCount[k]/2); });
+  /* 役牌 */
+  if(kouT.indexOf(31)>=0) add("役牌 白",1);
+  if(kouT.indexOf(32)>=0) add("役牌 發",1);
+  if(kouT.indexOf(33)>=0) add("役牌 中",1);
+  const kazeName=["東","南","西","北"];
+  if(kouT.indexOf(bakaze)>=0) add("場風 "+kazeName[bakaze-27],1);
+  if(kouT.indexOf(jikaze)>=0&&jikaze!==bakaze) add("自風 東",1);
+  /* 三色同順 */
+  const shunT=shun.map(s=>s.t);
+  let sanshoku=false;
+  for(let n=0;n<7;n++){
+    if(shunT.indexOf(n)>=0&&shunT.indexOf(n+9)>=0&&shunT.indexOf(n+18)>=0){ sanshoku=true; break; }
+  }
+  if(sanshoku) add("三色同順",2);
+  /* 一気通貫 */
+  let ittsu=false;
+  for(let s0=0;s0<27;s0+=9){
+    if(shunT.indexOf(s0)>=0&&shunT.indexOf(s0+3)>=0&&shunT.indexOf(s0+6)>=0){ ittsu=true; break; }
+  }
+  if(ittsu) add("一気通貫",2);
+  /* チャンタ・純チャン */
+  const blocks=sets.map(s=>s.k==="shun"?[s.t,s.t+1,s.t+2]:[s.t]).concat([[pair]]);
+  const everyHasYao=blocks.every(b=>b.some(mjIsYaoc));
+  const everyHasTerm=blocks.every(b=>b.some(mjIsTerm));
+  if(everyHasYao){
+    if(everyHasTerm&&!hasHonor) add("純全帯幺九",3);
+    else if(!allT.every(mjIsYaoc)) add("混全帯幺九",2);
+  }
+  /* 対々和・三暗刻・三色同刻・三槓子 */
+  if(kou.length===4) add("対々和",2);
+  if(ankouCnt===3) add("三暗刻",2);
+  for(let n=0;n<9;n++){
+    if(kouT.indexOf(n)>=0&&kouT.indexOf(n+9)>=0&&kouT.indexOf(n+18)>=0){ add("三色同刻",2); break; }
+  }
+  if(kans.length===3) add("三槓子",2);
+  if(allT.every(mjIsYaoc)&&kou.length===4) add("混老頭",2);
+  if(dragKou===2&&dragons.indexOf(pair)>=0) add("小三元",2);
+  /* 一盃口／二盃口 */
+  if(ipeko>=2) add("二盃口",3);
+  else if(ipeko===1) add("一盃口",1);
+  /* 染め手 */
+  if(numSuits.length===1){
+    if(hasHonor) add("混一色",3);
+    else add("清一色",6);
+  }else if(numSuits.length===0) { /* 字一色は役満で処理ずみ */ }
+
+  if(!han) return null;                            /* 役なし（ありえませんが念のため）*/
+
+  /* ── ドラ ── */
+  let dora=0;
+  ctx.dora.forEach(dt=>{ dora+=cAll[dt]||0; });
+  if(ctx.riichi) ctx.uraDora.forEach(dt=>{ dora+=cAll[dt]||0; });
+  let red=0;
+  allT.forEach(t=>{ if(mjIsRed(t)) red++; });
+  const doraHan=dora+red;
+
+  /* ── 符 ── */
+  let fu=20;
+  sets.forEach(s=>{
+    if(s.k==="shun") return;
+    const yao=mjIsYaoc(s.t);
+    if(s.k==="kan") fu+=yao?32:16;                 /* 暗槓 */
+    else fu+=yao?8:4;                              /* 暗刻 */
+  });
+  if(pair>=31) fu+=2;
+  if(pair===bakaze) fu+=2;
+  if(pair===jikaze&&jikaze!==bakaze) fu+=2;
+  if(waitType==="kanchan"||waitType==="penchan"||waitType==="tanki") fu+=2;
+  fu+=2;                                           /* 門前ツモ */
+  if(pinfu) fu=20;
+  fu=Math.ceil(fu/10)*10;
+
+  const total=han+doraHan;
+  return mjMakePts(yaku,han,doraHan,fu,total,waitType);
+}
+/** 翻と符から、親の点数を出します。
+    ★ 親のツモは「子3人が それぞれ 2×基本点」を払います。
+       このとき、ひとりぶんの支払いは 100点きざみに切り上げます。
+       （例：親の平和ツモ3翻20符 → 基本点640 → 1,280 → 1,300オール ＝ 3,900点）*/
+function mjMakePts(yaku,han,doraHan,fu,total,waitType){
+  let name="", base;
+  if(total>=26){ base=8000*2; name="ダブル数え役満"; }
+  else if(total>=13){ base=8000; name="数え役満"; }
+  else if(total>=11){ base=6000; name="三倍満"; }
+  else if(total>=8){ base=4000; name="倍満"; }
+  else if(total>=6){ base=3000; name="跳満"; }
+  else{
+    base=fu*Math.pow(2,2+total);
+    if(base>=2000){ base=2000; name="満貫"; }
+  }
+  const each=Math.ceil(base*2/100)*100;      /* 子ひとりぶん（オール表示の数字）*/
+  return {yaku, yakuman:0, han, doraHan, total, fu,
+          pts:each*3, each, base, name, waitType};
+}
+/** 七対子 */
+function mjScoreChiitoi(c,ctx){
+  const pairs=[];
+  for(let i=0;i<MJ_N;i++){ if(c[i]===2) pairs.push(i); else if(c[i]!==0) return null; }
+  if(pairs.length!==7) return null;
+  /* 字一色（七対子の形）*/
+  if(pairs.every(mjIsHonor)){
+    return {yaku:[{n:"字一色",h:0,y:1}],yakuman:1,han:0,fu:0,pts:48000,name:"役満",waitType:"tanki"};
+  }
+  const yaku=[]; let han=0;
+  const add=(n,h)=>{ yaku.push({n,h}); han+=h; };
+  if(ctx.doubleRiichi) add("ダブル立直",2); else if(ctx.riichi) add("立直",1);
+  if(ctx.ippatsu) add("一発",1);
+  add("門前清自摸和",1);
+  add("七対子",2);
+  if(pairs.every(t=>!mjIsYaoc(t))) add("断幺九",1);
+  if(pairs.every(mjIsYaoc)) add("混老頭",2);
+  const suits=new Set(pairs.map(mjSuit));
+  const ns=[0,1,2].filter(s=>suits.has(s));
+  if(ns.length===1){ if(suits.has(3)) add("混一色",3); else add("清一色",6); }
+  let dora=0;
+  ctx.dora.forEach(dt=>{ dora+=c[dt]||0; });
+  if(ctx.riichi) ctx.uraDora.forEach(dt=>{ dora+=c[dt]||0; });
+  let red=0; pairs.forEach(t=>{ if(mjIsRed(t)) red+=2; });
+  return mjMakePts(yaku,han,dora+red,25,han+dora+red,"tanki");
+}
+/** 国士無双 */
+function mjScoreKokushi(c,ctx){
+  let kinds=0,pair=-1;
+  for(let i=0;i<MJ_N;i++){
+    if(mjIsYaoc(i)){
+      if(c[i]===0) return null;
+      if(c[i]===2){ if(pair>=0) return null; pair=i; }
+      else if(c[i]!==1) return null;
+      kinds++;
+    }else if(c[i]!==0) return null;
+  }
+  if(kinds!==13||pair<0) return null;
+  const thirteen=(pair===ctx.winTile);
+  const y=thirteen?2:1;
+  return {yaku:[{n:thirteen?"国士無双十三面待ち":"国士無双",h:0,y}],
+          yakuman:y,han:0,fu:0,pts:y*48000,name:y>=2?"ダブル役満":"役満",waitType:"tanki"};
+}
+/** 手牌ぜんぶを見て、いちばん高い点数を返します。和了でなければ null */
+function mjScore(hand, ctx){
+  /* hand: 牌の配列（和了牌を含む）／ ctx: {winTile,bakaze,dora,uraDora,riichi,ippatsu,doubleRiichi,rinshan,tenhou,kans:[t,...]} */
+  const c=new Array(MJ_N).fill(0);
+  hand.forEach(t=>c[t]++);
+  const kans=(ctx.kans||[]);
+  const cands=[];
+  if(!kans.length){
+    const k=mjScoreKokushi(c.slice(),ctx); if(k) cands.push(k);
+    const q=mjScoreChiitoi(c.slice(),ctx); if(q) cands.push(q);
+  }
+  const decs=mjDecompose(c.slice());
+  decs.forEach(d=>{
+    const sets=d.sets.concat(kans.map(t=>({k:"kan",t})));
+    if(sets.length!==4) return;
+    const r=mjScoreOne({sets,pair:d.pair},ctx);
+    if(r) cands.push(r);
+  });
+  if(!cands.length) return null;
+  /* 役満があれば役満を優先。次に点数の高いほう */
+  cands.sort((a,b)=>{
+    if((b.yakuman||0)!==(a.yakuman||0)) return (b.yakuman||0)-(a.yakuman||0);
+    if(b.pts!==a.pts) return b.pts-a.pts;
+    return (b.fu||0)-(a.fu||0);
+  });
+  return cands[0];
+}
+/** 和了しているか（点数は見ません）*/
+function mjIsAgari(c,kanCnt){
+  kanCnt=kanCnt||0;
+  if(!kanCnt){
+    let p=0,ok=true;
+    for(let i=0;i<MJ_N;i++){ if(c[i]===2) p++; else if(c[i]!==0){ ok=false; break; } }
+    if(ok&&p===7) return true;
+    let kinds=0,pair=0,bad=false;
+    for(let i=0;i<MJ_N;i++){
+      if(mjIsYaoc(i)){ if(c[i]>=1) kinds++; if(c[i]===2) pair++; if(c[i]>2) bad=true; }
+      else if(c[i]>0) bad=true;
+    }
+    if(!bad&&kinds===13&&pair===1) return true;
+  }
+  return mjDecompose(c.slice()).some(d=>d.sets.length===4-kanCnt);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   自動打牌システム（1人麻雀のプロ）
+   ──────────────────────────────────────────────────────────────────
+   つまみ v は 0〜100。
+     v=0   … 和了狙い。シャンテンを確実に減らし、受け入れを最大にします。
+             点数はいっさい見ません。
+     v=100 … 高打点狙い。和了できる見込みを保ったまま、いちばん高く
+             なる形を目指します。
+   途中の値では、2つの評価をその割合で混ぜます。
+   ══════════════════════════════════════════════════════════════════ */
+
+/** 残り枚数（見えていない牌）を数えます */
+function mjUnseen(c, seen){
+  const u=new Array(MJ_N).fill(4);
+  for(let i=0;i<MJ_N;i++) u[i]-=(c[i]||0)+(seen[i]||0);
+  return u;
+}
+/** その手の「受け入れ」＝シャンテンが減る牌と、その枚数 */
+function mjUkeire(c, kans, unseen){
+  const sh=mjShanten(c,kans);
+  const tiles=[]; let total=0;
+  for(let t=0;t<MJ_N;t++){
+    if(unseen[t]<=0) continue;
+    if(c[t]>=4) continue;
+    c[t]++;
+    const s2=mjShanten(c,kans);
+    c[t]--;
+    if(s2<sh){ tiles.push(t); total+=unseen[t]; }
+  }
+  return {sh, tiles, total};
+}
+/** 2手先まで見た受け入れの広さ（和了狙いの精度を上げます）
+    ★ 遠い手のときは2手先まで見ても意味がうすいので、
+      シャンテンが2以下のときだけ深く読みます（速さのため）。 */
+function mjUkeire2(c, kans, unseen){
+  const a=mjUkeire(c,kans,unseen);
+  let deep=0;
+  if(a.sh>2) return {sh:a.sh, tiles:a.tiles, total:a.total, deep:a.total*a.total};
+  a.tiles.forEach(t=>{
+    if(unseen[t]<=0) return;
+    c[t]++;
+    /* その牌を引いたあと、いちばん良い打牌をした時の受け入れ */
+    let best=0;
+    for(let d=0;d<MJ_N;d++){
+      if(c[d]<=0) continue;
+      c[d]--;
+      if(mjShanten(c,kans)===a.sh-1){
+        const u2=mjUkeire(c,kans,unseen);
+        if(u2.total>best) best=u2.total;
+      }
+      c[d]++;
+    }
+    c[t]--;
+    deep+=unseen[t]*best;
+  });
+  return {sh:a.sh, tiles:a.tiles, total:a.total, deep};
+}
+
+/** いまの手が和了したら だいたい何点になりそうか（高打点狙いの目安）*/
+function mjValueGuess(c, kans, ctx){
+  /* 手のかたよりから、めざせる形を見積もります。
+     実際に和了形を作って点数計算をするのは重いので、
+     「いま見えている特徴」から素点のめやすを足していきます。 */
+  let v=1000;                                   /* 門前ツモの下地 */
+  const cnt=(f)=>{ let n=0; for(let t=0;t<MJ_N;t++) if(f(t)) n+=c[t]; return n; };
+  const kinds=[]; for(let t=0;t<MJ_N;t++) if(c[t]>0) kinds.push(t);
+  const suits=new Set(kinds.filter(t=>!mjIsHonor(t)).map(mjSuit));
+  const honors=cnt(mjIsHonor);
+  const total=cnt(()=>true)||1;
+
+  /* ドラ・赤 */
+  let dora=0;
+  (ctx.dora||[]).forEach(dt=>dora+=c[dt]||0);
+  let red=0; for(let t=0;t<MJ_N;t++) if(mjIsRed(t)) red+=c[t];
+  v+=(dora+red)*1300;
+
+  /* 染め手
+     ★ 「いま1色だけ」ではなく「1色に寄っているか」で見ます。
+        よその色が1〜2枚まじっていても、それを切れば染まるので、
+        そこを数えないと 染め手の芽を つぶしてしまいます。 */
+  let bestSuit=0,bestCnt=-1;
+  for(const s0 of [0,1,2]){ const n=cnt(t=>mjSuit(t)===s0); if(n>bestCnt){ bestCnt=n; bestSuit=s0; } }
+  const pureR=bestCnt/total;                    /* 清一色への寄りぐあい */
+  const honR=(bestCnt+honors)/total;            /* 混一色への寄りぐあい */
+  if(honors===0&&pureR>=0.90) v+=9000;
+  else if(honors===0&&pureR>=0.75) v+=4500;
+  else if(honR>=0.90) v+=4000;
+  else if(honR>=0.78) v+=2200;
+  else if(honR>=0.65) v+=900;
+  /* 役牌（白發中・場風・自風）*/
+  [31,32,33,ctx.bakaze,27].forEach(t=>{
+    if(c[t]>=3) v+=1500; else if(c[t]===2) v+=700;
+  });
+  /* 対々和・暗刻 */
+  let ankou=0; for(let t=0;t<MJ_N;t++) if(c[t]>=3) ankou++;
+  if(ankou>=3) v+=6000; else if(ankou===2) v+=1500;
+  if(kans) v+=kans*800;
+  /* 断幺九 */
+  if(cnt(mjIsYaoc)===0) v+=800;
+  /* 一気通貫・三色の芽 */
+  for(let s0=0;s0<27;s0+=9){
+    let ok=0; for(const n of [0,3,6]) if(c[s0+n]>0&&c[s0+n+1]>0&&c[s0+n+2]>0) ok++;
+    if(ok===3) v+=2500; else if(ok===2) v+=700;
+  }
+  for(let n=0;n<7;n++){
+    let ok=0; for(const s0 of [0,9,18]) if(c[s0+n]>0&&c[s0+n+1]>0&&c[s0+n+2]>0) ok++;
+    if(ok===3) v+=2500; else if(ok===2) v+=700;
+  }
+  /* 七対子の芽 */
+  let pairs=0; for(let t=0;t<MJ_N;t++) if(c[t]===2) pairs++;
+  if(pairs>=6) v+=3200; else if(pairs>=5) v+=1500;
+  /* 幺九だけ（混老頭・清老頭・国士の芽）*/
+  if(cnt(t=>!mjIsYaoc(t))===0) v+=8000;
+  /* 字牌ばかり（字一色の芽）*/
+  if(honors>=10) v+=20000;
+  return v;
+}
+
+/** 打牌を1つ決めます。返り値は { tile, sh, uke, cands } */
+function mjChoose(c, kans, unseen, ctx, aggr){
+  aggr=Math.max(0,Math.min(100,+aggr||0))/100;    /* 0=和了狙い 1=高打点狙い */
+  /* ① まず、すべての切り方について「シャンテン」と「受け入れ（1手先）」を出します */
+  const cands=[];
+  for(let d=0;d<MJ_N;d++){
+    if(c[d]<=0) continue;
+    c[d]--;
+    const sh=mjShanten(c,kans);
+    const u=mjUkeire(c,kans,unseen);
+    const val=mjValueGuess(c,kans,ctx);
+    c[d]++;
+    cands.push({t:d, sh, uke:u.total, kinds:u.tiles.length, val, deep:0});
+  }
+  if(!cands.length) return null;
+  /* ② シャンテンが増えない切り方だけ残します */
+  const minSh=Math.min(...cands.map(x=>x.sh));
+  let pool=cands.filter(x=>x.sh===minSh);
+  /* ③ 有力なものだけ、2手先まで深く読みます（速さのため上位だけ）*/
+  if(minSh<=2&&pool.length>1){
+    const top=pool.slice().sort((a,b)=>b.uke-a.uke||b.val-a.val).slice(0,5);
+    top.forEach(x=>{
+      c[x.t]--;
+      x.deep=mjUkeire2(c,kans,unseen).deep;
+      c[x.t]++;
+    });
+    const seen=new Set(top.map(x=>x.t));
+    pool.forEach(x=>{ if(!seen.has(x.t)) x.deep=x.uke*x.uke; });
+  }else{
+    pool.forEach(x=>{ x.deep=x.uke*x.uke; });
+  }
+  /* ④ 0〜1 にそろえて、割合で混ぜます */
+  const mx=f=>Math.max(1,...pool.map(f));
+  const mUke=mx(x=>x.uke), mDeep=mx(x=>x.deep), mVal=mx(x=>x.val);
+  pool.forEach(x=>{
+    /* 和了狙いの点：受け入れの広さ（1手先 と 2手先）*/
+    const win=0.72*(x.uke/mUke)+0.28*(x.deep/mDeep);
+    /* 高打点狙いの点：見込み点。ただし和了できなければ点にならないので
+       受け入れも少しは見ます */
+    const val=0.78*(x.val/mVal)+0.22*(x.uke/mUke);
+    x.score=(1-aggr)*win+aggr*val;
+    /* 同じ点なら、はしの牌・字牌から切ります（ふつうの打ちかた）*/
+    const edge=mjIsHonor(x.t)?0.006:(mjNum(x.t)===1||mjNum(x.t)===9)?0.004
+              :(mjNum(x.t)===2||mjNum(x.t)===8)?0.002:0;
+    x.score+=edge*(1-aggr*0.5);
+  });
+  pool.sort((a,b)=>b.score-a.score||a.t-b.t);
+  return {tile:pool[0].t, sh:minSh, uke:pool[0].uke,
+          cands:pool.slice(0,5).map(x=>({t:x.t,uke:x.uke,val:Math.round(x.val),sc:+x.score.toFixed(3)}))};
+}
+/** 暗槓するかどうか */
+function mjShouldKan(c, kans, unseen, ctx, aggr, t){
+  if(c[t]<4) return false;
+  /* 槓してシャンテンが悪くなるならしません */
+  const before=mjShanten(c,kans);
+  const c2=c.slice(); c2[t]-=4;
+  const after=mjShanten(c2,(kans||0)+1);
+  if(after>before) return false;
+  /* 七対子・国士に向かっている時は槓しません */
+  if(!kans){
+    if(mjShantenChiitoi(c)<=before) return false;
+    if(mjShantenKokushi(c)<=before) return false;
+  }
+  /* 和了狙いでも、槓ドラが増えるので基本は槓します。
+     ただし 高打点狙いのほうが積極的です */
+  return true;
+}
+/** 立直するか（テンパイで、門前のとき）*/
+function mjShouldRiichi(c, kans, unseen, ctx, aggr){
+  if(mjShanten(c,kans)!==0) return false;
+  return true;                                   /* 1人麻雀では 立直しない理由がありません */
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   1人麻雀：対局の進行・記録・統計
+   ══════════════════════════════════════════════════════════════════ */
+const K_MJ="sa-mahjong-v1";
+const MJ_MAXTURN=18;
+let MJ=Object.assign({
+  on:false,          /* いま起動しているか */
+  aggr:50,           /* 0=和了狙い 100=高打点狙い */
+  stopHan:0,         /* 何翻以上で自動進行を止めるか（0=止めない）*/
+  stopYakuman:true,  /* 役満で止めるか */
+  kai:0,             /* 何回目 */
+  kyoku:0,           /* 0=東1局 … 3=東4局 4=南1局 … 15=北4局 */
+  honba:0,
+  total:0,           /* 累計得点 */
+  agariN:0,          /* 和了した回数 */
+  log:[],            /* 1回ごとの記録 */
+  stat:{},           /* 役ごとの回数 */
+  turnStat:new Array(20).fill(0),
+  view:null          /* 起動する前の 表示・非表示の設定を預かります */
+}, ls(K_MJ,{}));
+if(!Array.isArray(MJ.log)) MJ.log=[];
+if(!MJ.stat||typeof MJ.stat!=="object") MJ.stat={};
+if(!Array.isArray(MJ.turnStat)||MJ.turnStat.length<20) MJ.turnStat=new Array(20).fill(0);
+const mjSave=()=>{ try{ localStorage.setItem(K_MJ,JSON.stringify(MJ)); }catch(e){} };
+const mjVisible=()=>isAdmin();            /* ★ いまは管理者だけに見せます */
+
+const MJ_KYOKU=["東1局","東2局","東3局","東4局","南1局","南2局","南3局","南4局",
+                "西1局","西2局","西3局","西4局","北1局","北2局","北3局","北4局"];
+const mjBakaze=k=>27+Math.floor((k%16)/4);        /* 東=27 南=28 西=29 北=30 */
+const mjKyokuName=k=>MJ_KYOKU[k%16];
+
+/* ── いまの対局 ── */
+let MJG=null, mjTimer=null;
+/** 1手あたりのミリ秒。S値が X なら (1+X) 倍速 */
+function mjStepMs(){
+  let sv=0;
+  try{
+    const G=(typeof lsGain==="function")?lsGain():null;
+    if(G) sv=+svalOf(G.baseS+G.s)||0;
+    else if(typeof lsAll!=="undefined") sv=0;
+  }catch(e){ sv=0; }
+  if(!(sv>0)) sv=0;
+  return Math.max(40, Math.round(1000/(1+sv)));
+}
+/** 新しい1回を始めます */
+function mjNewGame(){
+  const wall=mjWall();
+  /* 王牌14枚（嶺上4＋ドラ表示5＋裏ドラ5）。ふつうの麻雀と同じです */
+  const live=wall.slice(0,122);
+  const dead=wall.slice(122);
+  const g={
+    wall:live, p:0,
+    dead, doraInd:[dead[4]], uraInd:[dead[9]],
+    rinshan:dead.slice(0,4), rinshanUsed:0,
+    c:new Array(MJ_N).fill(0),
+    kans:[], discards:[], seen:new Array(MJ_N).fill(0),
+    turn:0, riichi:false, riichiTurn:0, doubleRiichi:false, ippatsu:false,
+    rinshanFlag:false, over:false, result:null,
+    kyoku:MJ.kyoku, honba:MJ.honba, kai:MJ.kai+1,
+    lastDraw:-1, lastDiscard:-1, log:[]
+  };
+  for(let i=0;i<14;i++) g.c[g.wall[g.p++]]++;
+  g.lastDraw=-1;
+  return g;
+}
+const mjDora=g=>g.doraInd.map(mjDoraOf);
+const mjUra=g=>g.uraInd.map(mjDoraOf);
+/** いまの手を点数計算します（和了していれば結果、していなければ null）*/
+function mjTryAgari(g,tenhou){
+  const kanT=g.kans.map(k=>k.t);
+  if(!mjIsAgari(g.c,g.kans.length)) return null;
+  const hand=[];
+  for(let t=0;t<MJ_N;t++) for(let i=0;i<g.c[t];i++) hand.push(t);
+  return mjScore(hand,{
+    winTile:g.lastDraw, bakaze:mjBakaze(g.kyoku),
+    dora:mjDora(g), uraDora:mjUra(g),
+    riichi:g.riichi, ippatsu:g.ippatsu, doubleRiichi:g.doubleRiichi,
+    rinshan:g.rinshanFlag, tenhou:!!tenhou, kans:kanT});
+}
+/** 1手すすめます。返り値 "go"（続く）／"end"（終わり） */
+function mjStep(g){
+  if(g.over) return "end";
+  /* ① 配牌での和了（天和）
+        ★ 配牌は「0巡目」です。ここで打牌したあと 1巡目になり、
+          そこから 18回ツモります（合わせて18巡）。 */
+  if(g.turn===0){
+    const r=mjTryAgari(g,true);
+    if(r){ return mjFinish(g,r,0); }
+    g.lastDraw=-1;
+    return mjDiscardPhase(g,true);
+  }
+  /* ② ツモ */
+  if(g.needDraw){
+    g.needDraw=false;
+    if(g.p>=g.wall.length) return mjFinish(g,null,g.turn);
+    const t=g.wall[g.p++];
+    g.c[t]++; g.lastDraw=t; g.rinshanFlag=false;
+    const r=mjTryAgari(g,false);
+    if(r) return mjFinish(g,r,g.turn);
+    return mjDiscardPhase(g,false);
+  }
+  return mjDiscardPhase(g,false);
+}
+/** 打牌（と、暗槓・立直の判断）*/
+function mjDiscardPhase(g,first){
+  const unseen=mjUnseen(g.c,g.seen);
+  /* 見えている牌：捨て牌・ドラ表示 */
+  const ctx={bakaze:mjBakaze(g.kyoku),dora:mjDora(g)};
+  /* 暗槓できるか */
+  if(g.rinshanUsed<4){
+    for(let t=0;t<MJ_N;t++){
+      if(g.c[t]===4&&mjShouldKan(g.c,g.kans.length,unseen,ctx,MJ.aggr,t)){
+        /* 立直後は、待ちが変わらない暗槓だけ許します（今回は簡単に、立直後は槓しません）*/
+        if(g.riichi) break;
+        g.c[t]-=4; g.kans.push({t});
+        g.doraInd.push(g.dead[4+g.doraInd.length]);   /* 槓ドラ */
+        g.uraInd.push(g.dead[9+g.uraInd.length]);
+        const rt=g.rinshan[g.rinshanUsed++];
+        g.c[rt]++; g.lastDraw=rt; g.rinshanFlag=true;
+        g.log.push({k:"kan",t});
+        const r=mjTryAgari(g,false);
+        if(r) return mjFinish(g,r,g.turn);
+        break;
+      }
+    }
+  }
+  /* 立直 */
+  if(!g.riichi&&mjShouldRiichi(g.c,g.kans.length,unseen,ctx,MJ.aggr)){
+    g.riichi=true; g.riichiTurn=g.turn;
+    if(g.turn===0) g.doubleRiichi=true;   /* 配牌でそのまま立直＝ダブル立直 */
+    g.ippatsu=true;
+    g.log.push({k:"riichi",turn:g.turn});
+  }else if(g.riichi){
+    /* 一発は「立直した次のツモ」まで */
+    if(g.turn>g.riichiTurn+1) g.ippatsu=false;
+  }
+  /* 打牌 */
+  let d;
+  if(g.riichi&&g.riichiTurn<g.turn&&g.lastDraw>=0){
+    d=g.lastDraw;                                  /* 立直後はツモ切り */
+  }else{
+    const ch=mjChoose(g.c,g.kans.length,unseen,ctx,MJ.aggr);
+    if(!ch){ return mjFinish(g,null,g.turn); }
+    d=ch.tile;
+  }
+  if(g.c[d]<=0){ d=-1; for(let t=0;t<MJ_N;t++) if(g.c[t]>0){ d=t; break; } }
+  if(d<0) return mjFinish(g,null,g.turn);
+  g.c[d]--; g.seen[d]++; g.discards.push(d); g.lastDiscard=d;
+  /* 次の巡へ */
+  if(g.turn>=MJ_MAXTURN) return mjFinish(g,null,MJ_MAXTURN);
+  g.turn++;
+  g.needDraw=true;
+  /* 一発は打牌したら消えます（次のツモで和了すれば一発）*/
+  if(g.riichi&&g.turn>g.riichiTurn+1) g.ippatsu=false;
+  return "go";
+}
+/** 1回の終わり。記録して、局と本場を進めます */
+function mjFinish(g,res,turn){
+  g.over=true;
+  const kanT=g.kans.map(k=>k.t);
+  const hand=[];
+  for(let t=0;t<MJ_N;t++) for(let i=0;i<g.c[t];i++) hand.push(t);
+  let rec;
+  if(res){
+    const pts=res.pts+300*g.honba;                 /* 本場は 100点×3人 */
+    MJ.total+=pts; MJ.agariN++;
+    res.yaku.forEach(y=>{ MJ.stat[y.n]=(MJ.stat[y.n]||0)+1; });
+    MJ.turnStat[Math.min(19,turn)]++;
+    rec={kai:g.kai, kyoku:g.kyoku, honba:g.honba, agari:true, turn,
+         hand:hand.slice(), kans:kanT.slice(), win:g.lastDraw,
+         yaku:res.yaku.map(y=>({n:y.n,h:y.h,y:y.y||0})),
+         han:res.total||0, fu:res.fu||0, yakuman:res.yakuman||0,
+         name:res.name||"", pts, total:MJ.total, agariN:MJ.agariN,
+         dora:mjDora(g), ura:g.riichi?mjUra(g):[], riichi:g.riichi};
+    MJ.honba++;                                    /* 和了したら本場が増えます */
+  }else{
+    const sh=mjShanten(g.c,g.kans.length);
+    rec={kai:g.kai, kyoku:g.kyoku, honba:g.honba, agari:false, turn:MJ_MAXTURN,
+         hand:hand.slice(), kans:kanT.slice(), shanten:sh,
+         pts:0, total:MJ.total, agariN:MJ.agariN, riichi:g.riichi};
+    MJ.kyoku=(MJ.kyoku+1)%16;                      /* 流局したら局が進みます */
+    MJ.honba=0;
+  }
+  MJ.kai=g.kai;
+  MJ.log.unshift(rec);
+  while(MJ.log.length>500) MJ.log.pop();
+  mjSave();
+  g.result=rec;
+  return "end";
+}
+/** 自動進行を止めるかどうか */
+function mjShouldStop(rec){
+  if(!rec||!rec.agari) return false;
+  if(MJ.stopYakuman&&rec.yakuman>0) return true;
+  if(MJ.stopHan>0&&rec.han>=MJ.stopHan) return true;
+  return false;
+}
+
+
+/* ══════════ 牌の絵（すべて自前で描いています）══════════ */
+/** 筒子のまるを並べます */
+function mjPinDots(n){
+  const pos={
+    1:[[50,50,22]],
+    2:[[50,28,15],[50,72,15]],
+    3:[[26,24,13],[50,50,13],[74,76,13]],
+    4:[[30,28,14],[70,28,14],[30,72,14],[70,72,14]],
+    5:[[28,26,13],[72,26,13],[50,50,13],[28,74,13],[72,74,13]],
+    6:[[30,22,13],[70,22,13],[30,50,13],[70,50,13],[30,78,13],[70,78,13]],
+    7:[[28,18,11],[50,28,11],[72,38,11],[30,60,11],[70,60,11],[30,82,11],[70,82,11]],
+    8:[[30,16,11],[70,16,11],[30,38,11],[70,38,11],[30,62,11],[70,62,11],[30,84,11],[70,84,11]],
+    9:[[26,22,12],[50,22,12],[74,22,12],[26,50,12],[50,50,12],[74,50,12],[26,78,12],[50,78,12],[74,78,12]]
+  }[n]||[];
+  const col=n===1?"#c0392b":(n<=4?["#1a6fb5","#c0392b","#1a6fb5","#1a6fb5"][n-1]:"#1a6fb5");
+  return pos.map(([x,y,r],i)=>{
+    const c=(n===1)?"#c0392b":((n===5&&i===2)||(n===2&&i===0)||(n===3&&i===1)?"#1f8a4c":col);
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="#0b2f52" stroke-width="2"/>`
+      +`<circle cx="${x}" cy="${y}" r="${r*0.42}" fill="#fff"/>`;
+  }).join("");
+}
+/** 索子の竹を並べます */
+function mjSouSticks(n){
+  const stick=(x,y,h,c)=>
+    `<rect x="${x-4.5}" y="${y-h/2}" width="9" height="${h}" rx="4" fill="${c}"/>`
+   +`<rect x="${x-6.5}" y="${y-h/2-1}" width="13" height="4" rx="2" fill="${c}"/>`
+   +`<rect x="${x-6.5}" y="${y+h/2-3}" width="13" height="4" rx="2" fill="${c}"/>`;
+  const G="#1f8a4c", R="#c0392b";
+  if(n===1){
+    /* 1索は鳥ではなく、太い竹1本にしています（自前の絵です）*/
+    return stick(50,50,52,G)+`<circle cx="50" cy="26" r="7" fill="${R}"/>`;
+  }
+  const rows={
+    2:[[50,32],[50,68]],
+    3:[[50,26],[32,62],[68,62]],
+    4:[[32,30],[68,30],[32,70],[68,70]],
+    5:[[30,28],[70,28],[50,50],[30,72],[70,72]],
+    6:[[30,26],[50,26],[70,26],[30,74],[50,74],[70,74]],
+    7:[[50,20],[32,48],[50,48],[68,48],[32,78],[50,78],[68,78]],
+    8:[[34,20],[66,20],[30,44],[50,44],[70,44],[30,70],[50,70],[70,70]],
+    9:[[30,24],[50,24],[70,24],[30,50],[50,50],[70,50],[30,76],[50,76],[70,76]]
+  }[n]||[];
+  const red=(n===5)?[2]:(n===7)?[0]:(n===9)?[0,1,2]:[];
+  return rows.map(([x,y],i)=>stick(x,y,n<=3?26:22,red.indexOf(i)>=0?R:G)).join("");
+}
+/** 牌1枚の絵 */
+function mjTileHTML(t,cls){
+  const n=mjNum(t), su=mjSuit(t);
+  const red=mjIsRed(t);
+  let inner="";
+  if(su===0){
+    const kan=["一","二","三","四","五","六","七","八","九"][n-1];
+    inner=`<text x="50" y="44" class="mjk" fill="${red?"#c0392b":"#17212e"}">${kan}</text>`
+         +`<text x="50" y="84" class="mjw" fill="#c0392b">萬</text>`;
+  }else if(su===1){ inner=mjPinDots(n); }
+  else if(su===2){ inner=mjSouSticks(n); }
+  else{
+    const z=["東","南","西","北","白","發","中"][t-27];
+    if(t===31) inner=`<rect x="20" y="16" width="60" height="68" rx="4" fill="none" stroke="#1a6fb5" stroke-width="5"/>`;
+    else inner=`<text x="50" y="70" class="mjz" fill="${t===32?"#1f8a4c":(t===33?"#c0392b":"#17212e")}">${z}</text>`;
+  }
+  return `<span class="mjt${cls?" "+cls:""}${red?" red":""}" title="${esc(MJ_JP[t])}">`
+    +`<svg viewBox="0 0 100 100" aria-hidden="true">${inner}</svg></span>`;
+}
+const mjTilesHTML=(arr,cls)=>arr.map(t=>mjTileHTML(t,cls)).join("");
+/** 手牌を並べ替えて返します */
+const mjSortHand=c=>{ const a=[]; for(let t=0;t<MJ_N;t++) for(let i=0;i<c[t];i++) a.push(t); return a; };
+
+/* ══════════ 対局画面 ══════════ */
+function mjBoardHTML(){
+  const g=MJG;
+  if(!g) return "";
+  const hand=mjSortHand(g.c);
+  const draw=(g.lastDraw>=0&&!g.over)?g.lastDraw:-1;
+  /* ツモ牌は右にはなします */
+  let show=hand.slice();
+  if(draw>=0){ const i=show.lastIndexOf(draw); if(i>=0) show.splice(i,1); }
+  const dora=mjDora(g);
+  const res=g.result;
+  return `
+  <div class="mjtop">
+    <span class="mjkyoku">${esc(mjKyokuName(g.kyoku))} ${jp(g.honba)}本場</span>
+    <span class="tiny">第 <b>${jp(g.kai)}</b> 回</span>
+    <span class="tiny">${g.over?"終わり":jp(Math.min(g.turn,MJ_MAXTURN))+" / "+MJ_MAXTURN+" 巡"}</span>
+    ${g.riichi?'<span class="mjriichi">立直</span>':""}
+    <span class="tiny" style="margin-left:auto">累計 <b>${jp(MJ.total)}</b> 点　
+      和了 <b>${jp(MJ.agariN)}</b> 回</span>
+  </div>
+  <div class="mjdorarow"><span class="tiny">ドラ</span>${mjTilesHTML(dora,"sm")}
+    ${g.kans.length?'<span class="tiny" style="margin-left:10px">暗槓</span>'
+      +g.kans.map(k=>mjTileHTML(k.t,"sm")).join(""):""}</div>
+  <div class="mjhand">${mjTilesHTML(show)}${draw>=0?
+    '<span class="mjgap"></span>'+mjTileHTML(draw,"drawn"):""}</div>
+  <div class="mjriver">${mjTilesHTML(g.discards,"sm")}</div>
+  ${res?mjResultHTML(res):""}`;
+}
+function mjResultHTML(r){
+  if(!r.agari){
+    return `<div class="mjres ryu"><b>流局</b>
+      <span class="tiny">${jp(r.shanten)}向聴で終わりました</span></div>`;
+  }
+  const ys=r.yaku.map(y=>`<span class="mjy">${esc(y.n)}${y.y?"":"　"+y.h+"翻"}</span>`).join("");
+  return `<div class="mjres win">
+    <div class="mjwin">${esc(r.name||"")} <b>${jp(r.pts)}</b> 点
+      <span class="tiny">${r.yakuman?"":jp(r.han)+"翻"+jp(r.fu)+"符　"}${jp(r.turn)}巡目</span></div>
+    <div class="mjys">${ys}</div>
+    <div class="tiny">累計 ${jp(r.total)} 点　${jp(r.agariN)} 回目の和了</div>
+  </div>`;
+}
+
+
+/* ══════════ 起動・進行・設定・統計 ══════════ */
+const MJ_KEEP=["count","now","all","goal","rank","sl"];   /* 1人麻雀の間に出すもの */
+let mjPaused=false;
+function mjStart(){
+  if(!mjVisible()) return;
+  if(!MJ.view){ MJ.view=Object.assign({},LSVIEW); }        /* 前の設定を預かります */
+  const v={};
+  LSV_ITEMS.forEach(x=>{ v[x.k]=MJ_KEEP.indexOf(x.k)>=0; });
+  LSVIEW=v; saveLsView(); lsViewApply();
+  MJ.on=true; mjPaused=false; mjSave();
+  document.body.classList.add("mjon");
+  MJG=mjNewGame();
+  mjDraw();
+  mjTick();
+}
+function mjStop(){
+  MJ.on=false; mjSave();
+  if(mjTimer){ clearTimeout(mjTimer); mjTimer=null; }
+  MJG=null;
+  if(MJ.view){ LSVIEW=Object.assign({},MJ.view); MJ.view=null; saveLsView(); mjSave(); }
+  lsViewApply();
+  document.body.classList.remove("mjon");
+  mjDraw();
+}
+function mjTick(){
+  if(mjTimer){ clearTimeout(mjTimer); mjTimer=null; }
+  if(!MJ.on||!MJG||mjPaused) return;
+  const ms=mjStepMs();
+  mjTimer=setTimeout(()=>{
+    if(!MJ.on||!MJG||mjPaused) return;
+    let r;
+    try{ r=mjStep(MJG); }
+    catch(e){ console.error("1人麻雀",e); r="end"; }
+    mjDraw();
+    if(r==="end"){
+      const rec=MJG.result;
+      if(mjShouldStop(rec)){
+        mjPaused=true; mjDraw();
+        return;
+      }
+      /* 記録を1秒（速さに応じて）見せてから、次の回へ */
+      mjTimer=setTimeout(()=>{
+        if(!MJ.on||mjPaused) return;
+        MJG=mjNewGame(); mjDraw(); mjTick();
+      },ms);
+      return;
+    }
+    mjTick();
+  },ms);
+}
+function mjDraw(){
+  const box=$("#mjBody"); if(!box) return;
+  const card=$("#mjCard"); if(card) card.hidden=!mjVisible();
+  if(!MJ.on||!MJG){
+    box.innerHTML=`<p class="muted" style="margin-top:-6px">
+      親ひとりで 18巡。ツモ和了だけです。いちばんの目標は <b>天和</b>。</p>
+      ${mjSetHTML()}
+      <div class="tools"><button class="btn pri" id="mjGo">始める</button>
+        <button class="btn" id="mjLogB">記録</button>
+        <button class="btn" id="mjStatB">統計</button>
+        <button class="btn" id="mjRuleB">ルール</button></div>`;
+    mjWire();
+    return;
+  }
+  box.innerHTML=mjBoardHTML()
+    +`<div class="tools">
+        <button class="btn ${mjPaused?"pri":""}" id="mjPause">${mjPaused?"つづける":"止める"}</button>
+        <button class="btn" id="mjNext" ${mjPaused?"":"hidden"}>次の回へ</button>
+        <button class="btn" id="mjLogB">記録</button>
+        <button class="btn" id="mjStatB">統計</button>
+        <button class="btn" id="mjCfgB">設定</button>
+        <button class="btn" id="mjEnd">やめる</button>
+        <span class="tiny" style="color:var(--dim2)">${
+          (1000/mjStepMs()).toFixed(2)}倍速（S値ぶん速くなります）</span>
+      </div>`;
+  mjWire();
+}
+function mjSetHTML(){
+  return `<div class="mjset">
+    <label class="fl">打ちかた（左＝和了狙い　右＝高打点狙い）</label>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="tiny">和了</span>
+      <input type="range" id="mjAggr" min="0" max="100" step="5" value="${MJ.aggr}" style="flex:1">
+      <span class="tiny">打点</span>
+      <b style="min-width:52px;text-align:right">${jp(MJ.aggr)}%</b>
+    </div>
+    <p class="tiny" id="mjAggrN" style="color:var(--dim2)"></p>
+    <label class="fl" style="margin-top:8px">自動で次に進むのを止める条件</label>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="tiny">翻</span>
+      <input type="range" id="mjStopHan" min="0" max="13" step="1" value="${MJ.stopHan}" style="flex:1">
+      <b style="min-width:86px;text-align:right">${MJ.stopHan?jp(MJ.stopHan)+"翻以上":"止めない"}</b>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <div><b>役満で止める</b><div class="tiny">役満・ダブル役満を和了した時は必ず止めます</div></div>
+      <div class="toggle" style="margin-left:auto">
+        <button id="mjYmOff" class="${MJ.stopYakuman?"":"on"}">止めない</button>
+        <button id="mjYmOn" class="${MJ.stopYakuman?"on":""}">止める</button></div>
+    </div></div>`;
+}
+function mjWire(){
+  const q=x=>$(x);
+  if(q("#mjGo")) q("#mjGo").onclick=mjStart;
+  if(q("#mjEnd")) q("#mjEnd").onclick=()=>{ if(confirm("1人麻雀をやめますか？")) mjStop(); };
+  if(q("#mjPause")) q("#mjPause").onclick=()=>{
+    mjPaused=!mjPaused; mjDraw(); if(!mjPaused) mjTick(); };
+  if(q("#mjNext")) q("#mjNext").onclick=()=>{
+    mjPaused=false; MJG=mjNewGame(); mjDraw(); mjTick(); };
+  if(q("#mjLogB")) q("#mjLogB").onclick=mjLogShow;
+  if(q("#mjStatB")) q("#mjStatB").onclick=mjStatShow;
+  if(q("#mjRuleB")) q("#mjRuleB").onclick=mjRuleShow;
+  if(q("#mjCfgB")) q("#mjCfgB").onclick=mjCfgShow;
+  const a=q("#mjAggr");
+  if(a){
+    const note=()=>{ const n=q("#mjAggrN"); if(!n) return;
+      n.textContent=MJ.aggr<=15?"シャンテンを確実に減らします。点数は見ません"
+        :MJ.aggr>=85?"いちばん高くなる形をめざします"
+        :"和了しやすさと点数を、"+(100-MJ.aggr)+"：" +MJ.aggr+" で混ぜます"; };
+    a.oninput=e=>{ MJ.aggr=Math.max(0,Math.min(100,+e.target.value||0)); mjSave();
+      const b=a.parentElement.querySelector("b"); if(b) b.textContent=jp(MJ.aggr)+"%"; note(); };
+    note();
+  }
+  const sh=q("#mjStopHan");
+  if(sh) sh.oninput=e=>{ MJ.stopHan=Math.max(0,Math.min(13,+e.target.value||0)); mjSave();
+    const b=sh.parentElement.querySelector("b");
+    if(b) b.textContent=MJ.stopHan?jp(MJ.stopHan)+"翻以上":"止めない"; };
+  if(q("#mjYmOn")) q("#mjYmOn").onclick=()=>{ MJ.stopYakuman=true; mjSave(); mjDraw(); };
+  if(q("#mjYmOff")) q("#mjYmOff").onclick=()=>{ MJ.stopYakuman=false; mjSave(); mjDraw(); };
+}
+function mjCfgShow(){
+  const M=modal(`<h2>1人麻雀の設定</h2>${mjSetHTML()}
+    <div class="tools"><button class="btn" id="mjCX">閉じる</button></div>`,{w:620});
+  M.q("#mjCX").onclick=M.close;
+  /* 窓の中でも同じ配線を使います */
+  const a=M.q("#mjAggr");
+  if(a) a.oninput=e=>{ MJ.aggr=Math.max(0,Math.min(100,+e.target.value||0)); mjSave();
+    const b=a.parentElement.querySelector("b"); if(b) b.textContent=jp(MJ.aggr)+"%"; };
+  const sh=M.q("#mjStopHan");
+  if(sh) sh.oninput=e=>{ MJ.stopHan=Math.max(0,Math.min(13,+e.target.value||0)); mjSave();
+    const b=sh.parentElement.querySelector("b");
+    if(b) b.textContent=MJ.stopHan?jp(MJ.stopHan)+"翻以上":"止めない"; };
+  M.q("#mjYmOn").onclick=()=>{ MJ.stopYakuman=true; mjSave();
+    M.q("#mjYmOn").classList.add("on"); M.q("#mjYmOff").classList.remove("on"); };
+  M.q("#mjYmOff").onclick=()=>{ MJ.stopYakuman=false; mjSave();
+    M.q("#mjYmOff").classList.add("on"); M.q("#mjYmOn").classList.remove("on"); };
+}
+/** 1回ごとの記録 */
+function mjLogShow(){
+  const M=modal(`<h2>1人麻雀の記録</h2>
+    <p class="tiny" style="color:var(--dim2)">新しいものが上です（500回ぶんまで）</p>
+    <div class="scroll" style="max-height:60vh"><table><thead><tr>
+      <th>回</th><th>局</th><th>結果</th><th class="n">巡</th><th class="n">点</th>
+      <th class="n">累計</th><th class="n">和了</th><th>手牌</th>
+      </tr></thead><tbody>
+      ${MJ.log.length?MJ.log.map(r=>`<tr class="${r.agari?"":"lose"}">
+        <td class="n">${jp(r.kai)}</td>
+        <td class="tiny">${esc(mjKyokuName(r.kyoku))}<br>${jp(r.honba)}本場</td>
+        <td class="tiny">${r.agari
+          ? `<b style="color:var(--acc2)">和了</b><br>${esc(r.name||"")}
+             ${r.yakuman?"":jp(r.han)+"翻"+jp(r.fu)+"符"}<br>
+             <span style="color:var(--dim2)">${r.yaku.map(y=>esc(y.n)).join("・")}</span>`
+          : `<b style="color:var(--warn)">流局</b><br>${jp(r.shanten)}向聴`}</td>
+        <td class="n">${r.agari?jp(r.turn):"—"}</td>
+        <td class="n">${r.agari?jp(r.pts):"0"}</td>
+        <td class="n">${jp(r.total)}</td>
+        <td class="n">${jp(r.agariN)}</td>
+        <td class="mjmini">${mjTilesHTML(r.hand,"xs")}
+          ${r.kans&&r.kans.length?'<span class="tiny">槓</span>'+mjTilesHTML(r.kans,"xs"):""}</td>
+      </tr>`).join(""):`<tr><td colspan="8" class="tiny">まだありません</td></tr>`}
+    </tbody></table></div>
+    <div class="tools"><button class="btn" id="mjLX">閉じる</button>
+      <button class="btn sm" id="mjLClr">記録を消す</button></div>`,{w:960});
+  M.q("#mjLX").onclick=M.close;
+  M.q("#mjLClr").onclick=async()=>{
+    if(!await askYN("1人麻雀の記録を消しますか？","統計もいっしょに消えます。","消す")) return;
+    MJ.log=[]; MJ.stat={}; MJ.total=0; MJ.agariN=0; MJ.kai=0; MJ.kyoku=0; MJ.honba=0;
+    MJ.turnStat=new Array(20).fill(0); mjSave(); M.close(); mjDraw(); toast("消しました");
+  };
+}
+/** 統計 */
+function mjStatShow(){
+  const n=MJ.log.length, win=MJ.agariN;
+  const ryu=MJ.log.filter(r=>!r.agari);
+  const shSum=ryu.reduce((a,r)=>a+(+r.shanten||0),0);
+  const rows=MJ_YAKU_ORDER.filter(y=>MJ.stat[y]).map(y=>({y,n:MJ.stat[y]}))
+    .concat(Object.keys(MJ.stat).filter(y=>MJ_YAKU_ORDER.indexOf(y)<0).map(y=>({y,n:MJ.stat[y]})));
+  const mx=Math.max(1,...rows.map(r=>r.n));
+  const best=MJ.log.filter(r=>r.agari).sort((a,b)=>b.pts-a.pts)[0];
+  const tmax=Math.max(1,...MJ.turnStat);
+  const M=modal(`<h2>1人麻雀の統計</h2>
+    <div class="lsgrid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="lsbox"><div class="t">打った回数</div>
+        <div class="v" style="font-size:1.6rem">${jp(n)}</div><div class="s">回</div></div>
+      <div class="lsbox"><div class="t">和了</div>
+        <div class="v" style="font-size:1.6rem">${jp(win)}</div>
+        <div class="s">和了率 ${n?((win/n)*100).toFixed(2):"0.00"}%</div></div>
+      <div class="lsbox"><div class="t">累計得点</div>
+        <div class="v" style="font-size:1.6rem">${jp(MJ.total)}</div>
+        <div class="s">1回あたり ${n?jp(Math.round(MJ.total/n)):0} 点</div></div>
+      <div class="lsbox"><div class="t">いまの局</div>
+        <div class="v" style="font-size:1.3rem">${esc(mjKyokuName(MJ.kyoku))}</div>
+        <div class="s">${jp(MJ.honba)}本場</div></div>
+    </div>
+    <div class="lsgrid" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
+      <div class="lsbox"><div class="t">和了の平均点</div>
+        <div class="v" style="font-size:1.4rem">${win?jp(Math.round(MJ.total/win)):0}</div>
+        <div class="s">点</div></div>
+      <div class="lsbox"><div class="t">いちばん高かった手</div>
+        <div class="v" style="font-size:1.4rem">${best?jp(best.pts):0}</div>
+        <div class="s">${best?esc(best.name||"")+"　第"+jp(best.kai)+"回":"—"}</div></div>
+      <div class="lsbox"><div class="t">流局時の平均向聴</div>
+        <div class="v" style="font-size:1.4rem">${ryu.length?(shSum/ryu.length).toFixed(2):"—"}</div>
+        <div class="s">${jp(ryu.length)} 回ぶん</div></div>
+    </div>
+    <h3 style="margin-top:14px">何巡目で和了したか</h3>
+    <div class="arhist">${MJ.turnStat.slice(0,19).map((v,i)=>
+      `<div class="arhb" title="${i}巡目 ${jp(v)}回"><i style="height:${v?Math.max(4,v/tmax*100):0}%"></i>
+       <span class="n">${v||""}</span><span class="d">${i===0?"配":i}</span></div>`).join("")}</div>
+    <h3 style="margin-top:14px">役ごとの回数</h3>
+    ${rows.length?`<div class="mjstat">${rows.map(r=>`<div class="mjsrow">
+      <span class="mjsn">${esc(r.y)}</span>
+      <span class="mjsb"><i style="width:${(r.n/mx*100).toFixed(1)}%"></i></span>
+      <span class="mjsv">${jp(r.n)}</span></div>`).join("")}</div>`
+      :`<p class="muted">まだ和了がありません。</p>`}
+    <div class="tools"><button class="btn" id="mjSX">閉じる</button></div>`,{w:860});
+  M.q("#mjSX").onclick=M.close;
+}
+function mjRuleShow(){
+  const M=modal(`<h2>1人麻雀のルール</h2>
+    <div class="hintbox" style="margin-top:0"><span class="tiny">
+      ・あなたは いつも <b>親（東家）</b>です。ひとりで打ちます<br>
+      ・牌は4人麻雀と同じ136枚。<b>5萬・5筒・5索は すべて赤ドラ</b>です<br>
+      ・配牌14枚。そこで和了できれば <b>天和</b>（役満）<br>
+      ・そのあとは 自分の番だけが <b>18巡</b>続きます。<b>ツモ和了だけ</b>です<br>
+      ・立直・一発・裏ドラ・暗槓（嶺上開花・槓ドラ）があります<br>
+      ・18巡で和了できなければ 流局です</span></div>
+    <h3>局と本場</h3>
+    <div class="hintbox"><span class="tiny">
+      1回目は <b>東1局0本場</b>。<br>
+      <b>和了したら</b> 本場が1つ増えます（東1局0本場 → 東1局1本場）。<br>
+      <b>流局したら</b> 局が1つ進んで 0本場に戻ります（東1局2本場 → 東2局0本場）。<br>
+      東4局の次は南1局、北4局の次は東1局に戻ります。<b>場風</b>も局に合わせて変わります。</span></div>
+    <h3>点数</h3>
+    <div class="hintbox"><span class="tiny">
+      ・いつも <b>親のツモ</b>として計算します。1人ぶんの支払いは100点に切り上げ、3人ぶんを足します<br>
+      ・<b>役満は 48,000点</b>。ダブル役満は 96,000点<br>
+      ・<b>13翻以上で数え役満</b>、<b>26翻以上でダブル数え役満</b><br>
+      ・四暗刻や大三元などの本物の役満があるときは、数え役満より そちらを優先します<br>
+      ・役満どうしは重なります（大三元＋字一色 ＝ ダブル役満）<br>
+      ・本場は 1本場につき 300点（100点×3人）</span></div>
+    <h3>自動で打つしくみ</h3>
+    <div class="hintbox"><span class="tiny">
+      つまみを <b>左（和了狙い）</b>にすると、シャンテンを確実に減らし、
+      受け入れがいちばん広くなる牌を切ります。点数は見ません。<br>
+      <b>右（高打点狙い）</b>にすると、ドラ・染め手・役牌・対々和などの
+      見込み点がいちばん高くなる形をめざします。
+      ただし和了できなければ点にならないので、受け入れも少しだけ見ます。<br>
+      とちゅうの値では、その割合で2つの評価を混ぜます。</span></div>
+    <h3>速さ</h3>
+    <div class="hintbox"><span class="tiny">
+      1手につき1秒です。<b>S値が X なら (1＋X) 倍速</b>になります。
+      たとえば S値 2.234 なら 3.234倍速です。記録も同じ速さで見せてから次に進みます。</span></div>
+    <div class="tools"><button class="btn" id="mjRX">閉じる</button></div>`,{w:720});
+  M.q("#mjRX").onclick=M.close;
+}
+
 /* ══════════════════════════════════════════════════════════
    Prime Bingo
    ──────────────────────────────────────────────────────────
@@ -15832,6 +17224,11 @@ if($("#lsBtnSave")) $("#lsBtnSave").onclick=lsSaveOpen;
 if($("#lsBtnCfg"))  $("#lsBtnCfg").onclick=lsCfgOpen;
 if($("#lsBtnView")) $("#lsBtnView").onclick=lsViewOpen;
 if($("#lsBtnYt")) $("#lsBtnYt").onclick=ytShow;
+if($("#lsBtnMj")) $("#lsBtnMj").onclick=()=>{
+  const c=$("#mjCard"); if(c){ c.hidden=false;
+    try{ c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
+  mjDraw();
+};
 
 $("#lsStartBtn").onclick=()=>{
   lsRun={start:Date.now(),count:0,p0:performance.now(),pp:null}; lsCool=0;
