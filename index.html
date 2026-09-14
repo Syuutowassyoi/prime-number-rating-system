@@ -40,12 +40,12 @@ html[data-font="mincho"]{
   --font:var(--avenir),"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP","MS PMincho",Georgia,serif;
 }
 html[data-font="mincho"] body{font-size:15.5px;letter-spacing:.01em}
-html[data-font="mincho"] .muted,html[data-font="mincho"] .tiny{font-weight:500}
+html[data-font="mincho"] .muted,html[data-font="mincho"] .tiny{font-weight:700}
 html[data-font="mincho"] .tiny{font-size:.80rem}
 html[data-font="mincho"] h1,html[data-font="mincho"] h2,
 html[data-font="mincho"] h3,html[data-font="mincho"] h4{font-weight:700}
 html[data-font="mincho"] b,html[data-font="mincho"] strong{font-weight:700}
-html[data-font="mincho"] .btn,html[data-font="mincho"] button{font-weight:600}
+html[data-font="mincho"] .btn,html[data-font="mincho"] button{font-weight:700}
 /* 暗い画面では、細い明朝体がとくに うすく見えるので、少し明るくします */
 html[data-font="mincho"][data-theme="dark"] body{color:#f4f8ff}
 html[data-font="mincho"][data-theme="dark"] .muted{color:#a8bad3}
@@ -241,7 +241,7 @@ h1 .g{background:linear-gradient(90deg,#4da3ff,#57e0a0);-webkit-background-clip:
 .ver{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;
   letter-spacing:.06em;background:var(--panel3);color:#8fc7ff;border:1px solid #2f6fd0;
   font-variant-numeric:tabular-nums}
-.lscoinfx{position:absolute;left:50%;top:2px;transform:translateX(-50%);font-weight:900;
+.lscoinfx{position:absolute;left:50%;top:2px;transform:translateX(-50%);font-weight:700;
   color:var(--warn);font-size:.9rem;pointer-events:none;animation:lscfx 1.6s ease-out forwards}
 @keyframes lscfx{0%{opacity:0;transform:translate(-50%,6px)}
   20%{opacity:1;transform:translate(-50%,-2px)}100%{opacity:0;transform:translate(-50%,-22px)}}
@@ -314,7 +314,7 @@ html[data-theme="light"] .navsheetin{
   background:#ffffff;box-shadow:0 -10px 30px #0f172a33, 0 0 0 1px #0f172a12}
 /* 1つずつのボタンにも下地をつけます（後ろの文字が 透けないように）*/
 .navsheet button{background:var(--panel,#0d1524);border:0;border-bottom:1px solid var(--line,#28374f);
-  color:var(--tx,#e9eff8);font-family:inherit;font-size:.95rem;font-weight:600;
+  color:var(--tx,#e9eff8);font-family:inherit;font-size:.95rem;font-weight:700;
   padding:13px 16px;text-align:left;cursor:pointer;
   transform:translateY(8px);
   transition:transform .18s ease var(--d,0ms),background .12s,color .12s}
@@ -362,7 +362,7 @@ body.phoneui #tabs{display:none !important}
   touch-action:manipulation}
 .arkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1;max-width:340px}
 .arkey{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--tx2);
-  font-size:1.5rem;font-weight:800;padding:14px 0;cursor:pointer;
+  font-size:1.5rem;font-weight:700;padding:14px 0;cursor:pointer;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .arkey:active{background:var(--line2)}
@@ -370,7 +370,7 @@ body.phoneui #tabs{display:none !important}
 .arkey[data-ark="back"]{font-size:.9rem;color:var(--warn)}
 /* パスは はしに置きます。1回目で赤く光り、2回目でパスします */
 .arpass{width:74px;flex:none;background:var(--panel2);border:1px solid var(--line2);
-  border-radius:10px;color:var(--dim);font-size:.92rem;font-weight:800;cursor:pointer;
+  border-radius:10px;color:var(--dim);font-size:.92rem;font-weight:700;cursor:pointer;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   transition:background .12s,color .12s,border-color .12s;line-height:1.3;padding:0 4px}
@@ -625,7 +625,7 @@ button.lnk{background:none;border:0;color:var(--acc2);cursor:pointer;
   font-variant-numeric:tabular-nums;font-synthesis-weight:none;
   line-height:1;letter-spacing:.02em;display:inline-block;color:var(--acc2);
   white-space:nowrap}
-.prsdec{opacity:.78;letter-spacing:.01em;font-weight:400}
+.prsdec{opacity:.78;letter-spacing:.01em;font-weight:700}
 /* ══════════ 入場のアニメ（紫の線のゲート）══════════ */
 .argate{position:fixed;inset:0;z-index:99998;background:#07050f;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
@@ -643,7 +643,7 @@ button.lnk{background:none;border:0;color:var(--acc2);cursor:pointer;
   12% {opacity:.95}
   78% {opacity:.85}
   100%{opacity:0;   transform:translateZ(420px) rotate(14deg)}}
-.argtxt{position:relative;z-index:2;color:#e9d5ff;font-weight:800;
+.argtxt{position:relative;z-index:2;color:#e9d5ff;font-weight:700;
   letter-spacing:.34em;font-size:clamp(.95rem,3.4vw,1.5rem);
   text-shadow:0 0 16px #a855f7cc;animation:argt 3s ease-out both}
 @keyframes argt{0%{opacity:0;letter-spacing:1.1em}
@@ -675,7 +675,7 @@ button.lnk{background:none;border:0;color:var(--acc2);cursor:pointer;
   display:flex;align-items:center;justify-content:center;font-size:0;color:#7d93b3;
   transition:background .15s}
 .pbc.on{background:linear-gradient(160deg,#ffd45e,#ff9d3c);border-color:#ffd45e;
-  color:#241a05;font-weight:800;box-shadow:0 0 8px #ffd45e66}
+  color:#241a05;font-weight:700;box-shadow:0 0 8px #ffd45e66}
 .pbcard.det .pbc{font-size:.5rem}
 .pblast{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .pblast .t{font-size:.72rem;color:var(--dim2)}
@@ -747,10 +747,10 @@ table.rtin tfoot td{border-top:2px solid var(--line)}
 .rkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 0;
   border-bottom:1px solid var(--line)}
 .rkrow .rkno{width:26px;height:26px;border-radius:50%;background:var(--panel2);color:var(--dim);
-  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
 .rkrow .rkf{display:flex;flex-direction:column;gap:3px}
 .rkrow .rkf .fl{margin:0;font-size:.62rem}
-.rkrow .rkp{margin-left:auto;font-weight:900;font-size:1.15rem;letter-spacing:.08em;align-self:center}
+.rkrow .rkp{margin-left:auto;font-weight:700;font-size:1.15rem;letter-spacing:.08em;align-self:center}
 .rkdemo{display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .rkdemo .tiny{min-width:120px;color:var(--dim2)}
 .postbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;
@@ -762,12 +762,12 @@ table.rtin tfoot td{border-top:2px solid var(--line)}
 .ntc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
   background:rgba(255,255,255,.02)}
 .ntc.pin{border-color:var(--warn)}
-.ntc .ttl{font-weight:800;color:var(--acc2);font-size:.95rem}
+.ntc .ttl{font-weight:700;color:var(--acc2);font-size:.95rem}
 .ntc .at{font-size:.72rem;color:var(--dim2)}
 .ntc .bd{margin-top:6px;white-space:pre-wrap;line-height:1.7;font-size:.86rem}
 .ntc .bd a,.ntclink{color:#5aa9ff;text-decoration:underline;word-break:break-all}
 .ntc .bd a:hover{color:#8fc7ff}
-h2{font-size:.95rem;margin:0 0 14px;color:var(--acc);letter-spacing:.06em;font-weight:600}
+h2{font-size:.95rem;margin:0 0 14px;color:var(--acc);letter-spacing:.06em;font-weight:700}
 h3{font-size:.84rem;margin:20px 0 8px;color:var(--dim);letter-spacing:.04em}
 a{color:var(--acc)}
 .card{background:linear-gradient(180deg,var(--card),var(--card)eE);border:1px solid var(--line);
@@ -827,10 +827,10 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .segwrap{display:inline-flex;align-items:flex-end;line-height:0}
 .segfont{font-family:"DSEG7",ui-monospace,monospace;font-weight:700;line-height:1;
   display:inline-block;white-space:nowrap}
-.rtplain{font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+.rtplain{font-weight:700;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
   display:inline-flex;align-items:baseline;white-space:nowrap}
 .rtplain .d{font-size:.56em;letter-spacing:-.01em;margin-left:.02em}
-.rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:600;margin-bottom:6px}
+.rtlabel{font-size:.68rem;letter-spacing:.28em;color:var(--dim);font-weight:700;margin-bottom:6px}
 .dg{font-family:var(--avenir),ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
   font-variant-numeric:tabular-nums;letter-spacing:.02em}
 
@@ -890,7 +890,7 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .lsbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);
   border-radius:13px;padding:14px 16px;text-align:center}
 .lsbox .t{font-size:.74rem;color:var(--dim)}
-.lsbox .v{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2;
+.lsbox .v{font-size:2rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;
   font-family:var(--avenir),ui-monospace,"SF Mono",Menlo,monospace}
 .lsbox .v.big{font-size:1.7rem;color:var(--acc2)}
 .lsbox .s{font-size:.74rem;color:var(--dim2);font-variant-numeric:tabular-nums}
@@ -899,18 +899,18 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .neon{margin-top:8px;border-radius:12px;padding:10px 13px;position:relative;
   background:var(--panel);border:1px solid var(--nc);box-shadow:0 0 0 1px var(--nc) inset,
   0 0 14px -3px var(--nc),0 0 26px -10px var(--nc)}
-.neon .nlab{position:absolute;top:-9px;left:11px;font-size:.66rem;font-weight:800;
+.neon .nlab{position:absolute;top:-9px;left:11px;font-size:.66rem;font-weight:700;
   letter-spacing:.08em;padding:1px 8px;border-radius:999px;background:var(--panel);
   color:var(--nc);border:1px solid var(--nc)}
-.neon .ntit{font-size:1rem;font-weight:800;color:#fff;margin-top:3px}
+.neon .ntit{font-size:1rem;font-weight:700;color:#fff;margin-top:3px}
 .neon .nrow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:5px}
 .neon .nev{font-size:.8rem;color:var(--dim);min-width:9em}
 .neon .nold{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:.92rem;color:var(--dim2);
   text-decoration:line-through}
 .neon .narw{color:var(--nc)}
-.neon .nnew{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:1.35rem;font-weight:800;
+.neon .nnew{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:1.35rem;font-weight:700;
   color:#fff;text-shadow:0 0 10px var(--nc)}
-.neon .nval{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:1.5rem;font-weight:800;
+.neon .nval{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:1.5rem;font-weight:700;
   color:#fff;text-shadow:0 0 12px var(--nc)}
 .neon .ncond{font-size:.8rem;color:var(--dim);margin-top:5px;white-space:pre-wrap}
 .neon.n-rec{--nc:#7fe9ff}
@@ -923,7 +923,7 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .lsval.rise{color:#9dffe4;text-shadow:0 0 18px #7fe9ffaa,0 0 42px #7fe9ff44;
   transition:color .5s ease,text-shadow .5s ease}
 .lspop{position:absolute;right:12px;top:28px;text-align:right;pointer-events:none;
-  font-size:.86rem;font-weight:800;letter-spacing:.02em;color:#9dffe4;
+  font-size:.86rem;font-weight:700;letter-spacing:.02em;color:#9dffe4;
   text-shadow:0 0 12px #7fe9ff99;animation:lspop 1.1s cubic-bezier(.2,.8,.3,1) forwards;
   font-family:var(--avenir),ui-monospace,"SF Mono",Menlo,monospace}
 .lsbar{position:absolute;left:0;bottom:0;height:3px;width:0;
@@ -936,7 +936,7 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 @keyframes lsbar{0%{width:0;opacity:1}70%{width:100%;opacity:1}100%{width:100%;opacity:0}}
 @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.18);color:var(--warn)}100%{transform:scale(1)}}
 .lshit{width:100%;margin-top:14px;padding:22px;border-radius:16px;font:inherit;font-size:1.15rem;
-  font-weight:800;letter-spacing:.06em;cursor:pointer;color:#fff;border:1px solid #4da3ff;
+  font-weight:700;letter-spacing:.06em;cursor:pointer;color:#fff;border:1px solid #4da3ff;
   background:linear-gradient(135deg,#2f6fd0,#3f9de0);box-shadow:0 10px 30px -18px #4da3ff}
 .lshit:active{transform:translateY(2px)}
 .lshit:disabled{opacity:.4;cursor:not-allowed;background:var(--panel2);border-color:var(--line)}
@@ -976,7 +976,7 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .cup .meta{font-size:.76rem;color:var(--dim)}
 .cd{font-variant-numeric:tabular-nums;font-weight:700;color:var(--acc2);font-size:1.05rem}
 .cd.pre{color:var(--warn)} .cd.end{color:var(--dim2)}
-.gsec{font-size:.82rem;color:var(--acc);font-weight:600;margin:16px 0 8px;letter-spacing:.06em}
+.gsec{font-size:.82rem;color:var(--acc);font-weight:700;margin:16px 0 8px;letter-spacing:.06em}
 .segchip{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:6px;
   padding:2px 6px;margin:2px;font-size:.68rem;color:var(--dim);white-space:nowrap}
 .segchip b{color:var(--tx);margin-left:4px}
@@ -985,7 +985,7 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .goal{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:10px 0;border-bottom:1px solid var(--panel2)}
 .goal:last-child{border-bottom:none}
 .goal .n{font-size:.9rem}
-.goal .g{font-size:.85rem;color:var(--acc2);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.goal .g{font-size:.85rem;color:var(--acc2);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
 .goal .d{grid-column:1/-1;font-size:.76rem;color:var(--dim);font-variant-numeric:tabular-nums}
 .step{display:grid;grid-template-columns:24px 1fr auto;gap:3px 10px;padding:9px 0;border-bottom:1px solid var(--panel2)}
 .step .no{color:var(--acc);font-weight:700;font-size:.8rem}
@@ -994,17 +994,17 @@ select{background:var(--panel);color:var(--tx);border:1px solid var(--line2);bor
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -6px;padding:0 6px}
 .scroll table{min-width:max-content}
 table{width:100%;border-collapse:collapse}
-th{font-size:.71rem;color:var(--dim);font-weight:600;text-align:right;padding:7px 8px;
+th{font-size:.71rem;color:var(--dim);font-weight:700;text-align:right;padding:7px 8px;
   border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child{text-align:left}
 td{padding:6px 8px;border-bottom:1px solid #1e2b40;text-align:right;font-size:.88rem;white-space:nowrap;
   font-family:var(--avenir),ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 td:first-child,tr.sec td{font-family:inherit}
 td:first-child{text-align:left;white-space:normal}
-tr.sec td{background:linear-gradient(90deg,#22324a,#1a2536);color:var(--acc);font-size:.79rem;font-weight:600;text-align:left;padding:8px}
+tr.sec td{background:linear-gradient(90deg,#22324a,#1a2536);color:var(--acc);font-size:.79rem;font-weight:700;text-align:left;padding:8px}
 tr.used{background:linear-gradient(90deg,#16291f,#16291f00)}
 tr.me{background:linear-gradient(90deg,#1b2b44,#1b2b4400);box-shadow:inset 3px 0 0 var(--acc)}
-.pct{color:var(--acc2);font-weight:600}
+.pct{color:var(--acc2);font-weight:700}
 tr.pending td{opacity:.72}
 .pendtag{color:#8b98ab;font-size:.72rem}
 .band{color:var(--dim);font-size:.75rem}
@@ -1035,7 +1035,7 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 /* ===== Prime Coin ===== */
 .pcoin{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;
   border-radius:50%;background:linear-gradient(135deg,#ffe9a8,#ffd45e 55%,#e8a020);
-  color:#4a3400;font-weight:900;font-size:.72em;line-height:1;border:1px solid #ffd45e;
+  color:#4a3400;font-weight:700;font-size:.72em;line-height:1;border:1px solid #ffd45e;
   box-shadow:0 0 8px -2px #ffd45e;vertical-align:-.1em}
 /* ログインボーナスのカレンダー */
 .lbcal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
@@ -1050,24 +1050,24 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
   font-size:.62rem;color:var(--dim2);text-align:center}
 .lbwin{text-align:center;padding:6px 0}
 .lbwin .big{font-size:3.2rem;line-height:1;filter:drop-shadow(0 0 18px #ffd45e88)}
-.lbwin .got{font-size:1.5rem;font-weight:900;color:#ffd45e;margin-top:6px}
+.lbwin .got{font-size:1.5rem;font-weight:700;color:#ffd45e;margin-top:6px}
 /* 連打モード */
 #rushOv{position:fixed;inset:0;z-index:150;background:rgba(4,7,14,.94);display:none;
   align-items:center;justify-content:center}
 #rushOv.on{display:flex}
 .rushbox{text-align:center;width:min(420px,92vw)}
-.rushcd{font-size:5rem;font-weight:900;color:#ffd45e;height:5rem;line-height:5rem;
+.rushcd{font-size:5rem;font-weight:700;color:#ffd45e;height:5rem;line-height:5rem;
   text-shadow:0 0 26px #ffd45e88}
-.rushn{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:4rem;font-weight:900;color:#fff;line-height:1}
+.rushn{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:4rem;font-weight:700;color:#fff;line-height:1}
 .rushlab{font-size:.7rem;color:var(--dim);letter-spacing:.2em}
 .rushbar{height:8px;border-radius:5px;background:var(--panel2);overflow:hidden;margin:12px 0 4px;
   border:1px solid var(--line)}
 .rushbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd45e,#ff6b5e)}
 .rushleft{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:.9rem;color:var(--warn)}
-.rushpt{font-size:1rem;color:var(--warn);font-weight:800;margin-top:2px;letter-spacing:.04em}
+.rushpt{font-size:1rem;color:var(--warn);font-weight:700;margin-top:2px;letter-spacing:.04em}
 .rushpt b{font-size:1.5rem;font-family:var(--avenir),ui-monospace,Menlo,monospace}
 #rushHit{width:100%;height:110px;margin-top:14px;border-radius:20px;font:inherit;font-size:1.4rem;
-  font-weight:900;letter-spacing:.1em;color:#fff;cursor:pointer;border:1px solid #ff6b5e;
+  font-weight:700;letter-spacing:.1em;color:#fff;cursor:pointer;border:1px solid #ff6b5e;
   background:linear-gradient(135deg,#c2382f,#e8574a);box-shadow:0 14px 34px -16px #ff6b5e;
   touch-action:manipulation;user-select:none}
 #rushHit:active{transform:translateY(3px);filter:brightness(1.3)}
@@ -1079,7 +1079,7 @@ button.btn.done,button.btn.done:disabled{opacity:1;background:#222a38;border-col
 
 .sw{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);
   border-radius:12px;padding:12px 14px;margin-top:14px;flex-wrap:wrap}
-.sw .t{font-size:.86rem;font-weight:600}
+.sw .t{font-size:.86rem;font-weight:700}
 .sw .toggle{margin-left:auto;display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);
   border-radius:9px;padding:3px}
 .sw .toggle button{background:none;border:none;color:var(--dim);font:inherit;font-size:.78rem;
@@ -1091,11 +1091,11 @@ button.btn.done,button.btn.done:disabled{opacity:1;background:#222a38;border-col
 .vs .side .av,.vs .side .avph{width:56px;height:56px;margin:0 auto 8px;font-size:1.3rem;border-width:2px}
 
 .vs .mid{font-size:.85rem;color:var(--dim);font-weight:700;letter-spacing:.1em}
-.nm{font-weight:600}
+.nm{font-weight:700}
 /* 一覧では名前だけを左にそろえます */
 .nmcell .txt{text-align:left}
 .nmcell .txt>a{display:block}
-.nm-admin{color:var(--warn);font-weight:800;text-shadow:0 0 14px #ffc861aa,0 0 4px #ffc86166}
+.nm-admin{color:var(--warn);font-weight:700;text-shadow:0 0 14px #ffc861aa,0 0 4px #ffc86166}
 .nm-supporter{color:var(--acc2);font-weight:700;text-shadow:0 0 12px #57e0a088}
 @keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
 .nm-admin{animation:shine 2.4s ease-in-out infinite}
@@ -1109,21 +1109,21 @@ button.btn.done,button.btn.done:disabled{opacity:1;background:#222a38;border-col
   -webkit-text-fill-color:transparent;color:transparent;
   animation:rbslide 3s linear infinite, glowpulse 2s ease-in-out infinite;
 }
-.badge.bg-RAINBOW{border-color:#ffffff66;background:var(--panel)88;font-weight:800}
+.badge.bg-RAINBOW{border-color:#ffffff66;background:var(--panel)88;font-weight:700}
 .badge.bg-MASTER{box-shadow:0 0 24px -6px #ff7b8a;animation:shine 2s ease-in-out infinite}
 .badge.bg-TITAN{box-shadow:0 0 24px -6px #a98bff;animation:shine 2.6s ease-in-out infinite}
-.nm-RAINBOW{font-weight:800}
-.newrec{color:#ff5f6d !important;font-weight:800;text-shadow:0 0 10px #ff2d5599,0 0 3px #ff2d5566;
+.nm-RAINBOW{font-weight:700}
+.newrec{color:#ff5f6d !important;font-weight:700;text-shadow:0 0 10px #ff2d5599,0 0 3px #ff2d5566;
   animation:shine 1.8s ease-in-out infinite}
 .win{color:var(--acc2)} .lose{color:var(--bad)} .draw{color:var(--dim)}
-.tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:600}
+.tally{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:.9rem;font-weight:700}
 
 /* ═══════ PGBC（Prime Game Border Center） ═══════ */
 #pgbc .pgpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-bottom:12px}
 #pgbc .pgpick button{background:var(--card2);border:1px solid var(--line);color:var(--dim);
   border-radius:9px;padding:7px 6px;font:inherit;font-size:.78rem;cursor:pointer;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
-#pgbc .pgpick button.on{background:#123a6b;border-color:#4da3ff;color:#fff;font-weight:800}
+#pgbc .pgpick button.on{background:#123a6b;border-color:#4da3ff;color:#fff;font-weight:700}
 #pgbc .pgboard{background:#0b2a6b;border:2px solid #16428f;border-radius:12px;padding:clamp(6px,1vw,14px)}
 #pgbc .pgrow{display:grid;gap:clamp(5px,.8vw,12px);margin-bottom:clamp(5px,.8vw,12px)}
 #pgbc .pgcell{background:#0a3282;border:1px solid #2a58a8;border-radius:9px;
@@ -1152,25 +1152,25 @@ button.btn.done,button.btn.done:disabled{opacity:1;background:#222a38;border-col
 #pgt .g{position:relative;display:flex;align-items:stretch;padding-top:clamp(13px,1.9vw,22px);
   margin-right:clamp(14px,2.4vw,34px)}
 #pgt .nm{position:absolute;left:0;top:0;height:clamp(13px,1.9vw,22px);display:flex;align-items:center;
-  color:#ffd45e;font-weight:800;font-size:clamp(.56rem,1.05vw,.86rem);white-space:nowrap;
+  color:#ffd45e;font-weight:700;font-size:clamp(.56rem,1.05vw,.86rem);white-space:nowrap;
   letter-spacing:.06em;padding-left:6px}
 #pgt .c{display:flex;flex-direction:column;justify-content:center;padding:0 clamp(6px,1.1vw,14px);
   border-right:1px solid #14335f;white-space:nowrap;text-align:right;box-sizing:border-box}
 #pgt .c .r{color:#9fb6d9;font-size:clamp(.5rem,.95vw,.76rem);letter-spacing:.06em;text-align:right}
 #pgt .c .v{color:#ff9a2e;font-size:clamp(.86rem,1.9vw,1.5rem);line-height:1.15;text-align:right;
-  font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:800}
+  font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:700}
 #pgt .c .d{font-size:clamp(.6rem,1.2vw,.95rem);text-align:right;
-  font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:800}
+  font-family:'HGPｺﾞｼｯｸE','HGPGothicE','HGSｺﾞｼｯｸE','MS PGothic','Yu Gothic',sans-serif;font-weight:700}
 #pgt .c .d.p{color:#39d98a}#pgt .c .d.m{color:#ff6b6b}#pgt .c .d.z{color:#9fb6d9}
 #pgt .sp{width:10px}
 .medals{font-family:var(--avenir),ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;
-  font-size:1.5rem;font-weight:800;letter-spacing:.04em;margin:0}
-.medals .sep{color:var(--dim2);margin:0 .28em;font-weight:400}
+  font-size:1.5rem;font-weight:700;letter-spacing:.04em;margin:0}
+.medals .sep{color:var(--dim2);margin:0 .28em;font-weight:700}
 .hclock{margin-left:10px;font-family:var(--avenir),ui-monospace,Menlo,Consolas,monospace;
   font-variant-numeric:tabular-nums;font-size:clamp(.6rem,1.3vw,.82rem);color:var(--dim);
   white-space:nowrap}
 .hclock.cd{color:var(--acc2)}
-.hclock.cd.wait{color:var(--warn);font-weight:800}
+.hclock.cd.wait{color:var(--warn);font-weight:700}
 @media(max-width:520px){header{flex-wrap:wrap}.hclock{margin-left:0;margin-right:10px}}
 .mask{position:fixed;inset:0;background:#060a12dd;display:grid;place-items:center;padding:16px;z-index:200}
 .modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
@@ -1192,8 +1192,8 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 #cardCanvas{width:100%;max-width:680px;height:auto;border-radius:14px;border:1px solid var(--line);
   display:block;box-shadow:0 24px 50px -30px #000}
 /* ---- 役職 ---- */
-.nm-judgeman{color:#ff9de2;font-weight:800;text-shadow:0 0 13px #ff9de2aa}
-.nm-supervisor{color:#9db7ff;font-weight:800;text-shadow:0 0 12px #9db7ff99}
+.nm-judgeman{color:#ff9de2;font-weight:700;text-shadow:0 0 13px #ff9de2aa}
+.nm-supervisor{color:#9db7ff;font-weight:700;text-shadow:0 0 12px #9db7ff99}
 .nm-judge{color:#7fe9ff;font-weight:700;text-shadow:0 0 10px #7fe9ff88}
 /* ---- レベル表示（大きな数字の書体） ---- */
 .lvb{display:inline-flex;align-items:baseline;gap:1px;font-family:var(--numf);font-weight:700;font-synthesis-weight:none;
@@ -1220,7 +1220,7 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 .sbrow{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
 .sbtop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .sbev{font-size:.82rem;color:var(--dim)}
-.sbval{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
+.sbval{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
 .sbval.st-pending{color:#8794a8}
 .sbval.st-judged{color:#ffd45e;text-shadow:0 0 10px #ffd45e55}
 .sbval.st-certified{color:#fff;text-shadow:0 0 12px #ffffffcc,0 0 26px #cfe6ff88}
@@ -1326,9 +1326,9 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 .xlwrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
 .xl{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .xl th,.xl td{border:1px solid var(--panel2);padding:0;min-width:78px;height:26px}
-.xl th{background:var(--panel2);color:var(--dim);font:600 10px ui-sans-serif;text-align:center;
+.xl th{background:var(--panel2);color:var(--dim);font:700 10px ui-sans-serif;text-align:center;
   min-width:30px;position:sticky;top:0}
-.xl td.rh{background:var(--panel2);color:var(--dim);font:600 10px ui-sans-serif;text-align:center;min-width:30px}
+.xl td.rh{background:var(--panel2);color:var(--dim);font:700 10px ui-sans-serif;text-align:center;min-width:30px}
 .xl input{width:100%;height:26px;border:none;background:transparent;color:var(--tx);
   font:inherit;font-size:.76rem;padding:0 5px;text-align:right}
 .xl input:focus{outline:2px solid var(--acc);outline-offset:-2px;background:#0f1a2c}
@@ -1376,7 +1376,7 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
   border:1px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;
   display:flex;flex-direction:column;transition:transform .16s,border-color .16s}
 .room:hover{transform:translateY(-2px);border-color:var(--acc)}
-.room .rt{font-weight:800;font-size:.92rem;line-height:1.3;padding-right:26px}
+.room .rt{font-weight:700;font-size:.92rem;line-height:1.3;padding-right:26px}
 .room .rlast{font-size:.74rem;color:var(--dim);margin-top:8px;flex:1;
   overflow:hidden;line-height:1.5}
 .room .rfoot{font-size:.7rem;color:var(--dim2);display:flex;gap:10px;flex-wrap:wrap}
@@ -1385,7 +1385,7 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 .room .rpin.on{color:#ffc861;text-shadow:0 0 8px #ffc86188}
 .room .runread{position:absolute;top:-7px;right:-7px;background:#ff5470;color:#fff;
   border-radius:99px;min-width:22px;height:22px;display:flex;align-items:center;
-  justify-content:center;font-size:.7rem;font-weight:800;box-shadow:0 0 10px #ff547088;
+  justify-content:center;font-size:.7rem;font-weight:700;box-shadow:0 0 10px #ff547088;
   padding:0 6px}
 .room .rtag{font-size:.64rem;padding:2px 7px;border-radius:99px;border:1px solid var(--line);
   color:var(--dim2);align-self:flex-start;margin-top:6px}
@@ -1406,10 +1406,10 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 .mdgauge .bg{fill:none;stroke:var(--line);stroke-width:16;stroke-linecap:round}
 .mdgauge .fg{fill:none;stroke:url(#mdg);stroke-width:16;stroke-linecap:round;
   transition:stroke-dasharray .8s ease-out}
-.mdnum{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:2.8rem;font-weight:900;line-height:1;
+.mdnum{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:2.8rem;font-weight:700;line-height:1;
   color:var(--mood)}
 .mdlab{font-size:.68rem;color:var(--dim);letter-spacing:.16em;margin-top:2px}
-.mdword{font-size:1.05rem;font-weight:800;margin-top:8px}
+.mdword{font-size:1.05rem;font-weight:700;margin-top:8px}
 .mddelta{font-size:.8rem;font-family:var(--avenir),ui-monospace,Menlo,monospace}
 .mddelta.up{color:var(--acc2)}.mddelta.down{color:var(--bad)}
 .mdbar{height:22px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);
@@ -1417,12 +1417,12 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 .mdbar i{display:block;height:100%;background:linear-gradient(90deg,#7a44d0,var(--mood));
   transition:width .8s ease-out}
 .mdbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:.72rem;font-weight:800;text-shadow:0 1px 3px #000}
+  font-size:.72rem;font-weight:700;text-shadow:0 1px 3px #000}
 .mdbar.done i{background:linear-gradient(90deg,#2c7a4b,var(--acc2))}
 .mdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:4px}
 .mdcell{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:9px 11px}
 .mdcell .t{font-size:.64rem;color:var(--dim);letter-spacing:.06em}
-.mdcell .v{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:1.5rem;font-weight:900;line-height:1.2}
+.mdcell .v{font-family:var(--avenir),ui-monospace,Menlo,monospace;font-size:1.5rem;font-weight:700;line-height:1.2}
 .mdcell .s{font-size:.62rem;color:var(--dim2)}
 .mdchart .ln{fill:none;stroke:var(--mood);stroke-width:2}
 .mdchart .ar{fill:#ff8fb31a}
@@ -1443,7 +1443,7 @@ body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, v
 body.paused{overflow:hidden}
 .pwin{max-width:520px}
 .pwttl{font-size:1.15rem;letter-spacing:.06em;margin:0 0 22px;color:var(--dim)}
-.pwbig{font-size:1.7rem;font-weight:900;letter-spacing:.1em;color:var(--warn);
+.pwbig{font-size:1.7rem;font-weight:700;letter-spacing:.1em;color:var(--warn);
   margin-bottom:14px;line-height:1.5}
 .pwmsg{font-size:.95rem;color:var(--tx);line-height:1.9;white-space:pre-wrap;margin:0 0 14px}
 .pwtiny{font-size:.76rem;color:var(--dim2);line-height:1.7;margin:0}
@@ -1453,7 +1453,7 @@ body.paused{overflow:hidden}
   align-items:center;justify-content:center}
 #hsLock.on{display:flex}
 .hslockin{text-align:center}
-.hsbig{font-size:1.25rem;font-weight:900;letter-spacing:.1em;margin-top:16px;color:var(--acc2)}
+.hsbig{font-size:1.25rem;font-weight:700;letter-spacing:.1em;margin-top:16px;color:var(--acc2)}
 .hsring{width:96px;height:96px;border-radius:50%;position:relative;margin:0 auto}
 .hsring span{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
 .hsring span:nth-child(1){border-top-color:var(--acc2);animation:hsr 1s linear infinite}
@@ -1476,7 +1476,7 @@ body.paused{overflow:hidden}
 .hsnone{color:var(--dim2)}
 /* 素因数分解アリーナへのボタン */
 .btn.ppbtn{margin-left:6px;display:inline-flex;align-items:center;
-  border-color:#c08bff;color:#e6d4ff;font-weight:800;letter-spacing:.04em;
+  border-color:#c08bff;color:#e6d4ff;font-weight:700;letter-spacing:.04em;
   background:linear-gradient(135deg,#3a2260,#5b3496)}
 .btn.ppbtn:hover{border-color:#d9b6ff;filter:brightness(1.15)}
 a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
@@ -1494,7 +1494,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   background:linear-gradient(180deg,#fff3bf,#efc040);-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent}
 .chsub{font-size:.8rem;color:var(--dim);margin-top:2px}
-.chfly{position:fixed;pointer-events:none;z-index:80;font-weight:800;color:#ffd45e;
+.chfly{position:fixed;pointer-events:none;z-index:80;font-weight:700;color:#ffd45e;
   font-size:1.1rem;animation:chfly .9s ease-out forwards}
 @keyframes chfly{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-58px)}}
 /* カレンダー */
@@ -1521,7 +1521,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
   background:var(--panel);color:#8fbdf0;cursor:pointer;font-family:inherit}
 .ptag.on{background:#1d3a5c;border-color:var(--acc);color:var(--tx2);font-weight:700}
 .ptag .n{opacity:.7;margin-left:5px;font-variant-numeric:tabular-nums}
-.taginline{color:#8fbdf0;cursor:pointer;font-weight:600}
+.taginline{color:#8fbdf0;cursor:pointer;font-weight:700}
 /* いいね（ハート） */
 .heart{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);background:var(--panel);
   color:var(--dim);border-radius:99px;padding:5px 11px;font:inherit;font-size:.8rem;cursor:pointer}
@@ -1532,7 +1532,7 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 .heart.pop .hi{animation:hpop .42s ease-out}
 @keyframes hpop{0%{transform:scale(1)}35%{transform:scale(1.55)}100%{transform:scale(1)}}
 /* 公式タグ（記録更新・大会参加・チャレンジ参加）は黄色く光らせます */
-.taginline.off,.ptag.off{color:#ffd45e;text-shadow:0 0 10px #ffd45e88;font-weight:800}
+.taginline.off,.ptag.off{color:#ffd45e;text-shadow:0 0 10px #ffd45e88;font-weight:700}
 .ptag.off{border-color:#8a7330;background:#241d0d}
 .ptag.off.on{background:#3a2f12;color:#ffe9a8}
 /* 複数リンクの入力欄 */
@@ -1552,6 +1552,19 @@ a.btn.ppbtn .pc{margin-left:6px;font-size:.72em;color:#ffd45e}
 .segs button.on{background:var(--accsoft);color:var(--tx);border-color:#3f5b82;font-weight:700}
 .segs button .c{font-variant-numeric:tabular-nums;opacity:.8}
 
+
+/* ══════════ 文字の太さを 700 にそろえます ══════════
+   ★ 大きさ（font-size）は いっさい変えていません。太さだけを統一しています。
+      Avenir Next・Century Gothic には本物の太字があるので、きれいに出ます。
+      入っていない端末で「にせ太字」にならないよう、合成は止めています。 */
+html,body,button,input,select,textarea,
+h1,h2,h3,h4,h5,h6,b,strong,th,
+.btn,.tiny,.muted,.fl,.t,.v,.s,.n{
+  font-weight:700;
+  font-synthesis-weight:none;
+}
+/* 太字の合成は、どこでも止めます */
+*{font-synthesis-weight:none}
 </style>
 </head>
 <body>
@@ -3082,7 +3095,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v133";
+const APP_VERSION = "v134";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3771,6 +3784,13 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v134":[
+    "文字の太さを、画面ぜんぶで Bold（700）にそろえました",
+    "　これまで 400・500・600・700・800・900 がまざっていたのを 700 に統一しました",
+    "　本文・見出し・ボタン・数字・表・グラフ・プロフィールカードまで すべて同じ太さです",
+    "　※ 文字の大きさ（ピクセル数）は いっさい変えていません",
+    "Avenir Next や Century Gothic が無い端末で字がつぶれないよう、",
+    "　「にせ太字」を作らない指定を画面ぜんぶに入れました"],
   "v133":[
     "英数字の書体を Avenir Next にしました",
     "　Avenir Next は iPhone・iPad・Mac に標準で入っているので、そのまま表示されます",
@@ -4354,7 +4374,7 @@ function pgRender(){
     <div class="pgpick">${PG_ORDER.map(n=>
       `<button data-pg="${esc(n)}" class="${n===pgPick?"on":""}">${esc(n)}</button>`).join("")}</div>
     <div class="pgboard">
-      <div class="pgnote" style="font-size:.9rem;font-weight:800;color:#fff;margin-bottom:8px">
+      <div class="pgnote" style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:8px">
         ${esc(pgPick)}</div>
       ${(PG_ROWS[pgPick]||PG_ROWS.def).map((row,ri)=>
         `<div class="pgrow r${ri+1}" style="grid-template-columns:repeat(${row.length},1fr)">`
@@ -5764,14 +5784,14 @@ function drawPyramid(total,complete){
       stroke="${rankC(r)}" stroke-width="1" opacity="${here?".9":".4"}"/>`;
     g+=`<path d="M ${labX-6} ${my} l -7 -3.5 v 7 z" fill="${rankC(r)}" opacity="${here?".95":".55"}"/>`;
     g+=`<text x="${labX}" y="${my+fs*0.35}" fill="${fill}"
-      style="font:800 ${fs}px ui-sans-serif,system-ui;letter-spacing:.06em${
+      style="font:700 ${fs}px ui-sans-serif,system-ui;letter-spacing:.06em${
         r.glow?`;filter:drop-shadow(0 0 4px ${r.c2||r.c})`:""}">${esc(r.n)}</text>`;
     const nx=RANKS[i+1];
     const need=nx?`${f2(r.min)} 〜 ${f2(nx.min)}`:`${f2(r.min)} 以上`;
     g+=`<text x="${labX+nameW+14}" y="${my+fs*0.35}" fill="#8ba0bd"
-      style="font:400 ${rs}px ui-monospace,monospace">${esc(need)}</text>`;
+      style="font:700 ${rs}px ui-monospace,monospace">${esc(need)}</text>`;
     if(here) g+=`<text x="${cx-w1/2-8}" y="${my+fs*0.35}" text-anchor="end" fill="${rankC(r)}"
-      style="font:800 ${Math.max(11,fs-2)}px ui-sans-serif,system-ui">いまここ ▶</text>`;
+      style="font:700 ${Math.max(11,fs-2)}px ui-sans-serif,system-ui">いまここ ▶</text>`;
   }
   /* 画面が狭い時は、字を小さくせずに横スクロールで読めるようにします */
   return `<div class="pyrwrap"><svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}"
@@ -5779,7 +5799,7 @@ function drawPyramid(total,complete){
     xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ランクのピラミッド">
     <defs>${defs}</defs>${g}
     <text x="${cx}" y="${Hh-8}" text-anchor="middle" fill="#61748f"
-      style="font:400 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>
+      style="font:700 12px ui-sans-serif,system-ui">下ほど人数が多く、上に行くほど到達者が少なくなります</text>
   </svg></div>`;
 }
 
@@ -5901,7 +5921,7 @@ function rkPrev(){
       <span class="badge" style="${rankCSS(r,5)}border-color:${rankC(r)}66">${esc(r.n||"—")}</span>
       <span class="tiny">レート ${f2(r.min)} から</span>
       <span class="rtplain" style="font-size:26px;${rankCSS(REDIT.num,6)}">${esc(v.toFixed(3))}</span>
-      <span style="${rankCSS(r,4)};font-weight:800">${esc(r.n||"—")}</span>
+      <span style="${rankCSS(r,4)};font-weight:700">${esc(r.n||"—")}</span>
     </div>`;}).join("");
   $("#rkPrev").innerHTML=`<p class="tiny">左から：バッジ／レートの下限／RATING の数字／一覧での名前の出方</p>`
     +demo
@@ -6078,15 +6098,15 @@ function rpRoad(rp,cfg){
       stroke-width="${here?2:1}"/>`;
     /* 境目の線 */
     g+=`<line x1="${x0}" y1="46" x2="${x0}" y2="92" stroke="${gr.c}" stroke-width="1" opacity=".55"/>`;
-    g+=`<text x="${x0+2}" y="104" fill="#8ba0bd" style="font:400 10px ui-monospace,monospace">${
+    g+=`<text x="${x0+2}" y="104" fill="#8ba0bd" style="font:700 10px ui-monospace,monospace">${
       esc(rpFmt(st[i]))}</text>`;
     g+=`<text x="${x0+(SEG-3)/2}" y="73" text-anchor="middle" fill="${gid(gr)}"
-      style="font:800 12px ui-sans-serif,system-ui${
+      style="font:700 12px ui-sans-serif,system-ui${
         (+gr.glow||0)>0?`;filter:drop-shadow(0 0 ${gr.glow}px ${gr.c2||gr.c})`:""}">${rank}</text>`;
     /* グレードが変わるところに名前 */
     if(gs.some(x=>(+x.from||1)===rank))
       g+=`<text x="${x0+2}" y="40" fill="${gid(gr)}"
-        style="font:800 13px ui-sans-serif,system-ui;letter-spacing:.06em${
+        style="font:700 13px ui-sans-serif,system-ui;letter-spacing:.06em${
           (+gr.glow||0)>0?`;filter:drop-shadow(0 0 ${gr.glow}px ${gr.c2||gr.c})`:""}">${esc(gr.n)}</text>`;
   }
   /* 値固定になったところに、印を付けます */
@@ -6100,10 +6120,10 @@ function rpRoad(rp,cfg){
   const i=Math.min(cur.rank-1,st.length-1), x=padL+SEG*i+(cur.next!=null?(SEG-3)*cur.pct:0);
   g+=`<path d="M ${x} 50 l -7 -10 h 14 z" fill="var(--warn)"/>`;
   g+=`<text x="${x}" y="34" text-anchor="middle" fill="#ffd45e"
-    style="font:800 11px ui-sans-serif,system-ui">いまここ</text>`;
+    style="font:700 11px ui-sans-serif,system-ui">いまここ</text>`;
   g+=`<line x1="${x}" y1="82" x2="${x}" y2="118" stroke="#ffd45e" stroke-width="1" stroke-dasharray="3 3"/>`;
   g+=`<text x="${x}" y="128" text-anchor="middle" fill="#ffd45e"
-    style="font:400 10px ui-monospace,monospace">${esc(rpFmt(rp))} RP</text>`;
+    style="font:700 10px ui-monospace,monospace">${esc(rpFmt(rp))} RP</text>`;
   return `<div class="rproad"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"
     style="display:block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RANK の道">
     <defs>${defs}</defs>${g}</svg></div>`;
@@ -6339,7 +6359,7 @@ function rpEditDraw(){
           value="${+g.glow||0}" style="width:120px"></div>
       <div class="rkf"><label class="fl">　</label>
         <button class="btn sm del" data-pgx="${i}"${gs.length<2?" disabled":""}>消す</button></div>
-      <div class="rkp" style="${rpCSS(g)};margin-left:auto;font-weight:900;font-size:1.15rem">${
+      <div class="rkp" style="${rpCSS(g)};margin-left:auto;font-weight:700;font-size:1.15rem">${
         esc(g.n||"（名前なし）")}</div>
     </div>`).join("");
   $$("#rpGrades [data-pg]").forEach(e=>{
@@ -6348,7 +6368,7 @@ function rpEditDraw(){
       const g=RPEDIT.grades[+i];
       g[k]=(k==="from"||k==="glow")?Math.max(k==="from"?1:0,+e.value||0):e.value;
       const row=e.closest(".rpgrow"), p=row&&row.querySelector(".rkp");
-      if(p){ p.textContent=g.n||"（名前なし）"; p.style.cssText=rpCSS(g)+";margin-left:auto;font-weight:900;font-size:1.15rem"; }
+      if(p){ p.textContent=g.n||"（名前なし）"; p.style.cssText=rpCSS(g)+";margin-left:auto;font-weight:700;font-size:1.15rem"; }
       if(k==="glow"){ const lb=e.previousElementSibling; if(lb) lb.textContent="光の強さ "+jp(+e.value||0); }
       rpPrevDraw();
     };
@@ -6752,9 +6772,9 @@ function anaChart(n){
   /* 目盛り */
   for(let i=0;i<=4;i++){ const y=T+i*(H-T-Bt)/4, v=yMax-(yMax-yMin)*i/4;
     g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#ffffff12"/>`+
-       `<text x="${L-8}" y="${y+4}" text-anchor="end" fill="#61748f" style="font:400 11px ui-monospace,monospace">${esc(fmtRec(n,+v.toFixed(LOW.has(n)?3:0)))}</text>`;}
+       `<text x="${L-8}" y="${y+4}" text-anchor="end" fill="#61748f" style="font:700 11px ui-monospace,monospace">${esc(fmtRec(n,+v.toFixed(LOW.has(n)?3:0)))}</text>`;}
   ranks.forEach(r=>{ g+=`<line x1="${X(r)}" y1="${T}" x2="${X(r)}" y2="${H-Bt}" stroke="#ffffff0c"/>`+
-    `<text x="${X(r)}" y="${H-Bt+18}" text-anchor="middle" fill="#61748f" style="font:400 11px ui-sans-serif">${r}位</text>`;});
+    `<text x="${X(r)}" y="${H-Bt+18}" text-anchor="middle" fill="#61748f" style="font:700 11px ui-sans-serif">${r}位</text>`;});
   /* 曲線 */
   g+=`<path d="${smoothPath(pts)}" fill="none" stroke="#4da3ff" stroke-width="2.5" stroke-linecap="round"/>`;
   pts.forEach((p,i)=>g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#0d1220" stroke="#4da3ff" stroke-width="2"/>`);
@@ -6774,7 +6794,7 @@ function anaChart(n){
        `<text x="${Math.min(x+16,W-R-90).toFixed(1)}" y="${(y-12).toFixed(1)}" fill="#57e0a0"
           style="font:700 13px ui-sans-serif">あなた ${esc(fmtRec(n,cur))}</text>`;
   }
-  g+=`<text x="${W/2}" y="${H-8}" text-anchor="middle" fill="#61748f" style="font:400 11px ui-sans-serif">順位（対数）</text>`;
+  g+=`<text x="${W/2}" y="${H-8}" text-anchor="middle" fill="#61748f" style="font:700 11px ui-sans-serif">順位（対数）</text>`;
   return g+"</svg>";
 }
 function renderAnalysis(){
@@ -7944,10 +7964,10 @@ async function drawCardNow(){
   const on=lock?"#43536e":"#eef3fa";
   const yBase=436;
   g.fillStyle=on;
-  g.font=`400 168px ${IMPACT}`;
+  g.font=`700 168px ${IMPACT}`;
   const wInt=g.measureText(str.slice(0,di)).width;
   g.fillText(str.slice(0,di),78,yBase);
-  g.font=`400 96px ${IMPACT}`;
+  g.font=`700 96px ${IMPACT}`;
   g.fillText(str.slice(di),78+wInt+10,yBase);
   if(!lock){ g.fillStyle=rankC(rk);g.font=F(700,30);
     if(g.letterSpacing!==undefined) g.letterSpacing="6px";
@@ -7961,7 +7981,7 @@ async function drawCardNow(){
     g.fillStyle="#ffffff0d";rrect(g,78,502,500,58,12);g.fill();
     g.strokeStyle=rankC(d.grade)+"55";g.lineWidth=1;rrect(g,78,502,500,58,12);g.stroke();
     g.fillStyle="#8ba0bd";g.font=F(500,17);g.fillText("RANK",96,524);
-    g.fillStyle=rankC(d.grade);g.font=`400 38px ${IMPACT}`;
+    g.fillStyle=rankC(d.grade);g.font=`700 38px ${IMPACT}`;
     g.fillText(String(d.rank),150,546);
     const wR=g.measureText(String(d.rank)).width;
     g.font=F(700,22);g.fillText((d.grade.n||"").slice(0,12),160+wR,546);
@@ -7982,7 +8002,7 @@ async function drawCardNow(){
     g.strokeStyle="#ffffff1f";g.lineWidth=1;rrect(g,x,y,470,64,12);g.stroke();
     g.textAlign="left";g.fillStyle="#8ba0bd";g.font=F(500,19);g.fillText(b[0],x+20,y+26);
     if(b[2]){ g.fillStyle="#61748f";g.font=F(400,14);g.fillText(b[2],x+20,y+48); }
-    g.fillStyle=i===3?"#ffc861":"#eef3fa";g.font=`400 34px ${IMPACT}`;
+    g.fillStyle=i===3?"#ffc861":"#eef3fa";g.font=`700 34px ${IMPACT}`;
     g.textAlign="right";g.fillText(b[1],x+450,y+46);g.textAlign="left";});
   g.fillStyle="#61748f";g.font=F(400,20);
   g.fillText("素数あつめ RATING",80,596);
@@ -7999,7 +8019,7 @@ function drawBack(g,W,H,c,rk,F,shown){
   g.fillText(pro.handle?"@"+pro.handle.slice(0,20):"",80,92);
   g.textAlign="right";
   g.fillStyle="#8ba0bd";g.font=F(500,18);g.fillText("RATING",W-80,54);
-  g.fillStyle=rk?rk.c:"#43536e";g.font=`400 46px ${IMPACT}`;
+  g.fillStyle=rk?rk.c:"#43536e";g.font=`700 46px ${IMPACT}`;
   g.fillText(c.complete?f3(c.total).replace(/,/g,""):"--.---",W-80,96);
   g.textAlign="left";
   g.strokeStyle="#ffffff22";g.beginPath();g.moveTo(80,112);g.lineTo(W-80,112);g.stroke();
@@ -8017,9 +8037,9 @@ function drawBack(g,W,H,c,rk,F,shown){
       g.fillStyle=used?"#eef3fa":"#8ba0bd";g.font=F(used?600:400,17);
       g.fillText(n.length>13?n.slice(0,13)+"…":n,col.x+10,y-2);
       g.textAlign="right";
-      g.fillStyle="#cfe0f5";g.font=`400 20px ${IMPACT}`;
+      g.fillStyle="#cfe0f5";g.font=`700 20px ${IMPACT}`;
       g.fillText(v>0?fmtRec(n,v):"—",col.x+346,y-2);
-      g.fillStyle=used?"#57e0a0":"#5f7391";g.font=`400 20px ${IMPACT}`;
+      g.fillStyle=used?"#57e0a0":"#5f7391";g.font=`700 20px ${IMPACT}`;
       g.fillText((r*100).toFixed(1)+"%",col.x+470,y-2);
       g.textAlign="left";
     }
@@ -18789,7 +18809,7 @@ function radarSVG(events,rates,recs,title){
   [0.25,0.5,0.75].forEach(r=>{
     g+=`<polygon points="${poly(r)}" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="1"/>`;
     g+=`<text x="${cx+3}" y="${(cy-R*r-2).toFixed(1)}" fill="#ffffff" fill-opacity=".3"
-      style="font:400 9px ui-sans-serif">${r*100}%</text>`;
+      style="font:700 9px ui-sans-serif">${r*100}%</text>`;
   });
   g+=`<polygon points="${poly(1)}" fill="none" stroke="#4a5d78" stroke-width="1.4"/>`;
   Array.from({length:N},(_,i)=>{
@@ -18812,14 +18832,14 @@ function radarSVG(events,rates,recs,title){
     const an=Math.abs(Math.cos(a))<0.34?"middle":(Math.cos(a)>0?"start":"end");
     const dy=Math.sin(a)>0.6?10:(Math.sin(a)<-0.6?-4:2);
     g+=`<text x="${lx.toFixed(1)}" y="${(ly+dy).toFixed(1)}" text-anchor="${an}"
-      fill="#c8d6ea" style="font:600 9.5px ui-sans-serif">${esc(events[i])}</text>`
+      fill="#c8d6ea" style="font:700 9.5px ui-sans-serif">${esc(events[i])}</text>`
      +`<text x="${lx.toFixed(1)}" y="${(ly+dy+11).toFixed(1)}" text-anchor="${an}"
-      fill="#8fbdf0" style="font:400 9px ui-monospace,monospace">${esc(recs[i]||"—")}</text>`
+      fill="#8fbdf0" style="font:700 9px ui-monospace,monospace">${esc(recs[i]||"—")}</text>`
      +`<text x="${lx.toFixed(1)}" y="${(ly+dy+21).toFixed(1)}" text-anchor="${an}"
       fill="#57e0a0" style="font:700 9px ui-monospace,monospace">${((rates[i]||0)*100).toFixed(1)}%</text>`;
   });
   g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" fill="#61748f"
-    style="font:600 10px ui-sans-serif">${esc(title)}</text></svg>`;
+    style="font:700 10px ui-sans-serif">${esc(title)}</text></svg>`;
   return g;
 }
 /** 2つのチャートを作る。CAT2＝10種目（正十角形）、CAT3＝8種目（正八角形） */
@@ -19039,7 +19059,7 @@ function achForm(id){
   const drawFields=()=>{
     M.q("#afFields").innerHTML=fields.map((f,i)=>`<div class="lkrow" data-i="${i}">
       <div class="tools" style="margin-top:0">
-        <span class="tiny" style="min-width:1.4em;font-weight:800;color:var(--acc)">${f.key}</span>
+        <span class="tiny" style="min-width:1.4em;font-weight:700;color:var(--acc)">${f.key}</span>
         <input type="text" data-l placeholder="この値の名前（例：1回目の点数）" value="${esc(f.label||"")}" style="flex:1">
         ${fields.length>1?`<button class="btn sm" data-x>消す</button>`:""}
       </div></div>`).join("");
@@ -19309,7 +19329,7 @@ function achSubmit(a){
     {w:820});
   M.q("#asVals").innerHTML=fs.map(f=>`<div class="lkrow">
     <div class="tools" style="margin-top:0">
-      <span class="tiny" style="min-width:1.4em;font-weight:800;color:var(--acc)">${esc(f.key)}</span>
+      <span class="tiny" style="min-width:1.4em;font-weight:700;color:var(--acc)">${esc(f.key)}</span>
       <span class="tiny" style="flex:1">${esc(f.label||"")}</span>
       <input type="text" inputmode="decimal" data-v="${esc(f.key)}" style="max-width:150px"></div></div>`).join("");
   const vals=()=>{ const o={}; M.qa("[data-v]").forEach(el=>o[el.dataset.v]=num(el.value)||0); return o; };
@@ -21001,7 +21021,7 @@ function moodDraw(){
     <path class="bg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"/>
     <path class="fg" d="M 20 130 A ${R} ${R} 0 0 1 240 130"
       stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>
-    <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-weight:900;
+    <text x="130" y="120" text-anchor="middle" style="fill:${w[2]};font-weight:700;
       font-family:${moodFont(MCFG.font)}">${moodNumHTML(v,38,22)}</text>
   </svg></div>
   <div class="mdlab">ムード値<span class="tiny" style="opacity:.75">（今日を含む7日間の平均得点）</span></div>
@@ -21033,9 +21053,9 @@ function moodDraw(){
       <p class="tiny">${esc(g.week||"")} の合計です。日曜の終わりまでに届けば達成です。</p>
       ${g.done
         ? (g.got
-            ? `<p style="color:var(--acc2);font-weight:800">達成！ ご褒美は受け取りずみです。</p>`
+            ? `<p style="color:var(--acc2);font-weight:700">達成！ ご褒美は受け取りずみです。</p>`
             : (g.joined
-              ? `<p style="color:var(--warn);font-weight:800">達成しました！ ご褒美を受け取れます。</p>
+              ? `<p style="color:var(--warn);font-weight:700">達成しました！ ご褒美を受け取れます。</p>
                  <div class="tools"><button class="btn pri" id="mdClaim">
                    <span class="pcoin">P</span> ${jp(+g.reward||3)}枚 受け取る</button>
                    <span class="tiny" id="mdClaimMsg"></span></div>`
@@ -21385,7 +21405,7 @@ async function mdVerify(){
                 ["言葉","words"],["文字の形","font"],["予定時刻","sched"]];
     const ng=rows.filter(r=>!same(r[1]));
     box.innerHTML=`<div class="card" style="margin:0;border-color:${ng.length?"var(--bad)":"var(--acc2)"}">
-      <p style="font-weight:800;color:${ng.length?"var(--bad)":"var(--acc2)"};margin:0">
+      <p style="font-weight:700;color:${ng.length?"var(--bad)":"var(--acc2)"};margin:0">
         ${ng.length?"✗ 一部が反映されていません":"✓ 全員に反映されています"}</p>
       <p class="tiny" style="margin:6px 0 0">ログインしていない人と同じ立場でサーバーを読み直した結果です。</p>
       <div class="scroll" style="max-height:none;margin-top:8px"><table><tbody>`
