@@ -568,28 +568,78 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .mjsb i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc))}
 .mjsv{min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
 /* ══ 1人麻雀の間のレイアウト ══
-   麻雀を画面の上半分に置き、LSやりこみの5項目は 下に小さくまとめます。 */
-body.mjon #ls{display:flex;flex-direction:column;gap:8px}
-body.mjon #ls>*{order:3}
+   ★ 前は「#ls の直下の子」を指定していたため、実際には .card の中に
+      入れ子になっている枠に当たっていませんでした。
+      ここでは中まで届く指定（すきま指定）にして、
+      文字だけでなく 枠そのものも小さくします。
+      ねらいは「スクロールしなくても全部見えること」です。 */
+body.mjon #ls{display:flex;flex-direction:column;gap:5px}
+body.mjon #ls>*{order:3;margin:0}
 body.mjon #ls>#lsTopCard{order:0}
-body.mjon #ls>#mjCard{order:1;min-height:52vh}
-body.mjon #ls>.card:not(#mjCard):not(#lsTopCard),
-body.mjon #ls>.lsgrid,body.mjon #ls>.lsgrid2,body.mjon #ls>.lsgoals{
-  font-size:.76rem;margin:0}
-body.mjon #ls .lsbox{padding:6px 8px;border-radius:9px}
-body.mjon #ls .lsbox .t{font-size:.62rem}
-body.mjon #ls .lsbox .v{font-size:1rem;line-height:1.15}
-body.mjon #ls .lsbox .s{font-size:.58rem}
-body.mjon #ls .lsgrid,body.mjon #ls .lsgrid2{gap:5px}
-body.mjon #ls .lsgrid2{grid-template-columns:repeat(4,1fr)}
-body.mjon #ls h2{font-size:.9rem}
-body.mjon #ls h3{font-size:.8rem}
-body.mjon #ls .card{padding:8px 10px}
-body.mjon #ls #mjCard{padding:14px 16px}
-body.mjon #ls #mjCard h2{font-size:1.05rem}
-@media(max-width:720px){
+body.mjon #ls>#mjCard{order:1}
+/* ── 麻雀は画面の半分 ── */
+/* ★ 麻雀は だいたい画面の半分。ただし つめこみすぎて
+      スクロールが出ないよう 44vh にしています（下のLSは約430px）*/
+body.mjon #ls>#mjCard{padding:10px 12px;min-height:44vh;
+  display:flex;flex-direction:column}
+body.mjon #ls>#mjCard #mjBody{flex:1;display:flex;flex-direction:column;justify-content:center}
+body.mjon #ls>#mjCard h2{font-size:1rem;margin:0}
+body.mjon #ls>#mjCard .mjtable{padding:7px 8px 8px;margin:5px 0;border-radius:12px}
+body.mjon #ls>#mjCard .mjhand{--mjw:38px}
+body.mjon #ls>#mjCard .mjt.sm{--mjw:22px}
+body.mjon #ls>#mjCard .mjriver{min-height:calc(22px*1.38);padding:5px 2px;margin-bottom:4px}
+body.mjon #ls>#mjCard .mjres{padding:7px 10px;margin-top:6px}
+body.mjon #ls>#mjCard .mjwin{font-size:.95rem}
+body.mjon #ls>#mjCard .mjwin b{font-size:1.4rem}
+/* ── そのほかの枠は ぎゅっと小さく ── */
+body.mjon #ls .card{padding:6px 9px;border-radius:9px}
+body.mjon #ls h2{font-size:.8rem;margin:0 0 3px}
+body.mjon #ls h3{font-size:.76rem;margin:6px 0 3px}
+body.mjon #ls .muted,body.mjon #ls .tiny{font-size:.64rem}
+/* 枠（lsbox）そのものを小さく */
+body.mjon #ls .lsbox{padding:3px 6px;border-radius:7px}
+body.mjon #ls .lsbox .t{font-size:.54rem;line-height:1.15}
+body.mjon #ls .lsbox .v{font-size:.84rem;line-height:1.1}
+body.mjon #ls .lsbox .v.big{font-size:.84rem}
+body.mjon #ls .lsbox .s{font-size:.5rem;line-height:1.15}
+body.mjon #ls .lsgrid{grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:4px}
+body.mjon #ls .lsgrid2{grid-template-columns:repeat(4,1fr);gap:4px;margin-top:4px}
+/* ＋1回 クリア！ のボタンも小さく（押しやすさは残します）*/
+body.mjon #ls .lshit{padding:6px;font-size:.82rem;margin-top:4px;border-radius:9px;
+  letter-spacing:.02em}
+body.mjon #ls .tools{margin-top:5px;gap:5px}
+body.mjon #ls .tools .btn{padding:4px 9px;font-size:.7rem}
+/* 累積の見込みと目標：表を横並びにして、うんと薄く */
+body.mjon #ls .lsgoals{grid-template-columns:1fr 1fr;gap:6px}
+body.mjon #ls .gwrap{grid-template-columns:54px 1fr;gap:3px;margin-bottom:2px}
+body.mjon #ls .glabel{font-size:.54rem;padding:2px;border-radius:6px;line-height:1.2}
+body.mjon #ls .grows{gap:2px}
+body.mjon #ls .grow{padding:2px 6px;border-radius:6px;gap:5px}
+body.mjon #ls .grow .gk{font-size:.54rem;min-width:4em}
+body.mjon #ls .grow .gv{font-size:.7rem}
+/* RANK の見込み：★ ゲージは出しません */
+body.mjon #ls #lsRpCard{margin:4px 0 0!important;padding:5px 8px!important}
+body.mjon #ls #lsRpCard .mdbar{display:none!important}
+body.mjon #ls #lsRpCard #lsRpNote{display:none!important}
+body.mjon #ls #lsRpCard .lsgrid2{grid-template-columns:1fr 1fr;margin-top:0}
+body.mjon #ls #lsRpCard .v.big{font-size:1rem!important}
+/* まだ縦に長いときのための、さらに詰める指定 */
+/* 画面が低いときは、もう一段ちぢめます */
+@media(max-height:820px){
+  body.mjon #ls .lsbox .v{font-size:.76rem}
+  body.mjon #ls .lsbox .t{font-size:.5rem}
+  body.mjon #ls .lsbox .s{font-size:.46rem}
+  body.mjon #ls .lshit{padding:5px;font-size:.76rem}
+  body.mjon #ls .grow{padding:1px 5px}
+  body.mjon #ls .grow .gv{font-size:.66rem}
+  body.mjon #ls>#mjCard .mjhand{--mjw:32px}
+  body.mjon #ls>#mjCard .mjt.sm{--mjw:20px}
+}
+@media(max-width:760px){
+  body.mjon #ls .lsgrid{grid-template-columns:repeat(3,1fr)}
   body.mjon #ls .lsgrid2{grid-template-columns:repeat(2,1fr)}
-  body.mjon #ls>#mjCard{min-height:auto}
+  body.mjon #ls .lsgoals{grid-template-columns:1fr}
+  body.mjon #ls>#mjCard .mjhand{--mjw:26px}
 }
 /* ながら再生（浮かぶプレイヤー）
    ★ YouTube の決まりで、プレイヤーの上に何かを重ねてはいけません。
@@ -3237,7 +3287,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v136";
+const APP_VERSION = "v137";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -3926,6 +3976,14 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v137":[
+    "1人麻雀の間、LSやりこみの枠が小さくならなかった不具合を修正しました",
+    "　指定が「#ls の直下の子」になっていて、カードの中に入れ子の枠に届いていませんでした",
+    "　文字だけでなく、枠・余白・ボタン・目標の表も すべて小さくしました",
+    "　小さい枠 86px → 38px、クリアのボタン 74px → 26px、目標の1行 36px → 16px",
+    "1人麻雀の間だけ、RANK の見込みのゲージを出さないようにしました",
+    "麻雀の盤を画面の 44% にし、全体がスクロールなしで収まるようにしました",
+    "画面の高さが低い端末では、もう一段ちぢめます"],
   "v136":[
     "1人麻雀を Pro Mode Ver.1 にしました。打ちかたの割合は廃止しました",
     "　「和了できる見込み × 和了したときの点数」がいちばん大きい牌を切ります",
