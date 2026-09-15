@@ -571,8 +571,10 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
    ★ 「#ls の直下の子」ではなく、中まで届く指定にしています。
       さらに、あとから足された道具（管理者だけのものなど）も
       まとめて小さくできるよう、拡大率（zoom）で全体を縮めます。 */
-body.mjon #ls{display:flex;flex-direction:column;gap:5px}
-body.mjon #ls>*{order:3;margin:0}
+body.mjon #ls{display:flex;flex-direction:column;align-items:stretch;gap:5px;
+  width:100%;max-width:100%}
+body.mjon #ls>*{order:3;margin:0;align-self:stretch;
+  max-width:100%;box-sizing:border-box}
 body.mjon #ls>#lsTopCard{order:0}
 body.mjon #ls>#mjCard{order:1}
 /* ★ 麻雀は だいたい画面の半分 */
@@ -581,15 +583,13 @@ body.mjon #ls>#mjCard{padding:10px 12px;min-height:44vh;
 body.mjon #ls>#mjCard #mjBody{flex:1;display:flex;flex-direction:column;justify-content:center}
 body.mjon #ls>#mjCard h2{font-size:1rem;margin:0}
 /* ★ 麻雀いがいは、まとめて縮めます（中の道具も ぜんぶ小さくなります）*/
-body.mjon #ls>*:not(#mjCard):not(#lsTopCard){
-  zoom:var(--mjz,0.8);
-  -moz-transform:scale(var(--mjz,0.8));-moz-transform-origin:0 0}
+body.mjon #ls>*:not(#mjCard):not(#lsTopCard){zoom:var(--mjz,0.8);min-width:0}
 /* ── 卓と、その隣の記録 ── */
-.mjwrap{display:flex;gap:10px;align-items:flex-start}
+.mjwrap{display:flex;gap:10px;align-items:flex-start;width:100%;max-width:100%}
 .mjmain{flex:1;min-width:0}
-.mjside{flex:none;width:210px;max-height:46vh;overflow:auto;
+.mjwrap>.mjside{flex:none;width:210px;max-height:46vh;overflow:auto;
   background:var(--panel0);border:1px solid var(--line);border-radius:11px;padding:7px 8px}
-body:not(.mjside) .mjside{display:none}
+body:not(.mjsideon) .mjwrap>.mjside{display:none}
 .mjhh{font-size:.66rem;color:var(--dim);margin-bottom:4px}
 .mjhlist{display:grid;gap:4px}
 .mjhr{padding:4px 7px;border-radius:8px;background:var(--panel2);
@@ -611,7 +611,7 @@ body:not(.mjside) .mjside{display:none}
 .mjitems{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;margin-top:5px}
 @media(max-width:900px){
   .mjwrap{flex-direction:column}
-  .mjside{width:100%;max-height:26vh}
+  .mjwrap>.mjside{width:100%;max-height:26vh}
 }
 /* ── 麻雀の中身も 少し詰めます ── */
 body.mjon #ls>#mjCard .mjtable{padding:7px 8px 8px;margin:5px 0;border-radius:12px}
@@ -3313,7 +3313,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v138";
+const APP_VERSION = "v139";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4002,6 +4002,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v139":[
+    "1人麻雀にすると 画面が細長くこわれる不具合を、緊急で直しました",
+    "　原因は、body に付ける印の名前が 記録パネルの名前と同じだったことです",
+    "　そのため パネル用の「幅210px」が ページ全体にかかっていました",
+    "　印の名前を分けて、パネルの指定は 麻雀卓の入れ物の中だけに限りました",
+    "　あわせて、縮小のかけ方を1通りにそろえ、枠が横いっぱいに広がるようにしました"],
   "v138":[
     "1人麻雀のときだけの「配置」を、設定として持てるようにしました",
     "　下に並ぶ枠の大きさ（50〜100%）、出すものの選択、過去の結果の置き場所と件数を決められます",
@@ -16589,7 +16595,10 @@ function mjApplyLay(){
   LSVIEW=v; saveLsView();
   const r=document.documentElement;
   r.style.setProperty("--mjz", String(Math.max(0.5,Math.min(1,+MJ.lay.zoom||0.8))));
-  document.body.classList.toggle("mjside", !!MJ.lay.side);
+  /* ★ ここの印は、パネルのクラス名（.mjside）と かならず別の名前にします。
+        同じ名前にすると、パネル用の指定が body に当たって
+        ページ全体が細長くなってしまいます。 */
+  document.body.classList.toggle("mjsideon", !!MJ.lay.side);
   lsViewApply();
 }
 let mjPaused=false;
@@ -16611,7 +16620,8 @@ function mjStop(){
   MJG=null;
   if(MJ.view){ LSVIEW=Object.assign({},MJ.view); MJ.view=null; saveLsView(); mjSave(); }
   lsViewApply();
-  document.body.classList.remove("mjon");
+  document.body.classList.remove("mjon","mjsideon");
+  document.documentElement.style.removeProperty("--mjz");
   mjDraw();
 }
 function mjTick(){
