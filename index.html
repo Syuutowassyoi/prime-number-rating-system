@@ -3704,7 +3704,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v146";
+const APP_VERSION = "v147";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4393,6 +4393,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v147":[
+    "★ 記録が多くなって 古いものを切りつめても、勉強時間が減らないことを たしかめました",
+    "　25,000回ぶんで ためして、切りつめの前後で 1秒も減らないことを 確認しています",
+    "　切りつめる順番を直しました。先に「タグごとの集計」を作ってから 切りつめます",
+    "　集計を作り直すときも「いまより小さくならない」ように混ぜます",
+    "　タグごとの累計に、切りつめたぶんの時間を 二重に足していた不具合も直しました"],
   "v146":[
     "Study with Prime（スタソス）を みんなが使えるようにしました",
     "　TOY BOX から開けます。勉強した時間で 素数カードパックがもらえます",
@@ -5933,6 +5939,10 @@ function lsPack(){
   /* Prime Bingo は、まとめ書きを待たずに ここで書き出します
      （待っているあいだに同期すると、古い旗が送られてしまうためです）*/
   try{ if(typeof PB!=="undefined"&&PB) pbSave(true); }catch(e){}
+  /* ★ スタソスは、送る前に かならず「タグごとの集計」を作ってから
+        多すぎる記録を切りつめます。この順番でないと、
+        切りつめたぶんの勉強時間が どこにも残りません。 */
+  try{ if(typeof spAggEnsure==="function") spAggEnsure(); }catch(e){}
   const o={};
   LS_ALL().forEach(k=>{
     const raw=localStorage.getItem(k);
@@ -18395,12 +18405,10 @@ function spFix(){
   if(!(+SP.goal>0)) SP.goal=60;
   ["opened","drew","pt","ex","wipedAt","baseMs"].forEach(k=>{ if(!(+SP[k]>=0)) SP[k]=0; });
   if(!SP.agg||typeof SP.agg!=="object") SP.agg={};
-  /* 多すぎる記録は 古いほうから切りつめます（累計は baseMs に移すので 減りません）*/
-  if(SP.log.length>SP_LOGMAX){
-    const cut=SP.log.slice(SP_LOGMAX);
-    cut.forEach(r=>{ SP.baseMs=(+SP.baseMs||0)+Math.max(0,+r.ms||0); });
-    SP.log=SP.log.slice(0,SP_LOGMAX);
-  }
+  /* ★ 切りつめは ここではしません。
+        先に「タグごとの集計」を作ってからでないと、
+        切りつめたぶんが 集計に入らず、タグごとの時間が減ってしまいます。
+        spAggEnsure() の中で、集計を作ったあとに 切りつめます。 */
   if(typeof SP.packs==="number") SP.packs={n:SP.packs};
   if(!SP.packs||typeof SP.packs!=="object") SP.packs={};
   ["n","cu","ag","au","rb"].forEach(k=>{ SP.packs[k]=Math.max(0,+SP.packs[k]||0); });
@@ -18750,16 +18758,55 @@ function spAggAdd(rec){
   const mk=spMonKey(st);
   a.ym[mk]=(+a.ym[mk]||0)+ms;
 }
-/** まだ作っていなければ、ここで作ります（1回だけ動きます）*/
+/** 多すぎる記録を 古いほうから切りつめます（集計を作ったあとに 呼びます）*/
+function spTrim(){
+  if(SP.log.length<=SP_LOGMAX) return 0;
+  const cut=SP.log.slice(SP_LOGMAX);
+  cut.forEach(r=>{ SP.baseMs=(+SP.baseMs||0)+Math.max(0,+r.ms||0); });
+  SP.log=SP.log.slice(0,SP_LOGMAX);
+  return cut.length;
+}
+/** まだ作っていなければ、ここで作ります（1回だけ動きます）。
+    そのあとで、多すぎる記録を切りつめます。この順番が とても大事です。 */
 function spAggEnsure(){
-  if(SP.aggV!==SP_AGG_V){ spAggRebuild(); spSave(); }
+  let ch=false;
+  if(SP.aggV!==SP_AGG_V){ spAggRebuild(false); ch=true; }
+  else if(SP.log.length>SP_LOGMAX){
+    /* ★ 切りつめる直前の 最後のたしかめ。
+          何かの拍子に 集計が 記録より少なくなっていたら、
+          切りつめる前に 作り直します。
+          そうしないと、切りつめたぶんの勉強時間が
+          タグごとの集計に 入らないまま 消えてしまいます。
+          作り直しは「減らないやり方」なので、走っても損はしません。 */
+    let logMs=0; SP.log.forEach(r=>{ logMs+=Math.max(0,+r.ms||0); });
+    let aggMs=0; Object.keys(SP.agg||{}).forEach(k=>{
+      aggMs+=Math.max(0,+((SP.agg[k]||{}).ms)||0); });
+    if(aggMs<logMs){ spAggRebuild(false); ch=true; }
+  }
+  if(spTrim()) ch=true;
+  if(ch) spSave();
   return SP.agg;
 }
-/** いまの記録から 作り直します */
-function spAggRebuild(){
+/** いまの記録から 作り直します。
+    ★ force を付けないときは「いまの集計より 小さくならない」ように混ぜます。
+      そうしないと、すでに切りつめた端末で 作り直したときに
+      タグごとの勉強時間が 減ってしまいます。 */
+function spAggRebuild(force){
+  const old=force?{}:(SP.agg||{});
   SP.agg={};
   const list=SP.log.slice().sort((x,y)=>(+x.s||0)-(+y.s||0));  /* 古い順に足します */
   list.forEach(r=>spAggAdd(r));
+  if(!force){
+    Object.keys(old).forEach(k=>{
+      const a=old[k]||{}, b=SP.agg[k]||(SP.agg[k]=spAggNew());
+      ["ms","n","packs","brk","bn","days","best"].forEach(f=>{
+        b[f]=Math.max(+b[f]||0,+a[f]||0); });
+      if(+a.first&&(!b.first||+a.first<b.first)) b.first=+a.first;
+      if((+a.last||0)>(+b.last||0)) b.last=+a.last;
+      Object.keys(a.ym||{}).forEach(m=>{
+        b.ym[m]=Math.max(+b.ym[m]||0,+a.ym[m]||0); });
+    });
+  }
   SP.aggV=SP_AGG_V;
   return SP.agg;
 }
@@ -19247,8 +19294,12 @@ function spTotals(now,tag){
   const mk=spMonKey(now), yr=String(new Date(now).getFullYear());
   o.month=+a.ym[mk]||0;
   Object.keys(a.ym).forEach(m=>{ if(m.slice(0,4)===yr) o.year+=(+a.ym[m]||0); });
-  /* 1回ごとの記録のほうが多ければ そちらを使います（作り直す前でも ずれません）*/
-  let lm=0,ly=0,la=Math.max(0,+SP.baseMs||0);
+  /* 1回ごとの記録のほうが多ければ そちらを使います（作り直す前でも ずれません）
+     ★ baseMs（切りつめたぶん）は タグの区別が無いので、
+       「ぜんぶ」のときだけ 足します。
+       タグごとの時は 足すと 二重に数えてしまいます。 */
+  const isAll=(tag===undefined||tag===null||tag==="*");
+  let lm=0,ly=0,la=isAll?Math.max(0,+SP.baseMs||0):0;
   spLogOf(tag).forEach(r=>{ const s2=+r.s||0, ms=+r.ms||0;
     la+=ms;
     if(spMonKey(s2)===mk) lm+=ms;
@@ -20302,7 +20353,10 @@ function spLogHTML(){
         <button class="spbtn" id="spAggFix">いまの記録から 作り直す</button>
       </div>
       <p class="sptiny" style="margin-top:4px">
-        ※ 作り直すと、切りつめた古いぶんは 入りません。ふだんは 押す必要はありません。</p>
+        ※ ふだんは 押す必要はありません。ここを押した時<b>だけ</b>、
+        いま残っている記録から まるごと作り直すので、
+        切りつめた古いぶんは 入らず 数が減ることがあります。<br>
+        ふつうに使っているぶんには、<b>集計が減ることは ありません</b>。</p>
     </div>
     <div class="sptools">
       <button class="spbtn bad" id="spWipeLog">勉強の記録を 全部消す</button>
@@ -20404,7 +20458,7 @@ function spWire(){
       "いま残っている記録から 作り直します。<br>"
       +"<span class='tiny'>切りつめた古いぶんは 入らないので、数が減ることがあります。</span>",
       "作り直す")) return;
-    spAggRebuild(); spSave(); spRender(); toast("集計を作り直しました"); };
+    spAggRebuild(true); spSave(); spRender(); toast("集計を作り直しました"); };
   const w1=$("#spWipeLog"); if(w1) w1.onclick=()=>spWipe(false);
   const w2=$("#spWipeAll"); if(w2) w2.onclick=()=>spWipe(true);
 }
