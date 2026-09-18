@@ -3699,7 +3699,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v144";
+const APP_VERSION = "v145";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4388,6 +4388,14 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v145":[
+    "レベルが上がったときの 確率の書きかたを そろえました",
+    "　いまの割合と 増える分を、どちらも「%」で ならべます（そのまま足し算できます）",
+    "　例：虹は 0.0100% ＋0.0277%（＝ 次のレベルで 0.0377%）",
+    "　虹・金・銀・銅は 緑の ＋ 表記、通常パックは 赤の − 表記にしました",
+    "　通常パックは よい色が増えたぶん 減ります（合計はいつも 100% です）",
+    "　増える分が 0.00% に丸められて見えなくならないよう、けた数をそろえました",
+    "「レベルごとの割合を見る」を足しました（Lv.1〜200 の一覧）"],
   "v144":[
     "預けるデータの大きさを、比べる表に出すようにしました（上限は 1,500KB です）",
     "　サーバー側の決まりで これ以上は預けられないので、目に見えるようにしました",
@@ -19368,21 +19376,46 @@ function spLvBarHTML(){
       <i id="spLvBar" style="width:${lv.pct.toFixed(1)}%"></i></div>
     <div class="splvrates">
       ${["rb","au","ag","cu","n"].map(k=>{
-        const d=spPd(k), v=r[k]*100, v2=r2[k]*100;
-        /* ★ 前は「＋0.0277」とだけ出していたので、
-              0.010% ＋ 0.0277 ＝ 0.3277% のように読めてしまいました。
-              いまは どちらも 同じけた数の「%」で そろえて出します。 */
-        const dg=(x)=>x<0.1?4:(x<1?3:2);
-        const g=Math.max(dg(v),dg(v2));
+        const d=spPd(k), v=r[k]*100, v2=r2[k]*100, up=v2-v;
+        /* ★ けた数は「いまの値」と「増える分」の 小さいほうに合わせます。
+              そうしないと 増える分が 0.00% になって 見えなくなります。 */
+        const dg=(x)=>{ const a=Math.abs(x); return a<0.1?4:(a<1?3:2); };
+        const g=dg(Math.min(Math.abs(v),Math.abs(up)||Math.abs(v)));
+        const sign=up>=0?"＋":"−";
+        const col=up>=0?"#1f9a5a":"#c8382f";
         return `<div class="splvr"><span class="spkchip k-${k}">${d.n}</span>
           <b>${v.toFixed(g)}%</b>
-          ${k!=="n"&&v2>v?`<span class="sptiny" style="color:#1f9a5a">
-            → 次のLv ${v2.toFixed(g)}%</span>`:""}</div>`;
+          ${Math.abs(up)>1e-12?`<span class="sptiny" style="color:${col}">
+            ${sign}${Math.abs(up).toFixed(g)}%</span>`:""}</div>`;
       }).join("")}
     </div>
     <p class="sptiny" style="margin:7px 0 0">
-      レベルが上がると よい色のパックが出やすくなります（のびかたは ゆるやかです）。
-      緑の数字は <b>次のレベルになったときの割合</b>です（増える分ではありません）。</p>
+      レベルが上がると よい色のパックが出やすくなります。<br>
+      うしろの数字は <b>次のレベルで どれだけ増えるか</b>です。
+      <b>どちらも「%」どうし</b>なので、そのまま足し算できます
+      （例：虹は ${(r.rb*100).toFixed(4)}% ＋ ${((r2.rb-r.rb)*100).toFixed(4)}% ＝
+      ${(r2.rb*100).toFixed(4)}%）。<br>
+      よい色が増えたぶん、<b>通常パックは そのぶん減ります</b>（合計はいつも 100% です）。</p>
+    <details style="margin-top:8px">
+      <summary class="sptiny" style="cursor:pointer;color:#2a63e0">レベルごとの割合を見る</summary>
+      <table style="margin-top:8px"><thead><tr><th>Lv</th>
+        ${["rb","au","ag","cu","n"].map(k=>`<th class="n">${spPd(k).n}</th>`).join("")}
+      </tr></thead><tbody>
+        ${[1,2,3,5,10,20,30,50,100,200].map(L2=>{
+          const q=spRates(L2);
+          return `<tr${L2===lv.lv?' style="background:#eef4ff;font-weight:700"':""}>
+            <td>${jp(L2)}</td>
+            <td class="n">${(q.rb*100).toFixed(4)}%</td>
+            <td class="n">${(q.au*100).toFixed(3)}%</td>
+            <td class="n">${(q.ag*100).toFixed(3)}%</td>
+            <td class="n">${(q.cu*100).toFixed(2)}%</td>
+            <td class="n">${(q.n*100).toFixed(2)}%</td></tr>`;
+        }).join("")}
+      </tbody></table>
+      <p class="sptiny" style="margin-top:6px">
+        Lv.${jp(lv.lv)} になるまでに必要な累計は ${esc(spDur(spLvNeed(lv.lv)))}、
+        Lv.100 までなら ${esc(spDur(spLvNeed(100)))} です。</p>
+    </details>
   </div>`;
 }
 /* ══ 工場の絵 ══════════════════════════════════════════════ */
