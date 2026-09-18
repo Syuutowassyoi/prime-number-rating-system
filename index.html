@@ -573,6 +573,164 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .mjhb .bd{font-size:.56rem;color:var(--dim2);line-height:1.2;
   margin-top:3px;white-space:nowrap;height:13px}
 .mjhb.hi .bar{background:linear-gradient(180deg,#ffd45e,#e0982a)}
+/* ── TOY BOX ── */
+.toygrid{display:grid;gap:9px;margin-top:10px}
+.toyit{display:flex;align-items:flex-start;gap:12px;text-align:left;
+  padding:13px 14px;width:100%;justify-content:flex-start}
+.toyic{font-size:1.6rem;line-height:1.1;flex:none}
+.toytx{display:block;min-width:0}
+.toytx b{font-size:.98rem}
+.toytx .tiny{display:block;color:var(--dim2);margin-top:3px;white-space:normal}
+.toychip{font-size:.6rem;padding:2px 8px;border-radius:20px;margin-left:7px;
+  background:var(--panel2);border:1px solid var(--line);color:var(--warn)}
+/* ══════════════════════════════════════════════════════════
+   Study with Prime（スタソス）
+   ★ ここだけ いつも「白い背景のライトモード」にします。
+      ほかの画面の色（--tx など）は使わず、色は じかに書きます。
+      こうしないと、ダークモードの色が混ざってしまいます。
+   ══════════════════════════════════════════════════════════ */
+/* ★ スタソスを開いている間だけ、ページ全体を 明るい色にします。
+      上の見出しや メニューの字が 白のままだと読めなくなるので、
+      ここで まとめて 濃い色に置きかえます（スタソスを閉じると もとに戻ります）。 */
+body.spon{background:#eef2f8;background-attachment:scroll}
+body.spon header h1,body.spon .mnow{color:#16202e}
+body.spon .ver,body.spon .postbtn{background:#fff;color:#2a63e0;border-color:#c3d6f2}
+body.spon .hclock{color:#5d6b7e}
+body.spon .hclock.cd{color:#1f9a5a}
+body.spon header .btn{background:#fff;color:#1d2a3a;border-color:#cdd8e6}
+body.spon .mbtn{background:#fff;border-color:#cdd8e6}
+body.spon .mbtn span{background:#16202e}
+body.spon #lsFlash,body.spon .banner{color:#16202e}
+#sp{background:#ffffff;color:#16202e;border-radius:16px;
+  padding:16px 16px 28px;min-height:calc(100vh - 150px);
+  box-shadow:0 10px 40px #0003}
+.spwrap{max-width:1000px;margin:0 auto}
+#sp h1,#sp h2,#sp h3,#sp b,#sp th{color:#16202e}
+#sp .sptiny{font-size:.72rem;color:#5d6b7e}
+#sp .spdim{color:#7c8898}
+.sphead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding-bottom:12px;border-bottom:2px solid #e3e9f1;margin-bottom:14px}
+.sphead h2{margin:0;font-size:1.3rem;letter-spacing:.02em}
+.spchip{font-size:.66rem;padding:3px 9px;border-radius:20px;
+  background:#eef3fa;border:1px solid #d6e0ee;color:#4a5a70}
+.spcard{background:#fbfcfe;border:1px solid #e3e9f1;border-radius:14px;
+  padding:14px;margin-bottom:12px}
+.spbtn{padding:9px 18px;border-radius:11px;border:1px solid #cdd8e6;
+  background:#fff;color:#1d2a3a;font-size:.86rem;cursor:pointer;
+  font-family:inherit;transition:transform .08s,box-shadow .12s}
+.spbtn:hover{box-shadow:0 2px 10px #0000001a}
+.spbtn:active{transform:translateY(1px)}
+.spbtn.pri{background:linear-gradient(180deg,#3d7dff,#2a63e0);border-color:#2a63e0;color:#fff}
+.spbtn.warn{background:linear-gradient(180deg,#ffb020,#e8930a);border-color:#e8930a;color:#3a2600}
+.spbtn.bad{background:#fff;border-color:#e0554d;color:#c8382f}
+.spbtn.big{padding:13px 30px;font-size:1rem;border-radius:13px}
+.spbtn[disabled]{opacity:.45;cursor:default}
+.sptools{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px}
+/* ── 時計 ── */
+.spclock{font-variant-numeric:tabular-nums;font-weight:700;
+  font-size:clamp(2.1rem,8vw,3.6rem);letter-spacing:.01em;line-height:1.05;
+  color:#16202e;text-align:center;margin:4px 0 2px}
+.spclock .ms{font-size:.48em;color:#7c8898}
+.spclock.brk{color:#c8862f}
+.spstate{text-align:center;font-size:.8rem;color:#5d6b7e;margin-bottom:10px}
+.spnext{height:9px;border-radius:9px;background:#e8eef6;overflow:hidden;margin:10px 0 6px}
+.spnext i{display:block;height:100%;border-radius:9px;
+  background:linear-gradient(90deg,#6fa8ff,#3d7dff)}
+/* ── 数字の枠 ── */
+.spgrid{display:grid;gap:9px}
+.spg5{grid-template-columns:repeat(5,1fr)}
+.spg4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){
+  .spg5{grid-template-columns:repeat(3,1fr)}
+  .spg4{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+  .spg5,.spg4{grid-template-columns:repeat(2,1fr)}
+  #sp{padding:12px 10px 22px;border-radius:12px}
+  .sphead{gap:7px}
+  .sphead h2{font-size:1.05rem;width:100%}
+  .sphead>span:last-child{margin-left:0!important;width:100%}
+  .spbtn{padding:7px 12px;font-size:.78rem}
+  .spbtn.big{padding:11px 22px;font-size:.92rem}
+  .sppk{width:190px;height:268px}
+  .spcd{width:96px;height:140px}
+  .spdexrow{grid-template-columns:52px 1fr 104px}
+}
+.spbox{background:#fff;border:1px solid #e3e9f1;border-radius:12px;padding:9px 11px}
+.spbox .t{font-size:.62rem;color:#7c8898;letter-spacing:.04em}
+.spbox .v{font-size:1.25rem;font-weight:700;line-height:1.15;
+  font-variant-numeric:tabular-nums;color:#16202e}
+.spbox .s{font-size:.6rem;color:#8b96a6}
+.spbox.on{background:#eef4ff;border-color:#bcd2f7}
+/* ── パック ── */
+.sppkwrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0}
+.sppk{position:relative;width:230px;height:320px;border-radius:16px;
+  background:linear-gradient(150deg,#2b3f6b,#4a6bb5 45%,#7e9fe0);
+  box-shadow:0 12px 34px #0e1c3a40, inset 0 1px 0 #ffffff55;
+  overflow:hidden;user-select:none;touch-action:none;cursor:pointer}
+.sppk .foil{position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg,#ffffff00 0 14px,#ffffff22 14px 20px)}
+.sppk .ttl{position:absolute;left:0;right:0;top:96px;text-align:center;
+  color:#fff;font-weight:700;font-size:1.05rem;letter-spacing:.06em;
+  text-shadow:0 2px 10px #0006}
+.sppk .sub{position:absolute;left:0;right:0;top:128px;text-align:center;
+  color:#dbe6ff;font-size:.66rem;letter-spacing:.14em}
+.sppk .n5{position:absolute;left:0;right:0;bottom:22px;text-align:center;
+  color:#ffffffcc;font-size:.72rem}
+/* ちぎる帯 */
+.sppk .tear{position:absolute;left:0;right:0;top:0;height:46px;
+  background:linear-gradient(180deg,#f2f6ff,#c9d8f2);
+  border-bottom:3px dashed #8fa7d0;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:#2b3f6b;font-size:.7rem;font-weight:700;letter-spacing:.06em;
+  will-change:transform}
+.sppk .tear .arrow{font-size:.9rem}
+.sppk.opening .tear{transition:transform .25s ease-out}
+.sppk.done{animation:sppop .4s ease-out forwards}
+@keyframes sppop{to{transform:scale(.9);opacity:0}}
+/* ── カード ── */
+.spcards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.spcd{width:118px;height:168px;border-radius:12px;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#fff;box-shadow:0 6px 18px #0e1c3a33;
+  opacity:0;transform:translateY(14px) rotateY(80deg);
+  animation:spflip .5s cubic-bezier(.2,.9,.3,1.2) forwards}
+@keyframes spflip{to{opacity:1;transform:none}}
+.spcd .num{font-weight:700;font-size:1.32rem;font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 8px #0005;padding:0 6px;text-align:center;line-height:1.15}
+.spcd .st{font-size:.68rem;margin-top:6px;letter-spacing:.06em;color:#fff9}
+.spcd .rk{position:absolute;top:7px;left:9px;font-size:.6rem;
+  background:#0003;padding:2px 7px;border-radius:9px}
+.spcd .dup{position:absolute;bottom:7px;right:9px;font-size:.58rem;
+  background:#0004;padding:2px 7px;border-radius:9px}
+.spcd.s1{background:linear-gradient(160deg,#8d99a8,#5d6b7e)}
+.spcd.s2{background:linear-gradient(160deg,#4fb37a,#2e7d54)}
+.spcd.s3{background:linear-gradient(160deg,#4a90e2,#2b5fae)}
+.spcd.s4{background:linear-gradient(160deg,#a970e8,#6e3fb0)}
+.spcd.s5{background:linear-gradient(160deg,#ffb02e,#e07a10)}
+.spcd.s6{background:linear-gradient(135deg,#ff5fa2,#ffd45e 35%,#5ee7ff 70%,#a96bff);
+  animation:spflip .5s cubic-bezier(.2,.9,.3,1.2) forwards, sprain 3s linear infinite .5s;
+  box-shadow:0 0 24px #ffd45e88, 0 6px 18px #0e1c3a33}
+@keyframes sprain{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
+/* ── 折れ線グラフ ── */
+.spchart{width:100%;height:210px;background:#fff;border:1px solid #e3e9f1;
+  border-radius:12px;overflow:hidden}
+.spseg{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.spseg button{padding:5px 13px;font-size:.76rem;border-radius:9px;
+  border:1px solid #d6e0ee;background:#fff;color:#4a5a70;cursor:pointer;font-family:inherit}
+.spseg button.on{background:#3d7dff;border-color:#3d7dff;color:#fff}
+/* ── 図鑑 ── */
+.spdex{display:grid;gap:7px}
+.spdexrow{display:grid;grid-template-columns:78px 1fr 132px;gap:9px;align-items:center;
+  font-size:.76rem;color:#3c4a5c}
+.spdexbar{height:11px;border-radius:9px;background:#eef2f8;overflow:hidden}
+.spdexbar i{display:block;height:100%;border-radius:9px}
+.spdexrow .n{text-align:right;font-variant-numeric:tabular-nums;color:#5d6b7e;font-size:.72rem}
+#sp table{width:100%;border-collapse:collapse;font-size:.78rem}
+#sp th,#sp td{padding:6px 8px;border-bottom:1px solid #eef2f8;text-align:left;color:#3c4a5c}
+#sp th{color:#7c8898;font-weight:600;font-size:.68rem}
+#sp td.n,#sp th.n{text-align:right;font-variant-numeric:tabular-nums}
+#sp .spscroll{max-height:46vh;overflow:auto;border:1px solid #e3e9f1;border-radius:12px}
 .mjtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
 .mjtabs button{padding:5px 12px;font-size:.78rem;border-radius:9px;
   border:1px solid var(--line);background:var(--panel0);color:var(--tx2);cursor:pointer}
@@ -1812,7 +1970,7 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
     <i class="dot" id="noticeDot" hidden></i>
   </button>
   <button class="btn sm" id="cheerBtn" style="margin-left:8px">開発者を応援する</button>
-  <button class="btn sm ppbtn" id="arBtn" hidden>素因数分解アリーナ</button>
+  <button class="btn sm ppbtn" id="toyBtn" hidden>TOY BOX</button>
   <span class="hclock" id="nowClock">—</span>
   <span class="hclock cd" id="nextUp">—</span>
 </header>
@@ -2051,7 +2209,9 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
       <button class="btn pri" id="lsBtnSave">記録の保存</button>
       <button class="btn" id="lsBtnCfg">設定</button>
       <button class="btn" id="lsBtnView">表示</button>
-      <button class="btn" id="lsBtnMj" hidden title="1人麻雀（管理者だけ）">🀄 1人麻雀</button>
+      <button class="btn" id="lsBtnEtc" hidden title="その他（管理者だけ）">
+        <svg viewBox="0 0 24 24" class="ico"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        その他</button>
       <button class="btn" id="lsBtnYt" title="YouTube を見ながら・聴きながら">
         <svg viewBox="0 0 24 24" class="ico"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.2l5.2 2.8L10 14.8z"/></svg>
         ながら再生</button>
@@ -2594,6 +2754,10 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
   <div class="card" id="arPlayCard" hidden>
     <div id="arPlay"></div>
   </div>
+</section>
+
+<section id="sp" hidden>
+  <div class="spwrap" id="spBody"></div>
 </section>
 
 <section id="stats" hidden>
@@ -3334,7 +3498,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v140";
+const APP_VERSION = "v141";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4023,6 +4187,27 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v141":[
+    "ヘッダーに「TOY BOX」を作り、素因数分解アリーナを その中に移しました",
+    "　中には Study with Prime（スタソス）も並びます（いまは管理者だけ）",
+    "LSやりこみに「その他」ボタンを作り、1人麻雀を その中に移しました",
+    "　1人麻雀は 読み込みなおしても 勝手には始まりません。押した時だけ始まります",
+    "　ほかの画面を見ている間・タブを離れている間は 進みません（裏で動きません）",
+    "Study with Prime（スタソス）を作りました ─ 勉強した時間で 素数カードがもらえます",
+    "　時間は「開始した時刻」だけを覚えるので、画面を閉じていても正しく数えられます",
+    "　表示は hh:mm:ss.000。休憩の開始と終了の時刻も 1つずつ覚えます",
+    "　1回の勉強の中で 3分たつごとに 1パック（5枚入り）もらえます",
+    "　カードは 2〜999,999 の素数 78,498個から どれも同じ確からしさで出ます",
+    "　けた数がレア度です。1けた（2・3・5・7）が☆6、6けたが☆1",
+    "　パックは 上の帯を右にスライドすると開きます（クリックでも開きます）",
+    "　統計は 今日・今週・今月・今年・累計と、折れ線グラフ",
+    "　偏差値は 7日で参考の数、30日そろうと しっかりした数として出します",
+    "　連続して勉強した日数・今日の目標・図鑑の埋まりぐあいも出します",
+    "　勉強の記録を 全部消すボタンも付けました（消した記録は 同期でも戻りません）",
+    "　スタソスの画面だけ 白い背景（ライトモード）にしています",
+    "スタソスも ほかの端末とそろえられます",
+    "　勉強の記録は 開始した時刻で1件ずつ見分けて 足し合わせるので、",
+    "　パソコンとスマホ どちらで勉強しても 両方とも残ります"],
   "v140":[
     "1人麻雀も ほかの端末とそろえられるようにしました",
     "　見るのは「行われた回数」だけです。多いほうが かならず新しいので、",
@@ -5183,7 +5368,7 @@ function stFlush(){
 const K_LSREV="sa-lsrev-v1";
 /* このまとまりを、1つの入れものとして扱います */
 const LS_OWN=["sa-ls-v1","sa-lslog-v1","sa-lsall-v1","sa-lsbase-v1","sa-lsb-v1","sa-lsday-v1",
-  "sa-lscoin-v1","sa-pb-v1","sa-pblog-v1","sa-mahjong-v1"];
+  "sa-lscoin-v1","sa-pb-v1","sa-pblog-v1","sa-mahjong-v1","sa-sp-v1"];
 /** 追加の道具が足したものも、いっしょに持ちます */
 const LS_ALL=()=>LS_OWN.concat(EXT.keys||[]);
 /* ★ 以前はここに "sa-ls-v1"（1回あたりの増加量）を入れて
@@ -5347,6 +5532,78 @@ function mjProgText(o){
   const q=mjProgOf(o);
   return q.has?`${jp(q.kai)}回・和了${jp(q.agari)}回・${jp(q.total)}点`:"なし";
 }
+/* ══════════════════════════════════════════════════════════
+   Study with Prime（スタソス）の同期
+   ──────────────────────────────────────────────────────────
+   ★ 勉強の記録は「開始した時刻」で1件ずつ見分けられます。
+      そこで、両方の記録を <b>足し合わせて</b> 混ぜます。
+      こうすると、パソコンとスマホで別々に勉強しても どちらも残ります。
+   ★ ただし「全消去」を押したときは、その時刻を覚えておいて、
+      それより古い記録は もう戻しません。
+      （消したのに 預けてあった古い記録が よみがえる、を防ぎます）
+   ★ カードとパックは 多いほうを残します。
+   ══════════════════════════════════════════════════════════ */
+const K_SPSYNC="sa-sp-v1";
+const spParse=v=>{
+  if(typeof v==="string"){ try{ return JSON.parse(v); }catch(e){ return null; } }
+  return (v&&typeof v==="object")?v:null;
+};
+/** 2つのスタソスを、記録を減らさないように混ぜます */
+function spMergeData(a,b){
+  const A=spParse(a)||{}, B=spParse(b)||{};
+  const wiped=Math.max(+A.wipedAt||0,+B.wipedAt||0);
+  /* 記録は 開始時刻で1件ずつ見分けて、足し合わせます */
+  const m=new Map();
+  [...(Array.isArray(A.log)?A.log:[]),...(Array.isArray(B.log)?B.log:[])].forEach(r=>{
+    const k=+r.s||0;
+    if(!k||k<wiped) return;                 /* 消したより前の記録は もう戻しません */
+    const cur=m.get(k);
+    if(!cur||(+r.ms||0)>(+cur.ms||0)) m.set(k,r);
+  });
+  const log=[...m.values()].sort((x,y)=>(+y.s||0)-(+x.s||0));
+  /* カードは 多いほうを残します */
+  const cards={};
+  [A.cards,B.cards].forEach(c=>{ if(c&&typeof c==="object")
+    Object.keys(c).forEach(k=>{ cards[k]=Math.max(+cards[k]||0,+c[k]||0); }); });
+  /* いま計測中のものは、新しく始めたほうを残します */
+  const run=(()=>{
+    const ra=A.run&&+A.run.s>=wiped?A.run:null, rb=B.run&&+B.run.s>=wiped?B.run:null;
+    if(!ra) return rb; if(!rb) return ra;
+    return (+ra.s>=+rb.s)?ra:rb;
+  })();
+  const mx=(k)=>Math.max(+A[k]||0,+B[k]||0);
+  return {run, log, wipedAt:wiped,
+    packs:mx("packs"), opened:mx("opened"), drew:mx("drew"),
+    cards, goal:(+A.goal||+B.goal||60)};
+}
+/** かたまりの中のスタソスの進みぐあい */
+function spProgOf(o){
+  const v=spParse((o||{})[K_SPSYNC]);
+  if(!v) return {has:false,n:0,ms:0,packs:0};
+  const log=Array.isArray(v.log)?v.log:[];
+  return {has:true, n:log.length, ms:log.reduce((a,r)=>a+(+r.ms||0),0),
+          packs:+v.packs||0, cards:Object.keys(v.cards||{}).length};
+}
+function spProgText(o){
+  const q=spProgOf(o);
+  return q.has?`${jp(q.n)}回・${spDur(q.ms)}・カード${jp(q.cards||0)}種類`:"なし";
+}
+/** 混ぜたものを、この端末に入れます */
+function spTakeMerged(theirs){
+  const mine=(()=>{ try{ return JSON.parse(localStorage.getItem(K_SPSYNC)||"null"); }catch(e){ return null; } })();
+  const out=spMergeData(mine,(theirs||{})[K_SPSYNC]);
+  try{ localStorage.setItem(K_SPSYNC,JSON.stringify(out)); }catch(e){}
+  try{
+    if(typeof SP!=="undefined"&&SP){
+      Object.keys(out).forEach(k=>{ SP[k]=out[k]; });
+      if(!Array.isArray(SP.log)) SP.log=[];
+      if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
+      const sec=document.getElementById("sp");
+      if(sec&&!sec.hidden&&typeof spRender==="function") spRender();
+    }
+  }catch(e){}
+  return true;
+}
 /** 2つの中身を、へらさないように混ぜます。
  *  数は大きいほう、配列は足し合わせ、○×は「どちらかが○なら○」にします */
 function keepMost(a, b){
@@ -5422,6 +5679,8 @@ function lsMerge(mine, theirs){
     if(k===K_MJSYNC){
       out[k]=mjBehind({[K_MJSYNC]:a},{[K_MJSYNC]:b})?b:a; return;
     }
+    /* ★ スタソスは 記録を足し合わせます（どちらの勉強も消えません）*/
+    if(k===K_SPSYNC){ out[k]=spMergeData(a,b); return; }
     if(LS_NEWEST.indexOf(k)>=0){
       const ta=+((a||{}).at)||0, tb=+((b||{}).at)||0;
       out[k]=(tb>ta)?b:a; return;
@@ -5499,6 +5758,9 @@ async function lsSync(showToast){
           lsMark(`Prime Bingo は預けてあるほうが進んでいたので入れ替えました（`
             +`${pbProgText(r.data||{})}）`);
         }
+        /* ★ スタソスは 足し合わせて混ぜます */
+        try{ spTakeMerged(r.data||{});
+          mine=Object.assign({},mine,{[K_SPSYNC]:ls(K_SPSYNC,null)}); }catch(e){}
         /* ★ 1人麻雀も、行われた回数が少なければ 端末のぶんを消して入れ替えます */
         if(mjBehind(mine, r.data||{})){
           mjTakeTheirs(r.data||{});
@@ -5534,6 +5796,7 @@ async function lsStart(){
         lsMark(`預けてあった新しい記録を入れました（${jp(lsCount(theirs))} 回）`);
       }else{
         /* ★ Prime Bingo は、引いた回数が少なければ端末のぶんを消して入れ替えます */
+        try{ spTakeMerged(theirs); }catch(e){}
         const pbSwap=pbBehind(mine,theirs);
         const mjSwap=mjBehind(mine,theirs);
         if(pbSwap) pbTakeTheirs(theirs);
@@ -5592,6 +5855,9 @@ function lsBrief(o){
     /* Prime Bingo：第何回か と、その回で引いた回数 */
     pbNo: pbProgOf(o).has?pbProgOf(o).no:null,
     pbN:  pbProgOf(o).has?pbProgOf(o).n:null,
+    /* スタソス：記録の件数と 合計の勉強時間 */
+    spN:  spProgOf(o).has?spProgOf(o).n:null,
+    spMs: spProgOf(o).has?spProgOf(o).ms:null,
     /* 1人麻雀：行われた回数（同期はこれで決めます）*/
     mjKai:   mjProgOf(o).has?mjProgOf(o).kai:null,
     mjAgari: mjProgOf(o).has?mjProgOf(o).agari:null,
@@ -5629,6 +5895,10 @@ function lsCmpHTML(a,b,an,bn){
           v=>(v===null||v===undefined)?"—":jp(v)+" 回")
        +row("1人麻雀　和了した回数",A.mjAgari,B.mjAgari)
        +row("1人麻雀　役満以上",A.mjYm,B.mjYm)
+       +row("スタソス　勉強の記録",A.spN,B.spN,
+          v=>(v===null||v===undefined)?"—":jp(v)+" 回")
+       +row("スタソス　合計の勉強時間",A.spMs,B.spMs,
+          v=>(v===null||v===undefined)?"—":spDur(v))
        +row("追加の道具のデータ",A.ext,B.ext,v=>v?jp(v)+" 件":"なし") : "")+
     row("預かっている項目の数",A.kazu,B.kazu)+
     `</tbody></table></div>`;
@@ -5807,6 +6077,15 @@ function lsReload(){
         if(!Array.isArray(MJ.turnStat)||MJ.turnStat.length<20) MJ.turnStat=new Array(20).fill(0);
         if(!Array.isArray(MJ.hanStat)||MJ.hanStat.length<14) MJ.hanStat=new Array(14).fill(0);
         try{ if(typeof mjDraw==="function") mjDraw(); }catch(e){}
+      }
+    }
+    if(typeof SP!=="undefined"&&SP){
+      const o=ls(K_SPSYNC,null);
+      if(o&&typeof o==="object"){
+        Object.keys(o).forEach(k=>{ SP[k]=o[k]; });
+        if(!Array.isArray(SP.log)) SP.log=[];
+        if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
+        try{ const sec=$("#sp"); if(sec&&!sec.hidden&&typeof spRender==="function") spRender(); }catch(e){}
       }
     }
     extCall("reload");
@@ -7449,6 +7728,19 @@ function toggleMenu(open){
 $("#menuBtn").onclick=()=>toggleMenu();
 /* ★ アリーナを見ている時に画面へ戻ってきたら、PRS を静かに読み直します */
 document.addEventListener("visibilitychange",()=>{
+  /* ★ 1人麻雀は、画面が隠れている間は 進めません（裏で動かないように）。
+        戻ってきたら 続きから進めます。 */
+  try{
+    if(typeof MJ!=="undefined"&&MJ.on){
+      if(document.hidden){ if(mjTimer){ clearTimeout(mjTimer); mjTimer=null; } }
+      else mjTick();
+    }
+  }catch(e){}
+  /* スタソスの時計も、見えている時だけ動かします（時刻で数えるのでズレません）*/
+  try{ if(typeof SP!=="undefined"&&typeof spTick==="function"){
+    if(document.hidden){ if(spTimer){ cancelAnimationFrame(spTimer); spTimer=null; } }
+    else if(!$("#sp").hidden){ spRender(); }
+  } }catch(e){}
   if(document.hidden) return;
   const t=$("#arena");
   if(!t||t.hidden) return;
@@ -7459,8 +7751,11 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","stats","arena","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
+  ["profile","pgbc","stats","arena","sp","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
+  /* スタソスの白い背景は、ほかの画面に移ったら もとに戻します */
+  document.body.classList.remove("spon");
+  try{ if(typeof spTimer!=="undefined"&&spTimer){ cancelAnimationFrame(spTimer); spTimer=null; } }catch(e){}
   extCall("tab",b.dataset.tab);
   $("#menuNow").textContent=b.textContent;
   toggleMenu(false);
@@ -7472,9 +7767,9 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
     (async()=>{ await Promise.all([loadRoleReq(),loadMyStat()]); renderRole(); })(); }
 
   if(b.dataset.tab==="ls"){ lsFill(); renderLs(); lsViewDraw(); lsTopNote(); pbLayout();
-    try{ const mb=$("#lsBtnMj"); if(mb) mb.hidden=!mjVisible();
+    try{ const mb=$("#lsBtnEtc"); if(mb) mb.hidden=!mjVisible();
       const mc=$("#mjCard"); if(mc) mc.hidden=!(mjVisible()&&(MJ.on||!mc.hidden));
-      if(MJ.on) mjDraw(); }catch(e){} }
+      if(MJ.on){ mjDraw(); mjTick(); } }catch(e){} }
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
@@ -9148,9 +9443,9 @@ function admShow(){
   try{ navBuild(); }catch(e){}
   try{ skinApply(); }catch(e){}
   if($("#navCard")) $("#navCard").hidden=!isAdmin();
-  /* 素因数分解アリーナのボタン。公開していなければ管理者だけに出ます */
-  const ab=$("#arBtn");
-  if(ab) ab.hidden=!(typeof arVisible==="function"&&arVisible());
+  /* TOY BOX のボタン。中に出せるものが1つでもあれば 出します */
+  const ab=$("#toyBtn");
+  if(ab) ab.hidden=!toyAny();
 }
 /* 役職の強さ。SQL 側の role_level と同じ順番にしてあります */
 const ROLE_LV={admin:5,judgeman:4,supervisor:3,judge:2,supporter:1,user:0};
@@ -16573,6 +16868,12 @@ if(!MJ.stat||typeof MJ.stat!=="object") MJ.stat={};
 if(!Array.isArray(MJ.turnStat)||MJ.turnStat.length<20) MJ.turnStat=new Array(20).fill(0);
 if(!Array.isArray(MJ.hanStat)||MJ.hanStat.length<14) MJ.hanStat=new Array(14).fill(0);
 if(typeof MJ.holdBig!=="boolean") MJ.holdBig=true;
+/* ★ いちばん大事なところ。
+      「いま起動しているか（on）」は 覚えておきません。
+      覚えておくと、画面を読み込みなおしたときに 勝手に始まってしまいます。
+      1人麻雀は「その他」から 押した時だけ 始まります。 */
+MJ.on=false;
+try{ localStorage.setItem(K_MJ,JSON.stringify(Object.assign({},MJ,{on:false}))); }catch(e){}
 /* ★ 前の版からの引きつぎ
       「打った回数」が 記録の件数で数えられていたため、500 で止まっていました。
       いまは MJ.kai（行われた回数）で数えます。足りなければ ここで直します。 */
@@ -16583,7 +16884,10 @@ if(!MJ.hist.length&&MJ.log.length){
   MJ.hist=MJ.log.slice(0,MJ_HISTMAX).map(r=>({a:r.agari?1:0,t:+r.turn||0,
     h:+r.han||0,y:+r.yakuman||0,p:+r.pts||0}));
 }
-const mjSave=()=>{ try{ localStorage.setItem(K_MJ,JSON.stringify(MJ)); }catch(e){} };
+/* ★ 保存するときは on を必ず false にします（次に開いた時 勝手に始まらないように）*/
+const mjSave=()=>{ try{
+  localStorage.setItem(K_MJ,JSON.stringify(Object.assign({},MJ,{on:false})));
+}catch(e){} };
 const mjVisible=()=>isAdmin();            /* ★ いまは管理者だけに見せます */
 
 /* ══ 局の数えかた ══
@@ -17099,12 +17403,24 @@ function mjStop(){
   document.documentElement.style.removeProperty("--mjz");
   mjDraw();
 }
+/** いま 1人麻雀を進めてよいか。
+    ★ 画面が隠れている時・LSやりこみのタブから離れている時は 止めます
+      （裏でこっそり進まないようにするためです）*/
+function mjLive(){
+  if(!MJ.on||!MJG||mjPaused) return false;
+  try{
+    if(document.hidden) return false;                 /* ほかのタブを見ている */
+    const ls=$("#ls"); if(!ls||ls.hidden) return false; /* ほかの画面を見ている */
+    const c=$("#mjCard"); if(!c||c.hidden) return false;
+  }catch(e){}
+  return true;
+}
 function mjTick(){
   if(mjTimer){ clearTimeout(mjTimer); mjTimer=null; }
-  if(!MJ.on||!MJG||mjPaused) return;
+  if(!mjLive()) return;
   const ms=mjStepMs();
   mjTimer=setTimeout(()=>{
-    if(!MJ.on||!MJG||mjPaused) return;
+    if(!mjLive()) return;
     let r;
     try{ r=mjStep(MJG); }
     catch(e){ console.error("1人麻雀",e); r="end"; }
@@ -17118,7 +17434,7 @@ function mjTick(){
       /* 記録を見せてから、次の回へ。
          倍満・三倍満以上・役満は、光らせて3秒しっかり見せます */
       mjTimer=setTimeout(()=>{
-        if(!MJ.on||mjPaused) return;
+        if(!mjLive()) return;
         MJG=mjNewGame(); mjDraw(); mjTick();
       },mjResHold(rec));
       return;
@@ -17696,6 +18012,842 @@ function mjRuleShow(){
       記録は同じ速さで見せますが、<b>倍満・三倍満以上・役満は光らせて3秒</b>しっかり見せます。</span></div>
     <div class="tools"><button class="btn" id="mjRX">閉じる</button></div>`,{w:720});
   M.q("#mjRX").onclick=M.close;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Study with Prime（スタソス）
+   ──────────────────────────────────────────────────────────────────
+   ・勉強した時間に応じて「素数カードパック」がもらえます
+   ・1パックは5枚。素数は 2〜999,999 の 78,498個から 等しい確からしさで出ます
+   ・レア度は けた数で決まります（1けた＝☆6 … 6けた＝☆1）
+   ・パックは「1回の勉強」の中で 3分たつごとに1つです。
+     10分の勉強なら3つ、20分の勉強なら6つ。2分の勉強を15回しても 0個です
+   ・時間は「開始した時刻」だけを覚えます。
+     こうすると 画面を閉じていても、あとから正しく数えられます
+   ══════════════════════════════════════════════════════════════════ */
+const K_SP="sa-sp-v1";
+const SP_PACK_MS=3*60*1000;      /* 3分で1パック */
+const SP_PER=5;                  /* 1パックの枚数 */
+const SP_MAX=999999;             /* いちばん大きい素数の上限 */
+let SP=Object.assign({
+  run:null,       /* いま計測中 {s:開始, br:[{s:休憩開始, e:休憩終了}]} */
+  log:[],         /* 記録（新しい順）{s:開始, ms:勉強, bms:休憩, bn:休憩回数, p:パック数} */
+  packs:0,        /* まだ開けていないパック */
+  opened:0,       /* 開けたパックの数 */
+  cards:{},       /* 素数 → 持っている枚数 */
+  drew:0,         /* 引いた枚数の合計 */
+  goal:60,        /* 1日の目標（分）*/
+  wipedAt:0       /* 全消去した時刻。これより古い記録は もう戻しません */
+}, ls(K_SP,{}));
+if(!Array.isArray(SP.log)) SP.log=[];
+if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
+if(SP.run&&typeof SP.run!=="object") SP.run=null;
+if(SP.run&&!Array.isArray(SP.run.br)) SP.run.br=[];
+const spSave=()=>{ try{ localStorage.setItem(K_SP,JSON.stringify(SP)); }catch(e){} };
+/** ★ いまは管理者だけが使えます（仮の実装のため）*/
+const spVisible=()=>isAdmin();
+
+/* ── 素数を全部つくります（2〜999,999。78,498個）────────────────
+   ふるいを1回だけ回して、あとは使いまわします。 */
+let SP_PRIMES=null;
+function spPrimes(){
+  if(SP_PRIMES) return SP_PRIMES;
+  const N=SP_MAX;
+  const sv=new Uint8Array(N+1); sv[0]=1; sv[1]=1;
+  for(let i=2;i*i<=N;i++) if(!sv[i]) for(let j=i*i;j<=N;j+=i) sv[j]=1;
+  const out=new Int32Array(80000); let k=0;
+  for(let i=2;i<=N;i++) if(!sv[i]) out[k++]=i;
+  SP_PRIMES=out.subarray(0,k);
+  return SP_PRIMES;
+}
+/** けた数ごとの素数の数（☆1〜☆6ぶん）*/
+let SP_CNT=null;
+function spCounts(){
+  if(SP_CNT) return SP_CNT;
+  const P=spPrimes(), c=[0,0,0,0,0,0,0];
+  for(let i=0;i<P.length;i++) c[7-String(P[i]).length]++;
+  SP_CNT=c;
+  return SP_CNT;
+}
+/** レア度。1けた＝☆6、6けた＝☆1 */
+const spStar=v=>Math.max(1,Math.min(6,7-String(v).length));
+const SP_STARC=["","#7a8697","#2e7d54","#2b5fae","#6e3fb0","#e07a10","#ff6fae"];
+const spStars=n=>"★".repeat(n)+"☆".repeat(6-n);
+/** かたよりのない乱数（暗号用の乱数を使い、あまりが出る分は捨てます）*/
+function spRand(n){
+  if(n<=1) return 0;
+  const g=(typeof crypto!=="undefined"&&crypto.getRandomValues)
+    ? (a)=>crypto.getRandomValues(a)
+    : (a)=>{ for(let i=0;i<a.length;i++) a[i]=Math.floor(Math.random()*4294967296); return a; };
+  const limit=Math.floor(4294967296/n)*n;
+  const buf=new Uint32Array(1);
+  for(;;){ g(buf); if(buf[0]<limit) return buf[0]%n; }
+}
+
+/* ══ 時間のはかりかた ══════════════════════════════════════════
+   ★ 覚えるのは「時刻」だけです。
+      開始した時刻・休憩を始めた時刻・休憩を終えた時刻。
+      いまの勉強時間は（いま − 開始）− 休憩の合計 で、そのつど計算します。
+      こうすると、画面を閉じていても・裏に回っていても 正しく数えられます。
+   ══════════════════════════════════════════════════════════════ */
+const z2=n=>String(n).padStart(2,"0");
+/** いまの勉強時間・休憩時間を出します */
+function spElapsed(run,now){
+  now=now||Date.now();
+  if(!run||!(+run.s>0)) return {study:0,brk:0,total:0,onBreak:false,bn:0};
+  let brk=0,onBreak=false;
+  const br=run.br||[];
+  br.forEach(b=>{
+    const st=+b.s||0;
+    const en=(b.e==null)?now:(+b.e||st);
+    if(b.e==null) onBreak=true;
+    brk+=Math.max(0,en-st);
+  });
+  const total=Math.max(0,now-(+run.s));
+  return {study:Math.max(0,total-brk),brk,total,onBreak,bn:br.length};
+}
+/** hh:mm:ss.000 の形にします */
+function spFmt(ms){
+  ms=Math.max(0,Math.floor(+ms||0));
+  const z=(n,w)=>String(n).padStart(w||2,"0");
+  return z(Math.floor(ms/3600000))+":"+z(Math.floor(ms/60000)%60)+":"
+        +z(Math.floor(ms/1000)%60)+"."+z(ms%1000,3);
+}
+/** 3時間20分 のような、読みやすい形 */
+function spDur(ms){
+  ms=Math.max(0,Math.floor(+ms||0));
+  const h=Math.floor(ms/3600000), m=Math.floor(ms/60000)%60, sc=Math.floor(ms/1000)%60;
+  if(h) return jp(h)+"時間"+m+"分";
+  if(m) return m+"分"+z2(sc)+"秒";
+  return sc+"秒";
+}
+/** 勉強時間から もらえるパックの数（切りすてです）*/
+const spPacksOf=ms=>Math.max(0,Math.floor((+ms||0)/SP_PACK_MS));
+/** 次のパックまで あと何ミリ秒か */
+const spToNext=ms=>SP_PACK_MS-((Math.max(0,+ms||0))%SP_PACK_MS);
+
+/** 勉強をはじめます */
+function spStart(){
+  if(SP.run) return false;
+  SP.run={s:Date.now(),br:[]};
+  spSave(); return true;
+}
+/** 休憩に入ります */
+function spBreak(){
+  if(!SP.run) return false;
+  const br=SP.run.br||(SP.run.br=[]);
+  if(br.length&&br[br.length-1].e==null) return false;   /* もう休憩中です */
+  br.push({s:Date.now(),e:null});
+  spSave(); return true;
+}
+/** 休憩を終えます */
+function spResume(){
+  if(!SP.run) return false;
+  const br=SP.run.br||[];
+  const last=br[br.length-1];
+  if(!last||last.e!=null) return false;
+  last.e=Date.now();
+  spSave(); return true;
+}
+/** 勉強を終えます。記録して、パックを配ります */
+function spFinish(){
+  if(!SP.run) return null;
+  /* 休憩中に終えたときは、その休憩も ここで閉じます */
+  const br=SP.run.br||[];
+  const last=br[br.length-1];
+  if(last&&last.e==null) last.e=Date.now();
+  const e=spElapsed(SP.run);
+  const packs=spPacksOf(e.study);
+  const rec={s:+SP.run.s, ms:e.study, bms:e.brk, bn:br.length, p:packs, end:Date.now()};
+  SP.run=null;
+  SP.log.unshift(rec);
+  SP.packs+=packs;
+  spSave();
+  return rec;
+}
+/** パックを1つ開けます。結果のカードを返します */
+function spOpenPack(){
+  if(SP.packs<=0) return null;
+  const P=spPrimes();
+  const out=[];
+  for(let i=0;i<SP_PER;i++){
+    const v=P[spRand(P.length)];
+    const had=+SP.cards[v]||0;
+    SP.cards[v]=had+1;
+    out.push({p:v, star:spStar(v), isNew:had===0, have:had+1});
+  }
+  SP.packs--; SP.opened++; SP.drew+=SP_PER;
+  spSave();
+  /* 見せる順は レア度の低い順。いちばん良いカードが 最後に出ます */
+  out.sort((a,b)=>a.star-b.star||a.p-b.p);
+  return out;
+}
+
+/* ══ 日づけの数えかた ══════════════════════════════════════════ */
+const spDayKey=t=>{ const d=new Date(+t||0);
+  return d.getFullYear()+"-"+z2(d.getMonth()+1)+"-"+z2(d.getDate()); };
+/** その週の月曜日の 0時 */
+function spWeekStart(t){
+  const d=new Date(+t||0); d.setHours(0,0,0,0);
+  const w=(d.getDay()+6)%7;                  /* 月曜を0にします */
+  d.setDate(d.getDate()-w);
+  return d.getTime();
+}
+const spDayStart=t=>{ const d=new Date(+t||0); d.setHours(0,0,0,0); return d.getTime(); };
+const spMonthStart=t=>{ const d=new Date(+t||0); return new Date(d.getFullYear(),d.getMonth(),1).getTime(); };
+const spYearStart=t=>{ const d=new Date(+t||0); return new Date(d.getFullYear(),0,1).getTime(); };
+/** 今日・今週・今月・今年・累計 の勉強時間（いま計測中のぶんも足します）*/
+function spTotals(now){
+  now=now||Date.now();
+  const live=SP.run?spElapsed(SP.run,now).study:0;
+  const liveDay=SP.run?+SP.run.s:now;
+  const t={day:spDayStart(now),week:spWeekStart(now),month:spMonthStart(now),year:spYearStart(now)};
+  const o={today:0,week:0,month:0,year:0,all:0,n:0,packs:0,brk:0};
+  SP.log.forEach(r=>{
+    const s2=+r.s||0, ms=+r.ms||0;
+    o.all+=ms; o.n++; o.packs+=(+r.p||0); o.brk+=(+r.bms||0);
+    if(s2>=t.year) o.year+=ms;
+    if(s2>=t.month) o.month+=ms;
+    if(s2>=t.week) o.week+=ms;
+    if(s2>=t.day) o.today+=ms;
+  });
+  if(live){
+    o.all+=live;
+    if(liveDay>=t.year) o.year+=live;
+    if(liveDay>=t.month) o.month+=live;
+    if(liveDay>=t.week) o.week+=live;
+    if(liveDay>=t.day) o.today+=live;
+  }
+  o.live=live;
+  return o;
+}
+/** 日ごとの勉強時間。{key:"2026-09-18", ms} を 古い順で返します */
+function spByDay(){
+  const m=new Map();
+  SP.log.forEach(r=>{ const k=spDayKey(r.s); m.set(k,(m.get(k)||0)+(+r.ms||0)); });
+  if(SP.run){ const k=spDayKey(SP.run.s);
+    m.set(k,(m.get(k)||0)+spElapsed(SP.run).study); }
+  return [...m.entries()].map(([key,ms])=>({key,ms})).sort((a,b)=>a.key<b.key?-1:1);
+}
+/** 直近 n 日ぶん（記録がない日は 0 で埋めます）*/
+function spLastDays(n,now){
+  now=now||Date.now();
+  const by=new Map(spByDay().map(x=>[x.key,x.ms]));
+  const out=[];
+  const d0=spDayStart(now);
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(d0); d.setDate(d.getDate()-i);
+    const k=spDayKey(d.getTime());
+    out.push({key:k, label:(d.getMonth()+1)+"/"+d.getDate(), ms:by.get(k)||0});
+  }
+  return out;
+}
+/** 直近 n 週ぶん */
+function spLastWeeks(n,now){
+  now=now||Date.now();
+  const out=[]; const w0=spWeekStart(now);
+  for(let i=n-1;i>=0;i--){
+    const st=w0-i*7*86400000, en=st+7*86400000;
+    let ms=0;
+    SP.log.forEach(r=>{ if(r.s>=st&&r.s<en) ms+=(+r.ms||0); });
+    if(SP.run&&SP.run.s>=st&&SP.run.s<en) ms+=spElapsed(SP.run).study;
+    const d=new Date(st);
+    out.push({key:spDayKey(st), label:(d.getMonth()+1)+"/"+d.getDate()+"〜", ms});
+  }
+  return out;
+}
+/** 直近 n か月ぶん */
+function spLastMonths(n,now){
+  now=now||Date.now();
+  const out=[]; const d0=new Date(now);
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(d0.getFullYear(),d0.getMonth()-i,1);
+    const st=d.getTime(), en=new Date(d.getFullYear(),d.getMonth()+1,1).getTime();
+    let ms=0;
+    SP.log.forEach(r=>{ if(r.s>=st&&r.s<en) ms+=(+r.ms||0); });
+    if(SP.run&&SP.run.s>=st&&SP.run.s<en) ms+=spElapsed(SP.run).study;
+    out.push({key:d.getFullYear()+"-"+z2(d.getMonth()+1), label:(d.getMonth()+1)+"月", ms});
+  }
+  return out;
+}
+/* ══ 偏差値 ══════════════════════════════════════════════════
+   ★ 勉強した日の秒数をならべて、平均と ちらばり（標準偏差）を出します。
+      偏差値 ＝ 50 ＋ 10 ×（その日 − 平均）÷ ちらばり。
+      7日そろうと「参考」として、30日そろうと 本番の数として出します。
+   ══════════════════════════════════════════════════════════ */
+const SP_DEV_HINT=7, SP_DEV_OK=30;
+function spDeviation(now){
+  now=now||Date.now();
+  const days=spByDay();
+  const n=days.length;
+  const out={n, ready:n>=SP_DEV_HINT, solid:n>=SP_DEV_OK,
+             need:Math.max(0,SP_DEV_OK-n), mean:0, sd:0, today:null, best:null, list:[]};
+  if(!n) return out;
+  const secs=days.map(d=>d.ms/1000);
+  const mean=secs.reduce((a,b)=>a+b,0)/n;
+  const va=secs.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n;
+  const sd=Math.sqrt(va);
+  out.mean=mean; out.sd=sd;
+  const T=v=>(sd>0?50+10*(v-mean)/sd:50);
+  out.list=days.map(d=>({key:d.key, ms:d.ms, t:T(d.ms/1000)}));
+  const tk=spDayKey(now);
+  const td=out.list.find(x=>x.key===tk);
+  out.today=td?td.t:null;
+  out.best=out.list.reduce((a,b)=>(!a||b.t>a.t)?b:a,null);
+  return out;
+}
+/** 連続して勉強した日数 */
+function spStreak(now){
+  now=now||Date.now();
+  const set=new Set(spByDay().filter(d=>d.ms>0).map(d=>d.key));
+  let cur=0;
+  const d=new Date(spDayStart(now));
+  /* 今日まだなら、きのうから数えます */
+  if(!set.has(spDayKey(d.getTime()))) d.setDate(d.getDate()-1);
+  while(set.has(spDayKey(d.getTime()))){ cur++; d.setDate(d.getDate()-1); }
+  /* いちばん長かった連続日数 */
+  const keys=[...set].sort();
+  let best=0,run=0,prev=null;
+  keys.forEach(k=>{
+    const t=new Date(k+"T00:00:00").getTime();
+    if(prev!==null&&Math.round((t-prev)/86400000)===1) run++; else run=1;
+    if(run>best) best=run;
+    prev=t;
+  });
+  return {cur,best,days:set.size};
+}
+/** 図鑑の埋まりぐあい */
+function spDex(){
+  const c=spCounts();
+  const got=[0,0,0,0,0,0,0], have=[0,0,0,0,0,0,0];
+  Object.keys(SP.cards).forEach(k=>{
+    const n=+SP.cards[k]||0; if(n<=0) return;
+    const st=spStar(+k);
+    got[st]++; have[st]+=n;
+  });
+  const rows=[];
+  for(let st=6;st>=1;st--) rows.push({st, got:got[st], all:c[st], have:have[st]});
+  return {rows, gotAll:got.reduce((a,b)=>a+b,0), allAll:c.reduce((a,b)=>a+b,0)};
+}
+
+/* ══ TOY BOX ═══════════════════════════════════════════════
+   「開発者を応援する」の となりのボタンです。
+   遊べるものを ここにまとめました。
+   ══════════════════════════════════════════════════════════ */
+/** TOY BOX に出せるものが 1つでもあるか */
+function toyAny(){
+  return (typeof arVisible==="function"&&arVisible())
+      || (typeof spVisible==="function"&&spVisible());
+}
+/** 素因数分解アリーナを開きます */
+function arOpen(){
+  const b2=document.querySelector('#tabs button[data-tab="arena"]');
+  if(b2){ b2.click(); return; }
+  ["profile","pgbc","stats","arena","sp","plan","analysis","hist","mood","ls","card",
+   "input","sns","settings","rprank","rankedit","help","cheer"].concat(EXT.hide||[])
+    .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!=="arena"); });
+  document.body.classList.remove("spon");
+  arGate(()=>{ arCfgLoad().then(arHome); arHome(); });
+  try{ scrollTo({top:0,behavior:"smooth"}); }catch(e){}
+}
+function toyShow(){
+  const ar=(typeof arVisible==="function"&&arVisible());
+  const sp=(typeof spVisible==="function"&&spVisible());
+  const item=(id,icon,name,note,chip)=>`
+    <button class="btn toyit" id="${id}">
+      <span class="toyic">${icon}</span>
+      <span class="toytx"><b>${esc(name)}</b>
+        ${chip?`<span class="toychip">${esc(chip)}</span>`:""}
+        <span class="tiny">${note}</span></span></button>`;
+  const M=modal(`<h2>TOY BOX</h2>
+    <p class="tiny" style="color:var(--dim2);margin-top:-6px">
+      素数であそぶ道具を あつめた箱です。</p>
+    <div class="toygrid">
+      ${ar?item("toyAr","🧮","素因数分解アリーナ",
+          "素因数分解の速さをきそいます。PRS レーティングつき",
+          (typeof ARCFG!=="undefined"&&!ARCFG.on)?"管理者だけ":"")
+        :""}
+      ${sp?item("toySp","📚","Study with Prime",
+          "勉強した時間で 素数カードパックがもらえます（略して スタソス）",
+          "管理者だけ・仮の実装"):""}
+      ${(!ar&&!sp)?`<p class="tiny">いまは 出せるものがありません。</p>`:""}
+    </div>
+    <div class="tools"><button class="btn" id="toyX">閉じる</button></div>`,{w:560});
+  M.q("#toyX").onclick=M.close;
+  if(M.q("#toyAr")) M.q("#toyAr").onclick=()=>{ M.close(); arOpen(); };
+  if(M.q("#toySp")) M.q("#toySp").onclick=()=>{ M.close(); spShow(); };
+}
+
+/* ══ スタソスの画面 ══════════════════════════════════════════ */
+let SP_VIEW="home";           /* home / pack / stats / dex / log */
+let SP_RANGE="day";           /* グラフの単位 day / week / month */
+let spTimer=null, spLastTxt="";
+const spNum=v=>`<span style="font-variant-numeric:tabular-nums">${jp(v)}</span>`;
+
+/** 折れ線グラフ（勉強した時間の うつりかわり）*/
+function spChart(pts){
+  const W=780,H=210,L=52,R=14,T=16,B=34;
+  const iw=W-L-R, ih=H-T-B;
+  const maxMs=Math.max(...pts.map(p=>p.ms),1);
+  /* 目もりは きりのいい分数にします */
+  const stepM=[5,10,15,30,60,120,180,300,600,900].find(m=>maxMs/60000<=m*4)||1200;
+  const topM=Math.max(stepM,Math.ceil(maxMs/60000/stepM)*stepM);
+  const y=ms=>T+ih-(ms/60000/topM)*ih;
+  const x=i=>L+(pts.length<=1?iw/2:(i/(pts.length-1))*iw);
+  const line=pts.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p.ms).toFixed(1)}`).join("");
+  const area=line+`L${x(pts.length-1).toFixed(1)},${T+ih}L${x(0).toFixed(1)},${T+ih}Z`;
+  const grid=[];
+  for(let m=0;m<=topM;m+=stepM){
+    const yy=y(m*60000);
+    grid.push(`<line x1="${L}" y1="${yy.toFixed(1)}" x2="${W-R}" y2="${yy.toFixed(1)}"
+      stroke="#eaeff6" stroke-width="1"/>`);
+    grid.push(`<text x="${L-7}" y="${(yy+4).toFixed(1)}" text-anchor="end"
+      font-size="10" fill="#8b96a6">${m>=60?(m/60)+"時間":m+"分"}</text>`);
+  }
+  /* 下の字は こみあうので まびきます */
+  const every=Math.max(1,Math.ceil(pts.length/12));
+  const labs=pts.map((p,i)=>(i%every===0||i===pts.length-1)
+    ?`<text x="${x(i).toFixed(1)}" y="${H-12}" text-anchor="middle"
+       font-size="10" fill="#8b96a6">${esc(p.label)}</text>`:"").join("");
+  const dots=pts.map((p,i)=>p.ms>0
+    ?`<circle cx="${x(i).toFixed(1)}" cy="${y(p.ms).toFixed(1)}" r="3.2"
+       fill="#3d7dff" stroke="#fff" stroke-width="1.6"><title>${esc(p.label)}　${esc(spDur(p.ms))}</title></circle>`
+    :"").join("");
+  return `<svg class="spchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"
+    role="img" aria-label="勉強時間の折れ線グラフ">
+    <defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d7dff" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#3d7dff" stop-opacity="0"/></linearGradient></defs>
+    ${grid.join("")}
+    <path d="${area}" fill="url(#spg)"/>
+    <path d="${line}" fill="none" stroke="#3d7dff" stroke-width="2.4"
+      stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${labs}</svg>`;
+}
+/** 上のみだし */
+function spHeadHTML(){
+  const t=spTotals();
+  return `<div class="sphead">
+    <h2>Study with Prime <span class="sptiny">スタソス</span></h2>
+    <span class="spchip">管理者だけ（仮の実装）</span>
+    <span style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap">
+      <button class="spbtn${SP_VIEW==="home"?" pri":""}" data-spv="home">計測</button>
+      <button class="spbtn${SP_VIEW==="pack"?" pri":""}" data-spv="pack">パック${
+        SP.packs?`（${jp(SP.packs)}）`:""}</button>
+      <button class="spbtn${SP_VIEW==="stats"?" pri":""}" data-spv="stats">統計</button>
+      <button class="spbtn${SP_VIEW==="dex"?" pri":""}" data-spv="dex">図鑑</button>
+      <button class="spbtn${SP_VIEW==="log"?" pri":""}" data-spv="log">記録</button>
+      <button class="spbtn" id="spBack">もどる</button>
+    </span></div>`;
+}
+/** 計測の画面 */
+function spHomeHTML(){
+  const run=SP.run, e=spElapsed(run);
+  const t=spTotals();
+  const got=spPacksOf(e.study);
+  const next=spToNext(e.study);
+  const prog=100*(1-next/SP_PACK_MS);
+  const st=spStreak();
+  return `<div class="spcard" style="padding:18px 16px">
+    <div class="spclock${e.onBreak?" brk":""}" id="spClock">${spFmt(e.study)}</div>
+    <div class="spstate" id="spState">${
+      !run?"「開始」を押すと 時間をはかりはじめます"
+      :e.onBreak?`休憩中です（ここまで ${spDur(e.brk)} 休みました）`
+      :`勉強中　この回で <b>${jp(got)}</b> パック　次まで あと ${z2(Math.floor(next/60000))}:${z2(Math.floor(next/1000)%60)}`}</div>
+    ${run?`<div class="spnext"><i id="spNextBar" style="width:${prog.toFixed(1)}%"></i></div>`:""}
+    <div class="sptools" style="justify-content:center">
+      ${!run
+        ?`<button class="spbtn pri big" id="spGo">開始</button>`
+        :(e.onBreak
+          ?`<button class="spbtn pri big" id="spResume">休憩終了</button>
+            <button class="spbtn big" id="spEnd">終了</button>`
+          :`<button class="spbtn warn big" id="spBrk">休憩</button>
+            <button class="spbtn big" id="spEnd">終了</button>`)}
+    </div>
+    ${run?`<p class="sptiny" style="text-align:center;margin-top:10px">
+      ${esc(spWhen(run.s))} から　休憩 ${jp(e.bn)} 回・合計 ${esc(spDur(e.brk))}<br>
+      画面を閉じても、ほかのことをしていても 時間は正しく数えられます</p>`:""}
+  </div>
+  <div class="spgrid spg5">
+    ${[["今日",t.today],["今週",t.week],["今月",t.month],["今年",t.year],["累計",t.all]]
+      .map(([n,v],i)=>`<div class="spbox${i===0?" on":""}"><div class="t">${n}</div>
+        <div class="v">${esc(spDur(v))}</div>
+        <div class="s">${jp(Math.floor(v/60000))} 分</div></div>`).join("")}
+  </div>
+  <div class="spgrid spg4" style="margin-top:9px">
+    <div class="spbox"><div class="t">まだ開けていないパック</div>
+      <div class="v" style="color:#2a63e0">${jp(SP.packs)}</div><div class="s">個</div></div>
+    <div class="spbox"><div class="t">連続して勉強した日数</div>
+      <div class="v">${jp(st.cur)}</div><div class="s">最長 ${jp(st.best)} 日</div></div>
+    <div class="spbox"><div class="t">勉強した日数</div>
+      <div class="v">${jp(st.days)}</div><div class="s">回数 ${jp(t.n)} 回</div></div>
+    <div class="spbox"><div class="t">持っているカード</div>
+      <div class="v">${jp(SP.drew)}</div><div class="s">${jp(spDex().gotAll)} 種類</div></div>
+  </div>
+  <div class="spcard" style="margin-top:12px">
+    <b style="font-size:.86rem">パックのもらいかた</b>
+    <p class="sptiny" style="margin:6px 0 0">
+      <b>1回の勉強</b>の中で 3分たつごとに 1パックです。<br>
+      例：10分の勉強で 3パック、20分の勉強で 6パック。合わせて 9パック。<br>
+      2分の勉強を15回しても（合計30分でも）<b>0パック</b>です。続けて勉強した時間で数えます。<br>
+      休憩している時間は 勉強時間に入りません。</p>
+  </div>`;
+}
+/** いつ（yyyy/mm/dd hh:mm:ss）*/
+function spWhen(t){
+  const v=+t||0; if(!v) return "—";
+  const d=new Date(v);
+  return d.getFullYear()+"/"+z2(d.getMonth()+1)+"/"+z2(d.getDate())+" "
+    +z2(d.getHours())+":"+z2(d.getMinutes())+":"+z2(d.getSeconds());
+}
+/** パックの画面 */
+let SP_RESULT=null;
+function spPackHTML(){
+  const c=spCounts(), all=c.reduce((a,b)=>a+b,0);
+  const odds=[6,5,4,3,2,1].map(st=>{
+    const n=c[st], pct=n/all*100;
+    return `<tr><td style="color:${SP_STARC[st]};font-weight:700">☆${st}　${esc(spStars(st))}</td>
+      <td class="n">${jp(n)} 種類</td>
+      <td class="n">${pct<0.01?pct.toFixed(4):pct.toFixed(pct<1?3:2)}%</td>
+      <td class="n sptiny">${n?("約 "+jp(Math.round(all/n))+" 枚に1枚"):"—"}</td></tr>`;
+  }).join("");
+  return `<div class="spcard">
+    <div class="sppkwrap">
+      ${SP.packs>0?`
+        <div class="sppk" id="spPack">
+          <div class="foil"></div>
+          <div class="tear"><span class="arrow">→</span>スライドして開ける<span class="arrow">→</span></div>
+          <div class="ttl">PRIME PACK</div>
+          <div class="sub">2 … 999,999</div>
+          <div class="n5">5枚入り　のこり ${jp(SP.packs)} パック</div>
+        </div>
+        <p class="sptiny">上の帯を <b>右にスライド</b>すると 開きます（クリックでも開きます）</p>
+        ${SP.packs>1?`<button class="spbtn" id="spOpenAll">まとめて ${jp(Math.min(SP.packs,50))} パック開ける</button>`:""}`
+      :`<div class="spcard" style="text-align:center;width:100%">
+          <b>パックがありません</b>
+          <p class="sptiny" style="margin:6px 0 0">勉強すると もらえます。3分で1パックです。</p>
+          <button class="spbtn pri" data-spv="home" style="margin-top:8px">計測にもどる</button>
+        </div>`}
+      <div class="spcards" id="spCards">${SP_RESULT?spCardsHTML(SP_RESULT):""}</div>
+    </div>
+  </div>
+  <div class="spcard">
+    <b style="font-size:.86rem">出る確からしさ</b>
+    <p class="sptiny" style="margin:6px 0 8px">
+      2〜999,999 の素数 <b>${jp(all)} 個</b>から、<b>どれも同じ確からしさ</b>で出ます。
+      レア度は けた数で決まるので、けた数の少ない素数ほど めったに出ません。</p>
+    <table><thead><tr><th>レア度</th><th class="n">素数の数</th>
+      <th class="n">出る割合</th><th class="n">めやす</th></tr></thead><tbody>${odds}</tbody></table>
+    <p class="sptiny" style="margin-top:8px">
+      ☆6（2・3・5・7）は ${jp(Math.round(all/c[6]))} 枚に1枚、つまり
+      約 ${jp(Math.round(all/c[6]/SP_PER))} パックに1枚です。
+      3分で1パックなので、<b>およそ ${jp(Math.round(all/c[6]/SP_PER*3/60))} 時間</b>
+      勉強すると 1枚出るくらいの見込みになります。</p>
+  </div>`;
+}
+function spCardsHTML(list){
+  return list.map((c,i)=>`<div class="spcd s${c.star}" style="animation-delay:${(i*0.16).toFixed(2)}s">
+    <span class="rk">☆${c.star}</span>
+    <span class="num">${jp(c.p)}</span>
+    <span class="st">${esc(spStars(c.star))}</span>
+    <span class="dup">${c.isNew?"NEW":"×"+jp(c.have)}</span>
+  </div>`).join("");
+}
+/** 統計の画面 */
+function spStatsHTML(){
+  const t=spTotals(), dv=spDeviation(), st=spStreak();
+  const pts=SP_RANGE==="day"?spLastDays(30)
+    :SP_RANGE==="week"?spLastWeeks(12):spLastMonths(12);
+  const days=spByDay();
+  const best=days.reduce((a,b)=>(!a||b.ms>a.ms)?b:a,null);
+  const avg=days.length?days.reduce((a,b)=>a+b.ms,0)/days.length:0;
+  const sess=SP.log.length?SP.log.reduce((a,r)=>a+(+r.ms||0),0)/SP.log.length:0;
+  const goalMs=Math.max(1,SP.goal)*60000;
+  const gp=Math.min(100,t.today/goalMs*100);
+  const devTxt=v=>v==null?"—":v.toFixed(1);
+  return `<div class="spgrid spg5">
+    ${[["今日",t.today],["今週",t.week],["今月",t.month],["今年",t.year],["累計",t.all]]
+      .map(([n,v],i)=>`<div class="spbox${i===0?" on":""}"><div class="t">${n}</div>
+        <div class="v">${esc(spDur(v))}</div>
+        <div class="s">${jp(Math.floor(v/60000))} 分</div></div>`).join("")}
+  </div>
+  <div class="spcard" style="margin-top:12px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <b style="font-size:.86rem">今日の目標</b>
+      <input type="range" id="spGoal" min="10" max="600" step="10" value="${Math.max(10,Math.min(600,SP.goal))}"
+        style="flex:1;min-width:140px">
+      <b style="min-width:70px;text-align:right">${jp(SP.goal)} 分</b>
+    </div>
+    <div class="spnext" style="height:13px;margin-top:9px">
+      <i style="width:${gp.toFixed(1)}%;background:${gp>=100?"linear-gradient(90deg,#39c07a,#1f9a5a)":"linear-gradient(90deg,#6fa8ff,#3d7dff)"}"></i></div>
+    <p class="sptiny" style="margin:6px 0 0">
+      ${gp>=100?`<b style="color:#1f9a5a">今日の目標を達成しました！</b>　`
+        :`あと <b>${esc(spDur(Math.max(0,goalMs-t.today)))}</b> で 今日の目標です。　`}
+      今日は ${esc(spDur(t.today))} 勉強しました。</p>
+  </div>
+  <div class="spcard">
+    <div class="spseg">
+      <button data-sprg="day" class="${SP_RANGE==="day"?"on":""}">直近30日</button>
+      <button data-sprg="week" class="${SP_RANGE==="week"?"on":""}">直近12週</button>
+      <button data-sprg="month" class="${SP_RANGE==="month"?"on":""}">直近12か月</button>
+    </div>
+    ${spChart(pts)}
+  </div>
+  <div class="spgrid spg4">
+    <div class="spbox"><div class="t">勉強した日の 1日平均</div>
+      <div class="v">${esc(spDur(avg))}</div><div class="s">${jp(days.length)} 日ぶん</div></div>
+    <div class="spbox"><div class="t">いちばん勉強した日</div>
+      <div class="v">${best?esc(spDur(best.ms)):"—"}</div>
+      <div class="s">${best?esc(best.key):"—"}</div></div>
+    <div class="spbox"><div class="t">1回あたりの勉強</div>
+      <div class="v">${esc(spDur(sess))}</div><div class="s">${jp(SP.log.length)} 回ぶん</div></div>
+    <div class="spbox"><div class="t">休憩の合計</div>
+      <div class="v">${esc(spDur(t.brk))}</div>
+      <div class="s">勉強の ${t.all?((t.brk/t.all)*100).toFixed(1):"0.0"}%</div></div>
+  </div>
+  <div class="spcard">
+    <b style="font-size:.86rem">偏差値</b>
+    <p class="sptiny" style="margin:6px 0 10px">
+      勉強した日の秒数をならべて、平均と ちらばりから出します。<br>
+      <b>偏差値 ＝ 50 ＋ 10 ×（その日の秒数 − 平均）÷ ちらばり</b>。
+      50 がちょうど平均、60 なら上のほう、40 なら下のほうです。</p>
+    ${dv.ready?`
+      <div class="spgrid spg4">
+        <div class="spbox on"><div class="t">今日の偏差値</div>
+          <div class="v" style="color:${(dv.today||0)>=60?"#1f9a5a":(dv.today||0)<40?"#c8382f":"#16202e"}">${devTxt(dv.today)}</div>
+          <div class="s">${dv.today==null?"今日はまだ 勉強していません":(dv.today>=60?"とても良い":dv.today>=50?"平均より上":"平均より下")}</div></div>
+        <div class="spbox"><div class="t">自己ベストの日</div>
+          <div class="v">${devTxt(dv.best&&dv.best.t)}</div>
+          <div class="s">${dv.best?esc(dv.best.key):"—"}</div></div>
+        <div class="spbox"><div class="t">平均（1日）</div>
+          <div class="v">${esc(spDur(dv.mean*1000))}</div><div class="s">${jp(dv.n)} 日ぶん</div></div>
+        <div class="spbox"><div class="t">ちらばり</div>
+          <div class="v">${esc(spDur(dv.sd*1000))}</div>
+          <div class="s">大きいほど 日によって差があります</div></div>
+      </div>
+      <p class="sptiny" style="margin-top:8px">
+        ${dv.solid
+          ?`<b style="color:#1f9a5a">${jp(dv.n)} 日ぶんの記録があります。じゅうぶん あてになる数です。</b>`
+          :`いまは <b>参考の数</b>です（${jp(dv.n)} 日ぶん）。
+            あと <b>${jp(dv.need)} 日</b>記録すると、30日そろって しっかりした数になります。`}</p>`
+    :`<div class="spbox"><div class="t">まだ出せません</div>
+        <div class="v">あと ${jp(Math.max(0,SP_DEV_HINT-dv.n))} 日</div>
+        <div class="s">${jp(dv.n)} 日ぶん記録しました。7日そろうと 参考の数が出ます</div></div>`}
+  </div>`;
+}
+/** 図鑑 */
+function spDexHTML(){
+  const d=spDex();
+  const owned=Object.keys(SP.cards).map(k=>({p:+k,n:+SP.cards[k]||0}))
+    .filter(x=>x.n>0).sort((a,b)=>b.n-a.n||a.p-b.p);
+  const top=owned.slice().sort((a,b)=>spStar(b.p)-spStar(a.p)||b.n-a.n).slice(0,40);
+  return `<div class="spcard">
+    <b style="font-size:.86rem">あつめたぐあい</b>
+    <p class="sptiny" style="margin:6px 0 10px">
+      ぜんぶで ${jp(d.allAll)} 種類のうち <b>${jp(d.gotAll)} 種類</b>
+      （${(d.gotAll/d.allAll*100).toFixed(4)}%）あつめました。持っている枚数は ${jp(SP.drew)} 枚です。</p>
+    <div class="spdex">${d.rows.map(r=>`<div class="spdexrow">
+      <span style="color:${SP_STARC[r.st]};font-weight:700">☆${r.st}</span>
+      <span class="spdexbar"><i style="width:${(r.got/Math.max(1,r.all)*100).toFixed(2)}%;
+        background:${SP_STARC[r.st]}"></i></span>
+      <span class="n">${jp(r.got)} / ${jp(r.all)}　<span class="spdim">${jp(r.have)}枚</span></span>
+    </div>`).join("")}</div>
+  </div>
+  <div class="spcard">
+    <b style="font-size:.86rem">持っているカード（レア度の高い順に40枚まで）</b>
+    ${top.length?`<div class="spcards" style="justify-content:flex-start;margin-top:10px">
+      ${top.map(x=>`<div class="spcd s${spStar(x.p)}" style="width:92px;height:128px;animation:none;opacity:1;transform:none">
+        <span class="rk">☆${spStar(x.p)}</span>
+        <span class="num" style="font-size:1.05rem">${jp(x.p)}</span>
+        <span class="dup">×${jp(x.n)}</span></div>`).join("")}</div>`
+      :`<p class="sptiny" style="margin-top:8px">まだ1枚もありません。</p>`}
+  </div>`;
+}
+/** 記録の一覧 */
+function spLogHTML(){
+  const rows=SP.log.slice(0,300);
+  return `<div class="spcard">
+    <b style="font-size:.86rem">勉強の記録</b>
+    <p class="sptiny" style="margin:6px 0 10px">新しいものが上です（300件まで出します）。
+      覚えているのは「開始した時刻」と 勉強時間・休憩・もらったパックの数です。</p>
+    <div class="spscroll"><table><thead><tr>
+      <th>はじめた時刻</th><th class="n">勉強</th><th class="n">休憩</th>
+      <th class="n">休憩の回数</th><th class="n">パック</th></tr></thead><tbody>
+      ${rows.length?rows.map(r=>`<tr>
+        <td>${esc(spWhen(r.s))}</td>
+        <td class="n"><b>${esc(spFmt(r.ms))}</b></td>
+        <td class="n">${r.bms?esc(spDur(r.bms)):"—"}</td>
+        <td class="n">${jp(+r.bn||0)}</td>
+        <td class="n">${r.p?`<b style="color:#2a63e0">${jp(r.p)}</b>`:"0"}</td>
+      </tr>`).join(""):`<tr><td colspan="5" class="sptiny">まだありません</td></tr>`}
+    </tbody></table></div>
+    <div class="sptools">
+      <button class="spbtn bad" id="spWipeLog">勉強の記録を 全部消す</button>
+      <button class="spbtn bad" id="spWipeAll">カードとパックも ふくめて 全部消す</button>
+    </div>
+    <p class="sptiny" style="margin-top:6px">
+      仮の実装なので、まちがって入った記録は ここで消せます。<br>
+      消したあとに ほかの端末とそろえても、<b>消した記録は もう戻りません</b>。</p>
+  </div>`;
+}
+/** 画面をかきます */
+function spRender(){
+  const box=$("#spBody"); if(!box) return;
+  const body=SP_VIEW==="pack"?spPackHTML()
+    :SP_VIEW==="stats"?spStatsHTML()
+    :SP_VIEW==="dex"?spDexHTML()
+    :SP_VIEW==="log"?spLogHTML():spHomeHTML();
+  box.innerHTML=spHeadHTML()+body;
+  spWire();
+  spTick();
+}
+function spWire(){
+  $$("#sp [data-spv]").forEach(b=>b.onclick=()=>{ SP_VIEW=b.dataset.spv; SP_RESULT=null; spRender(); });
+  $$("#sp [data-sprg]").forEach(b=>b.onclick=()=>{ SP_RANGE=b.dataset.sprg; spRender(); });
+  const bk=$("#spBack"); if(bk) bk.onclick=spHide;
+  const go=$("#spGo"); if(go) go.onclick=()=>{ spStart(); spRender(); toast("勉強をはじめました"); };
+  const br=$("#spBrk"); if(br) br.onclick=()=>{ spBreak(); spRender(); };
+  const rs=$("#spResume"); if(rs) rs.onclick=()=>{ spResume(); spRender(); };
+  const en=$("#spEnd"); if(en) en.onclick=spEndAsk;
+  const gl=$("#spGoal"); if(gl) gl.oninput=e=>{
+    SP.goal=Math.max(10,Math.min(600,+e.target.value||60)); spSave();
+    const b=gl.parentElement.querySelector("b:last-of-type");
+    if(b) b.textContent=jp(SP.goal)+" 分";
+  };
+  const pk=$("#spPack"); if(pk) spWirePack(pk);
+  const oa=$("#spOpenAll"); if(oa) oa.onclick=spOpenMany;
+  const w1=$("#spWipeLog"); if(w1) w1.onclick=()=>spWipe(false);
+  const w2=$("#spWipeAll"); if(w2) w2.onclick=()=>spWipe(true);
+}
+/** 終わるとき */
+async function spEndAsk(){
+  const e=spElapsed(SP.run);
+  const packs=spPacksOf(e.study);
+  const ok=await askYN("勉強を終わりますか？",
+    `勉強した時間　<b>${esc(spFmt(e.study))}</b><br>
+     休憩　${esc(spDur(e.brk))}（${jp(e.bn)} 回）<br><br>
+     もらえるパック　<b style="color:var(--acc2)">${jp(packs)} 個</b>
+     ${packs?"":"<br><span class='tiny'>3分たつと 1個もらえます。あと "
+       +Math.ceil(spToNext(e.study)/60000)+" 分ほどです</span>"}`,
+    "終わる","つづける");
+  if(!ok) return;
+  const rec=spFinish();
+  spRender();
+  if(rec&&rec.p) toast(`${jp(rec.p)} パックもらいました！`);
+  else toast("記録しました");
+}
+/** パックを ちぎって開ける */
+function spWirePack(el){
+  const tear=el.querySelector(".tear");
+  if(!tear) return;
+  let down=false,x0=0,dx=0,moved=false,busy=false;
+  const width=()=>el.clientWidth||230;
+  const set=v=>{ tear.style.transform="translateX("+v+"px)"; };
+  const finish=ok=>{
+    down=false;
+    el.classList.add("opening");
+    if(ok){
+      busy=true;
+      set(width()+40); el.classList.add("done");
+      setTimeout(()=>{ SP_RESULT=spOpenPack(); spRender(); },330);
+    }else{
+      set(0);
+      setTimeout(()=>el.classList.remove("opening"),260);
+    }
+  };
+  el.addEventListener("pointerdown",ev=>{
+    if(busy) return;
+    down=true; moved=false; x0=ev.clientX; dx=0;
+    el.classList.remove("opening");
+    try{ el.setPointerCapture(ev.pointerId); }catch(e){}
+  });
+  el.addEventListener("pointermove",ev=>{
+    if(!down) return;
+    dx=Math.max(0,ev.clientX-x0);
+    if(dx>6) moved=true;
+    set(Math.min(dx,width()));
+  });
+  el.addEventListener("pointerup",()=>{
+    if(!down) return;
+    /* スライドしていなければ、クリックとして そのまま開けます */
+    finish(moved?(dx>width()*0.45):true);
+  });
+  el.addEventListener("pointercancel",()=>{ if(down) finish(false); });
+  /* 指やマウスが使えない時のために、キーでも開けます */
+  el.tabIndex=0;
+  el.addEventListener("keydown",ev=>{
+    if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); if(!busy) finish(true); }
+  });
+}
+/** まとめて開けます */
+async function spOpenMany(){
+  const n=Math.min(SP.packs,50);
+  if(!await askYN(`${jp(n)} パックを まとめて開けますか？`,
+    "1枚ずつの演出はありません。結果だけ まとめて出します。","開ける")) return;
+  const all=[];
+  for(let i=0;i<n;i++){ const r=spOpenPack(); if(r) all.push(...r); }
+  all.sort((a,b)=>a.star-b.star||a.p-b.p);
+  SP_RESULT=all.slice(-60);           /* 出すのは 良いほうから60枚まで */
+  spRender();
+  const best=all.reduce((a,b)=>(!a||b.star>a.star)?b:a,null);
+  toast(best?`${jp(all.length)}枚　いちばん良いのは ☆${best.star} の ${jp(best.p)}`:"開けました");
+}
+/** 全消去 */
+async function spWipe(withCards){
+  const t=spTotals();
+  if(!await askYN(withCards?"カードもふくめて 全部消しますか？":"勉強の記録を 全部消しますか？",
+    `いまの記録　<b>${jp(SP.log.length)}</b> 回・合計 <b>${esc(spDur(t.all))}</b><br>`
+    +(withCards?`カード <b>${jp(SP.drew)}</b> 枚・未開封 <b>${jp(SP.packs)}</b> パックも 消えます<br>`
+      :`<span class="tiny">カードとパックは 残ります</span><br>`)
+    +`<br><b style="color:var(--bad)">元には戻せません。</b>`,"消す")) return;
+  if(!await askYN("本当に消しますか？","もう一度だけ確かめます。<b>元には戻せません。</b>","はい、消します")) return;
+  SP.log=[]; SP.run=null; SP.wipedAt=Date.now();
+  if(withCards){ SP.cards={}; SP.packs=0; SP.opened=0; SP.drew=0; }
+  spSave(); SP_RESULT=null; spRender();
+  toast(withCards?"全部消しました":"勉強の記録を消しました");
+}
+/** 時計を動かします（画面に出ている間だけ）*/
+function spTick(){
+  if(spTimer){ cancelAnimationFrame(spTimer); spTimer=null; }
+  const sec=$("#sp");
+  if(!sec||sec.hidden||SP_VIEW!=="home"||!SP.run) return;
+  const step=()=>{
+    const cl=$("#spClock");
+    if(!cl||!SP.run||$("#sp").hidden){ spTimer=null; return; }
+    const e=spElapsed(SP.run);
+    const txt=spFmt(e.study);
+    if(txt!==spLastTxt){ cl.textContent=txt; spLastTxt=txt; }
+    cl.classList.toggle("brk",e.onBreak);
+    const bar=$("#spNextBar");
+    if(bar) bar.style.width=(100*(1-spToNext(e.study)/SP_PACK_MS)).toFixed(1)+"%";
+    const stt=$("#spState");
+    if(stt&&!e.onBreak){
+      const next=spToNext(e.study);
+      stt.innerHTML=`勉強中　この回で <b>${jp(spPacksOf(e.study))}</b> パック　`
+        +`次まで あと ${z2(Math.floor(next/60000))}:${z2(Math.floor(next/1000)%60)}`;
+    }
+    spTimer=requestAnimationFrame(step);
+  };
+  spTimer=requestAnimationFrame(step);
+}
+/** 画面を出します */
+function spShow(){
+  if(!spVisible()) return;
+  ["profile","pgbc","stats","arena","sp","plan","analysis","hist","mood","ls","card",
+   "input","sns","settings","rprank","rankedit","help","cheer"].concat(EXT.hide||[])
+    .forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!=="sp"); });
+  document.body.classList.add("spon");
+  SP_RESULT=null;
+  spRender();
+  try{ scrollTo({top:0,behavior:"smooth"}); }catch(e){}
+}
+/** 画面を閉じて、ホームに戻ります */
+function spHide(){
+  document.body.classList.remove("spon");
+  if(spTimer){ cancelAnimationFrame(spTimer); spTimer=null; }
+  const b=document.querySelector('#tabs button[data-tab="profile"]');
+  if(b) b.click();
+  else { const el=$("#sp"); if(el) el.hidden=true; const h=$("#profile"); if(h) h.hidden=false; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -18444,12 +19596,31 @@ if($("#lsBtnSave")) $("#lsBtnSave").onclick=lsSaveOpen;
 if($("#lsBtnCfg"))  $("#lsBtnCfg").onclick=lsCfgOpen;
 if($("#lsBtnView")) $("#lsBtnView").onclick=lsViewOpen;
 if($("#lsBtnYt")) $("#lsBtnYt").onclick=ytShow;
-if($("#lsBtnMj")) $("#lsBtnMj").onclick=()=>{
-  const c=$("#mjCard"); if(c) c.hidden=false;
-  /* ★ 押したら すぐ始めます */
-  if(!MJ.on) mjStart(); else mjDraw();
-  try{ if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
-};
+/* ══ LSやりこみの「その他」（管理者だけ）══════════════════════
+   ★ 1人麻雀は ここからしか始まりません。
+      画面を読み込みなおしても 勝手には始まりません。 */
+function lsEtcShow(){
+  if(!mjVisible()) return;
+  const M=modal(`<h2>その他<span class="tiny" style="margin-left:8px;color:var(--warn)">管理者だけ</span></h2>
+    <p class="tiny" style="color:var(--dim2);margin-top:-6px">
+      まだ みんなには公開していない道具です。</p>
+    <div class="pkwrap" style="display:grid;gap:9px;margin-top:10px">
+      <button class="btn" id="etcMj" style="justify-content:flex-start;text-align:left;padding:12px 14px">
+        <b style="font-size:.95rem">🀄 1人麻雀</b>
+        <span class="tiny" style="display:block;color:var(--dim2);margin-top:3px">
+          親ひとりで18巡。目標は天和。${esc(MJ_PRO_VER)} が自動で打ちます</span></button>
+    </div>
+    <div class="tools"><button class="btn" id="etcX">閉じる</button></div>`,{w:520});
+  M.q("#etcX").onclick=M.close;
+  M.q("#etcMj").onclick=()=>{
+    M.close();
+    const c=$("#mjCard"); if(c) c.hidden=false;
+    /* ★ ここで押した時だけ 始めます */
+    if(!MJ.on) mjStart(); else mjDraw();
+    try{ if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
+  };
+}
+if($("#lsBtnEtc")) $("#lsBtnEtc").onclick=lsEtcShow;
 
 $("#lsStartBtn").onclick=()=>{
   lsRun={start:Date.now(),count:0,p0:performance.now(),pp:null}; lsCool=0;
@@ -28500,17 +29671,8 @@ function normalize(j){
   try{ await extLoad(); }catch(e){}
   /* 道具が読み込めたので、預かっていたそのぶんのデータを入れます */
   try{ if(lsApplyExtra()) lsSoon(); }catch(e){}
-  /* ヘッダーの「素因数分解アリーナ」ボタン */
-  if($("#arBtn")) $("#arBtn").onclick=()=>{
-    const b2=document.querySelector('#tabs button[data-tab="arena"]');
-    if(b2){ b2.click(); return; }
-    /* タブが無い時は、そのまま画面だけ出します */
-    ["profile","pgbc","stats","arena","plan","analysis","hist","mood","ls","card",
-     "input","sns","settings","rprank","rankedit","help","cheer"].forEach(id=>{
-      const el=$("#"+id); if(el) el.hidden=(id!=="arena"); });
-    arGate(()=>{ arCfgLoad().then(arHome); arHome(); });
-    scrollTo({top:0,behavior:"smooth"});
-  };
+  /* ヘッダーの「TOY BOX」ボタン */
+  if($("#toyBtn")) $("#toyBtn").onclick=toyShow;
   if($("#syncBtn")) $("#syncBtn").onclick=async()=>{
     if(!stCan()) return toast("同期にはログインが必要です（設定タブ）");
     $("#syncBtn").disabled=true; await stSync(true); $("#syncBtn").disabled=false; };
