@@ -887,6 +887,11 @@ body.spon #lsFlash,body.spon .banner{color:#16202e}
   color:#fff;border-color:transparent}
 .spshop{display:grid;gap:9px}
 /* ── タグ ── */
+.sptagseg{align-items:center}
+.sptagseg button{font-weight:600}
+.sptagseg button.on{color:#fff}
+.sptagrowc{cursor:pointer;border-radius:9px;padding:3px 5px;margin:0 -5px}
+.sptagrowc:hover{background:#eef4ff}
 .sptagrow{display:flex;gap:7px;flex-wrap:wrap;align-items:center;
   justify-content:center;margin-top:12px}
 .sptag{--tc:#8b96a6;font-size:.76rem;padding:5px 13px;border-radius:20px;cursor:pointer;
@@ -3699,7 +3704,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v145";
+const APP_VERSION = "v146";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4388,6 +4393,19 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v146":[
+    "Study with Prime（スタソス）を みんなが使えるようにしました",
+    "　TOY BOX から開けます。勉強した時間で 素数カードパックがもらえます",
+    "統計を タグごとに 見られるようにしました",
+    "　上の「タグ」から えらぶと、そのタグだけの統計に 切りかわります",
+    "　今日・今週・今月・今年・累計、折れ線、カレンダー、時間帯、曜日、偏差値、",
+    "　連続日数、自己ベスト、今月の見込み ─ すべて そのタグのぶんになります",
+    "　レベルとバッジは ぜんぶ合わせたもので出します",
+    "　タグごとの内わけの行を おすと、そのタグの統計に とびます",
+    "タグごとの集計を 1回ごとの記録とは別に ためるようにしました",
+    "　勉強時間・回数・日数・パック数・自己ベスト・月ごとの合計を 覚えます",
+    "　預けるデータが大きくなって 古い記録を切りつめても、ここは 減りません",
+    "　記録の画面で 中身を見られます（作り直すこともできます）"],
   "v145":[
     "レベルが上がったときの 確率の書きかたを そろえました",
     "　いまの割合と 増える分を、どちらも「%」で ならべます（そのまま足し算できます）",
@@ -5813,6 +5831,12 @@ function spSumMs(v){
   const log=Array.isArray(o.log)?o.log:[];
   let t=Math.max(0,+o.baseMs||0);         /* 切りつめた古い記録のぶん */
   log.forEach(r=>{ t+=Math.max(0,+r.ms||0); });
+  /* ★ タグごとの集計のほうが多ければ そちらを使います
+        （記録を切りつめても 累計が減らないようにするためです）*/
+  let ag=0;
+  Object.keys((o.agg&&typeof o.agg==="object")?o.agg:{}).forEach(k=>{
+    ag+=Math.max(0,+((o.agg[k]||{}).ms)||0); });
+  t=Math.max(t,ag);
   if(o.run&&+o.run.s>0){
     /* 計測中のぶんも 足します（時刻から計算できます）*/
     let brk=0;
@@ -18350,9 +18374,12 @@ let SP=Object.assign({
       （同期は「累計の勉強時間」で新しさを決めるので、
         ここが無いと 切りつめた端末が 古いあつかいになってしまいます）*/
 const SP_DEF={run:null, log:[], packs:{}, opened:0, cards:{}, drew:0,
-  pt:0, ex:0, goal:60, tags:[], tag:"", unit:"auto", wipedAt:0, baseMs:0};
+  pt:0, ex:0, goal:60, tags:[], tag:"", unit:"auto", wipedAt:0, baseMs:0,
+  agg:{}, aggV:0};
 /* 預けられる大きさには かぎりがあるので、記録はここまでにします */
 const SP_LOGMAX=20000;
+/* タグごとの集計の 作りかたの版。ここが変わると 作り直します */
+const SP_AGG_V=1;
 function spFix(){
   Object.keys(SP_DEF).forEach(k=>{
     if(SP[k]===undefined||SP[k]===null){
@@ -18367,6 +18394,7 @@ function spFix(){
   if(["auto","h","m","s"].indexOf(SP.unit)<0) SP.unit="auto";
   if(!(+SP.goal>0)) SP.goal=60;
   ["opened","drew","pt","ex","wipedAt","baseMs"].forEach(k=>{ if(!(+SP[k]>=0)) SP[k]=0; });
+  if(!SP.agg||typeof SP.agg!=="object") SP.agg={};
   /* 多すぎる記録は 古いほうから切りつめます（累計は baseMs に移すので 減りません）*/
   if(SP.log.length>SP_LOGMAX){
     const cut=SP.log.slice(SP_LOGMAX);
@@ -18388,8 +18416,8 @@ if(SP.run&&!Array.isArray(SP.run.br)) SP.run.br=[];
 if(SP.run&&!Array.isArray(SP.run.pk)) SP.run.pk=[];
 spFix();
 const spSave=()=>{ try{ localStorage.setItem(K_SP,JSON.stringify(SP)); }catch(e){} };
-/** ★ いまは管理者だけが使えます（仮の実装のため）*/
-const spVisible=()=>isAdmin();
+/** ★ みんなが使えます（v146 で 一般公開しました）*/
+const spVisible=()=>true;
 
 /* ── 素数を全部つくります（2〜999,999。78,498個）────────────────
    ふるいを1回だけ回して、あとは使いまわします。 */
@@ -18586,6 +18614,8 @@ function spFinish(){
              t:SP.tag||"", end:Date.now()};
   SP.run=null;
   SP.log.unshift(rec);
+  spAggEnsure();                  /* まだ作っていなければ 先に作ります */
+  spAggAdd(rec);                  /* ★ タグごとの集計に足します（ここが唯一の足し場所です）*/
   spSave();
   return rec;
 }
@@ -18626,6 +18656,7 @@ const SP_SLOTS=SP_PACK_MS/SP_SLOT_MS;     /* 3分 ÷ 30秒 ＝ 6回 */
 function spTotalMs(now){
   let t=Math.max(0,+SP.baseMs||0);
   SP.log.forEach(r=>{ t+=(+r.ms||0); });
+  t=Math.max(t,spAggOf().ms);
   if(SP.run) t+=spElapsed(SP.run,now).study;
   return t;
 }
@@ -18687,6 +18718,78 @@ function spLine(hue,sd,idx,slot){
   return pool[x%n];
 }
 
+
+/* ══ タグごとの集計 ═══════════════════════════════════════════
+   ★ 1回ごとのくわしい記録は、多くなりすぎると 古いほうから切りつめます。
+      預けられる大きさ（1,500KB）に かぎりがあるためです。
+      でも <b>タグごとの勉強時間や回数は 絶対に消したくない</b>ので、
+      ここに別で ためておきます。
+      ここは「1回ごとの記録」ではなく「足し算した数」だけなので、
+      何年つかっても ほとんど大きくなりません。
+      月ごとの合計も残すので、切りつめたあとでも 長い目でのグラフが作れます。
+   ══════════════════════════════════════════════════════════════ */
+const spMonKey=t=>{ const d=new Date(+t||0);
+  return d.getFullYear()+"-"+z2(d.getMonth()+1); };
+/** からっぽの集計 */
+const spAggNew=()=>({ms:0,n:0,packs:0,brk:0,bn:0,first:0,last:0,
+  days:0,best:0,curDay:"",curDayMs:0,ym:{}});
+/** 1回ぶんを 足します（ここは 一度きり。spFinish からだけ呼びます）*/
+function spAggAdd(rec){
+  if(!rec) return;
+  const k=rec.t||"";
+  const a=SP.agg[k]||(SP.agg[k]=spAggNew());
+  const ms=Math.max(0,+rec.ms||0), st=+rec.s||0;
+  a.ms+=ms; a.n++; a.packs+=(+rec.p||0);
+  a.brk+=Math.max(0,+rec.bms||0); a.bn+=(+rec.bn||0);
+  if(!a.first||st<a.first) a.first=st;
+  if(st>a.last) a.last=st;
+  const dk=spDayKey(st);
+  if(dk!==a.curDay){ a.curDay=dk; a.curDayMs=0; a.days++; }
+  a.curDayMs+=ms;
+  if(a.curDayMs>a.best) a.best=a.curDayMs;
+  const mk=spMonKey(st);
+  a.ym[mk]=(+a.ym[mk]||0)+ms;
+}
+/** まだ作っていなければ、ここで作ります（1回だけ動きます）*/
+function spAggEnsure(){
+  if(SP.aggV!==SP_AGG_V){ spAggRebuild(); spSave(); }
+  return SP.agg;
+}
+/** いまの記録から 作り直します */
+function spAggRebuild(){
+  SP.agg={};
+  const list=SP.log.slice().sort((x,y)=>(+x.s||0)-(+y.s||0));  /* 古い順に足します */
+  list.forEach(r=>spAggAdd(r));
+  SP.aggV=SP_AGG_V;
+  return SP.agg;
+}
+/** タグの集計（tag を省くと ぜんぶを足したもの）*/
+function spAggOf(tag){
+  spAggEnsure();
+  if(tag!==undefined&&tag!==null){
+    return Object.assign(spAggNew(),SP.agg[tag]||{});
+  }
+  const o=spAggNew();
+  Object.keys(SP.agg||{}).forEach(k=>{
+    const a=SP.agg[k]||{};
+    o.ms+=+a.ms||0; o.n+=+a.n||0; o.packs+=+a.packs||0;
+    o.brk+=+a.brk||0; o.bn+=+a.bn||0;
+    if(!o.first||(+a.first&&+a.first<o.first)) o.first=+a.first||0;
+    if((+a.last||0)>o.last) o.last=+a.last||0;
+    o.days+=+a.days||0;                       /* 目やすです（日がかさなると 多めに出ます）*/
+    if((+a.best||0)>o.best) o.best=+a.best||0;
+    Object.keys(a.ym||{}).forEach(m=>{ o.ym[m]=(+o.ym[m]||0)+(+a.ym[m]||0); });
+  });
+  return o;
+}
+/** タグでしぼった記録 */
+function spLogOf(tag){
+  if(tag===undefined||tag===null||tag==="*") return SP.log;
+  return SP.log.filter(r=>(r.t||"")===tag);
+}
+/** いま計測中のぶんが そのタグに入るか */
+const spRunIn=tag=>!!SP.run&&(tag===undefined||tag===null||tag==="*"||(SP.tag||"")===tag);
+
 /* ══ タグ ══════════════════════════════════════════════════
    「数学」「英語」のように、自分で名前と色を決められます。
    勉強を始めるときに選んでおくと、その回の記録に 付きます。
@@ -18719,10 +18822,16 @@ function spTagDel(id){
   spSave(); return true;
 }
 /** タグごとの勉強時間 */
+/* ★ タグごとの合計は「集計」から出します。
+      1回ごとの記録を切りつめても、ここは 減りません。 */
 function spByTag(){
+  spAggEnsure();
   const m=new Map();
-  SP.log.forEach(r=>{ const k=r.t||"";
-    m.set(k,(m.get(k)||0)+(+r.ms||0)); });
+  Object.keys(SP.agg||{}).forEach(k=>{ m.set(k,Math.max(0,+((SP.agg[k]||{}).ms)||0)); });
+  /* 集計より 記録のほうが多ければ そちらを使います（作り直す前でも ずれません）*/
+  const lg=new Map();
+  SP.log.forEach(r=>{ const k=r.t||""; lg.set(k,(lg.get(k)||0)+(+r.ms||0)); });
+  lg.forEach((v,k)=>{ if(v>(m.get(k)||0)) m.set(k,v); });
   if(SP.run){ const k=SP.tag||"";
     m.set(k,(m.get(k)||0)+spElapsed(SP.run).study); }
   const all=[...m.entries()].map(([id,ms])=>({id,ms,
@@ -19117,25 +19226,38 @@ const spDayStart=t=>{ const d=new Date(+t||0); d.setHours(0,0,0,0); return d.get
 const spMonthStart=t=>{ const d=new Date(+t||0); return new Date(d.getFullYear(),d.getMonth(),1).getTime(); };
 const spYearStart=t=>{ const d=new Date(+t||0); return new Date(d.getFullYear(),0,1).getTime(); };
 /** 今日・今週・今月・今年・累計 の勉強時間（いま計測中のぶんも足します）*/
-function spTotals(now){
+/* ★ 今月・今年・累計・回数は「タグごとの集計」から出します。
+      こうすると 古い記録を切りつめても、数が減りません。
+      今日・今週は 1回ごとの記録から出します（新しいぶんは かならず残っています）。 */
+function spTotals(now,tag){
+  spAggEnsure();
   now=now||Date.now();
-  const live=SP.run?spElapsed(SP.run,now).study:0;
-  const liveDay=SP.run?+SP.run.s:now;
-  const t={day:spDayStart(now),week:spWeekStart(now),month:spMonthStart(now),year:spYearStart(now)};
-  const o={today:0,week:0,month:0,year:0,n:0,packs:0,brk:0,
-           all:Math.max(0,+SP.baseMs||0)};
-  SP.log.forEach(r=>{
+  const inRun=spRunIn(tag);
+  const live=inRun?spElapsed(SP.run,now).study:0;
+  const liveDay=inRun?+SP.run.s:now;
+  const t={day:spDayStart(now),week:spWeekStart(now)};
+  const o={today:0,week:0,month:0,year:0,n:0,packs:0,brk:0,all:0};
+  spLogOf(tag).forEach(r=>{
     const s2=+r.s||0, ms=+r.ms||0;
-    o.all+=ms; o.n++; o.packs+=(+r.p||0); o.brk+=(+r.bms||0);
-    if(s2>=t.year) o.year+=ms;
-    if(s2>=t.month) o.month+=ms;
     if(s2>=t.week) o.week+=ms;
     if(s2>=t.day) o.today+=ms;
   });
+  const a=(tag===undefined||tag===null||tag==="*")?spAggOf():spAggOf(tag);
+  o.all=a.ms; o.n=a.n; o.packs=a.packs; o.brk=a.brk;
+  const mk=spMonKey(now), yr=String(new Date(now).getFullYear());
+  o.month=+a.ym[mk]||0;
+  Object.keys(a.ym).forEach(m=>{ if(m.slice(0,4)===yr) o.year+=(+a.ym[m]||0); });
+  /* 1回ごとの記録のほうが多ければ そちらを使います（作り直す前でも ずれません）*/
+  let lm=0,ly=0,la=Math.max(0,+SP.baseMs||0);
+  spLogOf(tag).forEach(r=>{ const s2=+r.s||0, ms=+r.ms||0;
+    la+=ms;
+    if(spMonKey(s2)===mk) lm+=ms;
+    if(String(new Date(s2).getFullYear())===yr) ly+=ms; });
+  o.month=Math.max(o.month,lm); o.year=Math.max(o.year,ly); o.all=Math.max(o.all,la);
   if(live){
     o.all+=live;
-    if(liveDay>=t.year) o.year+=live;
-    if(liveDay>=t.month) o.month+=live;
+    if(spMonKey(liveDay)===mk) o.month+=live;
+    if(String(new Date(liveDay).getFullYear())===yr) o.year+=live;
     if(liveDay>=t.week) o.week+=live;
     if(liveDay>=t.day) o.today+=live;
   }
@@ -19143,17 +19265,17 @@ function spTotals(now){
   return o;
 }
 /** 日ごとの勉強時間。{key:"2026-09-18", ms} を 古い順で返します */
-function spByDay(){
+function spByDay(tag){
   const m=new Map();
-  SP.log.forEach(r=>{ const k=spDayKey(r.s); m.set(k,(m.get(k)||0)+(+r.ms||0)); });
-  if(SP.run){ const k=spDayKey(SP.run.s);
+  spLogOf(tag).forEach(r=>{ const k=spDayKey(r.s); m.set(k,(m.get(k)||0)+(+r.ms||0)); });
+  if(spRunIn(tag)){ const k=spDayKey(SP.run.s);
     m.set(k,(m.get(k)||0)+spElapsed(SP.run).study); }
   return [...m.entries()].map(([key,ms])=>({key,ms})).sort((a,b)=>a.key<b.key?-1:1);
 }
 /** 直近 n 日ぶん（記録がない日は 0 で埋めます）*/
-function spLastDays(n,now){
+function spLastDays(n,now,tag){
   now=now||Date.now();
-  const by=new Map(spByDay().map(x=>[x.key,x.ms]));
+  const by=new Map(spByDay(tag).map(x=>[x.key,x.ms]));
   const out=[];
   const d0=spDayStart(now);
   for(let i=n-1;i>=0;i--){
@@ -19164,30 +19286,36 @@ function spLastDays(n,now){
   return out;
 }
 /** 直近 n 週ぶん */
-function spLastWeeks(n,now){
+function spLastWeeks(n,now,tag){
   now=now||Date.now();
   const out=[]; const w0=spWeekStart(now);
   for(let i=n-1;i>=0;i--){
     const st=w0-i*7*86400000, en=st+7*86400000;
     let ms=0;
-    SP.log.forEach(r=>{ if(r.s>=st&&r.s<en) ms+=(+r.ms||0); });
-    if(SP.run&&SP.run.s>=st&&SP.run.s<en) ms+=spElapsed(SP.run).study;
+    spLogOf(tag).forEach(r=>{ if(r.s>=st&&r.s<en) ms+=(+r.ms||0); });
+    if(spRunIn(tag)&&SP.run.s>=st&&SP.run.s<en) ms+=spElapsed(SP.run).study;
     const d=new Date(st);
     out.push({key:spDayKey(st), label:(d.getMonth()+1)+"/"+d.getDate()+"〜", ms});
   }
   return out;
 }
 /** 直近 n か月ぶん */
-function spLastMonths(n,now){
+/* ★ 月ごとは「タグごとの集計」から出します。
+      切りつめても 何年ぶんでも さかのぼれます。 */
+function spLastMonths(n,now,tag){
   now=now||Date.now();
+  const a=(tag===undefined||tag===null||tag==="*")?spAggOf():spAggOf(tag);
   const out=[]; const d0=new Date(now);
   for(let i=n-1;i>=0;i--){
     const d=new Date(d0.getFullYear(),d0.getMonth()-i,1);
     const st=d.getTime(), en=new Date(d.getFullYear(),d.getMonth()+1,1).getTime();
-    let ms=0;
-    SP.log.forEach(r=>{ if(r.s>=st&&r.s<en) ms+=(+r.ms||0); });
-    if(SP.run&&SP.run.s>=st&&SP.run.s<en) ms+=spElapsed(SP.run).study;
-    out.push({key:d.getFullYear()+"-"+z2(d.getMonth()+1), label:(d.getMonth()+1)+"月", ms});
+    const key=d.getFullYear()+"-"+z2(d.getMonth()+1);
+    let ms=+a.ym[key]||0;
+    let lg=0;
+    spLogOf(tag).forEach(r=>{ if(r.s>=st&&r.s<en) lg+=(+r.ms||0); });
+    ms=Math.max(ms,lg);
+    if(spRunIn(tag)&&SP.run.s>=st&&SP.run.s<en) ms+=spElapsed(SP.run).study;
+    out.push({key, label:(d.getMonth()+1)+"月", ms});
   }
   return out;
 }
@@ -19197,9 +19325,9 @@ function spLastMonths(n,now){
       7日そろうと「参考」として、30日そろうと 本番の数として出します。
    ══════════════════════════════════════════════════════════ */
 const SP_DEV_HINT=7, SP_DEV_OK=30;
-function spDeviation(now){
+function spDeviation(now,tag){
   now=now||Date.now();
-  const days=spByDay();
+  const days=spByDay(tag);
   const n=days.length;
   const out={n, ready:n>=SP_DEV_HINT, solid:n>=SP_DEV_OK,
              need:Math.max(0,SP_DEV_OK-n), mean:0, sd:0, today:null, best:null, list:[]};
@@ -19218,9 +19346,9 @@ function spDeviation(now){
   return out;
 }
 /** 連続して勉強した日数 */
-function spStreak(now){
+function spStreak(now,tag){
   now=now||Date.now();
-  const set=new Set(spByDay().filter(d=>d.ms>0).map(d=>d.key));
+  const set=new Set(spByDay(tag).filter(d=>d.ms>0).map(d=>d.key));
   let cur=0;
   const d=new Date(spDayStart(now));
   /* 今日まだなら、きのうから数えます */
@@ -19290,7 +19418,7 @@ function toyShow(){
         :""}
       ${sp?item("toySp","📚","Study with Prime",
           "勉強した時間で 素数カードパックがもらえます（略して スタソス）",
-          "管理者だけ・仮の実装"):""}
+          "NEW"):""}
       ${(!ar&&!sp)?`<p class="tiny">いまは 出せるものがありません。</p>`:""}
     </div>
     <div class="tools"><button class="btn" id="toyX">閉じる</button></div>`,{w:560});
@@ -19354,7 +19482,6 @@ function spHeadHTML(){
   return `<div class="sphead">
     <h2>Study with Prime <span class="sptiny">スタソス</span></h2>
     <span class="spchip">Lv.${jp(lv.lv)}</span>
-    <span class="spchip">管理者だけ（仮の実装）</span>
     <span style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap">
       ${tabs.map(([k,n])=>`<button class="spbtn${SP_VIEW===k?" pri":""}" data-spv="${k}">${n}${
         k==="pack"&&pk?`（${jp(pk)}）`:""}</button>`).join("")}
@@ -19834,7 +19961,7 @@ function spShopHTML(){
    ・節目のバッジ
    ══════════════════════════════════════════════════════════ */
 /** 時間帯ごとの勉強時間（0〜23時）*/
-function spByHour(){
+function spByHour(tag){
   const h=new Array(24).fill(0);
   const put=(s0,span,ms)=>{
     if(span<=0){ h[new Date(s0).getHours()]+=ms; return; }
@@ -19847,14 +19974,14 @@ function spByHour(){
       t=stop;
     }
   };
-  SP.log.forEach(r=>put(+r.s||0,(+r.ms||0)+(+r.bms||0),+r.ms||0));
-  if(SP.run){ const e=spElapsed(SP.run); put(+SP.run.s,e.total,e.study); }
+  spLogOf(tag).forEach(r=>put(+r.s||0,(+r.ms||0)+(+r.bms||0),+r.ms||0));
+  if(spRunIn(tag)){ const e=spElapsed(SP.run); put(+SP.run.s,e.total,e.study); }
   return h;
 }
 /** 曜日ごと（月〜日）*/
-function spByWeekday(){
+function spByWeekday(tag){
   const w=[0,0,0,0,0,0,0], d=[new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
-  spByDay().forEach(x=>{
+  spByDay(tag).forEach(x=>{
     const t=new Date(x.key+"T00:00:00");
     const i=(t.getDay()+6)%7;
     w[i]+=x.ms; d[i].add(x.key);
@@ -19862,9 +19989,9 @@ function spByWeekday(){
   return w.map((ms,i)=>({ms, days:d[i].size, avg:d[i].size?ms/d[i].size:0}));
 }
 /** カレンダー（直近 n 週）*/
-function spCalendar(weeks,now){
+function spCalendar(weeks,now,tag){
   now=now||Date.now();
-  const by=new Map(spByDay().map(x=>[x.key,x.ms]));
+  const by=new Map(spByDay(tag).map(x=>[x.key,x.ms]));
   const end=spWeekStart(now)+7*86400000;
   const start=end-weeks*7*86400000;
   const cells=[];
@@ -19875,9 +20002,9 @@ function spCalendar(weeks,now){
   return cells;
 }
 /** 今月の見込み */
-function spPace(now){
+function spPace(now,tag){
   now=now||Date.now();
-  const t=spTotals(now);
+  const t=spTotals(now,tag);
   const d=new Date(now);
   const dayN=d.getDate();
   const days=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
@@ -19904,34 +20031,65 @@ function spBadges(){
   return B;
 }
 /** 統計の画面 */
+/* ★ 統計でしぼっているタグ（"*" は ぜんぶ）*/
+let SP_TAGF="*";
+/** えらべるタグの一覧（消したタグの記録も えらべます）*/
+function spTagPick(){
+  spAggEnsure();
+  const used=new Set(SP.log.map(r=>r.t||""));
+  Object.keys(SP.agg||{}).forEach(k=>used.add(k));
+  if(SP.run) used.add(SP.tag||"");
+  return [{id:"*",n:"ぜんぶ",c:"#3d7dff"}]
+    .concat((SP.tags||[]).map(t=>({id:t.id,n:t.n,c:t.c})))
+    .concat(used.has("")?[{id:"",n:"タグなし",c:"#8b96a6"}]:[])
+    .concat([...used].filter(k=>k&&!spTagOf(k))
+      .map(k=>({id:k,n:"（消したタグ）",c:"#b6c3d3"})));
+}
 function spStatsHTML(){
-  const t=spTotals(), dv=spDeviation(), st=spStreak();
-  const pts=SP_RANGE==="day"?spLastDays(30)
-    :SP_RANGE==="week"?spLastWeeks(12):spLastMonths(12);
-  const days=spByDay();
+  const tagList=spTagPick();
+  if(!tagList.some(x=>x.id===SP_TAGF)) SP_TAGF="*";
+  const F=SP_TAGF;                   /* ここから下は すべて このタグでしぼります */
+  const fc=(tagList.find(x=>x.id===F)||{});
+  const fname=fc.n||"ぜんぶ";
+  const NOW=Date.now();
+  const t=spTotals(NOW,F), dv=spDeviation(NOW,F), st=spStreak(NOW,F);
+  const pts=SP_RANGE==="day"?spLastDays(30,NOW,F)
+    :SP_RANGE==="week"?spLastWeeks(12,NOW,F):spLastMonths(12,NOW,F);
+  const days=spByDay(F);
+  const agF=(F==="*")?spAggOf():spAggOf(F);
   const best=days.reduce((a,b)=>(!a||b.ms>a.ms)?b:a,null);
   const avg=days.length?days.reduce((a,b)=>a+b.ms,0)/days.length:0;
-  const sess=SP.log.length?SP.log.reduce((a,r)=>a+(+r.ms||0),0)/SP.log.length:0;
+  const dayN=Math.max(days.length, +agF.days||0);
+  const sess=agF.n?agF.ms/agF.n:0;
   const goalMs=Math.max(1,SP.goal)*60000;
   const gp=Math.min(100,t.today/goalMs*100);
   const devTxt=v=>v==null?"—":v.toFixed(1);
   /* 先週とくらべる */
-  const wk=spLastWeeks(2);
+  const wk=spLastWeeks(2,NOW,F);
   const wNow=wk[1]?wk[1].ms:0, wPrev=wk[0]?wk[0].ms:0;
   const wDiff=wNow-wPrev;
-  const pace=spPace();
+  const pace=spPace(NOW,F);
   const hours=t.all/3600000;
-  const todayMs=t.today, bestMs=best?best.ms:0;
-  const cal=spCalendar(15);
+  const todayMs=t.today, bestMs=Math.max(best?best.ms:0, +agF.best||0);
+  const cal=spCalendar(15,NOW,F);
   const calMax=Math.max(1,...cal.map(c=>c.ms));
-  const hrs=spByHour(), hMax=Math.max(1,...hrs);
+  const hrs=spByHour(F), hMax=Math.max(1,...hrs);
   const topH=hrs.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v)[0];
-  const wd=spByWeekday(), wdMax=Math.max(1,...wd.map(x=>x.avg));
+  const wd=spByWeekday(F), wdMax=Math.max(1,...wd.map(x=>x.avg));
   const WD=["月","火","水","木","金","土","日"];
   const badges=spBadges();
   const nextB=badges.find(b=>!b.ok);
-  const lv=spLvInfo(t.all);
-  return `${spUnitSegHTML()}
+  const lv=spLvInfo(spTotalMs());     /* レベルは ぜんぶ合わせた時間で決まります */
+  return `<div class="spseg sptagseg">
+    <span class="sptiny" style="align-self:center;margin-right:3px">タグ</span>
+    ${tagList.map(x=>`<button data-sptf="${esc(x.id)}" class="${F===x.id?"on":""}"
+      style="${F===x.id?"background:"+esc(x.c)+";border-color:"+esc(x.c):"color:"+esc(x.c)}"
+      >${esc(x.n)}</button>`).join("")}
+  </div>
+  ${F!=="*"?`<p class="sptiny" style="margin:-4px 0 9px">
+    いまは <b style="color:${esc(fc.c||"#16202e")}">${esc(fname)}</b> だけの統計です。
+    レベルとバッジは ぜんぶ合わせたもので出しています。</p>`:""}
+  ${spUnitSegHTML()}
   <div class="spgrid spg5" id="spTot">
     ${[["today","今日",t.today],["week","今週",t.week],["month","今月",t.month],
        ["year","今年",t.year],["all","累計",t.all]]
@@ -20019,14 +20177,15 @@ function spStatsHTML(){
   </div>
   <div class="spgrid spg4">
     <div class="spbox"><div class="t">勉強した日の 1日平均</div>
-      <div class="v">${esc(spVal(avg))}</div><div class="s">${jp(days.length)} 日ぶん</div></div>
+      <div class="v">${esc(spVal(dayN?Math.max(avg,agF.ms/dayN):avg))}</div>
+      <div class="s">${jp(dayN)} 日ぶん</div></div>
     <div class="spbox"><div class="t">いちばん勉強した日</div>
-      <div class="v">${best?esc(spVal(best.ms)):"—"}</div>
-      <div class="s">${best?esc(best.key):"—"}</div></div>
+      <div class="v">${bestMs?esc(spVal(bestMs)):"—"}</div>
+      <div class="s">${best&&best.ms>=bestMs?esc(best.key):(agF.n?"記録に残っているぶん":"—")}</div></div>
     <div class="spbox"><div class="t">1回あたりの勉強</div>
-      <div class="v">${esc(spVal(sess))}</div><div class="s">${jp(SP.log.length)} 回ぶん</div></div>
+      <div class="v">${esc(spVal(sess))}</div><div class="s">${jp(agF.n)} 回ぶん</div></div>
     <div class="spbox"><div class="t">休憩の合計</div>
-      <div class="v">${esc(spVal(t.brk))}</div>
+      <div class="v">${esc(spVal(agF.brk))}</div>
       <div class="s">勉強の ${t.all?((t.brk/t.all)*100).toFixed(1):"0.0"}%</div></div>
   </div>
   <div class="spcard">
@@ -20070,19 +20229,26 @@ function spStatsHTML(){
       このペース（1日 ${esc(spDur(avg))}）なら あと
       <b>${avg>0?jp(Math.ceil((10000*3600000-t.all)/avg)):"—"}</b> 日です。</p>
   </div>
-  ${(()=>{ const tg=spByTag().filter(x=>x.ms>0);
+  ${(()=>{ if(F!=="*") return "";
+    const tg=spByTag().filter(x=>x.ms>0);
     if(!tg.length) return "";
     const mx=Math.max(1,...tg.map(x=>x.ms));
     const sum=tg.reduce((a,x)=>a+x.ms,0);
     return `<div class="spcard">
       <b style="font-size:.86rem">タグごとの勉強時間</b>
-      <p class="sptiny" style="margin:6px 0 9px">どの教科に どれだけ かけているかが 分かります。</p>
-      <div class="spdex">${tg.map(x=>`<div class="spdexrow" style="grid-template-columns:96px 1fr 150px">
+      <p class="sptiny" style="margin:6px 0 9px">どの教科に どれだけ かけているかが 分かります。
+        上の「タグ」から えらぶと、そのタグだけの統計に 切りかわります。<br>
+        ここの数は <b>1回ごとの記録とは別に ためている集計</b>から出しているので、
+        古い記録を切りつめても 減りません。</p>
+      <div class="spdex">${tg.map(x=>{ const a=spAggOf(x.id);
+        return `<div class="spdexrow sptagrowc" style="grid-template-columns:96px 1fr 186px"
+          data-sptf="${esc(x.id)}" title="おすと このタグだけの統計になります">
         <span style="font-weight:700;color:${esc(x.c)};overflow:hidden;text-overflow:ellipsis;
           white-space:nowrap">${esc(x.n)}</span>
         <span class="spdexbar"><i style="width:${(x.ms/mx*100).toFixed(1)}%;background:${esc(x.c)}"></i></span>
-        <span class="n">${esc(spVal(x.ms))}　<span class="spdim">${(x.ms/sum*100).toFixed(1)}%</span></span>
-      </div>`).join("")}</div>
+        <span class="n">${esc(spVal(x.ms))}　<span class="spdim">${(x.ms/sum*100).toFixed(1)}%</span>
+          <br><span class="spdim" style="font-size:.66rem">${jp(a.n)}回・${jp(a.days)}日・${jp(a.packs)}パック</span></span>
+      </div>`;}).join("")}</div>
     </div>`; })()}
   <div class="spcard">
     <b style="font-size:.86rem">バッジ</b>
@@ -20095,6 +20261,7 @@ function spStatsHTML(){
 }
 /** 記録の一覧 */
 function spLogHTML(){
+  spAggEnsure();
   const rows=SP.log.slice(0,300);
   return `<div class="spcard">
     <b style="font-size:.86rem">勉強の記録</b>
@@ -20115,6 +20282,28 @@ function spLogHTML(){
           <span class="sptiny">${r.k?Object.keys(r.k).map(k=>spPd(k).n+jp(r.k[k])).join("・"):""}</span>`:"0"}</td>
       </tr>`;}).join(""):`<tr><td colspan="6" class="sptiny">まだありません</td></tr>`}
     </tbody></table></div>
+    <div class="spcard" style="background:#f7fbff;border-color:#c3d6f2;margin:12px 0 0">
+      <b style="font-size:.86rem">タグごとの集計</b>
+      <p class="sptiny" style="margin:6px 0 8px">
+        1回ごとの記録は 多くなりすぎると 古いほうから切りつめますが、
+        <b>タグごとの勉強時間・回数・日数・月ごとの合計は ここに別で残ります</b>。
+        預けるデータが大きくなっても、ここは消えません。</p>
+      <table><thead><tr><th>タグ</th><th class="n">時間</th><th class="n">回数</th>
+        <th class="n">日数</th><th class="n">パック</th><th class="n">月ぶん</th></tr></thead><tbody>
+        ${Object.keys(SP.agg||{}).length?Object.keys(SP.agg).map(k=>{
+          const a=SP.agg[k]||{}, nm=k?(spTagName(k)||"（消したタグ）"):"タグなし";
+          return `<tr><td><span style="color:${esc(k?spTagCol(k):"#8b96a6")};font-weight:700">${esc(nm)}</span></td>
+            <td class="n">${esc(spVal(a.ms))}</td><td class="n">${jp(+a.n||0)}</td>
+            <td class="n">${jp(+a.days||0)}</td><td class="n">${jp(+a.packs||0)}</td>
+            <td class="n">${jp(Object.keys(a.ym||{}).length)}</td></tr>`;
+        }).join(""):`<tr><td colspan="6" class="sptiny">まだありません</td></tr>`}
+      </tbody></table>
+      <div class="sptools">
+        <button class="spbtn" id="spAggFix">いまの記録から 作り直す</button>
+      </div>
+      <p class="sptiny" style="margin-top:4px">
+        ※ 作り直すと、切りつめた古いぶんは 入りません。ふだんは 押す必要はありません。</p>
+    </div>
     <div class="sptools">
       <button class="spbtn bad" id="spWipeLog">勉強の記録を 全部消す</button>
       <button class="spbtn bad" id="spWipeAll">カードとパックも ふくめて 全部消す</button>
@@ -20195,6 +20384,8 @@ function spWire(){
   $$("#sp [data-sptag]").forEach(b=>b.onclick=()=>{ SP.tag=b.dataset.sptag; spSave(); spRender(); });
   const tm=$("#spTagMg"); if(tm) tm.onclick=spTagShow;
   $$("#sp [data-spu]").forEach(b=>b.onclick=()=>{ SP.unit=b.dataset.spu; spSave(); spRender(); });
+  $$("#sp [data-sptf]").forEach(b=>b.onclick=()=>{ SP_TAGF=b.dataset.sptf; spRender();
+    try{ $("#sp").scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} });
   const g5=$("#spGo5"); if(g5) g5.onclick=()=>{ spStart(); spRender();
     toast("まず5分だけ。始めれば あとは続きます"); };
   const pk=$("#spPack"); if(pk) spWirePack(pk);
@@ -20208,6 +20399,12 @@ function spWire(){
   const e1=$("#spEx1"); if(e1) e1.onclick=()=>spExAsk(1);
   const e2=$("#spEx2"); if(e2) e2.onclick=()=>spExAsk(2);
   $$("#sp [data-spbuy]").forEach(b=>b.onclick=()=>spBuyAsk(b.dataset.spbuy));
+  const af=$("#spAggFix"); if(af) af.onclick=async()=>{
+    if(!await askYN("タグごとの集計を 作り直しますか？",
+      "いま残っている記録から 作り直します。<br>"
+      +"<span class='tiny'>切りつめた古いぶんは 入らないので、数が減ることがあります。</span>",
+      "作り直す")) return;
+    spAggRebuild(); spSave(); spRender(); toast("集計を作り直しました"); };
   const w1=$("#spWipeLog"); if(w1) w1.onclick=()=>spWipe(false);
   const w2=$("#spWipeAll"); if(w2) w2.onclick=()=>spWipe(true);
 }
@@ -20322,7 +20519,7 @@ async function spWipe(withCards){
       :`<span class="tiny">カードとパックは 残ります</span><br>`)
     +`<br><b style="color:var(--bad)">元には戻せません。</b>`,"消す")) return;
   if(!await askYN("本当に消しますか？","もう一度だけ確かめます。<b>元には戻せません。</b>","はい、消します")) return;
-  SP.log=[]; SP.run=null; SP.baseMs=0; SP.wipedAt=Date.now();
+  SP.log=[]; SP.run=null; SP.baseMs=0; SP.agg={}; SP.aggV=SP_AGG_V; SP.wipedAt=Date.now();
   if(withCards){ SP.cards={}; SP.packs={}; SP_KIND.forEach(k=>SP.packs[k]=0);
     SP.opened=0; SP.drew=0; SP.pt=0; SP.ex=0; }
   /* タグそのものは 消しません（また使えます）*/
