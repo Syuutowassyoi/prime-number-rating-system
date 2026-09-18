@@ -749,10 +749,40 @@ body.spon #lsFlash,body.spon .banner{color:#16202e}
 .spfac{position:relative;width:100%;max-width:560px;margin:0 auto}
 .spfac svg{width:100%;height:auto;display:block}
 .spfac .zzz{opacity:.55}
-.spfac.on .gear{animation:spspin 3s linear infinite;transform-origin:center}
+/* ★ ここが大事です。
+      SVG の中の部品に transform-origin:center と書くと、
+      ブラウザは「絵ぜんぶの真ん中」を軸にしてしまい、
+      歯車が 工場ごと ぐるぐる回ってしまいます。
+      transform-box:fill-box を付けると「その部品じたいの真ん中」が軸になります。 */
+.spfac .gear,.spfac .arm,.spfac .body,.spfac .press,.spfac .box{transform-box:fill-box}
+.spfac .gear{transform-origin:center}
+.spfac.on .gear{animation:spspin 3s linear infinite}
 .spfac.on .gear.b{animation-duration:2s;animation-direction:reverse}
 .spfac.on .gear.c{animation-duration:4.5s}
 @keyframes spspin{to{transform:rotate(360deg)}}
+/* プレス機が 上から押します */
+.spfac .press{transform-origin:center top}
+.spfac.on .press{animation:sppress 1.8s ease-in-out infinite}
+@keyframes sppress{0%,58%,100%{transform:translateY(0)}72%{transform:translateY(13px)}}
+/* 材料の箱が ベルトの上を流れます */
+.spfac .box{opacity:0}
+.spfac.on .box{animation:spflow 3.6s linear infinite}
+.spfac.on .box.b2{animation-delay:1.2s}
+.spfac.on .box.b3{animation-delay:2.4s}
+@keyframes spflow{0%{opacity:0;transform:translateX(0)}
+  6%{opacity:1}52%{opacity:1;transform:translateX(96px)}
+  60%{opacity:0;transform:translateX(96px)}100%{opacity:0;transform:translateX(96px)}}
+/* できあがったパックが 右に流れて 箱に入ります */
+.spfac .out{opacity:0}
+.spfac.on .out{animation:spout 3.6s linear infinite 1.9s}
+@keyframes spout{0%{opacity:0;transform:translateX(0)}
+  8%{opacity:1}70%{opacity:1;transform:translateX(104px)}
+  82%{opacity:0;transform:translateX(104px)}100%{opacity:0}}
+/* 火花 */
+.spfac .spark{opacity:0}
+.spfac.on .spark{animation:spspark 1.8s ease-out infinite .72s}
+@keyframes spspark{0%{opacity:0;transform:scale(.4)}12%{opacity:1;transform:scale(1.25)}
+  40%{opacity:0;transform:scale(1.5)}100%{opacity:0}}
 .spfac.on .belt{animation:spbelt .9s linear infinite}
 @keyframes spbelt{to{stroke-dashoffset:-24}}
 .spfac.on .smoke{animation:spsmoke 2.6s ease-out infinite}
@@ -760,9 +790,11 @@ body.spon #lsFlash,body.spon .banner{color:#16202e}
 .spfac.on .smoke.s3{animation-delay:1.7s}
 @keyframes spsmoke{0%{opacity:0;transform:translate(0,0) scale(.5)}
   25%{opacity:.75}100%{opacity:0;transform:translate(-14px,-46px) scale(1.7)}}
-.spfac.on .arm{animation:sparm 1.6s ease-in-out infinite;transform-origin:118px 150px}
-@keyframes sparm{0%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}}
-.spfac.on .body{animation:spbob 2.4s ease-in-out infinite;transform-origin:center}
+.spfac .arm{transform-origin:50% 0}
+.spfac.on .arm{animation:sparm 1.6s ease-in-out infinite}
+@keyframes sparm{0%,100%{transform:rotate(0)}50%{transform:rotate(-26deg)}}
+.spfac .body{transform-origin:center bottom}
+.spfac.on .body{animation:spbob 2.4s ease-in-out infinite}
 @keyframes spbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 .spfac .lamp{fill:#5d6b7e}
 .spfac.on .lamp{fill:#57e0a0;animation:splamp 1.4s ease-in-out infinite}
@@ -854,6 +886,15 @@ body.spon #lsFlash,body.spon .banner{color:#16202e}
 .spkchip.k-rb{background:linear-gradient(115deg,#ff2d6f,#ffb02e,#8ff04a,#25e3b8,#2fa6ff,#9459ff);
   color:#fff;border-color:transparent}
 .spshop{display:grid;gap:9px}
+/* ── タグ ── */
+.sptagrow{display:flex;gap:7px;flex-wrap:wrap;align-items:center;
+  justify-content:center;margin-top:12px}
+.sptag{--tc:#8b96a6;font-size:.76rem;padding:5px 13px;border-radius:20px;cursor:pointer;
+  border:1.5px solid var(--tc);background:#fff;color:var(--tc);font-family:inherit;
+  max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sptag.on{background:var(--tc);color:#fff;font-weight:700}
+#sp input[type=text]{padding:8px 11px;border-radius:9px;border:1px solid #cdd8e6;
+  background:#fff;color:#16202e;font-family:inherit;font-size:.88rem}
 /* ── カレンダー（草）── */
 .spcal{display:flex;gap:6px;align-items:flex-start}
 .spcalwd{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;font-size:.56rem;
@@ -3658,7 +3699,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v142";
+const APP_VERSION = "v143";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4347,6 +4388,28 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v143":[
+    "工場の歯車が 絵ぜんぶの真ん中で回っていた不具合を直しました",
+    "　部品ごとに 自分の中心で回るようにしました（transform-box）",
+    "　プレス機・材料の箱・火花・出荷の箱も足して、作っている様子が分かるようにしました",
+    "3分以上勉強しても パックがもらえなかった不具合を直しました",
+    "　原因は 同期のときに パックの数を 0 に戻していたことです",
+    "　いまは 3分たった瞬間に その場で受けとり、受けとった印を付けます",
+    "　印が付いたものは 二度と数え直さないので、色が変わったり 数が合わなくなりません",
+    "工場の人のセリフを増やしました（ふつう105→175種類、色つきは各16→26種類）",
+    "計測中は レベルと 今日・今週・今月・今年・累計が 1秒ごとに 積みあがります",
+    "確率の表示を直しました",
+    "　前は「0.010% ＋0.0277」と出ていて 読みまちがえやすかったので、",
+    "　「0.0100% → 次のLv 0.0377%」と、どちらも %つき・同じけた数にそろえました",
+    "交換所のねだんを 10倍にしました（虹だけ5倍）",
+    "　通常300／銅900／銀4,000／金15,000／虹40,000 pt",
+    "スタソスの同期を「累計の勉強時間が長いほう」に変えました",
+    "　同期する前に かならず 両方の累計を数えて 比べます",
+    "　短いほうは まるごと消して、長いほうに 書きかえます（混ぜません）",
+    "タグを作れるようにしました。「数学」「英語」のように 名前と色を自由に決められます",
+    "　勉強ごとにタグが付き、統計でも タグごとに 見られます",
+    "統計の単位を えらべるようにしました（じどう／時間／分／秒）",
+    "　時間・分・秒 を選ぶと 小数第3位まで出ます（2なら 2.000）"],
   "v142":[
     "スタソスのパックを 5種類にしました",
     "　通常（白）／銅＝☆2以上かならず1枚／銀＝☆3以上／金＝☆4以上／虹＝☆5以上",
@@ -5728,61 +5791,72 @@ const spParse=v=>{
   if(typeof v==="string"){ try{ return JSON.parse(v); }catch(e){ return null; } }
   return (v&&typeof v==="object")?v:null;
 };
-/** 2つのスタソスを、記録を減らさないように混ぜます */
-function spMergeData(a,b){
-  const A=spParse(a)||{}, B=spParse(b)||{};
-  const wiped=Math.max(+A.wipedAt||0,+B.wipedAt||0);
-  /* 記録は 開始時刻で1件ずつ見分けて、足し合わせます */
-  const m=new Map();
-  [...(Array.isArray(A.log)?A.log:[]),...(Array.isArray(B.log)?B.log:[])].forEach(r=>{
-    const k=+r.s||0;
-    if(!k||k<wiped) return;                 /* 消したより前の記録は もう戻しません */
-    const cur=m.get(k);
-    if(!cur||(+r.ms||0)>(+cur.ms||0)) m.set(k,r);
-  });
-  const log=[...m.values()].sort((x,y)=>(+y.s||0)-(+x.s||0));
-  /* カードは 多いほうを残します */
-  const cards={};
-  [A.cards,B.cards].forEach(c=>{ if(c&&typeof c==="object")
-    Object.keys(c).forEach(k=>{ cards[k]=Math.max(+cards[k]||0,+c[k]||0); }); });
-  /* いま計測中のものは、新しく始めたほうを残します */
-  const run=(()=>{
-    const ra=A.run&&+A.run.s>=wiped?A.run:null, rb=B.run&&+B.run.s>=wiped?B.run:null;
-    if(!ra) return rb; if(!rb) return ra;
-    return (+ra.s>=+rb.s)?ra:rb;
-  })();
-  const mx=(k)=>Math.max(+A[k]||0,+B[k]||0);
-  return {run, log, wipedAt:wiped,
-    packs:mx("packs"), opened:mx("opened"), drew:mx("drew"),
-    cards, goal:(+A.goal||+B.goal||60)};
+/** かたまりの中のスタソスの「累計の勉強時間」を、必ず先に数えます */
+function spSumMs(v){
+  const o=spParse(v);
+  if(!o) return -1;                       /* そもそも無い */
+  const log=Array.isArray(o.log)?o.log:[];
+  let t=0;
+  log.forEach(r=>{ t+=Math.max(0,+r.ms||0); });
+  if(o.run&&+o.run.s>0){
+    /* 計測中のぶんも 足します（時刻から計算できます）*/
+    let brk=0;
+    (Array.isArray(o.run.br)?o.run.br:[]).forEach(b=>{
+      const st=+b.s||0, en=(b.e==null)?Date.now():(+b.e||st);
+      brk+=Math.max(0,en-st);
+    });
+    t+=Math.max(0,Date.now()-(+o.run.s)-brk);
+  }
+  return t;
 }
-/** かたまりの中のスタソスの進みぐあい */
+/** かたまりの中のスタソスの ようす */
 function spProgOf(o){
   const v=spParse((o||{})[K_SPSYNC]);
-  if(!v) return {has:false,n:0,ms:0,packs:0};
+  if(!v) return {has:false,n:0,ms:0,packs:0,cards:0,wiped:0};
   const log=Array.isArray(v.log)?v.log:[];
-  return {has:true, n:log.length, ms:log.reduce((a,r)=>a+(+r.ms||0),0),
-          packs:+v.packs||0, cards:Object.keys(v.cards||{}).length};
+  return {has:true, n:log.length, ms:spSumMs(v),
+          packs:["n","cu","ag","au","rb"].reduce((a,k)=>a+(+((v.packs||{})[k])||0),0),
+          cards:Object.keys(v.cards||{}).length, wiped:+v.wipedAt||0};
 }
-function spProgText(o){
-  const q=spProgOf(o);
-  return q.has?`${jp(q.n)}回・${spDur(q.ms)}・カード${jp(q.cards||0)}種類`:"なし";
+/* ══════════════════════════════════════════════════════════
+   ★ 同期するまえに かならず「累計の勉強時間」を数えて 比べます。
+      長いほうが 新しい記録です。
+      短いほうの中身は まるごと消して、長いほうに 書きかえます。
+      （混ぜません。混ぜると、パックの数やカードが
+        ちぐはぐになって こわれるためです。）
+   ★ ただし「全消去」を押した時だけは 別あつかいです。
+      消したほうが あとなら、そちらを 新しいものとして残します。
+      そうしないと 消した記録が よみがえってしまいます。
+   ══════════════════════════════════════════════════════════ */
+function spBehind(mine, theirs){
+  const a=spProgOf(mine), b=spProgOf(theirs);
+  if(!b.has) return false;                /* 相手に無ければ こちらを残します */
+  if(!a.has) return true;                 /* こちらに無ければ もらいます */
+  if(b.wiped!==a.wiped) return b.wiped>a.wiped;   /* あとで消したほうが 新しい */
+  return b.ms>a.ms;                       /* 累計の勉強時間が長いほうが 新しい */
 }
-/** 混ぜたものを、この端末に入れます */
-function spTakeMerged(theirs){
-  const mine=(()=>{ try{ return JSON.parse(localStorage.getItem(K_SPSYNC)||"null"); }catch(e){ return null; } })();
-  const out=spMergeData(mine,(theirs||{})[K_SPSYNC]);
-  try{ localStorage.setItem(K_SPSYNC,JSON.stringify(out)); }catch(e){}
+/** 預けてあるスタソスを、そのまま端末に入れます（端末のぶんは 消します）*/
+function spTakeTheirs(theirs){
+  const v=(theirs||{})[K_SPSYNC];
+  if(v===undefined) return false;
+  try{ localStorage.removeItem(K_SPSYNC); }catch(e){}   /* まず端末のぶんを消します */
+  try{ localStorage.setItem(K_SPSYNC,(typeof v==="string")?v:JSON.stringify(v)); }catch(e){}
   try{
     if(typeof SP!=="undefined"&&SP){
-      Object.keys(out).forEach(k=>{ SP[k]=out[k]; });
-      if(!Array.isArray(SP.log)) SP.log=[];
-      if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
+      const o=spParse(v)||{};
+      Object.keys(SP).forEach(k=>{ if(!(k in o)) delete SP[k]; });
+      Object.keys(o).forEach(k=>{ SP[k]=o[k]; });
+      /* ★ 足りない項目を うめます。うめないと 画面がこわれます */
+      spFix();
       const sec=document.getElementById("sp");
       if(sec&&!sec.hidden&&typeof spRender==="function") spRender();
     }
   }catch(e){}
   return true;
+}
+function spProgText(o){
+  const q=spProgOf(o);
+  return q.has?`${jp(q.n)}回・${spDur(q.ms)}・カード${jp(q.cards||0)}種類`:"なし";
 }
 /** 2つの中身を、へらさないように混ぜます。
  *  数は大きいほう、配列は足し合わせ、○×は「どちらかが○なら○」にします */
@@ -5859,8 +5933,11 @@ function lsMerge(mine, theirs){
     if(k===K_MJSYNC){
       out[k]=mjBehind({[K_MJSYNC]:a},{[K_MJSYNC]:b})?b:a; return;
     }
-    /* ★ スタソスは 記録を足し合わせます（どちらの勉強も消えません）*/
-    if(k===K_SPSYNC){ out[k]=spMergeData(a,b); return; }
+    /* ★ スタソスは「累計の勉強時間が長いほう」を まるごと残します
+          （先に数えてから 比べます。混ぜると こわれるためです）*/
+    if(k===K_SPSYNC){
+      out[k]=spBehind({[K_SPSYNC]:a},{[K_SPSYNC]:b})?b:a; return;
+    }
     if(LS_NEWEST.indexOf(k)>=0){
       const ta=+((a||{}).at)||0, tb=+((b||{}).at)||0;
       out[k]=(tb>ta)?b:a; return;
@@ -5938,9 +6015,13 @@ async function lsSync(showToast){
           lsMark(`Prime Bingo は預けてあるほうが進んでいたので入れ替えました（`
             +`${pbProgText(r.data||{})}）`);
         }
-        /* ★ スタソスは 足し合わせて混ぜます */
-        try{ spTakeMerged(r.data||{});
-          mine=Object.assign({},mine,{[K_SPSYNC]:ls(K_SPSYNC,null)}); }catch(e){}
+        /* ★ スタソスは 先に累計の勉強時間を比べて、長いほうを まるごと入れます */
+        if(spBehind(mine, r.data||{})){
+          spTakeTheirs(r.data||{});
+          mine=Object.assign({},mine,{[K_SPSYNC]:(r.data||{})[K_SPSYNC]});
+          lsMark(`スタソスは 預けてあるほうが長かったので入れ替えました（`
+            +`${spProgText(r.data||{})}）`);
+        }
         /* ★ 1人麻雀も、行われた回数が少なければ 端末のぶんを消して入れ替えます */
         if(mjBehind(mine, r.data||{})){
           mjTakeTheirs(r.data||{});
@@ -5976,7 +6057,8 @@ async function lsStart(){
         lsMark(`預けてあった新しい記録を入れました（${jp(lsCount(theirs))} 回）`);
       }else{
         /* ★ Prime Bingo は、引いた回数が少なければ端末のぶんを消して入れ替えます */
-        try{ spTakeMerged(theirs); }catch(e){}
+        const spSwap=spBehind(mine,theirs);
+        if(spSwap) spTakeTheirs(theirs);
         const pbSwap=pbBehind(mine,theirs);
         const mjSwap=mjBehind(mine,theirs);
         if(pbSwap) pbTakeTheirs(theirs);
@@ -5992,6 +6074,11 @@ async function lsStart(){
           lsMark(`1人麻雀は預けてあるほうが進んでいたので入れ替えました（`
             +`${mjProgText(theirs)}）`);
           if(changed.indexOf(K_MJSYNC)<0) changed.push(K_MJSYNC);
+        }
+        if(spSwap){
+          lsMark(`スタソスは 預けてあるほうが長かったので入れ替えました（`
+            +`${spProgText(theirs)}）`);
+          if(changed.indexOf(K_SPSYNC)<0) changed.push(K_SPSYNC);
         }
       }
       lsRev=+g.rev||0; lsSaveRev();
@@ -6101,6 +6188,7 @@ async function lsPushAll(){
   const mine=Object.assign({},lsExtra,lsPack());
   const pbLose=pbBehind(mine, srv.data||{});
   const mjLose=mjBehind(mine, srv.data||{});
+  const spLose=spBehind(mine, srv.data||{});
   const ok=await askYN("この端末の記録を、まるごと送信しますか？",
     `<b>預けてある記録は、この端末の記録に置きかわります。</b><br>
      <span class="tiny">下の2つをよく見比べてください。
@@ -6116,6 +6204,12 @@ async function lsPushAll(){
       <span class="tiny">この端末は ${esc(mjProgText(mine))}、
       預けてあるのは ${esc(mjProgText(srv.data||{}))} です。
       このまま送信すると、<b>預けてあるほうの記録が消えます</b>。<br>
+      先に「送信された記録を読み込む」を押すことをおすすめします。</span></div>`:"")+
+    (spLose?`<div class="hintbox" style="border-color:var(--bad);margin-top:0">
+      <b style="color:var(--bad)">スタソスは 預けてあるほうが 長く勉強しています</b><br>
+      <span class="tiny">この端末は ${esc(spProgText(mine))}、
+      預けてあるのは ${esc(spProgText(srv.data||{}))} です。
+      このまま送信すると、<b>預けてあるほうの勉強の記録が消えます</b>。<br>
       先に「送信された記録を読み込む」を押すことをおすすめします。</span></div>`:"")+
     lsCmpHTML(mine,srv.data,"この端末","いま預けてあるもの")+
     `<p class="tiny" style="margin-top:8px">前に預けてあった内容は30回ぶん残るので、
@@ -6147,6 +6241,7 @@ async function lsPullAll(){
   const mine=lsPack();
   const pbWin=pbBehind(mine, srv.data||{});
   const mjWin=mjBehind(mine, srv.data||{});
+  const spWin=spBehind(mine, srv.data||{});
   const ok=await askYN("預けてある記録を読み込みますか？",
     `<b>この端末の記録は、預けてある記録に置きかわります。</b><br>
      <span class="tiny">${srv.at?"預けた日時："+jstFull(srv.at)+" (JST)":""}</span><br><br>`+
@@ -6159,6 +6254,11 @@ async function lsPullAll(){
       <b style="color:var(--acc2)">1人麻雀は 預けてあるほうが進んでいます</b><br>
       <span class="tiny">この端末は ${esc(mjProgText(mine))}、
       預けてあるのは ${esc(mjProgText(srv.data||{}))} です。
+      読み込むと、この端末のぶんは消えて 預けてあるものに入れ替わります。</span></div>`:"")+
+    (spWin?`<div class="hintbox" style="border-color:var(--acc2);margin-top:0">
+      <b style="color:var(--acc2)">スタソスは 預けてあるほうが 長く勉強しています</b><br>
+      <span class="tiny">この端末は ${esc(spProgText(mine))}、
+      預けてあるのは ${esc(spProgText(srv.data||{}))} です。
       読み込むと、この端末のぶんは消えて 預けてあるものに入れ替わります。</span></div>`:"")+
     lsCmpHTML(mine,srv.data,"いまの端末","読み込むもの")+
     `<p class="tiny" style="margin-top:8px">読み込む前の内容は、この端末の中に控えを残します
@@ -6263,8 +6363,7 @@ function lsReload(){
       const o=ls(K_SPSYNC,null);
       if(o&&typeof o==="object"){
         Object.keys(o).forEach(k=>{ SP[k]=o[k]; });
-        if(!Array.isArray(SP.log)) SP.log=[];
-        if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
+        spFix();
         try{ const sec=$("#sp"); if(sec&&!sec.hidden&&typeof spRender==="function") spRender(); }catch(e){}
       }
     }
@@ -18219,17 +18318,44 @@ let SP=Object.assign({
   pt:0,           /* 素数ポイント（ダブったカードを交換所に出すと もらえます）*/
   ex:0,           /* 交換所に出したカードの枚数 */
   goal:60,        /* 1日の目標（分）*/
+  tags:[],        /* 自分で決めるタグ [{id, n:名前, c:色}] */
+  tag:"",         /* いま選んでいるタグの id */
+  unit:"auto",    /* 統計の単位 auto／h／m／s */
   wipedAt:0       /* 全消去した時刻。これより古い記録は もう戻しません */
 }, ls(K_SP,{}));
+/* ★ 中身を いつも正しい形にそろえます。
+      ほかの端末から入ってきたものに 足りない項目があっても、
+      ここで うめるので 画面がこわれません。 */
+const SP_DEF={run:null, log:[], packs:{}, opened:0, cards:{}, drew:0,
+  pt:0, ex:0, goal:60, tags:[], tag:"", unit:"auto", wipedAt:0};
+function spFix(){
+  Object.keys(SP_DEF).forEach(k=>{
+    if(SP[k]===undefined||SP[k]===null){
+      const d=SP_DEF[k];
+      SP[k]=Array.isArray(d)?[]:(d&&typeof d==="object"?{}:d);
+    }
+  });
+  if(!Array.isArray(SP.log)) SP.log=[];
+  if(!Array.isArray(SP.tags)) SP.tags=[];
+  if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
+  if(typeof SP.tag!=="string") SP.tag="";
+  if(["auto","h","m","s"].indexOf(SP.unit)<0) SP.unit="auto";
+  if(!(+SP.goal>0)) SP.goal=60;
+  ["opened","drew","pt","ex","wipedAt"].forEach(k=>{ if(!(+SP[k]>=0)) SP[k]=0; });
+  if(typeof SP.packs==="number") SP.packs={n:SP.packs};
+  if(!SP.packs||typeof SP.packs!=="object") SP.packs={};
+  ["n","cu","ag","au","rb"].forEach(k=>{ SP.packs[k]=Math.max(0,+SP.packs[k]||0); });
+  if(SP.run&&typeof SP.run!=="object") SP.run=null;
+  if(SP.run&&!Array.isArray(SP.run.br)) SP.run.br=[];
+  if(SP.run&&!Array.isArray(SP.run.pk)) SP.run.pk=[];
+  return SP;
+}
 if(!Array.isArray(SP.log)) SP.log=[];
 if(!SP.cards||typeof SP.cards!=="object") SP.cards={};
 if(SP.run&&typeof SP.run!=="object") SP.run=null;
 if(SP.run&&!Array.isArray(SP.run.br)) SP.run.br=[];
 if(SP.run&&!Array.isArray(SP.run.pk)) SP.run.pk=[];
-/* ★ 前の版では パックが ただの数でした。色ごとの数に つくりかえます */
-if(typeof SP.packs==="number") SP.packs={n:SP.packs};
-if(!SP.packs||typeof SP.packs!=="object") SP.packs={};
-["n","cu","ag","au","rb"].forEach(k=>{ SP.packs[k]=Math.max(0,+SP.packs[k]||0); });
+spFix();
 const spSave=()=>{ try{ localStorage.setItem(K_SP,JSON.stringify(SP)); }catch(e){} };
 /** ★ いまは管理者だけが使えます（仮の実装のため）*/
 const spVisible=()=>isAdmin();
@@ -18339,7 +18465,8 @@ const spPackTotal=()=>SP_KIND.reduce((a,k)=>a+(+SP.packs[k]||0),0);
 /** 素数ポイント：カードをダブらせた時の 交換の値うち */
 const SP_PTVAL={1:1, 2:5, 3:30, 4:200, 5:1500, 6:10000};
 /** 交換所のねだん */
-const SP_COST={n:30, cu:90, ag:400, au:1500, rb:8000};
+/* ★ ねだんは 10倍にしました（虹だけ 5倍です）*/
+const SP_COST={n:300, cu:900, ag:4000, au:15000, rb:40000};
 
 /* ══ 時間のはかりかた ══════════════════════════════════════════
    ★ 覚えるのは「時刻」だけです。
@@ -18414,17 +18541,18 @@ function spFinish(){
   const last=br[br.length-1];
   if(last&&last.e==null) last.e=Date.now();
   const e=spElapsed(SP.run);
-  spSyncBlocks();                       /* 作りかけのぶんも 色を決めておきます */
+  spSyncBlocks();                       /* まだ わたしていないぶんが あれば ここで わたします */
   const packs=spPacksOf(e.study);
-  /* ★ 色は「工場で作っていた時に決めた色」をそのまま使います */
+  /* 何色を何個もらったか（記録に残すだけ。わたすのは もう済んでいます）*/
   const got={};
   for(let i=0;i<packs;i++){
     const d=(SP.run.pk||[])[i];
     const k=(d&&SP_KIND.indexOf(d.k)>=0)?d.k:"n";
     got[k]=(got[k]||0)+1;
-    SP.packs[k]=(+SP.packs[k]||0)+1;
+    if(d&&!d.done){ SP.packs[k]=(+SP.packs[k]||0)+1; d.done=1; }
   }
-  const rec={s:+SP.run.s, ms:e.study, bms:e.brk, bn:br.length, p:packs, k:got, end:Date.now()};
+  const rec={s:+SP.run.s, ms:e.study, bms:e.brk, bn:br.length, p:packs, k:got,
+             t:SP.tag||"", end:Date.now()};
   SP.run=null;
   SP.log.unshift(rec);
   spSave();
@@ -18470,24 +18598,38 @@ function spTotalMs(now){
   if(SP.run) t+=spElapsed(SP.run,now).study;
   return t;
 }
-/** まだ色を決めていないぶんを、ここで決めます */
+/** 色を決めて、できあがったぶんは その場で わたします
+    ★ ここが いちばん大事なところです。
+      ・色は 作りはじめ（0分・3分・6分…）に決めて、そのまま動かしません
+      ・3分たった瞬間に、その1個を すぐ受けとります（done の印を付けます）
+      ・印が付いたものは 二度と数えないので、
+        あとから計算し直して 色が変わったり、数が合わなくなったりしません
+      ・画面を閉じていた間にできたぶんも、開いた時に まとめて受けとります */
 function spSyncBlocks(now){
-  if(!SP.run) return;
+  if(!SP.run) return null;
   if(!Array.isArray(SP.run.pk)) SP.run.pk=[];
   const e=spElapsed(SP.run,now);
-  const cur=Math.floor(e.study/SP_PACK_MS);
+  const cur=Math.floor(e.study/SP_PACK_MS);      /* いま作っている番号 */
   const L=spLevel(spTotalMs(now));
-  let ch=false;
+  let ch=false, got=0;
   for(let i=0;i<=cur;i++){
-    if(SP.run.pk[i]&&SP_KIND.indexOf(SP.run.pk[i].k)>=0) continue;
-    const k=spPickKind(L);
-    /* セリフの色は「決めた色 以下」から 同じ確からしさで選びます */
-    const h=SP_KIND[spRand(SP_KIND.indexOf(k)+1)];
-    SP.run.pk[i]={k, h, slot:spRand(SP_SLOTS), sd:spRand(1000000)};
-    ch=true;
+    if(!SP.run.pk[i]||SP_KIND.indexOf(SP.run.pk[i].k)<0){
+      const k=spPickKind(L);
+      /* セリフの色は「決めた色 以下」から 同じ確からしさで選びます */
+      const h=SP_KIND[spRand(SP_KIND.indexOf(k)+1)];
+      SP.run.pk[i]={k, h, slot:spRand(SP_SLOTS), sd:spRand(1000000), done:0};
+      ch=true;
+    }
+    /* できあがった（3分たった）ものを わたします。1回だけです */
+    if(i<cur&&!SP.run.pk[i].done){
+      const k=SP.run.pk[i].k;
+      SP.packs[k]=(+SP.packs[k]||0)+1;
+      SP.run.pk[i].done=1;
+      ch=true; got++;
+    }
   }
   if(ch) spSave();
-  return SP.run.pk[cur];
+  return {cur:SP.run.pk[cur], got};
 }
 /** いま作っているパックのようす */
 function spFactory(now){
@@ -18513,6 +18655,73 @@ function spLine(hue,sd,idx,slot){
   x=(x^(x>>>13))>>>0;
   return pool[x%n];
 }
+
+/* ══ タグ ══════════════════════════════════════════════════
+   「数学」「英語」のように、自分で名前と色を決められます。
+   勉強を始めるときに選んでおくと、その回の記録に 付きます。
+   ══════════════════════════════════════════════════════════ */
+const SP_TAGC=["#3d7dff","#e05a5a","#1f9a5a","#e0a92b","#9459ff",
+               "#00a3b5","#e0559e","#7a8697","#c8813f","#2fb0a0"];
+const spTagOf=id=>(SP.tags||[]).find(t=>t.id===id)||null;
+const spTagName=id=>{ const t=spTagOf(id); return t?t.n:""; };
+const spTagCol=id=>{ const t=spTagOf(id); return t?t.c:"#8b96a6"; };
+function spTagAdd(name,col){
+  const n=String(name||"").trim().slice(0,16);
+  if(!n) return null;
+  const id="t"+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36);
+  const t={id, n, c:col||SP_TAGC[(SP.tags||[]).length%SP_TAGC.length]};
+  SP.tags.push(t); spSave();
+  return t;
+}
+function spTagEdit(id,name,col){
+  const t=spTagOf(id); if(!t) return false;
+  if(name!==undefined){ const n=String(name).trim().slice(0,16); if(n) t.n=n; }
+  if(col) t.c=col;
+  spSave(); return true;
+}
+/** タグを消します。記録に付いたタグは「（消したタグ）」として残ります */
+function spTagDel(id){
+  const i=(SP.tags||[]).findIndex(t=>t.id===id);
+  if(i<0) return false;
+  SP.tags.splice(i,1);
+  if(SP.tag===id) SP.tag="";
+  spSave(); return true;
+}
+/** タグごとの勉強時間 */
+function spByTag(){
+  const m=new Map();
+  SP.log.forEach(r=>{ const k=r.t||"";
+    m.set(k,(m.get(k)||0)+(+r.ms||0)); });
+  if(SP.run){ const k=SP.tag||"";
+    m.set(k,(m.get(k)||0)+spElapsed(SP.run).study); }
+  const all=[...m.entries()].map(([id,ms])=>({id,ms,
+    n:id?(spTagName(id)||"（消したタグ）"):"タグなし",
+    c:id?spTagCol(id):"#b6c3d3"}));
+  all.sort((a,b)=>b.ms-a.ms);
+  return all;
+}
+
+/* ══ 単位のえらびかた ══════════════════════════════════════
+   「じどう」のときは 3時間20分 のように読みやすく出します。
+   時間・分・秒 を選んだときは、小数第3位まで きっちり出します
+   （2 なら 2.000 と出します）。
+   ══════════════════════════════════════════════════════════ */
+const SP_UNIT=[["auto","じどう"],["h","時間"],["m","分"],["s","秒"]];
+function spVal(ms){
+  ms=Math.max(0,+ms||0);
+  if(SP.unit==="h") return (ms/3600000).toFixed(3)+" 時間";
+  if(SP.unit==="m") return (ms/60000).toFixed(3)+" 分";
+  if(SP.unit==="s") return (ms/1000).toFixed(3)+" 秒";
+  return spDur(ms);
+}
+/** 下の小さい字（単位を選んでいる時は じどうの書きかたを出します）*/
+function spSub(ms){
+  ms=Math.max(0,+ms||0);
+  return (SP.unit==="auto")?(jp(Math.floor(ms/60000))+" 分"):spDur(ms);
+}
+const spUnitSegHTML=()=>`<div class="spseg">${SP_UNIT.map(([k,n])=>
+  `<button data-spu="${k}" class="${SP.unit===k?"on":""}">${n}</button>`).join("")}</div>`;
+
 /* ══ 工場の人のセリフ ═══════════════════════════════════════
    ★ 失敗や 気もちが下がるセリフは 入れていません。
       ひとりごとを たくさん入れて、見ていて飽きないようにしています。
@@ -18628,7 +18837,81 @@ const SP_TALK=[
   "だいぶ形になってきた。",
   "そろそろ 封をするか。",
   "最後の ひと押し。",
-  "できあがりが 楽しみだ。"
+  "できあがりが 楽しみだ。",
+  /* ── 足したぶん：仕事のこまかい話 ── */
+  "型のすみに 糊が たまってないか 見ておこう。",
+  "刃の切れ味、まだ大丈夫だな。",
+  "紙のふちが そろってると 気もちがいい。",
+  "封をする温度、あと少し上げるか。",
+  "計量器の目もり、ぴたりと合った。",
+  "きのう直した部品、よく動いてる。",
+  "予備の巻き、棚の三段目にあったな。",
+  "図面どおりに できてる。文句なしだ。",
+  "はかりに のせて……うん、重さも ぴったり。",
+  "空気を抜いてから 閉じるのがコツでね。",
+  "角をきちんと折る。ここで差が出る。",
+  "一枚ずつ 向きをそろえて入れてる。",
+  "ラインの速さは 手に合わせるのがいい。",
+  "ねじを ひとつ 締め直しておこう。",
+  "手ぬぐいで 台を拭いておくか。",
+  "光にかざして 見てみる。うん、きれいだ。",
+  "この道具、先代からのものでね。",
+  "だいぶ手が温まってきた。",
+  "仕上げの一手間は はぶかない主義だ。",
+  "検品の目が だんだん鋭くなってきた。",
+  /* ── 足したぶん：素数のこまかい話 ── */
+  "3, 5, 7。三つ子の素数は これだけなんだ。",
+  "素数の逆数を ぜんぶ足すと、無限に大きくなるらしい。",
+  "ベルトラン・チェビシェフ。n と 2n の間には かならず素数がある。",
+  "1000000007。この工場では作れないが、有名な素数だ。",
+  "素数の並びに 規則はない。でも 全体で見ると ちゃんと法則がある。",
+  "ゴールドバッハ予想。4以上の偶数は 素数2つの和だとか。",
+  "17 は 好きな素数だな。形がいい。",
+  "9973。四けたで いちばん大きい素数だ。",
+  "99991。五けたの終わりの素数だ。",
+  "2 の次が 3。ここだけ 間が1しかない。",
+  "素数が 10個そろうと ちょっとした宝だ。",
+  "111 は素数じゃない。3×37だ。",
+  "1009、1013、1019、1021。四けたの はじめのほうだ。",
+  "素数判定は 割ってみるのが いちばん確かでね。",
+  "けたが増えるほど 素数は まばらになっていく。",
+  /* ── 足したぶん：勉強している人へ ── */
+  "今日の分は 今日のうちに。無理のない範囲でな。",
+  "ちょっと止まっても 記録は消えない。安心してくれ。",
+  "眠くなったら 立ち上がるといい。こっちも のびをする。",
+  "水を飲むのを 忘れずにな。",
+  "肩を回しておこう。ほら、こうやって。",
+  "一区切りついたら 窓の外でも 見るといい。",
+  "今日できた分は ちゃんと ここに積んである。",
+  "誰に見せるでもない努力が いちばん効くんだ。",
+  "数えられる努力は 強い。だから記録するんだよ。",
+  "きのうの自分より 少しでいい。",
+  "戻ってきてくれて うれしいよ。",
+  "ここまで来たなら もう習慣だな。",
+  "机の上の一枚が いつか 大きな束になる。",
+  "静かに積む人が 結局いちばん遠くへ行く。",
+  "あせらなくていい。時間は ちゃんと味方だ。",
+  /* ── 足したぶん：ひとりごと ── */
+  "うむ。",
+  "はいはい。",
+  "……ふむ。",
+  "そら来た。",
+  "よいしょ。",
+  "ぴったりだ。",
+  "いいね、いいね。",
+  "ここが山場。",
+  "もう少しで 折り返し。",
+  "ちょうど いい速さだ。",
+  "音が そろってきた。",
+  "指が なじんできた。",
+  "ここで あわてると 台無しになる。",
+  "ゆっくりでいい、確実に。",
+  "きれいに そろった。",
+  "あと ひと巻き。",
+  "この手ざわり、たまらんね。",
+  "そろそろ 仕上げに入るか。",
+  "できた……と言うには まだ早い。",
+  "最後まで 気をぬかない。"
 ];
 /* 色つきのセリフ。これが出たら その色以上のパックが 確定です */
 const SP_TALK_C={
@@ -18649,6 +18932,17 @@ const SP_TALK_C={
     "銅のパックは 中身がしまってる。",
     "うん、銅が乗った。",
     "銅の刻印、きれいに入った。"
+,
+    "銅のインクを 一滴 落としてみるか。",
+    "うん、銅だな。よく見りゃ 分かる。",
+    "銅の香りがする。金属の においってやつだ。",
+    "銅は はじめの一歩だ。でも いい一歩だよ。",
+    "今日のは しっかり銅が乗る。",
+    "銅の縁どり、入れておこう。",
+    "銅の在庫、まだ余裕がある。",
+    "この仕上がりは 銅だ。まちがいない。",
+    "銅が出ると その日は なんとなく調子がいい。",
+    "銅色の光を 見てくれ。落ち着くだろう。"
   ],
   ag:[
     "銀だ。銀のラインが動き出した！",
@@ -18667,6 +18961,17 @@ const SP_TALK_C={
     "銀のパックは 手ざわりが ちがうんだ。",
     "銀……ひさしぶりに見たな。",
     "これは 大事に包もう。銀だからな。"
+,
+    "銀の帯を まわしてくれ。",
+    "銀が出ると 工場が すこし静かになる。",
+    "銀は 手のあとが つきやすいから 気をつけてな。",
+    "この磨きぐあい……銀だ。",
+    "銀の箔は 薄いから 息をひそめて貼る。",
+    "銀か。いい流れが来てるな。",
+    "銀の型は きちんと温めてから使う。",
+    "月みたいな色だな、銀は。",
+    "銀が出たら 上等な日だ。",
+    "銀の縁は きっちり 90度に折る。"
   ],
   au:[
     "金だ！金の型を持ってこい！",
@@ -18685,6 +18990,17 @@ const SP_TALK_C={
     "金のパックは 封も特別製だ。",
     "これは 写真を撮っておきたいくらいだ。金だぞ。",
     "金……いい日になったな。"
+,
+    "金の箔は 一枚 一枚 数えてある。",
+    "金が出たときは 記録簿に 書いておく決まりでね。",
+    "金の重さは 手で分かる。ずしりとくる。",
+    "金の型を 温めろ。ぬるいと うまく乗らない。",
+    "……よし、金が きれいに乗った。",
+    "金のときは 息を止めて 押すんだ。",
+    "金だ。今日の当たりだな。",
+    "金の粉は 一粒も こぼせない。",
+    "この輝きは まちがえようがない。金だ。",
+    "金が出ると 手が 自然と ていねいになる。"
   ],
   rb:[
     "……虹だ。虹が出てる。",
@@ -18703,6 +19019,17 @@ const SP_TALK_C={
     "虹の刻印は 工場長しか打てない決まりだ。",
     "この仕事をしてて よかったと思う瞬間だ。虹だ。",
     "虹。……もう何も言うことはない。"
+,
+    "虹の箔は 温度も 湿度も きっちり合わせないと 貼れない。",
+    "虹は 光の当たりかたで 色が変わる。何度見てもいい。",
+    "虹が出た日は 記録簿に 赤い印をつける。",
+    "虹の型は 三つしかない。大事に使う。",
+    "……ちょっと 座らせてくれ。虹だ。",
+    "虹のときだけ 手袋を 新しいのに替える。",
+    "虹だ。今日ここに居られて よかった。",
+    "虹の光を 見ると 何も言えなくなる。",
+    "虹の封は 二重にする。特別だからな。",
+    "これが 虹か。うわさには 聞いていたが。"
   ]
 };
 /** 素数ポイント：ダブったカードを 交換所に出します */
@@ -18943,7 +19270,7 @@ function toyShow(){
 /* ══ スタソスの画面 ══════════════════════════════════════════ */
 let SP_VIEW="home";           /* home / pack / stats / dex / log */
 let SP_RANGE="day";           /* グラフの単位 day / week / month */
-let spTimer=null, spLastTxt="", spLastSlot="";
+let spTimer=null, spLastTxt="", spLastSlot="", spLastSec=-1;
 const spNum=v=>`<span style="font-variant-numeric:tabular-nums">${jp(v)}</span>`;
 
 /** 折れ線グラフ（勉強した時間の うつりかわり）*/
@@ -19008,26 +19335,30 @@ function spLvBarHTML(){
   const r=spRates(lv.lv), r2=spRates(lv.lv+1);
   return `<div class="spcard">
     <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
-      <b style="font-size:1.05rem">Lv.${jp(lv.lv)}</b>
-      <span class="sptiny">次のレベルまで あと <b>${esc(spDur(lv.rest))}</b>
+      <b style="font-size:1.05rem" id="spLvN">Lv.${jp(lv.lv)}</b>
+      <span class="sptiny" id="spLvTx">次のレベルまで あと <b>${esc(spDur(lv.rest))}</b>
         （Lv.${jp(lv.lv)} → Lv.${jp(lv.lv+1)} は ${jp(30*lv.lv)}分）</span>
-      <span class="sptiny" style="margin-left:auto">${lv.pct.toFixed(1)}%</span>
+      <span class="sptiny" style="margin-left:auto" id="spLvPc">${lv.pct.toFixed(1)}%</span>
     </div>
     <div class="spnext" style="height:11px;margin-top:7px">
-      <i style="width:${lv.pct.toFixed(1)}%"></i></div>
+      <i id="spLvBar" style="width:${lv.pct.toFixed(1)}%"></i></div>
     <div class="splvrates">
       ${["rb","au","ag","cu","n"].map(k=>{
         const d=spPd(k), v=r[k]*100, v2=r2[k]*100;
-        const up=v2-v;
+        /* ★ 前は「＋0.0277」とだけ出していたので、
+              0.010% ＋ 0.0277 ＝ 0.3277% のように読めてしまいました。
+              いまは どちらも 同じけた数の「%」で そろえて出します。 */
+        const dg=(x)=>x<0.1?4:(x<1?3:2);
+        const g=Math.max(dg(v),dg(v2));
         return `<div class="splvr"><span class="spkchip k-${k}">${d.n}</span>
-          <b>${v<0.01?v.toFixed(4):v.toFixed(v<1?3:2)}%</b>
-          ${k!=="n"&&up>0?`<span class="sptiny" style="color:#1f9a5a">＋${
-            up<0.001?up.toFixed(5):up.toFixed(up<0.1?4:3)}</span>`:""}</div>`;
+          <b>${v.toFixed(g)}%</b>
+          ${k!=="n"&&v2>v?`<span class="sptiny" style="color:#1f9a5a">
+            → 次のLv ${v2.toFixed(g)}%</span>`:""}</div>`;
       }).join("")}
     </div>
     <p class="sptiny" style="margin:7px 0 0">
       レベルが上がると よい色のパックが出やすくなります（のびかたは ゆるやかです）。
-      右の緑の数字は 次のレベルで どれだけ増えるかです。</p>
+      緑の数字は <b>次のレベルになったときの割合</b>です（増える分ではありません）。</p>
   </div>`;
 }
 /* ══ 工場の絵 ══════════════════════════════════════════════ */
@@ -19054,31 +19385,53 @@ function spFacSVG(pct,on){
       <circle class="smoke s2" cx="354" cy="4" r="6"/>
       <circle class="smoke s3" cx="354" cy="4" r="8"/>
     </g>
-    <!-- 歯車 -->
-    <g transform="translate(62,86)"><g class="gear">
-      ${spGear(0,0,22,10,"#9fb0c4")}</g></g>
-    <g transform="translate(96,112)"><g class="gear b">
-      ${spGear(0,0,15,8,"#b6c3d3")}</g></g>
-    <g transform="translate(42,120)"><g class="gear c">
-      ${spGear(0,0,11,7,"#c6d2e0")}</g></g>
+    <!-- 歯車（それぞれ 自分の中心で回ります）-->
+    <g transform="translate(58,80)"><g class="gear">${spGear(0,0,20,10,"#9fb0c4")}</g></g>
+    <g transform="translate(90,104)"><g class="gear b">${spGear(0,0,14,8,"#b6c3d3")}</g></g>
+    <g transform="translate(40,112)"><g class="gear c">${spGear(0,0,10,7,"#c6d2e0")}</g></g>
     <!-- ベルトコンベア -->
-    <rect x="128" y="146" width="250" height="10" rx="5" fill="#8fa0b4"/>
-    <line class="belt" x1="132" y1="151" x2="374" y2="151" stroke="#e8eef6"
+    <rect x="120" y="148" width="264" height="10" rx="5" fill="#8fa0b4"/>
+    <line class="belt" x1="124" y1="153" x2="380" y2="153" stroke="#e8eef6"
       stroke-width="3" stroke-dasharray="8 4"/>
-    <circle cx="136" cy="151" r="9" fill="#7c8da1"/><circle cx="370" cy="151" r="9" fill="#7c8da1"/>
-    <!-- 作っているパック -->
-    <g transform="translate(236,92)">
-      <rect x="0" y="0" width="40" height="50" rx="6" fill="#ffffff" stroke="#c3cfdd" stroke-width="2"/>
-      <rect x="2" y="${48-h}" width="36" height="${h}" rx="4" fill="#3d7dff" opacity=".85"/>
-      <text x="20" y="66" text-anchor="middle" font-size="10" fill="#5d6b7e">${Math.round(fill)}%</text>
+    <circle cx="128" cy="153" r="9" fill="#7c8da1"/><circle cx="376" cy="153" r="9" fill="#7c8da1"/>
+    <!-- 材料の箱が 左から流れてきます -->
+    <g transform="translate(128,132)">
+      <g class="box"><rect x="0" y="0" width="16" height="15" rx="3" fill="#a9b7c8"/>
+        <rect x="0" y="6" width="16" height="3" fill="#8fa0b4"/></g>
+      <g class="box b2"><rect x="0" y="0" width="16" height="15" rx="3" fill="#b6c3d3"/>
+        <rect x="0" y="6" width="16" height="3" fill="#8fa0b4"/></g>
+      <g class="box b3"><rect x="0" y="0" width="16" height="15" rx="3" fill="#9fb0c4"/>
+        <rect x="0" y="6" width="16" height="3" fill="#8fa0b4"/></g>
     </g>
+    <!-- プレス機（上から押して 形にします）-->
+    <g transform="translate(236,70)">
+      <rect x="-14" y="-16" width="68" height="10" rx="4" fill="#7c8da1"/>
+      <g class="press"><rect x="4" y="-6" width="32" height="20" rx="4" fill="#8fa0b4"/>
+        <rect x="10" y="12" width="20" height="6" rx="2" fill="#6f7f93"/></g>
+      <g class="spark"><circle cx="20" cy="36" r="4" fill="#ffd45e"/>
+        <circle cx="12" cy="32" r="2.4" fill="#ffb02e"/>
+        <circle cx="29" cy="33" r="2.2" fill="#ffb02e"/></g>
+    </g>
+    <!-- 作っているパック（下から満ちていきます）-->
+    <g transform="translate(228,100)">
+      <rect x="0" y="0" width="40" height="50" rx="6" fill="#ffffff" stroke="#c3cfdd" stroke-width="2"/>
+      <rect id="spFacFill" x="2" y="${48-h}" width="36" height="${h}" rx="4" fill="#3d7dff" opacity=".85"/>
+      <text id="spFacPct" x="20" y="64" text-anchor="middle" font-size="10" fill="#5d6b7e">${Math.round(fill)}%</text>
+    </g>
+    <!-- できあがったパックが 右へ流れます -->
+    <g transform="translate(276,128)"><g class="out">
+      <rect x="0" y="0" width="17" height="22" rx="3" fill="#3d7dff"/>
+      <rect x="0" y="0" width="17" height="6" rx="3" fill="#dbe6ff"/></g></g>
+    <!-- 出荷の箱 -->
+    <g transform="translate(386,136)">
+      <rect x="-8" y="0" width="22" height="18" rx="3" fill="#c9a06a"/>
+      <rect x="-8" y="6" width="22" height="3" fill="#a8804c"/></g>
     <!-- 機械の腕 -->
-    <g class="body"><rect x="200" y="62" width="14" height="44" rx="5" fill="#9fb0c4"/>
-      <rect x="180" y="56" width="54" height="12" rx="6" fill="#8fa0b4"/></g>
-    <g class="arm"><rect x="112" y="118" width="10" height="34" rx="5" fill="#8fa0b4"/>
-      <circle cx="117" cy="150" r="7" fill="#7c8da1"/></g>
+    <g class="arm" transform="translate(150,112)">
+      <rect x="0" y="0" width="10" height="34" rx="5" fill="#8fa0b4"/>
+      <circle cx="5" cy="34" r="7" fill="#7c8da1"/></g>
     <!-- 工場の人 -->
-    <g class="body" transform="translate(150,104)">
+    <g class="body" transform="translate(176,104)">
       <circle cx="12" cy="10" r="10" fill="#f0d0b4"/>
       <path d="M0 8 a12 9 0 0 1 24 0 z" fill="#3d7dff"/>
       <rect x="3" y="21" width="18" height="26" rx="6" fill="#4a6bb5"/>
@@ -19151,19 +19504,30 @@ function spHomeHTML(){
       画面を閉じても、ほかのことをしていても 時間は正しく数えられます</p>`
       :`<p class="sptiny" style="text-align:center;margin-top:10px">
       「やる気が出たら始める」より「始めるとやる気が出る」。まず5分だけでも。</p>`}
+    <div class="sptagrow">
+      <span class="sptiny">タグ</span>
+      <button class="sptag${SP.tag?"":" on"}" data-sptag="">なし</button>
+      ${(SP.tags||[]).map(t=>`<button class="sptag${SP.tag===t.id?" on":""}"
+        data-sptag="${esc(t.id)}" style="--tc:${esc(t.c)}">${esc(t.n)}</button>`).join("")}
+      <button class="spbtn" id="spTagMg" style="padding:4px 11px;font-size:.72rem">タグの設定</button>
+    </div>
+    <p class="sptiny" style="text-align:center;margin:6px 0 0">
+      ${run?"この回の記録には 上で選んでいるタグが付きます"
+        :"はじめる前に えらんでおくと、あとで 教科ごとに 見られます"}</p>
   </div>
   ${spFacHTML()}
   ${spLvBarHTML()}
-  <div class="spgrid spg5">
-    ${[["今日",t.today],["今週",t.week],["今月",t.month],["今年",t.year],["累計",t.all]]
-      .map(([n,v],i)=>`<div class="spbox${i===0?" on":""}"><div class="t">${n}</div>
-        <div class="v">${esc(spDur(v))}</div>
-        <div class="s">${jp(Math.floor(v/60000))} 分</div></div>`).join("")}
+  <div class="spgrid spg5" id="spTot">
+    ${[["today","今日",t.today],["week","今週",t.week],["month","今月",t.month],
+       ["year","今年",t.year],["all","累計",t.all]]
+      .map(([k,n,v],i)=>`<div class="spbox${i===0?" on":""}"><div class="t">${n}</div>
+        <div class="v" data-spt="${k}">${esc(spVal(v))}</div>
+        <div class="s" data-spts="${k}">${esc(spSub(v))}</div></div>`).join("")}
   </div>
   <div class="spgrid spg4" style="margin-top:9px">
     <div class="spbox"><div class="t">まだ開けていないパック</div>
-      <div class="v" style="color:#2a63e0">${jp(spPackTotal())}</div>
-      <div class="s">${SP_KIND.filter(k=>SP.packs[k]>0).map(k=>spPd(k).n+jp(SP.packs[k])).join("・")||"—"}</div></div>
+      <div class="v" style="color:#2a63e0" id="spPkN">${jp(spPackTotal())}</div>
+      <div class="s" id="spPkS">${SP_KIND.filter(k=>SP.packs[k]>0).map(k=>spPd(k).n+jp(SP.packs[k])).join("・")||"—"}</div></div>
     <div class="spbox"><div class="t">連続して勉強した日数</div>
       <div class="v">${jp(st.cur)}</div><div class="s">最長 ${jp(st.best)} 日</div></div>
     <div class="spbox"><div class="t">勉強した日数</div>
@@ -19395,9 +19759,9 @@ function spShopHTML(){
       }).join("")}
     </div>
     <p class="sptiny" style="margin-top:8px">
-      ★ 目やす：1パック開けると ならして 15pt ぶんくらいになります。
-      虹パック（${jp(SP_COST.rb)} pt）は だいたい 520パック、
-      勉強時間にして 26時間ぶんです。</p>
+      ★ 目やす：1パック開けて ダブりを出すと、ならして 15pt ぶんくらいになります。
+      虹パック（${jp(SP_COST.rb)} pt）は だいたい ${jp(Math.round(SP_COST.rb/15))} パック、
+      勉強時間にして ${jp(Math.round(SP_COST.rb/15*3/60))} 時間ぶんです。</p>
   </div>`;
 }
 /* ══ もっと やる気が出る しくみ ═══════════════════════════════
@@ -19510,11 +19874,13 @@ function spStatsHTML(){
   const badges=spBadges();
   const nextB=badges.find(b=>!b.ok);
   const lv=spLvInfo(t.all);
-  return `<div class="spgrid spg5">
-    ${[["今日",t.today],["今週",t.week],["今月",t.month],["今年",t.year],["累計",t.all]]
-      .map(([n,v],i)=>`<div class="spbox${i===0?" on":""}"><div class="t">${n}</div>
-        <div class="v">${esc(spDur(v))}</div>
-        <div class="s">${jp(Math.floor(v/60000))} 分</div></div>`).join("")}
+  return `${spUnitSegHTML()}
+  <div class="spgrid spg5" id="spTot">
+    ${[["today","今日",t.today],["week","今週",t.week],["month","今月",t.month],
+       ["year","今年",t.year],["all","累計",t.all]]
+      .map(([k,n,v],i)=>`<div class="spbox${i===0?" on":""}"><div class="t">${n}</div>
+        <div class="v" data-spt="${k}">${esc(spVal(v))}</div>
+        <div class="s" data-spts="${k}">${esc(spSub(v))}</div></div>`).join("")}
   </div>
   <div class="spcard" style="margin-top:12px">
     <b style="font-size:.86rem">いま伸びているところ</b>
@@ -19530,8 +19896,8 @@ function spStatsHTML(){
         <div class="v">${todayMs>=bestMs&&bestMs>0?"更新中":esc(spDur(Math.max(0,bestMs-todayMs)))}</div>
         <div class="s">${bestMs?`いちばんの日は ${esc(spDur(bestMs))}`:"まだ記録がありません"}</div></div>
       <div class="spbox"><div class="t">今月の見込み</div>
-        <div class="v">${esc(spDur(pace.est))}</div>
-        <div class="s">${jp(pace.dayN)}/${jp(pace.days)}日で ${esc(spDur(pace.done))}</div></div>
+        <div class="v">${esc(spVal(pace.est))}</div>
+        <div class="s">${jp(pace.dayN)}/${jp(pace.days)}日で ${esc(spVal(pace.done))}</div></div>
     </div>
     <p class="sptiny" style="margin:9px 0 0">
       進歩が目に見えていると、人はいちばん やる気になります。
@@ -19596,14 +19962,14 @@ function spStatsHTML(){
   </div>
   <div class="spgrid spg4">
     <div class="spbox"><div class="t">勉強した日の 1日平均</div>
-      <div class="v">${esc(spDur(avg))}</div><div class="s">${jp(days.length)} 日ぶん</div></div>
+      <div class="v">${esc(spVal(avg))}</div><div class="s">${jp(days.length)} 日ぶん</div></div>
     <div class="spbox"><div class="t">いちばん勉強した日</div>
-      <div class="v">${best?esc(spDur(best.ms)):"—"}</div>
+      <div class="v">${best?esc(spVal(best.ms)):"—"}</div>
       <div class="s">${best?esc(best.key):"—"}</div></div>
     <div class="spbox"><div class="t">1回あたりの勉強</div>
-      <div class="v">${esc(spDur(sess))}</div><div class="s">${jp(SP.log.length)} 回ぶん</div></div>
+      <div class="v">${esc(spVal(sess))}</div><div class="s">${jp(SP.log.length)} 回ぶん</div></div>
     <div class="spbox"><div class="t">休憩の合計</div>
-      <div class="v">${esc(spDur(t.brk))}</div>
+      <div class="v">${esc(spVal(t.brk))}</div>
       <div class="s">勉強の ${t.all?((t.brk/t.all)*100).toFixed(1):"0.0"}%</div></div>
   </div>
   <div class="spcard">
@@ -19621,9 +19987,9 @@ function spStatsHTML(){
           <div class="v">${devTxt(dv.best&&dv.best.t)}</div>
           <div class="s">${dv.best?esc(dv.best.key):"—"}</div></div>
         <div class="spbox"><div class="t">平均（1日）</div>
-          <div class="v">${esc(spDur(dv.mean*1000))}</div><div class="s">${jp(dv.n)} 日ぶん</div></div>
+          <div class="v">${esc(spVal(dv.mean*1000))}</div><div class="s">${jp(dv.n)} 日ぶん</div></div>
         <div class="spbox"><div class="t">ちらばり</div>
-          <div class="v">${esc(spDur(dv.sd*1000))}</div>
+          <div class="v">${esc(spVal(dv.sd*1000))}</div>
           <div class="s">大きいほど 日によって差があります</div></div>
       </div>
       <p class="sptiny" style="margin-top:8px">
@@ -19647,6 +20013,20 @@ function spStatsHTML(){
       このペース（1日 ${esc(spDur(avg))}）なら あと
       <b>${avg>0?jp(Math.ceil((10000*3600000-t.all)/avg)):"—"}</b> 日です。</p>
   </div>
+  ${(()=>{ const tg=spByTag().filter(x=>x.ms>0);
+    if(!tg.length) return "";
+    const mx=Math.max(1,...tg.map(x=>x.ms));
+    const sum=tg.reduce((a,x)=>a+x.ms,0);
+    return `<div class="spcard">
+      <b style="font-size:.86rem">タグごとの勉強時間</b>
+      <p class="sptiny" style="margin:6px 0 9px">どの教科に どれだけ かけているかが 分かります。</p>
+      <div class="spdex">${tg.map(x=>`<div class="spdexrow" style="grid-template-columns:96px 1fr 150px">
+        <span style="font-weight:700;color:${esc(x.c)};overflow:hidden;text-overflow:ellipsis;
+          white-space:nowrap">${esc(x.n)}</span>
+        <span class="spdexbar"><i style="width:${(x.ms/mx*100).toFixed(1)}%;background:${esc(x.c)}"></i></span>
+        <span class="n">${esc(spVal(x.ms))}　<span class="spdim">${(x.ms/sum*100).toFixed(1)}%</span></span>
+      </div>`).join("")}</div>
+    </div>`; })()}
   <div class="spcard">
     <b style="font-size:.86rem">バッジ</b>
     <p class="sptiny" style="margin:6px 0 9px">
@@ -19664,15 +20044,19 @@ function spLogHTML(){
     <p class="sptiny" style="margin:6px 0 10px">新しいものが上です（300件まで出します）。
       覚えているのは「開始した時刻」と 勉強時間・休憩・もらったパックの数です。</p>
     <div class="spscroll"><table><thead><tr>
-      <th>はじめた時刻</th><th class="n">勉強</th><th class="n">休憩</th>
+      <th>はじめた時刻</th><th>タグ</th><th class="n">勉強</th><th class="n">休憩</th>
       <th class="n">休憩の回数</th><th class="n">パック</th></tr></thead><tbody>
-      ${rows.length?rows.map(r=>`<tr>
+      ${rows.length?rows.map(r=>{
+        const tn=r.t?(spTagName(r.t)||"（消したタグ）"):"";
+        return `<tr>
         <td>${esc(spWhen(r.s))}</td>
+        <td>${tn?`<span class="sptag on" style="--tc:${esc(spTagCol(r.t))};pointer-events:none">${esc(tn)}</span>`:"—"}</td>
         <td class="n"><b>${esc(spFmt(r.ms))}</b></td>
         <td class="n">${r.bms?esc(spDur(r.bms)):"—"}</td>
         <td class="n">${jp(+r.bn||0)}</td>
-        <td class="n">${r.p?`<b style="color:#2a63e0">${jp(r.p)}</b>`:"0"}</td>
-      </tr>`).join(""):`<tr><td colspan="5" class="sptiny">まだありません</td></tr>`}
+        <td class="n">${r.p?`<b style="color:#2a63e0">${jp(r.p)}</b>
+          <span class="sptiny">${r.k?Object.keys(r.k).map(k=>spPd(k).n+jp(r.k[k])).join("・"):""}</span>`:"0"}</td>
+      </tr>`;}).join(""):`<tr><td colspan="6" class="sptiny">まだありません</td></tr>`}
     </tbody></table></div>
     <div class="sptools">
       <button class="spbtn bad" id="spWipeLog">勉強の記録を 全部消す</button>
@@ -19692,8 +20076,51 @@ function spRender(){
     :SP_VIEW==="shop"?spShopHTML()
     :SP_VIEW==="log"?spLogHTML():spHomeHTML();
   box.innerHTML=spHeadHTML()+body;
+  spLastSlot=""; spLastSec=-1;
   spWire();
   spTick();
+}
+/** タグの設定 */
+function spTagShow(){
+  const M=modal(`<h2>タグの設定</h2><div id="spTagBox"></div>`,{w:560});
+  const draw=()=>{
+    M.q("#spTagBox").innerHTML=`
+      <p class="tiny" style="color:var(--dim2);margin-top:-6px">
+        「数学」「英語」のように、名前と色を 自由に決められます。</p>
+      <div style="display:grid;gap:8px;margin-top:10px">
+        ${(SP.tags||[]).length?(SP.tags||[]).map(t=>`
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="color" data-tc="${esc(t.id)}" value="${esc(t.c)}"
+              style="width:40px;height:32px;padding:0;border:1px solid var(--line);
+              border-radius:8px;background:none;cursor:pointer">
+            <input type="text" data-tn="${esc(t.id)}" value="${esc(t.n)}" maxlength="16"
+              style="flex:1;min-width:0">
+            <button class="btn sm" data-td="${esc(t.id)}"
+              style="border-color:var(--bad);color:var(--bad)">消す</button>
+          </div>`).join(""):`<p class="tiny">まだ タグがありません。</p>`}
+      </div>
+      <div class="tools">
+        <input type="text" id="spTagNew" placeholder="新しいタグの名前" maxlength="16" style="flex:1">
+        <button class="btn pri" id="spTagAdd">追加</button>
+      </div>
+      <p class="tiny" style="color:var(--dim2)">
+        タグを消しても、すでに付いている記録は「（消したタグ）」として残ります。</p>
+      <div class="tools"><button class="btn" id="spTagX">閉じる</button></div>`;
+    M.qa("[data-tc]").forEach(e=>e.onchange=()=>{ spTagEdit(e.dataset.tc,undefined,e.value); spRender(); });
+    M.qa("[data-tn]").forEach(e=>e.onchange=()=>{ spTagEdit(e.dataset.tn,e.value); draw(); spRender(); });
+    M.qa("[data-td]").forEach(e=>e.onclick=async()=>{
+      const t=spTagOf(e.dataset.td);
+      if(!await askYN("このタグを消しますか？",
+        `<b>${esc(t?t.n:"")}</b> を消します。<br>
+         <span class="tiny">すでに付いている記録は 残ります。</span>`,"消す")) return;
+      spTagDel(e.dataset.td); draw(); spRender(); });
+    const add=()=>{ const v=M.q("#spTagNew").value;
+      if(spTagAdd(v)){ M.q("#spTagNew").value=""; draw(); spRender(); } };
+    M.q("#spTagAdd").onclick=add;
+    M.q("#spTagNew").onkeydown=ev=>{ if(ev.key==="Enter"){ ev.preventDefault(); add(); } };
+    M.q("#spTagX").onclick=M.close;
+  };
+  draw();
 }
 function spWire(){
   $$("#sp [data-spv]").forEach(b=>b.onclick=()=>{ SP_VIEW=b.dataset.spv; SP_RESULT=null; spRender(); });
@@ -19708,6 +20135,9 @@ function spWire(){
     const b=gl.parentElement.querySelector("b:last-of-type");
     if(b) b.textContent=jp(SP.goal)+" 分";
   };
+  $$("#sp [data-sptag]").forEach(b=>b.onclick=()=>{ SP.tag=b.dataset.sptag; spSave(); spRender(); });
+  const tm=$("#spTagMg"); if(tm) tm.onclick=spTagShow;
+  $$("#sp [data-spu]").forEach(b=>b.onclick=()=>{ SP.unit=b.dataset.spu; spSave(); spRender(); });
   const g5=$("#spGo5"); if(g5) g5.onclick=()=>{ spStart(); spRender();
     toast("まず5分だけ。始めれば あとは続きます"); };
   const pk=$("#spPack"); if(pk) spWirePack(pk);
@@ -19838,6 +20268,7 @@ async function spWipe(withCards){
   SP.log=[]; SP.run=null; SP.wipedAt=Date.now();
   if(withCards){ SP.cards={}; SP.packs={}; SP_KIND.forEach(k=>SP.packs[k]=0);
     SP.opened=0; SP.drew=0; SP.pt=0; SP.ex=0; }
+  /* タグそのものは 消しません（また使えます）*/
   spSave(); SP_RESULT=null; spRender();
   toast(withCards?"全部消しました":"勉強の記録を消しました");
 }
@@ -19845,14 +20276,16 @@ async function spWipe(withCards){
 function spTick(){
   if(spTimer){ cancelAnimationFrame(spTimer); spTimer=null; }
   const sec=$("#sp");
-  if(!sec||sec.hidden||SP_VIEW!=="home"||!SP.run) return;
+  if(!sec||sec.hidden||!SP.run) return;
   const step=()=>{
-    const cl=$("#spClock");
-    if(!cl||!SP.run||$("#sp").hidden){ spTimer=null; return; }
+    if(!SP.run||$("#sp").hidden){ spTimer=null; return; }
     const e=spElapsed(SP.run);
-    const txt=spFmt(e.study);
-    if(txt!==spLastTxt){ cl.textContent=txt; spLastTxt=txt; }
-    cl.classList.toggle("brk",e.onBreak);
+    const cl=$("#spClock");
+    if(cl){
+      const txt=spFmt(e.study);
+      if(txt!==spLastTxt){ cl.textContent=txt; spLastTxt=txt; }
+      cl.classList.toggle("brk",e.onBreak);
+    }
     const bar=$("#spNextBar");
     if(bar) bar.style.width=(100*(1-spToNext(e.study)/SP_PACK_MS)).toFixed(1)+"%";
     const stt=$("#spState");
@@ -19860,6 +20293,31 @@ function spTick(){
       const next=spToNext(e.study);
       stt.innerHTML=`勉強中　この回で <b>${jp(spPacksOf(e.study))}</b> パック　`
         +`次まで あと ${z2(Math.floor(next/60000))}:${z2(Math.floor(next/1000)%60)}`;
+    }
+    /* ★ 1秒ごとに、レベルや今日の合計も 積みあがっていくようにします。
+          （画面ぜんぶを作り直すと重いので、数字のところだけ書きかえます）*/
+    const sec=Math.floor(e.study/1000);
+    if(sec!==spLastSec){
+      spLastSec=sec;
+      const r0=spSyncBlocks();               /* 3分たっていたら ここで受けとります */
+      const tt=spTotals();
+      $$("#sp [data-spt]").forEach(el=>{ el.textContent=spVal(tt[el.dataset.spt]); });
+      $$("#sp [data-spts]").forEach(el=>{ el.textContent=spSub(tt[el.dataset.spts]); });
+      const lv=spLvInfo(tt.all);
+      const n1=$("#spLvN"); if(n1) n1.textContent="Lv."+jp(lv.lv);
+      const n2=$("#spLvTx"); if(n2) n2.innerHTML=`次のレベルまで あと <b>${esc(spDur(lv.rest))}</b>`
+        +`（Lv.${jp(lv.lv)} → Lv.${jp(lv.lv+1)} は ${jp(30*lv.lv)}分）`;
+      const n3=$("#spLvPc"); if(n3) n3.textContent=lv.pct.toFixed(1)+"%";
+      const n4=$("#spLvBar"); if(n4) n4.style.width=lv.pct.toFixed(1)+"%";
+      if(r0&&r0.got){
+        const pn=$("#spPkN"); if(pn) pn.textContent=jp(spPackTotal());
+        const ps=$("#spPkS"); if(ps) ps.textContent=
+          SP_KIND.filter(k=>SP.packs[k]>0).map(k=>spPd(k).n+jp(SP.packs[k])).join("・")||"—";
+        try{ toast(`${jp(r0.got)} パック できました！`); }catch(e2){}
+        /* 上のボタンの数も 書きかえます */
+        const tb=document.querySelector('#sp [data-spv="pack"]');
+        if(tb) tb.textContent="パック（"+jp(spPackTotal())+"）";
+      }
     }
     /* ★ 工場。セリフは30秒ごとに入れ替わるので、変わった時だけ書きかえます */
     const f=spFactory();
@@ -19879,10 +20337,10 @@ function spTick(){
       const fac=$("#spFac");
       if(fac){
         fac.classList.toggle("on",!f.onBreak);
-        const r=fac.querySelector('rect[opacity="0.85"],rect[opacity=".85"]');
+        const r=$("#spFacFill");
         const h=Math.round(46*Math.max(0,Math.min(100,f.pct))/100);
         if(r){ r.setAttribute("height",String(h)); r.setAttribute("y",String(48-h)); }
-        const tt=fac.querySelector("text");
+        const tt=$("#spFacPct");
         if(tt) tt.textContent=Math.round(f.pct)+"%";
       }
     }
