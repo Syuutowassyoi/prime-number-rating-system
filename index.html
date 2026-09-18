@@ -3699,7 +3699,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v143";
+const APP_VERSION = "v144";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4388,6 +4388,13 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v144":[
+    "預けるデータの大きさを、比べる表に出すようにしました（上限は 1,500KB です）",
+    "　サーバー側の決まりで これ以上は預けられないので、目に見えるようにしました",
+    "スタソスの勉強の記録が 多くなりすぎた時に、古いほうから切りつめるようにしました",
+    "　切りつめたぶんの時間は 別に取っておくので、累計の勉強時間は 減りません",
+    "　同期は 累計の勉強時間で新しさを決めるため、切りつめても 古いあつかいになりません",
+    "（サーバー側の設定〈SQL〉の変更は ありません）"],
   "v143":[
     "工場の歯車が 絵ぜんぶの真ん中で回っていた不具合を直しました",
     "　部品ごとに 自分の中心で回るようにしました（transform-box）",
@@ -5796,7 +5803,7 @@ function spSumMs(v){
   const o=spParse(v);
   if(!o) return -1;                       /* そもそも無い */
   const log=Array.isArray(o.log)?o.log:[];
-  let t=0;
+  let t=Math.max(0,+o.baseMs||0);         /* 切りつめた古い記録のぶん */
   log.forEach(r=>{ t+=Math.max(0,+r.ms||0); });
   if(o.run&&+o.run.s>0){
     /* 計測中のぶんも 足します（時刻から計算できます）*/
@@ -6114,6 +6121,8 @@ function lsBrief(o){
   const rand =(cb.bR!=null||cb.nR!=null)?num(cb.bR)+num(cb.nR):num(base.rand);
   return {
     kazu: Object.keys(o).length,
+    /* 預ける かたまりの大きさ（上限は 1.5MB です）*/
+    bytes:(()=>{ try{ return JSON.stringify(o).length; }catch(e){ return 0; } })(),
     kai:  num(typeof all==="object"&&all?all.n:all),
     score, rand,
     logN: Array.isArray(log)?log.length:(log&&typeof log==="object"?Object.keys(log).length:0),
@@ -6168,6 +6177,8 @@ function lsCmpHTML(a,b,an,bn){
           v=>(v===null||v===undefined)?"—":spDur(v))
        +row("追加の道具のデータ",A.ext,B.ext,v=>v?jp(v)+" 件":"なし") : "")+
     row("預かっている項目の数",A.kazu,B.kazu)+
+    row("預けるデータの大きさ",A.bytes,B.bytes,
+      v=>(v===null||v===undefined)?"—":(v/1024).toFixed(0)+" KB / 1,500 KB")+
     `</tbody></table></div>`;
 }
 /** サーバーの中身を読みます */
@@ -18326,8 +18337,14 @@ let SP=Object.assign({
 /* ★ 中身を いつも正しい形にそろえます。
       ほかの端末から入ってきたものに 足りない項目があっても、
       ここで うめるので 画面がこわれません。 */
+/* ★ baseMs ＝ 古すぎて切りつめた記録の 勉強時間の合計。
+      記録を切りつめても 累計が減らないように、ここに足しておきます。
+      （同期は「累計の勉強時間」で新しさを決めるので、
+        ここが無いと 切りつめた端末が 古いあつかいになってしまいます）*/
 const SP_DEF={run:null, log:[], packs:{}, opened:0, cards:{}, drew:0,
-  pt:0, ex:0, goal:60, tags:[], tag:"", unit:"auto", wipedAt:0};
+  pt:0, ex:0, goal:60, tags:[], tag:"", unit:"auto", wipedAt:0, baseMs:0};
+/* 預けられる大きさには かぎりがあるので、記録はここまでにします */
+const SP_LOGMAX=20000;
 function spFix(){
   Object.keys(SP_DEF).forEach(k=>{
     if(SP[k]===undefined||SP[k]===null){
@@ -18341,7 +18358,13 @@ function spFix(){
   if(typeof SP.tag!=="string") SP.tag="";
   if(["auto","h","m","s"].indexOf(SP.unit)<0) SP.unit="auto";
   if(!(+SP.goal>0)) SP.goal=60;
-  ["opened","drew","pt","ex","wipedAt"].forEach(k=>{ if(!(+SP[k]>=0)) SP[k]=0; });
+  ["opened","drew","pt","ex","wipedAt","baseMs"].forEach(k=>{ if(!(+SP[k]>=0)) SP[k]=0; });
+  /* 多すぎる記録は 古いほうから切りつめます（累計は baseMs に移すので 減りません）*/
+  if(SP.log.length>SP_LOGMAX){
+    const cut=SP.log.slice(SP_LOGMAX);
+    cut.forEach(r=>{ SP.baseMs=(+SP.baseMs||0)+Math.max(0,+r.ms||0); });
+    SP.log=SP.log.slice(0,SP_LOGMAX);
+  }
   if(typeof SP.packs==="number") SP.packs={n:SP.packs};
   if(!SP.packs||typeof SP.packs!=="object") SP.packs={};
   ["n","cu","ag","au","rb"].forEach(k=>{ SP.packs[k]=Math.max(0,+SP.packs[k]||0); });
@@ -18593,7 +18616,7 @@ const SP_SLOT_MS=30*1000;                 /* セリフが入れ替わる間か�
 const SP_SLOTS=SP_PACK_MS/SP_SLOT_MS;     /* 3分 ÷ 30秒 ＝ 6回 */
 /** いままでの合計の勉強時間（いま計測中のぶんも入れます）*/
 function spTotalMs(now){
-  let t=0;
+  let t=Math.max(0,+SP.baseMs||0);
   SP.log.forEach(r=>{ t+=(+r.ms||0); });
   if(SP.run) t+=spElapsed(SP.run,now).study;
   return t;
@@ -19091,7 +19114,8 @@ function spTotals(now){
   const live=SP.run?spElapsed(SP.run,now).study:0;
   const liveDay=SP.run?+SP.run.s:now;
   const t={day:spDayStart(now),week:spWeekStart(now),month:spMonthStart(now),year:spYearStart(now)};
-  const o={today:0,week:0,month:0,year:0,all:0,n:0,packs:0,brk:0};
+  const o={today:0,week:0,month:0,year:0,n:0,packs:0,brk:0,
+           all:Math.max(0,+SP.baseMs||0)};
   SP.log.forEach(r=>{
     const s2=+r.s||0, ms=+r.ms||0;
     o.all+=ms; o.n++; o.packs+=(+r.p||0); o.brk+=(+r.bms||0);
@@ -20265,7 +20289,7 @@ async function spWipe(withCards){
       :`<span class="tiny">カードとパックは 残ります</span><br>`)
     +`<br><b style="color:var(--bad)">元には戻せません。</b>`,"消す")) return;
   if(!await askYN("本当に消しますか？","もう一度だけ確かめます。<b>元には戻せません。</b>","はい、消します")) return;
-  SP.log=[]; SP.run=null; SP.wipedAt=Date.now();
+  SP.log=[]; SP.run=null; SP.baseMs=0; SP.wipedAt=Date.now();
   if(withCards){ SP.cards={}; SP.packs={}; SP_KIND.forEach(k=>SP.packs[k]=0);
     SP.opened=0; SP.drew=0; SP.pt=0; SP.ex=0; }
   /* タグそのものは 消しません（また使えます）*/
