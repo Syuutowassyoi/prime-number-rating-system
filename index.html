@@ -573,6 +573,19 @@ table.smt td.n,table.smt th.n{font-variant-numeric:tabular-nums}
 .mjhb .bd{font-size:.56rem;color:var(--dim2);line-height:1.2;
   margin-top:3px;white-space:nowrap;height:13px}
 .mjhb.hi .bar{background:linear-gradient(180deg,#ffd45e,#e0982a)}
+/* ── 熟練度レベル ── */
+.arxp{position:relative;margin-top:10px;background:var(--panel0);
+  border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.arxprow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.arxplv{font-size:1.15rem;color:var(--acc)}
+.arxpbar{height:9px;border-radius:9px;background:var(--panel2);overflow:hidden;margin-top:7px}
+.arxpbar i{display:block;height:100%;border-radius:9px;
+  background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+.arxpfx{position:absolute;right:12px;top:6px;font-size:.8rem;font-weight:700;
+  color:var(--acc2);pointer-events:none;animation:arxpup 1.5s ease-out forwards}
+.arxpfx.up{color:var(--warn);font-size:.95rem}
+@keyframes arxpup{0%{opacity:0;transform:translateY(6px)}
+  18%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
 /* ── TOY BOX ── */
 .toygrid{display:grid;gap:9px;margin-top:10px}
 .toyit{display:flex;align-items:flex-start;gap:12px;text-align:left;
@@ -1777,6 +1790,17 @@ footer button{background:none;border:none;color:var(--dim2);cursor:pointer;font:
   opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center;
   box-shadow:0 6px 22px #0007}
 /* ★ 下の帯があるときは、その上に出します（帯の後ろに隠れないように）*/
+/* ★ Prime SNS の投稿ボックス。
+      下の帯（.navbar は z-index 8000、.navsns は 7999）より
+      うしろ・下にいたため、スマホでは 帯にすっかり隠れていました。
+      返信は本文の中にあるので押せるのに、投稿だけ できませんでした。
+      帯の高さぶん 上に持ち上げます。 */
+body.hasnav .composer{bottom:calc(var(--navh1, var(--navh)) + 14px)}
+body.hasnav.hassns .composer{
+  bottom:calc(var(--navh1, var(--navh)) + var(--navh2, var(--navh)) + 14px)}
+body.hasnav .cplink{bottom:calc(var(--navh1, var(--navh)) + 64px)}
+body.hasnav.hassns .cplink{
+  bottom:calc(var(--navh1, var(--navh)) + var(--navh2, var(--navh)) + 64px)}
 body.hasnav .toast{bottom:calc(var(--navh1, var(--navh)) + 18px)}
 body.hasnav.hassns .toast{bottom:calc(var(--navh1, var(--navh)) + var(--navh2, var(--navh)) + 18px)}
 .toast.on{opacity:1}
@@ -2950,7 +2974,7 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
 </section>
 
 <section id="arena" hidden>
-  <div class="card">
+  <div class="card" id="arHomeCard">
     <div class="tools" style="margin-top:0">
       <h2 style="margin:0">素因数分解アリーナ</h2>
       <span class="tiny" id="arState" style="margin-left:auto"></span>
@@ -3704,7 +3728,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v147";
+const APP_VERSION = "v148";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4393,6 +4417,26 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v148":[
+    "合成数の むずかしさを「2番目に大きい素因数」で決めるようにしました",
+    "　442 ＝ 2×13×17 は、2で割れても 残りの 221＝13×17 が分からないと解けません",
+    "　これまで「やさしい」でしたが、いまは正しく「難しい」になります",
+    "　やさしい（5以下）／普通（11以下）／難しい（19以下）／鬼（49以下）／地獄（50以上）",
+    "　素数そのものには むずかしさを付けません（覚えるしかないため）",
+    "区切りを打たなくても 正解と分かるようにしました",
+    "　30 は「235」「253」「532」…、221 は「1317」「1713」、404 は「22101」「10122」",
+    "　30030 も「23571113」「13112357」など、どの並べかえでも 正解です",
+    "　よけいな数字が混ざった「11213」（143の答え）などは きちんと 不正解にします",
+    "　並べかえを全部作るのではなく、前から切り分けられるかを調べるので、",
+    "　素因数がいくつあっても 速いままです",
+    "問題を解いている間は「出題方法を選ぶ」画面を隠すようにしました",
+    "　エンターキーが「練習する」を押してしまい、パスできなかった不具合を直しました",
+    "Prime SNS で、スマホから 投稿できなかった不具合を直しました",
+    "　投稿ボックスが 下の帯のうしろに隠れていました。帯のぶん 上に出します",
+    "素因数分解アリーナに「熟練度レベル」を作りました",
+    "　1レベル 250XP。答えるだけで 1XP もらえます",
+    "　正解すると やさしい＋1／普通＋2／難しい＋3／鬼＋4／地獄＋5、素数は＋2",
+    "　PRS は「速さと正しさ」、熟練度レベルは「積み重ね」のものさしです"],
   "v147":[
     "★ 記録が多くなって 古いものを切りつめても、勉強時間が減らないことを たしかめました",
     "　25,000回ぶんで ためして、切りつめの前後で 1秒も減らないことを 確認しています",
@@ -12192,23 +12236,120 @@ const arFacText=n=>arFactor(n).join(" × ");
 /* ── 打った文字が、その数の素因数分解になっているか ──
    ・順番は自由（並べかえて見比べます）
    ・「打てていたら正解」なので、最後の数字を打った瞬間に決まります */
+/* ══ 区切りなしでも 正解にするしくみ ══════════════════════════
+   「30」に対して 235・253・532 … どれも正解にします。
+   「221」なら 1317・1713、「404」なら 22101・10122・21012 も正解です。
+
+   ★ 全部の並べかえを作ると、素因数が n 個のとき n! 通りになり、
+      30030（6個）で 720通り、もっと増えると すぐ手に負えなくなります。
+      また「素因数がぜんぶ入っていればよい」だけにすると、
+      143（＝11×13）に「11213」と打っても 正解になってしまいます
+      （まん中の 2 が よけいなのに 見のがしてしまいます）。
+
+   ★ そこで <b>前から順に 切り分けられるか</b>を調べます。
+      いまの位置から、まだ使っていない素因数のどれかで 始まっていれば、
+      その素因数を1つ使って 先へ進みます。
+      最後まで ぴったり使い切れたら 正解です。
+      「11213」は 11 を使うと 残りが「213」で 13 では始まらないため、
+      どう切っても 使い切れず 不正解になります。
+      同じ場所を二度調べないように 答えを覚えておくので、
+      並べかえの数がいくら増えても 速いままです。
+   ══════════════════════════════════════════════════════════ */
+function arSplitOK(digits, primes){
+  const d=String(digits||"");
+  if(!d||!primes||!primes.length) return false;
+  /* 同じ素因数は まとめて「種類と個数」で持ちます */
+  const kind=[], cnt=[];
+  primes.slice().sort((a,b)=>a-b).forEach(v=>{
+    const i=kind.indexOf(v);
+    if(i<0){ kind.push(v); cnt.push(1); } else cnt[i]++;
+  });
+  const str=kind.map(String);
+  const memo=new Map();
+  const go=(pos)=>{
+    if(pos===d.length) return cnt.every(c=>c===0);
+    const key=pos+"|"+cnt.join(",");
+    const hit=memo.get(key);
+    if(hit!==undefined) return hit;
+    let ok=false;
+    for(let i=0;i<kind.length&&!ok;i++){
+      if(cnt[i]<=0) continue;
+      if(!d.startsWith(str[i],pos)) continue;
+      cnt[i]--;
+      ok=go(pos+str[i].length);
+      cnt[i]++;
+    }
+    memo.set(key,ok);
+    return ok;
+  };
+  return go(0);
+}
+/** 前から そこまでは 正しく切り分けられているか（途中で ×にしないため）*/
+function arSplitMaybe(digits, primes){
+  const d=String(digits||"");
+  if(!d) return true;
+  const kind=[], cnt=[];
+  primes.slice().sort((a,b)=>a-b).forEach(v=>{
+    const i=kind.indexOf(v);
+    if(i<0){ kind.push(v); cnt.push(1); } else cnt[i]++;
+  });
+  const str=kind.map(String);
+  const memo=new Map();
+  const go=(pos)=>{
+    if(pos>=d.length) return true;             /* ここまで来られた＝見こみあり */
+    const key=pos+"|"+cnt.join(",");
+    const hit=memo.get(key);
+    if(hit!==undefined) return hit;
+    let ok=false;
+    for(let i=0;i<kind.length&&!ok;i++){
+      if(cnt[i]<=0) continue;
+      const w=str[i];
+      /* 打ちかけの数字（例：1 と打った所で 13 を待つ）も 見こみありにします */
+      const rest=d.length-pos;
+      if(rest<w.length){ if(w.startsWith(d.slice(pos))) ok=true; continue; }
+      if(!d.startsWith(w,pos)) continue;
+      cnt[i]--;
+      ok=go(pos+w.length);
+      cnt[i]++;
+    }
+    memo.set(key,ok);
+    return ok;
+  };
+  return go(0);
+}
 function arCheck(n, text){
   const t=String(text||"").trim();
   if(!t) return {done:false};
+  const want=arFactor(n).slice().sort((a,b)=>a-b);
   /* 数字と区切りだけ。区切りは 空白・カンマ・× など何でも受けます */
   const parts=t.split(/[^\d]+/).filter(x=>x!=="");
   if(!parts.length) return {done:false};
   const nums=parts.map(Number);
-  if(nums.some(v=>!(v>=2))) return {done:false,bad:true};
-  const want=arFactor(n).slice().sort((a,b)=>a-b);
-  const got=nums.slice().sort((a,b)=>a-b);
-  if(got.length>want.length) return {done:false,bad:true};
-  /* とちゅうまで合っているか（先まわりして×にしないため、多すぎる時だけ×）*/
-  const w=want.slice(), okSoFar=got.every(v=>{ const i=w.indexOf(v);
-    if(i<0) return false; w.splice(i,1); return true; });
-  if(!okSoFar) return {done:false,bad:true};
-  if(got.length===want.length) return {done:true, ok:true};
-  return {done:false};
+  /* ★ 区切りを打ったかどうかで、見かたを変えます。
+        区切って打ったなら その区切りを そのまま信じます
+        （221 に「131 7」と打ったら、131×7 のつもりなので 不正解です）。
+        区切らずに 数字だけ打ったなら、切り分けかたを こちらで探します。 */
+  const plain=(parts.length===1);
+  if(!plain){
+    if(nums.some(v=>!(v>=2))) return {done:false,bad:true};
+    const got=nums.slice().sort((a,b)=>a-b);
+    if(got.length>want.length) return {done:false,bad:true};
+    const w=want.slice(), okSoFar=got.every(v=>{ const i=w.indexOf(v);
+      if(i<0) return false; w.splice(i,1); return true; });
+    if(!okSoFar) return {done:false,bad:true};
+    if(got.length===want.length) return {done:true, ok:true};
+    return {done:false};
+  }
+  /* ── 区切らずに 数字だけ打った時 ── */
+  const digits=parts[0];
+  /* 素因数がひとつ（＝素数の問題）なら、そのまま比べます */
+  if(want.length===1){
+    if(digits===String(want[0])) return {done:true, ok:true};
+    return String(want[0]).startsWith(digits)?{done:false}:{done:false,bad:true};
+  }
+  if(arSplitOK(digits, want)) return {done:true, ok:true};
+  if(arSplitMaybe(digits, want)) return {done:false};   /* まだ途中かもしれません */
+  return {done:false, bad:true};
 }
 /* ── 図鑑の成績 ── */
 function arDexOf(n){
@@ -12242,10 +12383,77 @@ function arRecNow(){
   if(ARQ.loop && ARQ.i>=WK_MIN_REC) return true;
   return false;
 }
+/* ══ 熟練度レベル ═══════════════════════════════════════════
+   問題を解くたびに 経験値（XP）がたまり、250XP ごとに レベルが1つ上がります。
+     ・答えた　　　　 … かならず 1XP
+     ・正解（やさしい）… さらに ＋1XP
+     ・正解（普通）　　… さらに ＋2XP
+     ・正解（難しい）　… さらに ＋3XP
+     ・正解（鬼）　　　… さらに ＋4XP
+     ・正解（地獄）　　… さらに ＋5XP
+     ・正解（素数）　　… さらに ＋2XP
+   PRS は「速さと正しさ」のものさし、熟練度レベルは「積み重ね」のものさしです。
+   ══════════════════════════════════════════════════════════ */
+const K_ARXP="sa-arxp-v1";
+const AR_XP_LV=250;                       /* 1レベルに必要な経験値（ずっと同じ）*/
+const AR_XP_BONUS={a:1,b:2,c:3,d:4,e:5,p:2};
+let ARXP=Object.assign({xp:0,n:0,ok:0},ls(K_ARXP,{}));
+if(!(+ARXP.xp>=0)) ARXP.xp=0;
+if(!(+ARXP.n>=0)) ARXP.n=0;
+if(!(+ARXP.ok>=0)) ARXP.ok=0;
+const arXpSave=()=>{ try{ localStorage.setItem(K_ARXP,JSON.stringify(ARXP)); }catch(e){} };
+const arXpLv=xp=>Math.floor(Math.max(0,+xp||0)/AR_XP_LV)+1;
+/** いまのレベルと、次のレベルまでの進みぐあい */
+function arXpInfo(){
+  const xp=Math.max(0,+ARXP.xp||0);
+  const lv=arXpLv(xp), have=xp%AR_XP_LV;
+  return {xp, lv, have, need:AR_XP_LV, rest:AR_XP_LV-have,
+          pct:have/AR_XP_LV*100, n:+ARXP.n||0, ok:+ARXP.ok||0};
+}
+/** その問題を解いたら もらえる経験値 */
+function arXpFor(n, ok){
+  let g=1;                                /* 答えれば 1XP */
+  if(ok){
+    const c=(typeof ftCls==="function")?ftCls(n):null;
+    g+=(AR_XP_BONUS[c]||0);
+  }
+  return g;
+}
+/** 経験値を足します。レベルが上がったかも返します */
+function arXpAdd(n, ok){
+  const g=arXpFor(n,ok);
+  const before=arXpLv(ARXP.xp);
+  ARXP.xp=Math.max(0,+ARXP.xp||0)+g;
+  ARXP.n=(+ARXP.n||0)+1;
+  if(ok) ARXP.ok=(+ARXP.ok||0)+1;
+  arXpSave();
+  const after=arXpLv(ARXP.xp);
+  return {g, lv:after, up:after>before};
+}
 /** 1問ぶんの記録。記録しない時は、図鑑に入れず 数だけ数えます */
 function arPut(n, ok, ms){
+  /* ★ 経験値は、記録に残さない練習でも かならずもらえます */
+  const x=arXpAdd(n, ok);
+  try{ arXpFlash(x); }catch(e){}
   if(!arRecNow()){ arDayHit(1); return; }
   arDexPut(n, ok, ms);
+}
+/** もらった経験値を、画面のはしに ちらっと出します */
+function arXpFlash(x){
+  if(!x) return;
+  const bar=document.getElementById("arXpBar"), tx=document.getElementById("arXpTx");
+  const i=arXpInfo();
+  if(bar) bar.style.width=i.pct.toFixed(1)+"%";
+  if(tx) tx.innerHTML=`Lv.<b>${jp(i.lv)}</b>　${jp(i.have)} / ${jp(AR_XP_LV)} XP`;
+  const host=document.getElementById("arXpWrap");
+  if(host){
+    const e=document.createElement("span");
+    e.className="arxpfx"+(x.up?" up":"");
+    e.textContent=(x.up?"Lv."+jp(x.lv)+"！ ":"")+"＋"+jp(x.g)+" XP";
+    host.appendChild(e);
+    setTimeout(()=>{ try{ e.remove(); }catch(e2){} },1500);
+  }
+  if(x.up){ try{ toast("熟練度レベルが "+jp(x.lv)+" になりました！"); }catch(e){} }
 }
 /* 記録に残すのは、呼んだ側からまとめて行います */
 /* 復習の間かく（分）。正解するほど、次に出るまでが長くなります */
@@ -13365,7 +13573,7 @@ function arNumShow(n){
         const c=(typeof ftCls==="function")?ftCls(n):null;
         return c?`<tr><td>むずかしさ</td><td class="n">
           <b style="color:${FT_CLS[c].c}">${FT_CLS[c].n}</b>
-          <span class="tiny">（最小の素因数が ${jp(ftSpf(n))}）</span></td></tr>`:"";})()}
+          <span class="tiny">（${c==="p"?"素数です":"2番目に大きい素因数が "+jp(ftP2(n))}）</span></td></tr>`:"";})()}
       ${okn.length?`<tr><td>最速</td><td class="n"><b>${
         (Math.min(...okn.map(x=>x.ms))/1000).toFixed(2)}</b> 秒</td></tr>`:""}
     </tbody></table></div>
@@ -13451,6 +13659,21 @@ function arHome(){
         <div class="v" style="font-size:1.5rem">${jp(arCounts().today)}</div>
         <div class="s">通算 ${jp(arCounts().all)} 問</div></div>
     </div>
+    ${(()=>{ const i=arXpInfo(); return `
+    <div class="arxp" id="arXpWrap">
+      <div class="arxprow">
+        <b class="arxplv">Lv.${jp(i.lv)}</b>
+        <span class="tiny">熟練度レベル</span>
+        <span class="tiny" id="arXpTx" style="margin-left:auto">Lv.<b>${jp(i.lv)}</b>　${
+          jp(i.have)} / ${jp(AR_XP_LV)} XP</span>
+      </div>
+      <div class="arxpbar"><i id="arXpBar" style="width:${i.pct.toFixed(1)}%"></i></div>
+      <p class="tiny" style="color:var(--dim2);margin:5px 0 0">
+        次のレベルまで あと <b>${jp(i.rest)} XP</b>。通算 ${jp(i.xp)} XP・${jp(i.n)} 問
+        （正解 ${jp(i.ok)} 問）。<br>
+        答えるだけで 1XP。正解すると 難しさに応じて
+        やさしい＋1／普通＋2／難しい＋3／鬼＋4／地獄＋5、素数は＋2 もらえます。</p>
+    </div>`; })()}
     ${AR.free?`<div class="hintbox" style="border-color:var(--acc2);margin-top:10px">
       <b style="color:var(--acc2)">新しい範囲が解放されました。</b>
       次回のレートモードは ${COIN} を消費しません（1回限り）。</div>`:""}
@@ -13695,6 +13918,10 @@ function arStart(rated,qnWant,opt){
        plan:opt.plan?opt.plan.slice():(rated?arPlan(max,qn):null),
        plan0:opt.plan?opt.plan.slice():null};
   $("#arPlayCard").hidden=false;
+  /* ★ プレイ中は「出題方法を選ぶ」画面を隠します。
+        出したままだと、エンターキーが そこの「練習する」ボタンを
+        押してしまい、パスができませんでした。 */
+  arShowHome(false);
   arNext();
   try{ const pc2=$("#arPlayCard");
     if(pc2&&pc2.scrollIntoView) pc2.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
@@ -13896,10 +14123,19 @@ function arDrawPlay(){
   const gv=$("#arGiveUp");
   if(gv) gv.onclick=()=>{ if(ARQ&&ARQ.rated) return arFinish(); arQuit(); };
 }
+/** 出題方法の画面を 出す・隠す */
+function arShowHome(v){
+  const c=$("#arHomeCard");
+  if(c) c.hidden=!v;
+  /* 隠す時は、押されたままの形（focus）も はずしておきます */
+  if(!v){ try{ if(document.activeElement&&c&&c.contains(document.activeElement))
+    document.activeElement.blur(); }catch(e){} }
+}
 function arQuit(){
   arTimerStop();
   const q=ARQ; ARQ=null;
   $("#arPlayCard").hidden=true;
+  arShowHome(true);
   arHome();
   if(q&&q.list.length) arResult(q,false);
 }
@@ -13909,6 +14145,7 @@ async function arFinish(){
   arTimerStop();
   const q=ARQ; ARQ=null;
   $("#arPlayCard").hidden=true;
+  arShowHome(true);
   if(q.rated){
     try{
       const items=q.list.map(x=>({n:x.n, ok:!!x.ok, ms:Math.max(0,Math.round(x.ms))}));
@@ -14677,16 +14914,43 @@ function ftSpf(n){
   for(let d=3;d*d<=n;d+=2) if(n%d===0) return d;
   return n;
 }
-/** むずかしさのクラス（最小素因数で決まります）*/
-function ftCls(n){
-  const p=ftSpf(n);
-  if(p<=5) return "a";
-  if(p<=13) return "b";
-  return "c";
+/* ══ むずかしさ ═══════════════════════════════════════════
+   ★ 前は「いちばん小さい素因数」で決めていました。
+      でも それだと 442 ＝ 2×13×17 が「やさしい」になってしまいます。
+      2 で割れても、残った 221 ＝ 13×17 が分からないと 解けません。
+   ★ そこで「<b>2番目に大きい素因数</b>」で決めます。
+      442 なら 13、404 ＝ 2×2×101 なら 2 です。
+      いちばん大きい素因数は「最後に残る数」なので、
+      それが素数だと分かれば終わりです。
+      本当に むずかしいのは、その<b>ひとつ手前</b>だからです。
+   ★ 素数そのものには むずかしさを付けません（覚えるしかないためです）。
+   ══════════════════════════════════════════════════════════ */
+/** 2番目に大きい素因数。素数のときは 0 を返します */
+function ftP2(n){
+  const f=arFactor(n);
+  if(!f||f.length<2) return 0;
+  const a=f.slice().sort((x,y)=>x-y);
+  return a[a.length-2];
 }
-const FT_CLS={a:{n:"やさしい",d:"最小の素因数が 2・3・5。見ればわかります",c:"var(--acc2)"},
-              b:{n:"ふつう",  d:"最小の素因数が 7・11・13。見分けかたを知っていれば速いです",c:"var(--warn)"},
-              c:{n:"むずかしい",d:"最小の素因数が 17以上。ほとんどが半素数で、覚えるのが近道です",c:"var(--bad)"}};
+function ftCls(n){
+  const p=ftP2(n);
+  if(!p) return "p";            /* 素数 */
+  if(p<=5)  return "a";
+  if(p<=11) return "b";
+  if(p<=19) return "c";
+  if(p<=49) return "d";
+  return "e";
+}
+const FT_CLS={
+  a:{n:"やさしい",d:"2番目に大きい素因数が 5以下（2・3・5）。割っていけば すぐです",c:"var(--acc2)"},
+  b:{n:"普通",    d:"2番目に大きい素因数が 11以下（7・11）",c:"#7fe9ff"},
+  c:{n:"難しい",  d:"2番目に大きい素因数が 19以下（13・17・19）。442＝2×13×17 はここです",c:"var(--warn)"},
+  d:{n:"鬼",      d:"2番目に大きい素因数が 49以下（23〜47）",c:"#ff9de2"},
+  e:{n:"地獄",    d:"2番目に大きい素因数が 50以上。覚えていないと かなり手ごわいです",c:"var(--bad)"},
+  p:{n:"素数",    d:"素数そのものです。むずかしさは付けません（覚えるしかないため）",c:"#9db7ff"}};
+const FT_CLSK=["a","b","c","d","e"];
+/** その数の むずかしさ（素数なら null）*/
+const ftClsOf=n=>{ const c=ftCls(n); return c==="p"?null:c; };
 /** いま出せる いちばん上のレベル（出題できる数の上限で切ります）*/
 function ftCap(){
   const L=ftComposites(arMax());
@@ -14956,8 +15220,8 @@ function ftHome(){
   const nums=ftLvNums(FTQ.lv);
   const pool=ftPool(FTQ.lv,FTQ.cls);
   const adv=ftAdvice();
-  const cnt={a:0,b:0,c:0};
-  nums.forEach(n=>cnt[ftCls(n)]++);
+  const cnt={a:0,b:0,c:0,d:0,e:0,p:0};
+  nums.forEach(n=>{ const k=ftCls(n); if(cnt[k]!==undefined) cnt[k]++; });
   const st=ftDrillStat(FTQ.drill);
   const best=+((FT.best[FTQ.drill]||{})[FTQ.lv]||0);
   FTQ.M.q("#ftBody").innerHTML=`
@@ -15009,9 +15273,9 @@ function ftHome(){
       ${top<cap?"":`<br>※ Lv.${jp(cap)} より上は、出題できる数（2 〜 ${jp(arMax())}）を超えるため出せません。`}</p>
 
     <h3 style="margin-top:12px">むずかしさで絞る</h3>
-    <div class="segs" id="ftCls" style="grid-template-columns:repeat(4,1fr)">
+    <div class="segs" id="ftCls" style="grid-template-columns:repeat(3,1fr)">
       <button data-ftc="all" class="${FTQ.cls==="all"?"on":""}">全部（${jp(nums.length)}）</button>
-      ${["a","b","c"].map(k=>`<button data-ftc="${k}" class="${FTQ.cls===k?"on":""}"
+      ${FT_CLSK.map(k=>`<button data-ftc="${k}" class="${FTQ.cls===k?"on":""}"
         ${cnt[k]?"":"disabled"}>${FT_CLS[k].n}（${jp(cnt[k])}）</button>`).join("")}
     </div>
     <p class="tiny" style="color:var(--dim2)">${FTQ.cls==="all"
