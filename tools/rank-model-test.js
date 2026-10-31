@@ -40,10 +40,18 @@ const j = loadWeek(process.argv[2]);
 const w = M.readWeek(j);
 console.log(`週：${w.date}　種目：${Object.keys(w.cats).length}`);
 const fmt = (c, v) => c.asc ? v.toFixed(3) + '秒' : Math.round(v).toLocaleString('en-US');
-const val = [];
+const fmtD = d => d.log ? `中央値 ${Math.round(d.mean).toLocaleString('en-US')} ／ σ ${d.sd.toFixed(2)} 桁`
+  : `平均 ${d.mean.toLocaleString('en-US', { maximumFractionDigits: 2 })} ／ σ ${d.sd.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${d.unit}`;
+const val = [], dist = [];
 for (const name of Object.keys(w.cats)) {
   const c = w.cats[name], m = M.build(c);
   if (!m) { console.log(`  ${name}：参加人数が無いので とばします`); continue; }
+  /* 予測分布があるか（予測標準偏差 > 0、予測平均点は 点数なら 0 以上） */
+  if (!m.dist || !(m.sd > 0)) ng('no predicted distribution', name);
+  else {
+    if (m.tr === 'lin' && m.mean < -1e-6) ng('negative predicted mean', name, m.mean);
+    dist.push(`  ${name.padEnd(20)} 参加 ${String(m.N).padStart(6)}  ${fmtD(m.dist)}${m.clamp ? `（${m.clamp === 'low' ? '最下位≈0点' : 'まん中≥0点'} の決まりで調整）` : ''}`);
+  }
   /* 2. 読めた点 → その順位 */
   for (const p of m.pts) {
     const L = M.locate(m, p.v);
@@ -63,9 +71,12 @@ for (const name of Object.keys(w.cats)) {
   for (let k = 0; k <= 400; k++) {
     const v = c.asc ? hi - (hi - lo) * k / 400 : lo + (hi - lo) * k / 400;
     const L = M.locate(m, v);
+    if (v > 0 && (!L || L.T == null || L.rank == null)) { ng('no rank', name, v); continue; }
     if (!L || L.T == null) continue;
     if (L.T < prev - 1e-9) ng('monotone', name, v, L.T, prev);
     prev = L.T;
+    /* 読めた順位より下は「50 ＋ 10 ×（点 − 予測平均点）÷ 予測標準偏差」と同じになるか（最下位で止めた所は のぞく） */
+    if (L.conf === 'extrap' && L.rank < m.N && Math.abs(L.T - M.classicT(m, v)) > 1e-9) ng('classic T', name, v, L.T, M.classicT(m, v));
   }
   /* 5. 一覧の外の点を かくして当てる */
   const m0 = M.build(c, { extra: false });
@@ -76,6 +87,7 @@ for (const name of Object.keys(w.cats)) {
       (!L ? '—' : L.T == null ? `${L.tMax.toFixed(1)} より下（${T < L.tMax ? '合う' : 'はずれ'}）` : `${L.T.toFixed(1)}${L.mark}（ずれ ${Math.abs(L.T - T) < 0.05 ? '±0.0' : (L.T - T > 0 ? '+' : '') + (L.T - T).toFixed(1)}）`));
   }
 }
+if (dist.length) console.log('予測分布（予測平均点・予測標準偏差）：\n' + dist.join('\n'));
 if (val.length) console.log('一覧の外の点を かくして当てた結果：\n' + val.join('\n'));
 console.log(bad ? `\n確かめ：${bad} か所 おかしい所があります` : '\n確かめ：ぜんぶ合っています');
 process.exit(bad ? 1 : 0);

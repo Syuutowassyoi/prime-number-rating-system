@@ -231,7 +231,7 @@ details>summary{cursor:pointer}
       <h2>偏差値の出し方</h2>
       <div id="howBody"></div>
       <h3>さわって確かめる</h3>
-      <div class="tools" style="margin-top:0"><label class="tiny" for="bellT">偏差値</label><input type="range" id="bellT" min="20" max="95" step="0.5" value="70"><b class="num" id="bellV">70.0</b></div>
+      <div class="tools" style="margin-top:0"><label class="tiny" for="bellT">偏差値</label><input type="range" id="bellT" min="20" max="95" step="0.5" value="70"><b class="num" id="bellV">70.00</b></div>
       <div class="chart" id="bellChart"></div>
       <p class="tiny" id="bellTxt"></p>
       <details style="margin-top:10px"><summary class="tiny">見つもりの確かめ（一覧の外の点を かくして当ててみる）</summary>
@@ -245,7 +245,7 @@ details>summary{cursor:pointer}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="rank-model.js?v=1"></script>
+<script src="rank-model.js?v=2"></script>
 <script id="ana-core">
 /* ============================================================
    ランキング分析の計算（画面を持たない、計算だけの部分です）
@@ -1109,7 +1109,15 @@ function renderRate(w) {
 
 function posRows() { return [A.SUMEX].concat(A.EVENTS, [A.RAND, A.LSCORE, A.SUMALL]); }
 const DASH = '<span class="tiny">—</span>';
-const fmtT = t => t == null || !isFinite(t) ? '—' : t.toFixed(1);
+const fmtT = t => t == null || !isFinite(t) ? '—' : t.toFixed(2);
+/** 予測平均点・予測標準偏差（小数第2位まで。タイムは秒、累積は 中央値と桁） */
+function fmtDist(n, m) {
+  if (!m || !m.dist) return { mean: '—', sd: '—' };
+  const D = m.dist, f2 = x => x.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (D.log) return { mean: Math.round(D.mean).toLocaleString('en-US'), sd: f2(D.sd) + ' 桁' };
+  const u = A.kindOf(n) === 'time' ? '秒' : '';
+  return { mean: f2(D.mean) + u, sd: f2(D.sd) + u };
+}
 /** 順位・上位・偏差値の3つの欄 */
 function devCells(w, n, c, v) {
   const d = A.devOf(w, n, v);
@@ -1189,19 +1197,21 @@ function safeV(n, v) {
   return Math.ceil(v - 1e-9);
 }
 function renderDev(w) {
-  $('#devHead').innerHTML = `<tr><th>種目</th><th class="r">参加</th><th class="r">1位の偏差値</th>${DEV_T.map(t => `<th class="r">偏差値 ${t}<br><span class="tiny">上位 ${fmtPct(RM.upper(RM.zOfT(t)) * 100)}</span></th>`).join('')}</tr>`;
+  $('#devHead').innerHTML = `<tr><th>種目</th><th class="r">参加</th><th class="r">予測平均点</th><th class="r">予測標準偏差</th><th class="r">1位の偏差値</th>${DEV_T.map(t => `<th class="r">偏差値 ${t}<br><span class="tiny">上位 ${fmtPct(RM.upper(RM.zOfT(t)) * 100)}</span></th>`).join('')}</tr>`;
   const names = [A.SUMEX].concat(A.EVENTS, [A.SUMALL, A.RAND, A.LSCORE]).filter(n => w.cats[n]);
   $('#devBody').innerHTML = names.map(n => {
     const m = A.modelOf(w, n);
-    if (!m) return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">—</td><td colspan="${DEV_T.length + 1}" class="tiny">参加人数が読めていないので、出せません</td></tr>`;
+    if (!m) return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">—</td><td colspan="${DEV_T.length + 3}" class="tiny">参加人数が読めていないので、出せません</td></tr>`;
     const cells = DEV_T.map(t => {
       const r = RM.valueForT(m, t);
       if (!r || r.value == null) return `<td class="r tiny">${r && r.conf === 'over' ? '1位でも とどきません' : '—'}</td>`;
       return `<td class="r num">${esc(r.zero ? '0' : fmtV(n, safeV(n, r.value)))}<span class="mk">${r.mark}</span><br><span class="tiny">約 ${fmtN(Math.max(1, Math.floor(r.rank)))}位</span></td>`;
     }).join('');
-    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}</td><td class="r num">${fmtT(RM.tOfRank(1, m.N))}</td>${cells}</tr>`;
+    const D = fmtDist(n, m);
+    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}</td><td class="r num">${D.mean}</td><td class="r num">${D.sd}</td><td class="r num">${fmtT(RM.tOfRank(1, m.N))}</td>${cells}</tr>`;
   }).join('');
-  $('#devNote').innerHTML = '参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った人数です。参加人数が少ない種目は、1位でも偏差値が低めに出ます。<br>—：読めた順位から遠すぎて、見つもれない所です。';
+  $('#devNote').innerHTML = '参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った人数です。参加人数が少ない種目は、1位でも偏差値が低めに出ます。<br>'
+    + '予測平均点・予測標準偏差は、読めた順位の いちばん下の所に つりがね形（正規分布）を当てはめた値です（タイムは秒、累積は 中央値と「桁」＝10倍）。0点の近くに人が とても多い種目は、予測平均点が 0.00 になります。';
 }
 
 /* 偏差値の出し方 */
@@ -1227,12 +1237,14 @@ function renderHow(w) {
       <li><b>偏差値にします</b>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span><span class="ex">${esc(e3)}</span></li>
     </ol>
     <p class="tiny">点数が つりがね形に ちらばっている時は、この出し方と ふつうの偏差値が 同じになります。ちらばり方が ちがっても「上位何%か」は そのまま正しく出るのが、この出し方の よい所です。</p>
-    <h3>読めた順位の外は？</h3>
-    <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、点数と z を まっすぐ結んで見つもります（○）。
-      いちばん下の読めた順位より下は、いちばん下の所の「z が 1 下がると点数が どれだけ下がるか（傾き）」で延ばします（△）。
-      延ばすのは z で 1〜1.5 ぶんまでで、その先は「◯位より下」とだけ出します。<br>
-      201位より下の順位も読み取って入れると、その所までは ◎・○ で出せるので、ずっと確かになります。<br>
-      生成した乱数の累積・スコアの累積は、上と下で何万倍も ちがうので「点数の対数」で、タイムは「タイムの対数にマイナスを付けたもの」で、同じように計算します。</p>
+    <h3>読めた順位の外は？（予測平均点・予測標準偏差）</h3>
+    <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、点数と z を まっすぐ結んで見つもります（○）。<br>
+      いちばん下の読めた順位より下は「予測分布」を使います（△）。読めた順位の いちばん下の所に、直線 <span class="f">点数 ＝ μ ＋ σ × z</span> を当てはめて、
+      傾き σ を <b>予測標準偏差</b>、z ＝ 0（まん中の人）の所の μ を <b>予測平均点</b> とします。すると
+      <span class="f">偏差値 ＝ 50 ＋ 10 ×（点数 − μ）÷ σ</span>、順位 ≈ 参加人数 × Q(z) ＋ 0.5 で、どの記録にも 順位と偏差値が出せます。<br>
+      点数は 0点より下が無いので「最下位の人は 0点くらい（以下）」「まん中の人は 0点以上」という2つの決まりで σ の はばを決めています（0点の近くに人が とても多い種目は μ ＝ 0）。<br>
+      タイムは 秒のまま（速いほど上）、生成した乱数の累積・スコアの累積は 上と下で何万倍も ちがうので「常用対数」で、同じように計算します（σ の単位は「桁」＝10倍）。<br>
+      201位より下の順位も読み取って入れると、その所までは ◎・○ で出せるので、ずっと確かになります。</p>
     <p class="tiny">参加人数が少ない種目は、1位でも偏差値が低めに出ます（参加 N 人の1位は p ＝ 0.5 ÷ N だからです）。</p>`;
   renderBell();
   renderVal(w);
@@ -1240,14 +1252,14 @@ function renderHow(w) {
 function renderBell() {
   const host = $('#bellChart');
   const T = ST.bellT, z = RM.zOfT(T), q = RM.upper(z);
-  $('#bellV').textContent = T.toFixed(1);
+  $('#bellV').textContent = T.toFixed(2);
   host.textContent = '';
   const W = Math.max(300, host.clientWidth || 640), H = 190, M = { l: 14, r: 14, t: 16, b: 30 };
   const t0 = 20, t1 = 95;
   const X = t => M.l + (t - t0) / (t1 - t0) * (W - M.l - M.r);
   const pdf = t => { const u = RM.zOfT(t); return Math.exp(-u * u / 2); };
   const Y = y => M.t + (1 - y) * (H - M.t - M.b);
-  const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `つりがね形の図。偏差値 ${T.toFixed(1)} より上は、全体の ${fmtPct(q * 100)}` });
+  const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `つりがね形の図。偏差値 ${T.toFixed(2)} より上は、全体の ${fmtPct(q * 100)}` });
   const from = Math.max(t0, T), tail = [];
   for (let t = from; t <= t1 + 1e-9; t += 0.25) tail.push(`L${X(t).toFixed(1)} ${Y(pdf(t)).toFixed(1)}`);
   sv('path', { d: `M${X(from).toFixed(1)} ${Y(0)}` + tail.join('') + `L${X(t1).toFixed(1)} ${Y(0)}Z`, fill: 'var(--s1)', 'fill-opacity': 0.18 }, svg);
@@ -1261,7 +1273,7 @@ function renderBell() {
   sv('text', { x: X(T) + (rightSide ? 8 : -8), y: M.t + 12, 'text-anchor': rightSide ? 'start' : 'end', class: 'lab' }, svg).textContent = `上位 ${fmtPct(q * 100)}`;
   host.appendChild(svg);
   const w = curWeek(), ex = w ? exampleCat(w) : null, N = ex ? A.modelOf(w, ex).N : null;
-  $('#bellTxt').innerHTML = `偏差値 <b>${T.toFixed(1)}</b> → z ＝（${T.toFixed(1)} − 50）÷ 10 ＝ ${z.toFixed(2)} → 上から <b>${fmtPct(q * 100)}</b>`
+  $('#bellTxt').innerHTML = `偏差値 <b>${T.toFixed(2)}</b> → z ＝（${T.toFixed(2)} − 50）÷ 10 ＝ ${z.toFixed(2)} → 上から <b>${fmtPct(q * 100)}</b>`
     + (N ? `（${esc(ex)} の参加 ${fmtN(N)} 人なら、約 ${fmtN(Math.max(1, Math.round(RM.rankOfT(T, N))))}位）` : '');
 }
 function renderVal(w) {
