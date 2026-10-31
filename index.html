@@ -3018,6 +3018,13 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
 
 <section id="analysis" hidden>
   <div class="card">
+    <h2>偏差値（概算）</h2>
+    <p class="muted" style="margin-top:-8px">ランキングの全部の順位（ゲームの画面から読み取ったもの）から、あなたの記録が
+      「何位くらい・上位何%・偏差値いくつ」かを出します。<br>
+      <span class="tiny">しるし：◎ 読めた順位で ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 読めた順位より下を延ばした あらい見つもり</span></p>
+    <div id="anaDev"></div>
+  </div>
+  <div class="card">
     <h2>記録更新の難易度</h2>
     <p class="muted" style="margin-top:-8px">1・5・10・50・100・200位のボーダーの並びから、
       その種目が「密集しているか、分散しているか」を測っています。<br>
@@ -3704,6 +3711,7 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="rank-model.js?v=1"></script>
 <script>
 window.addEventListener("error",e=>{
   const b=document.getElementById("errBanner");
@@ -3728,7 +3736,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v149";
+const APP_VERSION = "v150";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4417,6 +4425,13 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v150":[
+    "「分析」に「偏差値（概算）」を足しました",
+    "　ランキングの全部の順位から、記録ごとに「何位くらい・上位何%・偏差値いくつ」かを出します",
+    "　総合偏差値（十種競技総合スコア）・平均偏差値・得意な種目・もうすぐ届く目標も出ます",
+    "　「次の目標」に、1つ上の順位や、次の偏差値（5きざみ）まで あといくつかを出します",
+    "ランキング分析のページを、だれでも見られるようにしました（偏差値の目安と出し方も のっています）",
+    "開発者メニューに「全部の順位を公開する」を足しました（rankings/ に書きこみます）"],
   "v149":[
     "開発者メニューに「ランキング集計（画像読み取り）」を足しました",
     "　ランキングのスクリーンショットから順位を読み取るページ（ranking-ocr.html）と、",
@@ -7946,6 +7961,142 @@ function renderAnaDeca(){
 }
 
 /* =========================================================
+   5x. ランキングの全部の順位（rankings/）と 偏差値（概算）
+   ・公開データ rankings/index.json と、週ごとのファイルを読みます
+   ・計算は rank-model.js（RankModel）で、ranking-analysis.html と同じです
+     偏差値 ＝ 50 ＋ 10 × z、z ＝ Φ⁻¹(1 − p)、p ＝（順位 − 0.5）÷ 参加人数
+   ========================================================= */
+const RKP={state:"idle",idx:null,weeks:{},tok:0};
+const RKP_TOT="スコアの合計 全種（素数判定を除外）", RKP_ALL="スコアの合計 全種";
+const rkpM=()=>window.RankModel||null;
+/** 公開データの一覧（rankings/index.json）を読みます */
+async function rkpIndex(){
+  if(RKP.state==="ok") return true;
+  try{
+    const r=await fetch("rankings/index.json?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    RKP.idx=await r.json(); RKP.state="ok"; return true;
+  }catch(e){ RKP.state="ng"; return false; }
+}
+/** その週のファイルを読みます（読んだ週は おぼえておきます） */
+async function rkpWeek(ent){
+  if(RKP.weeks[ent.date]) return RKP.weeks[ent.date];
+  if(!/^[\w.-]+\.json$/.test(String(ent.file||""))) return null;
+  try{
+    const r=await fetch("rankings/"+ent.file,{cache:"no-cache"});
+    if(!r.ok) return null;
+    const w=rkpM().readWeek(await r.json());
+    if(!w) return null;
+    w.date=w.date||ent.date; w.models={};
+    RKP.weeks[ent.date]=w; return w;
+  }catch(e){ return null; }
+}
+/** RATING の種目名 → その週の種目（「合計スコア」は「スコアの合計 全種（素数判定を除外）」です） */
+function rkpCat(w,n){
+  const key=n==="合計スコア"?RKP_TOT:n;
+  if(w.cats[key]) return w.cats[key];
+  const nk=normKey(key);
+  const hit=Object.keys(w.cats).find(k=>normKey(k)===nk||CANON[normKey(k)]===key);
+  return hit?w.cats[hit]:null;
+}
+function rkpModel(w,n){
+  if(!(n in w.models)){ const c=rkpCat(w,n); w.models[n]=c?rkpM().build(c):null; }
+  return w.models[n];
+}
+/** その種目の記録（スコアの合計 全種 ＝ 合計スコア ＋ 素数判定） */
+const rkpVal=n=>n===RKP_ALL?((rec["合計スコア"]>0&&rec["素数判定"]>0)?rec["合計スコア"]+rec["素数判定"]:0):(+rec[n]||0);
+const rkpName=n=>n==="合計スコア"?"十種競技総合スコア":n;
+/** 目標の記録を、とどく向きに丸めます（タイムは切り下げ、ほかは切り上げ） */
+const rkpRound=(n,x)=>LOW.has(n)?Math.floor(x*1000+1e-9)/1000:(decOf(n)!=null?Math.ceil(x*100-1e-9)/100:Math.ceil(x-1e-9));
+/** 次の目標：読めた順位の中なら「1つ上の順位」、そうでなければ「次の 5 きざみの偏差値」 */
+function rkpGoal(n,m,v,d){
+  const low=LOW.has(n), gainOf=need=>low?v-need:need-v;
+  if(d.rank===1) return {top:true};
+  /* 一覧より下で見つもれない時は、一覧のいちばん下の順位（200位など）が目標です */
+  if(d.conf==="below"){ const L=m.last, g=gainOf(L.v); return g>0?{kind:"rank",rank:L.r,need:L.v,gain:g}:null; }
+  if(d.T==null) return null;
+  if(d.conf==="exact"){
+    const up=m.pts.find(p=>p.r===d.rank-1);
+    if(up){ const g=gainOf(up.v); if(g>0) return {kind:"rank",rank:up.r,need:up.v,gain:g}; }
+  }
+  const T=Math.floor(d.T/5+1e-9)*5+5;
+  const r=rkpM().valueForT(m,T);
+  if(!r||r.value==null) return null;
+  const need=rkpRound(n,r.value), g=gainOf(need);
+  if(!(g>0)) return null;
+  return {kind:"dev",T,need,gain:g,mark:r.mark,rel:g/Math.max(low?v:need,1e-9)};
+}
+/** 目標までの差（タイムは「−◯秒」、ほかは「+◯」） */
+const rkpGain=(n,g)=>LOW.has(n)?"−"+fmtRec(n,g)+"秒":(decOf(n)!=null?"+"+fmtRec(n,g):"+"+jp(Math.ceil(g)));
+const rkpPct=p=>p<0.1?p.toFixed(3)+"%":p<10?p.toFixed(2)+"%":p.toFixed(1)+"%";
+async function renderAnaDev(){
+  const box=$("#anaDev"); if(!box) return;
+  const tok=++RKP.tok;
+  if(!rkpM()){ box.innerHTML='<p class="tiny">偏差値の計算に使うファイル（rank-model.js）を読めませんでした。ページを読み直してください。</p>'; return; }
+  if(RKP.state!=="ok"){
+    box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
+    const ok=await rkpIndex();
+    if(tok!==RKP.tok) return;
+    if(!ok){ box.innerHTML='<p class="tiny">ランキングのデータ（rankings/）を読めませんでした。ネットにつながっているか確かめてください。</p>'; return; }
+  }
+  const ent=rkpM().pickWeek(RKP.idx,(DATA()||{}).date);
+  if(!ent){ box.innerHTML='<p class="tiny">公開されたランキングのデータが、まだありません。</p>'; return; }
+  const w=await rkpWeek(ent);
+  if(tok!==RKP.tok) return;
+  if(!w){ box.innerHTML=`<p class="tiny">${esc(ent.date)} のランキングを読めませんでした。</p>`; return; }
+  try{ box.innerHTML=anaDevHtml(w); }
+  catch(e){ box.innerHTML='<p class="tiny">偏差値を計算できませんでした：'+esc(String(e.message||e))+'</p>'; }
+}
+function anaDevHtml(w){
+  const M=rkpM(), f1=t=>t==null||!isFinite(t)?"—":t.toFixed(1);
+  const link=`<p class="tiny" style="margin-top:10px">${esc(w.date)} のランキング（ゲームの画面から読み取った全部の順位）で計算しています。
+    参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」の人数です。<br>
+    <a href="./ranking-analysis.html" target="_blank" rel="noopener">くわしい分析と、偏差値の出し方（だれでも見られます）→</a></p>`;
+  const rows=[];
+  for(const n of ["合計スコア"].concat(EVENTS,[RKP_ALL,RAND,SCORE])){
+    const v=rkpVal(n); if(!(v>0)) continue;
+    const m=rkpModel(w,n); if(!m) continue;
+    const d=M.locate(m,v); if(!d) continue;
+    rows.push({n,v,m,d,g:rkpGoal(n,m,v,d)});
+  }
+  if(!rows.length) return '<p class="tiny">記録を入れると、ここに偏差値が出ます。</p>'+link;
+  /* 一覧より下で「偏差値 ◯ より下」としか言えない種目は、その上限で数えます（平均は「◯ 以下」） */
+  const games=rows.filter(r=>EVENTS.includes(r.n)&&(r.d.T!=null||r.d.conf==="below"));
+  const tv=r=>r.d.T!=null?r.d.T:r.d.tMax, nBelow=games.filter(r=>r.d.T==null).length;
+  const tot=rows.find(r=>r.n==="合計スコア"&&r.d.T!=null);
+  const avg=games.length?games.reduce((a,r)=>a+tv(r),0)/games.length:null;
+  const best=games.filter(r=>r.d.T!=null).sort((a,b)=>b.d.T-a.d.T)[0];
+  const easy=games.filter(r=>r.g&&r.g.kind==="dev").sort((a,b)=>a.g.rel-b.g.rel)[0];
+  const stat=(t,v,sub)=>`<div class="stat"><div class="t">${t}</div><div class="v">${v}</div><div class="s">${sub}</div></div>`;
+  let h='<div class="stats" style="margin-top:4px">';
+  h+=tot?stat("総合偏差値（十種競技総合スコア）",`${f1(tot.d.T)}<span class="tiny"> ${tot.d.mark}</span>`,
+              `${tot.d.conf==="exact"||tot.d.conf==="top"?"":"約 "}${jp(tot.d.rank)}位 ／ ${jp(tot.d.N)}人（上位 ${rkpPct(tot.d.top)}）`)
+        :stat("総合偏差値（十種競技総合スコア）","—","合計スコアを入れると出ます");
+  h+=stat("素数ゲームの平均偏差値",avg!=null?f1(avg)+(nBelow?'<span class="tiny"> 以下</span>':""):"—",
+    !games.length?"種目の記録を入れると出ます":nBelow?`${games.length} 種目の平均（${nBelow} 種目は一覧より下なので、上限で数えています）`:`${games.length} 種目の平均`);
+  if(best) h+=stat("いちばん得意な種目",`<span style="font-size:1.05rem">${esc(best.n)}</span>`,`偏差値 ${f1(best.d.T)} ${best.d.mark}`);
+  if(easy) h+=stat("もうすぐ届く目標",`<span style="font-size:1.05rem">${esc(easy.n)}</span>`,`あと ${rkpGain(easy.n,easy.g.gain)} で 偏差値 ${easy.g.T}`);
+  h+='</div>';
+  h+='<div class="scroll" style="margin-top:12px"><table><thead><tr><th>種目</th><th>記録</th><th>順位</th><th>上位</th><th>偏差値</th><th>次の目標</th></tr></thead><tbody>';
+  for(const r of rows){
+    const d=r.d, g=r.g;
+    let rk,tp,dv;
+    if(d.conf==="below"){ rk=`<span class="tiny">約 ${jp(d.rankMin)}位より下</span>`; tp=`<span class="tiny">上位 ${rkpPct(d.rankMin/d.N*100)} より下</span>`; dv=`<span class="tiny">${f1(d.tMax)} より下</span>`; }
+    else if(d.conf==="above"){ rk=`<span class="tiny">${jp(d.to)}位より上</span>`; tp="—"; dv=`<span class="tiny">${f1(d.T)} 以上</span>`; }
+    else{ rk=(d.conf==="exact"||d.conf==="top"?"":"約 ")+`<b>${jp(d.rank)}位</b><span class="tiny"> / ${jp(d.N)}人</span>`;
+      tp=rkpPct(d.top); dv=`<b>${f1(d.T)}</b><span class="tiny"> ${d.mark}</span>`; }
+    const goal=!g?'<span class="tiny">—</span>':g.top?'<span class="tiny">いまの1位です</span>'
+      :g.kind==="rank"?`あと <b>${rkpGain(r.n,g.gain)}</b> で ${jp(g.rank)}位<br><span class="tiny">目標 ${fmtRec(r.n,g.need)}</span>`
+      :`あと <b>${rkpGain(r.n,g.gain)}</b> で 偏差値 ${g.T}<span class="tiny"> ${g.mark}</span><br><span class="tiny">目標 ${fmtRec(r.n,g.need)}</span>`;
+    h+=`<tr><td>${esc(rkpName(r.n))}</td><td>${fmtRec(r.n,r.v)}</td><td>${rk}</td><td>${tp}</td><td>${dv}</td><td>${goal}</td></tr>`;
+  }
+  h+='</tbody></table></div>';
+  h+=`<p class="tiny">偏差値 ＝ 50 ＋ 10 × z。z は「上位 p」を つりがね形（標準正規分布）の位置に直したもので、p ＝（順位 − 0.5）÷ 参加人数 です。
+    偏差値 60 は上位 約16%、70 は上位 約2.3%、80 は上位 約0.13% です。参加人数が少ない種目は、1位でも偏差値が低めに出ます。</p>`;
+  return h+link;
+}
+
+/* =========================================================
    6. 入力イベント
    ========================================================= */
 /** 入力中も3桁区切りを保ちつつ、カーソル位置を維持する */
@@ -8154,7 +8305,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
       if(MJ.on){ mjDraw(); mjTick(); } }catch(e){} }
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
-  if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); }
+  if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); renderAnaDev(); }
   if(b.dataset.tab==="hist"){ histEnter(); }
   if(b.dataset.tab==="mood"){ moodEnter(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
@@ -30843,7 +30994,7 @@ function devEditor(box,close){
     <button class="btn" id="dvSbClear">一時設定を消す</button></div>
   <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
   <h3>ランキング集計（画像読み取り）</h3>
-  <p class="tiny" style="margin-top:-4px">ランキングのスクリーンショットから順位を読み取るページと、管理者向けの分析ページです。
+  <p class="tiny" style="margin-top:-4px">ランキングのスクリーンショットから順位を読み取るページと、だれでも見られる分析ページです。
     集計ページで書き出した JSON を選ぶと、すぐ下のボーダーの欄に入ります。
     <b>JSON に無い順位（読み取れなかった所）は、いまの値のままです。</b></p>
   <div class="tools" style="margin-top:0;margin-bottom:8px">
@@ -30852,7 +31003,16 @@ function devEditor(box,close){
     <a class="btn" href="./ranking-ocr.html" target="_blank" rel="noopener">ランキング集計を開く</a>
     <a class="btn" href="./ranking-analysis.html" target="_blank" rel="noopener">ランキング分析を開く</a>
   </div>
-  <div id="dvRkMsg" class="tiny" style="margin-bottom:14px"></div>
+  <div id="dvRkMsg" class="tiny" style="margin-bottom:8px"></div>
+  <div class="lockbox" style="margin-bottom:14px">
+    <b>全部の順位を公開する</b>
+    <p class="tiny" style="margin:4px 0 8px">上で読み込んだ JSON の全部の順位を、GitHub の rankings/ に書きこみます。
+      RATING の「分析」の偏差値と、分析ページで使われます（名前は入っていません）。GitHub 連携の設定が要ります。</p>
+    <label class="tiny" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dvRkSelf">
+      画面の「あなたの順位」の欄（自分の記録）も入れる（ふだんは入れません）</label>
+    <div class="tools" style="margin-top:8px"><button class="btn pri" id="dvRkPub" disabled>全部の順位を公開する</button>
+      <span class="tiny" id="dvRkPubMsg">先に「集計の JSON を読み込む」で JSON を選んでください。</span></div>
+  </div>
   <div class="segs2" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
     <button id="bdGame" class="on">素数ゲームのボーダー</button>
     <button id="bdLS">生成した乱数の累積・スコアの累積のボーダー</button>
@@ -30919,14 +31079,18 @@ function devEditor(box,close){
   box.innerHTML=h;
   /* ランキング集計の JSON を、ボーダーの欄に入れます（JSON に無い順位は、いまの値のまま） */
   const rkIn=box.querySelector("#dvRkIn");
+  let rkpRaw=null;      /* 公開する時に使う、読み込んだ JSON そのもの */
   if(rkIn) rkIn.onchange=async()=>{
     const f=rkIn.files&&rkIn.files[0];
     const msg=box.querySelector("#dvRkMsg");
     if(!f) return;
-    let wk=null;
-    try{ wk=rankJsonWeek(JSON.parse(await f.text())); }catch(e){ wk=null; }
+    let wk=null, raw=null;
+    try{ raw=JSON.parse(await f.text()); wk=rankJsonWeek(raw); }catch(e){ wk=null; }
     rkIn.value="";
     if(!wk){ msg.innerHTML='<span class="lose">ランキング集計の JSON として読めませんでした。</span>'; return; }
+    rkpRaw=raw;
+    const pb=box.querySelector("#dvRkPub");
+    if(pb){ pb.disabled=false; box.querySelector("#dvRkPubMsg").textContent=`${wk.date||"この"} の週を公開できます。`; }
     let nG=0,nT=0,nR=0,nS=0; const kept=[];
     for(const n of EVENTS) for(const r of ranks){
       const el=box.querySelector(`[data-b="${CSS.escape(n)}"][data-r="${r}"]`);
@@ -30950,6 +31114,32 @@ function devEditor(box,close){
       +(kept.length?`<br>JSON に無かったので、いまの値のままの所：${kept.length} 件（${esc(kept.slice(0,6).join("、"))}${kept.length>6?" …":""}）`:"")
       +(wk.date&&wk.date!==today?`<br>JSON の日付は ${esc(wk.date)}、保存する時の日付は ${esc(today)} です。`:"")
       +`<br>中身を確かめてから、下の「GitHubに直接反映する」か「新しい週として追加してダウンロード」を押してください。`;
+  };
+  const rkpBtn=box.querySelector("#dvRkPub");
+  if(rkpBtn) rkpBtn.onclick=async()=>{
+    const out=box.querySelector("#dvRkPubMsg");
+    if(!rkpRaw){ out.innerHTML='<span class="lose">先に「集計の JSON を読み込む」で JSON を選んでください。</span>'; return; }
+    if(!ghReady()){ out.innerHTML='<span class="lose">先に、下の「GitHub連携の設定」をしてください。</span>'; return; }
+    if(!rkpM()){ out.innerHTML='<span class="lose">rank-model.js を読めていません。ページを読み直してください。</span>'; return; }
+    let pub=null;
+    try{ pub=rkpM().toPublic(rkpRaw,{self:!!box.querySelector("#dvRkSelf").checked}); }
+    catch(e){ out.innerHTML=`<span class="lose">${esc(e.message||e)}</span>`; return; }
+    const nCat=Object.keys(pub.categories).length;
+    const nRank=Object.values(pub.categories).reduce((a,c)=>a+c.count,0);
+    if(!await askYN("全部の順位を公開しますか？",
+      `${esc(pub.date)} の週（${nCat} 種目・${jp(nRank)} 順位）を rankings/${esc(pub.date)}.json に書きこみます。\n`
+      +`だれでも見られるようになります（名前は入っていません）。同じ日付のファイルがあれば、入れかえます。`,"公開する")) return;
+    rkpBtn.disabled=true; out.textContent="書きこんでいます…";
+    try{
+      await ghPut(`rankings/${pub.date}.json`,rkpM().stringify(pub),`ランキングの全部の順位（${pub.date}）を公開`);
+      let idx=null;
+      try{ const g=await ghGetJson("rankings/index.json"); idx=g&&g.json; }catch(e){ idx=null; }
+      const nidx=rkpM().addToIndex(idx,pub);
+      await ghPut("rankings/index.json",JSON.stringify(nidx,null,2)+"\n",`rankings/index.json に ${pub.date} を足しました`);
+      RKP.state="idle"; RKP.idx=null; RKP.weeks={};
+      out.innerHTML=`<span class="win">公開しました：rankings/${esc(pub.date)}.json（いま ${nidx.weeks.length} 週ぶん）。サイトに出るまで 1〜2 分かかります。</span>`;
+    }catch(e){ out.innerHTML=`<span class="lose">書きこめませんでした：${esc(String(e.message||e).slice(0,160))}</span><br>${ghHint(e.message||e)}`; }
+    rkpBtn.disabled=false;
   };
   const collect=()=>{const b={};
     for(const n of EVENTS){b[n]={};for(const r of ranks)
@@ -31737,7 +31927,7 @@ function applyData(){
   if($("#verBadge")) $("#verBadge").textContent=APP_VERSION;
   try{ render(); }catch(e){ console.error(e); }
   try{ if($("#card")&&!$("#card").hidden) drawCard(); }catch(e){}
-  try{ if($("#analysis")&&!$("#analysis").hidden){ renderAnalysis(); renderAnaDeca(); } }catch(e){}
+  try{ if($("#analysis")&&!$("#analysis").hidden){ renderAnalysis(); renderAnaDeca(); renderAnaDev(); } }catch(e){}
 }
 function normalize(j){
   if(j&&Array.isArray(j.weeks)&&j.weeks.length) return j.weeks;
