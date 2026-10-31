@@ -8011,8 +8011,10 @@ const rkpRound=(n,x)=>LOW.has(n)?Math.floor(x*1000+1e-9)/1000:(decOf(n)!=null?Ma
 /** 次の目標：読めた順位の中なら「1つ上の順位」、そうでなければ「次の 5 きざみの偏差値」 */
 function rkpGoal(n,m,v,d){
   const low=LOW.has(n), gainOf=need=>low?v-need:need-v;
-  if(d.T==null) return null;
   if(d.rank===1) return {top:true};
+  /* 一覧より下で見つもれない時は、一覧のいちばん下の順位（200位など）が目標です */
+  if(d.conf==="below"){ const L=m.last, g=gainOf(L.v); return g>0?{kind:"rank",rank:L.r,need:L.v,gain:g}:null; }
+  if(d.T==null) return null;
   if(d.conf==="exact"){
     const up=m.pts.find(p=>p.r===d.rank-1);
     if(up){ const g=gainOf(up.v); if(g>0) return {kind:"rank",rank:up.r,need:up.v,gain:g}; }
@@ -8058,17 +8060,20 @@ function anaDevHtml(w){
     rows.push({n,v,m,d,g:rkpGoal(n,m,v,d)});
   }
   if(!rows.length) return '<p class="tiny">記録を入れると、ここに偏差値が出ます。</p>'+link;
-  const games=rows.filter(r=>EVENTS.includes(r.n)&&r.d.T!=null);
+  /* 一覧より下で「偏差値 ◯ より下」としか言えない種目は、その上限で数えます（平均は「◯ 以下」） */
+  const games=rows.filter(r=>EVENTS.includes(r.n)&&(r.d.T!=null||r.d.conf==="below"));
+  const tv=r=>r.d.T!=null?r.d.T:r.d.tMax, nBelow=games.filter(r=>r.d.T==null).length;
   const tot=rows.find(r=>r.n==="合計スコア"&&r.d.T!=null);
-  const avg=games.length?games.reduce((a,r)=>a+r.d.T,0)/games.length:null;
-  const best=games.slice().sort((a,b)=>b.d.T-a.d.T)[0];
+  const avg=games.length?games.reduce((a,r)=>a+tv(r),0)/games.length:null;
+  const best=games.filter(r=>r.d.T!=null).sort((a,b)=>b.d.T-a.d.T)[0];
   const easy=games.filter(r=>r.g&&r.g.kind==="dev").sort((a,b)=>a.g.rel-b.g.rel)[0];
   const stat=(t,v,sub)=>`<div class="stat"><div class="t">${t}</div><div class="v">${v}</div><div class="s">${sub}</div></div>`;
   let h='<div class="stats" style="margin-top:4px">';
   h+=tot?stat("総合偏差値（十種競技総合スコア）",`${f1(tot.d.T)}<span class="tiny"> ${tot.d.mark}</span>`,
               `${tot.d.conf==="exact"||tot.d.conf==="top"?"":"約 "}${jp(tot.d.rank)}位 ／ ${jp(tot.d.N)}人（上位 ${rkpPct(tot.d.top)}）`)
         :stat("総合偏差値（十種競技総合スコア）","—","合計スコアを入れると出ます");
-  h+=stat("素数ゲームの平均偏差値",avg!=null?f1(avg):"—",games.length?`${games.length} 種目の平均`:"種目の記録を入れると出ます");
+  h+=stat("素数ゲームの平均偏差値",avg!=null?f1(avg)+(nBelow?'<span class="tiny"> 以下</span>':""):"—",
+    !games.length?"種目の記録を入れると出ます":nBelow?`${games.length} 種目の平均（${nBelow} 種目は一覧より下なので、上限で数えています）`:`${games.length} 種目の平均`);
   if(best) h+=stat("いちばん得意な種目",`<span style="font-size:1.05rem">${esc(best.n)}</span>`,`偏差値 ${f1(best.d.T)} ${best.d.mark}`);
   if(easy) h+=stat("もうすぐ届く目標",`<span style="font-size:1.05rem">${esc(easy.n)}</span>`,`あと ${rkpGain(easy.n,easy.g.gain)} で 偏差値 ${easy.g.T}`);
   h+='</div>';
@@ -31003,8 +31008,8 @@ function devEditor(box,close){
     <b>全部の順位を公開する</b>
     <p class="tiny" style="margin:4px 0 8px">上で読み込んだ JSON の全部の順位を、GitHub の rankings/ に書きこみます。
       RATING の「分析」の偏差値と、分析ページで使われます（名前は入っていません）。GitHub 連携の設定が要ります。</p>
-    <label class="tiny" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dvRkSelf" checked>
-      画面の「あなたの順位」の欄も入れる（一覧より下の偏差値が ずっと正確になります）</label>
+    <label class="tiny" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dvRkSelf">
+      画面の「あなたの順位」の欄（自分の記録）も入れる（ふだんは入れません）</label>
     <div class="tools" style="margin-top:8px"><button class="btn pri" id="dvRkPub" disabled>全部の順位を公開する</button>
       <span class="tiny" id="dvRkPubMsg">先に「集計の JSON を読み込む」で JSON を選んでください。</span></div>
   </div>

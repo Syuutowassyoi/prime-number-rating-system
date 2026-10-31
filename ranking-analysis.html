@@ -165,7 +165,7 @@ details>summary{cursor:pointer}
       <div class="tblwrap pos"><table><thead><tr><th>種目</th><th class="r">記録</th><th class="r">順位</th><th class="r">上位</th><th class="r">偏差値</th><th class="r">すごさ</th><th>帯</th></tr></thead><tbody id="posBody"></tbody></table></div>
       <h3>偏差値のならび</h3>
       <div class="chart" id="posChart"></div>
-      <p class="note">白ぬきの点は △（あらい見つもり）です。たての線は 偏差値 50（まん中）から 10 ごとです。</p>
+      <p class="note">白ぬきの点は △（あらい見つもり）、左向きの矢印は「一覧より下なので、その偏差値より下」です。たての線は 偏差値 50（まん中）から 10 ごとです。</p>
       <div class="total" id="posTotal"></div>
     </section>
 
@@ -545,11 +545,14 @@ function devSummary(week, records) {
     const d = devOf(week, n, v);
     if (d) rows.push({ name: n, value: v, d });
   }
-  const games = rows.filter(r => EVENTS.indexOf(r.name) >= 0 && r.d.T != null);
+  /* 一覧より下で「偏差値 ◯ より下」としか言えない種目は、その上限で数えます（平均は「◯ 以下」になります） */
+  const games = rows.filter(r => EVENTS.indexOf(r.name) >= 0 && (r.d.T != null || r.d.conf === 'below'));
+  const tv = r => r.d.T != null ? r.d.T : r.d.tMax;
   const tot = rows.find(r => r.name === SUMEX && r.d.T != null) || null;
-  const avg = games.length ? games.reduce((a, r) => a + r.d.T, 0) / games.length : null;
-  const best = games.slice().sort((a, b) => b.d.T - a.d.T)[0] || null;
-  return { rows, games, total: tot, avg, best };
+  const avg = games.length ? games.reduce((a, r) => a + tv(r), 0) / games.length : null;
+  const avgBelow = games.filter(r => r.d.T == null).length;
+  const best = games.filter(r => r.d.T != null).sort((a, b) => b.d.T - a.d.T)[0] || null;
+  return { rows, games, total: tot, avg, avgBelow, best };
 }
 
 /* ---------- 週ごとの変化 ---------- */
@@ -916,8 +919,13 @@ function dotChart(host, cfg) {
     sv('rect', { x: 0, y: TOP + i * RH, width: W, height: RH, fill: 'transparent' }, g);
     const nm = sv('text', { x: LW - 10, y: cy + 4, 'text-anchor': 'end', class: 'lab' }, g);
     nm.textContent = r.name.length > 12 && W < 520 ? r.name.slice(0, 11) + '…' : r.name;
+    if (r.bound) {
+      /* 「この偏差値より下」：左向きの矢印 */
+      sv('line', { x1: cx - 17, x2: cx - 6, y1: cy, y2: cy, stroke: 'var(--s1)', 'stroke-width': 2, 'stroke-linecap': 'round' }, g);
+      sv('path', { d: `M${cx - 23} ${cy}L${cx - 16} ${cy - 4.5}L${cx - 16} ${cy + 4.5}Z`, fill: 'var(--s1)' }, g);
+    }
     sv('circle', { cx, cy, r: 5, fill: r.hollow ? 'var(--card)' : 'var(--s1)', stroke: r.hollow ? 'var(--s1)' : 'var(--card)', 'stroke-width': 2 }, g);
-    const right = cx + 44 < W;
+    const right = cx + 14 + r.text.length * 7 < W;
     sv('text', { x: right ? cx + 10 : cx - 10, y: cy + 4, 'text-anchor': right ? 'start' : 'end' }, g).textContent = r.text;
     const showTip = () => {
       tip.textContent = '';
@@ -1150,13 +1158,19 @@ function renderPos(w) {
   const S = A.devSummary(w, recs);
   const k = [];
   if (S.total) k.push(kpiHtml('総合偏差値（十種競技総合スコア）', fmtT(S.total.d.T), S.total.d.mark, `約 ${fmtN(S.total.d.rank)}位 ／ ${fmtN(S.total.d.N)}人（上位 ${fmtPct(S.total.d.top)}）`));
-  if (S.avg != null) k.push(kpiHtml('素数ゲームの平均偏差値', fmtT(S.avg), '', `${S.games.length} 種目の平均`));
+  if (S.avg != null) k.push(kpiHtml('素数ゲームの平均偏差値', fmtT(S.avg) + (S.avgBelow ? ' 以下' : ''), '',
+    S.avgBelow ? `${S.games.length} 種目の平均（${S.avgBelow} 種目は一覧より下なので、上限で数えています）` : `${S.games.length} 種目の平均`));
   if (S.best) k.push(kpiHtml('いちばん得意な種目', short(S.best.name), '', `偏差値 ${fmtT(S.best.d.T)}${S.best.d.mark}`));
   $('#posKpis').innerHTML = k.join('');
-  const rows = S.rows.filter(r => r.d.T != null && r.d.conf !== 'above').sort((a, b) => b.d.T - a.d.T).map(r => ({
-    name: short(r.name), value: r.d.T, text: fmtT(r.d.T), hollow: r.d.conf === 'extrap',
-    extra: [`記録 ${fmtV(r.name, r.value)}`, `${r.d.conf === 'exact' || r.d.conf === 'top' ? '' : '約 '}${fmtN(r.d.rank)}位 ／ ${fmtN(r.d.N)}人（上位 ${fmtPct(r.d.top)}）`, `${r.d.mark} ${RM.CONF_TEXT[r.d.conf] || ''}`]
-  }));
+  const rows = S.rows.filter(r => r.d.conf !== 'above' && (r.d.T != null || r.d.conf === 'below')).map(r => {
+    const below = r.d.T == null, t = below ? r.d.tMax : r.d.T;
+    return {
+      name: short(r.name), value: t, text: below ? fmtT(t) + ' より下' : fmtT(t), hollow: below || r.d.conf === 'extrap', bound: below,
+      extra: below
+        ? [`記録 ${fmtV(r.name, r.value)}`, `約 ${fmtN(r.d.rankMin)}位より下 ／ ${fmtN(r.d.N)}人`, `一覧より下なので、偏差値 ${fmtT(t)} より下としか言えません`]
+        : [`記録 ${fmtV(r.name, r.value)}`, `${r.d.conf === 'exact' || r.d.conf === 'top' ? '' : '約 '}${fmtN(r.d.rank)}位 ／ ${fmtN(r.d.N)}人（上位 ${fmtPct(r.d.top)}）`, `${r.d.mark} ${RM.CONF_TEXT[r.d.conf] || ''}`]
+    };
+  }).sort((a, b) => b.value - a.value);
   dotChart($('#posChart'), { rows, label: '偏差値のならび', empty: '記録を入れると、ここに偏差値がならびます' });
   if (!Object.keys(recs).length) { $('#posTotal').innerHTML = '<span class="tiny">記録を入れると、この週のボーダーで計算した RATING がここに出ます。</span>'; return; }
   const R = A.ratingOf(recs, w, dw);
@@ -1217,7 +1231,7 @@ function renderHow(w) {
     <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、点数と z を まっすぐ結んで見つもります（○）。
       いちばん下の読めた順位より下は、いちばん下の所の「z が 1 下がると点数が どれだけ下がるか（傾き）」で延ばします（△）。
       延ばすのは z で 1〜1.5 ぶんまでで、その先は「◯位より下」とだけ出します。<br>
-      ゲームの画面の「あなたの順位」の欄（一覧の外の点）があると、その点までは ○ で見つもれるので、ずっと確かになります。<br>
+      201位より下の順位も読み取って入れると、その所までは ◎・○ で出せるので、ずっと確かになります。<br>
       生成した乱数の累積・スコアの累積は、上と下で何万倍も ちがうので「点数の対数」で、タイムは「タイムの対数にマイナスを付けたもの」で、同じように計算します。</p>
     <p class="tiny">参加人数が少ない種目は、1位でも偏差値が低めに出ます（参加 N 人の1位は p ＝ 0.5 ÷ N だからです）。</p>`;
   renderBell();
