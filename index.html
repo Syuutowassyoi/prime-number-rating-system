@@ -3728,7 +3728,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v148";
+const APP_VERSION = "v149";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4417,6 +4417,12 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v149":[
+    "開発者メニューに「ランキング集計（画像読み取り）」を足しました",
+    "　ランキングのスクリーンショットから順位を読み取るページ（ranking-ocr.html）と、",
+    "　管理者向けの分析ページ（ranking-analysis.html）を、ここから開けます",
+    "　集計ページで書き出した JSON を選ぶと、ボーダーの欄に そのまま入ります",
+    "　JSON に無い順位（読み取れなかった所・checking! が残った所）は、いまの値のままにします"],
   "v148":[
     "合成数の むずかしさを「2番目に大きい素因数」で決めるようにしました",
     "　442 ＝ 2×13×17 は、2で割れても 残りの 221＝13×17 が分からないと解けません",
@@ -30744,6 +30750,35 @@ async function ghPut(path,content,message){
   return ghApi(base,{method:"PUT",body:JSON.stringify({
     message, content:b64, branch:gh.branch||"main", ...(sha?{sha}:{})})});
 }
+/** ランキング集計（ranking-ocr.html）の JSON から、ボーダーに入れる値を取り出します。
+    JSON には読み取れた順位だけが入っているので、無い順位は入れません（いまの値のままにします） */
+function rankJsonWeek(j){
+  if(!j||typeof j!=="object"||!j.categories||typeof j.categories!=="object") return null;
+  /* checking! が残っていた順位は使いません */
+  const skip=new Set();
+  [].concat(j.excluded||[],j.checking||[]).forEach(c=>{ if(c&&c.category) skip.add(normKey(c.category)+":"+c.rank); });
+  const cats={};
+  Object.keys(j.categories).forEach(k=>{ const c=j.categories[k]; if(c&&c.ranks) cats[normKey(k)]={key:normKey(k),ranks:c.ranks}; });
+  const pick=(name,list)=>{
+    const c=cats[normKey(name)], o={};
+    if(!c) return o;
+    list.forEach(r=>{ const v=+c.ranks[r]; if(v>0&&!skip.has(c.key+":"+r)) o[r]=v; });
+    return o;
+  };
+  const borders={};
+  for(const n of EVENTS){
+    let b=pick(n,[1,5,10,50,100,200]);
+    if(!Object.keys(b).length){
+      /* 前の名前で書かれていても読めるようにします */
+      const old=Object.keys(RENAME).find(o=>RENAME[o]===n&&cats[normKey(o)]);
+      if(old) b=pick(old,[1,5,10,50,100,200]);
+    }
+    if(Object.keys(b).length) borders[n]=b;
+  }
+  return {date:String(j.date||""), borders,
+    totalBorders:pick("スコアの合計 全種（素数判定を除外）",[1,5,10,25,50,100,500,1000]),
+    lsBorders:{rand:pick(RAND,LS_RANKS),score:pick(SCORE,LS_RANKS)}};
+}
 function devEditor(box,close){
   const ranks=[1,5,10,50,100,200], tRanks=[1,5,10,25,50,100,500,1000];
   const today=new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
@@ -30807,6 +30842,17 @@ function devEditor(box,close){
     <button class="btn" id="dvSbSave">この値で試す</button>
     <button class="btn" id="dvSbClear">一時設定を消す</button></div>
   <div id="sbLocal" class="tiny" hidden style="color:var(--warn)">※ この端末だけの一時設定を使用中です。</div>
+  <h3>ランキング集計（画像読み取り）</h3>
+  <p class="tiny" style="margin-top:-4px">ランキングのスクリーンショットから順位を読み取るページと、管理者向けの分析ページです。
+    集計ページで書き出した JSON を選ぶと、すぐ下のボーダーの欄に入ります。
+    <b>JSON に無い順位（読み取れなかった所）は、いまの値のままです。</b></p>
+  <div class="tools" style="margin-top:0;margin-bottom:8px">
+    <label class="btn pri" for="dvRkIn" style="cursor:pointer">集計の JSON を読み込む</label>
+    <input type="file" id="dvRkIn" accept=".json,application/json" hidden>
+    <a class="btn" href="./ranking-ocr.html" target="_blank" rel="noopener">ランキング集計を開く</a>
+    <a class="btn" href="./ranking-analysis.html" target="_blank" rel="noopener">ランキング分析を開く</a>
+  </div>
+  <div id="dvRkMsg" class="tiny" style="margin-bottom:14px"></div>
   <div class="segs2" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
     <button id="bdGame" class="on">素数ゲームのボーダー</button>
     <button id="bdLS">生成した乱数の累積・スコアの累積のボーダー</button>
@@ -30871,6 +30917,40 @@ function devEditor(box,close){
     <button class="btn" id="dvC2">閉じる</button></div>
   <p class="tiny">ダウンロードした data.json を GitHub 上の同名ファイルに差し替えれば公開サイトが更新されます。過去の週は消えずに残り、プレイヤーは画面右上のセレクトで切り替えられます。</p>`;
   box.innerHTML=h;
+  /* ランキング集計の JSON を、ボーダーの欄に入れます（JSON に無い順位は、いまの値のまま） */
+  const rkIn=box.querySelector("#dvRkIn");
+  if(rkIn) rkIn.onchange=async()=>{
+    const f=rkIn.files&&rkIn.files[0];
+    const msg=box.querySelector("#dvRkMsg");
+    if(!f) return;
+    let wk=null;
+    try{ wk=rankJsonWeek(JSON.parse(await f.text())); }catch(e){ wk=null; }
+    rkIn.value="";
+    if(!wk){ msg.innerHTML='<span class="lose">ランキング集計の JSON として読めませんでした。</span>'; return; }
+    let nG=0,nT=0,nR=0,nS=0; const kept=[];
+    for(const n of EVENTS) for(const r of ranks){
+      const el=box.querySelector(`[data-b="${CSS.escape(n)}"][data-r="${r}"]`);
+      if(!el) continue;
+      const v=(wk.borders[n]||{})[r];
+      if(v>0){ el.value=nice(v); nG++; } else kept.push(`${n} ${r}位`);
+    }
+    for(const r of tRanks){
+      const el=box.querySelector(`[data-t="${r}"]`);
+      if(!el) continue;
+      if(wk.totalBorders[r]>0){ el.value=nice(wk.totalBorders[r]); nT++; } else kept.push(`十種競技総合 ${r}位`);
+    }
+    for(const r of LS_RANKS){
+      const a=box.querySelector(`[data-lr="${r}"]`), c2=box.querySelector(`[data-ls2="${r}"]`);
+      if(a&&wk.lsBorders.rand[r]>0){ a.value=jp(wk.lsBorders.rand[r]); nR++; }
+      if(c2&&wk.lsBorders.score[r]>0){ c2.value=jp(wk.lsBorders.score[r]); nS++; }
+    }
+    msg.innerHTML=(nG+nT+nR+nS
+        ?`<span class="win">${esc(wk.date||"JSON")} の集計から、素数ゲーム ${nG} 件・十種競技総合 ${nT} 件・乱数 ${nR} 件・スコア累積 ${nS} 件を入れました。</span>`
+        :`<span class="lose">入れられる順位がありませんでした。</span>`)
+      +(kept.length?`<br>JSON に無かったので、いまの値のままの所：${kept.length} 件（${esc(kept.slice(0,6).join("、"))}${kept.length>6?" …":""}）`:"")
+      +(wk.date&&wk.date!==today?`<br>JSON の日付は ${esc(wk.date)}、保存する時の日付は ${esc(today)} です。`:"")
+      +`<br>中身を確かめてから、下の「GitHubに直接反映する」か「新しい週として追加してダウンロード」を押してください。`;
+  };
   const collect=()=>{const b={};
     for(const n of EVENTS){b[n]={};for(const r of ranks)
       b[n][r]=num(box.querySelector(`[data-b="${CSS.escape(n)}"][data-r="${r}"]`).value);}
