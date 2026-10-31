@@ -8,7 +8,9 @@
      2. 標準正規分布で「上から p の所」にある値     z ＝ Φ⁻¹(1 − p)
      3. 偏差値 ＝ 50 ＋ 10 × z
    読めた順位のあいだは、点数と z をまっすぐ結んで見つもります。
-   読めた順位より下は、いちばん下の所の「点数と z の傾き」で そのまま延ばします（△ あらい見つもり）。
+   読めた順位より下は「予測分布」（つりがね形。予測平均点 μ・予測標準偏差 σ）で出します：
+     z ＝（点数 − μ）÷ σ、偏差値 ＝ 50 ＋ 10 ×（点数 − μ）÷ σ、順位 ≈ 参加人数 × Q(z)
+   μ と σ は、読めた順位のいちばん下の所に 直線「点数 ＝ μ ＋ σz」を当てはめて出します。
    ============================================================ */
 (function (G) {
 'use strict';
@@ -55,19 +57,17 @@ const tOfRank = (r, N) => tOfZ(zOfRank(r, N));
 const rankOfT = (t, N) => N * upper(zOfT(t)) + 0.5;
 
 /* ---------- 点数の見方 ----------
-   lin：そのまま（素数ゲームの点・スコアの合計）
-   log：対数（生成した乱数の累積・スコアの累積。上と下で 何万倍もちがうので）
-   nlog：対数にマイナスを付ける（タイム。小さいほど良いので） */
+   lin：そのまま（素数ゲームの点・スコアの合計）。予測平均点・予測標準偏差の単位は「点」
+   neg：マイナスを付ける（タイム。小さいほど良いので）。単位は「秒」
+   log10：常用対数（生成した乱数の累積・スコアの累積。上と下で 何万倍もちがうので）。
+          予測平均は「中央値」、予測標準偏差の単位は「桁」（1 桁 ＝ 10 倍） */
 const TR = {
   lin: { f: v => v, inv: y => y, ok: v => v >= 0 },
-  log: { f: v => v > 0 ? Math.log(v) : -Infinity, inv: y => Math.exp(y), ok: v => v >= 0 },
-  nlog: { f: v => -Math.log(v), inv: y => Math.exp(-y), ok: v => v > 0 }
+  neg: { f: v => -v, inv: y => -y, ok: v => v > 0 },
+  log10: { f: v => v > 0 ? Math.log10(v) : -Infinity, inv: y => Math.pow(10, y), ok: v => v >= 0 }
 };
 /** いちばん下の所の傾きを出すのに使う、z の幅 */
 const TAIL_SPAN = 0.4;
-/** 読めた点より下へ延ばすのは、z で この幅まで（一覧の外の点や 1000位より下の点がある時は広く）。
-    その先は「◯位より下」とだけ出します */
-const EXTRAP_DZ = 1.0, EXTRAP_DZ_WIDE = 1.5;
 /** 確かさの しるし */
 const MARK = { exact: '◎', top: '◎', interp: '○', above: '○', extrap: '△', below: '—', over: '—', under: '—' };
 const CONF_TEXT = {
@@ -75,8 +75,8 @@ const CONF_TEXT = {
   top: 'いまの1位より上（または同じ）です',
   interp: '読めた順位のあいだを見つもっています',
   above: '読めた順位より上です',
-  extrap: '読めた順位より下なので、あらい見つもりです',
-  below: '読めた順位より下で、見つもれません'
+  extrap: '読めた順位より下なので、予測分布（予測平均点と予測標準偏差）から出しています',
+  below: '見つもれません'
 };
 
 /** 最小二乗の傾き（y を z の直線で表した時の 傾き） */
@@ -100,7 +100,7 @@ function build(cat, opt) {
   const N = opt.N > 0 ? Math.round(opt.N) : (cat.players > 0 ? Math.round(cat.players) : 0);
   if (!N) return null;
   const asc = !!cat.asc;
-  const trName = opt.tr || (asc ? 'nlog' : (cat.kind === 'cum' || /累積/.test(String(cat.name || '')) ? 'log' : 'lin'));
+  const trName = opt.tr || (asc ? 'neg' : (cat.kind === 'cum' || /累積/.test(String(cat.name || '')) ? 'log10' : 'lin'));
   const tr = TR[trName];
   const good = (a, b) => asc ? a <= b : a >= b;       // a は b と同じか、それより良い
   /* 一覧の点（並びが さかさまの所があれば、上の値にそろえます） */
@@ -144,17 +144,40 @@ function build(cat, opt) {
     tail.push(pts[i]);
     if (tail.length >= 2 && pts[i].z - last.z >= TAIL_SPAN) break;
   }
-  let b = slope(tail);
-  if (!(b > 0) || !isFinite(b)) b = slope(pts);
-  if (!(b > 0) || !isFinite(b)) b = null;
-  const listMax = list[list.length - 1].r, extraUsed = pts.filter(p => p.src === 'extra').length;
+  /* 予測分布（つりがね形）：いちばん下の所の点に 直線「y ＝ μ ＋ σz」を当てはめます。
+     傾き σ が予測標準偏差、z ＝ 0（まん中の人）の所の μ が予測平均点です（直線は いちばん下の点を通します）。
+     点数（lin）は 0点より下が無いので、2つの決まりで σ の はばを決めます：
+       ・最下位（N 位）の人は 0点か、それより下になる  → σ ≥ y_L ÷（z_L − z_N）
+       ・まん中の人は 0点より下にならない（z_L > 0 の時）→ σ ≤ y_L ÷ z_L */
+  let sd = slope(tail), clamp = '';
+  if (!(sd > 0) || !isFinite(sd)) sd = slope(pts);
   const zBottom = zOfRank(N, N);
-  const dz = extraUsed > 0 || listMax >= 1000 ? EXTRAP_DZ_WIDE : EXTRAP_DZ;
+  if (trName === 'lin' && last.y > 0) {
+    const lo = last.y / (last.z - zBottom), hi = last.z > 0 ? last.y / last.z : Infinity;
+    if (!(sd > 0) || !isFinite(sd)) { sd = lo; clamp = 'low'; }
+    else if (sd < lo) { sd = lo; clamp = 'low'; }
+    else if (sd > hi) { sd = hi; clamp = 'high'; }
+  }
+  if (!(sd > 0) || !isFinite(sd)) sd = null;
+  /* 「まん中 ≥ 0点」の決まりで止めた時は、予測平均点は ちょうど 0点です（−0 にならないように） */
+  const mean = !sd ? null : clamp === 'high' ? 0 : last.y - last.z * sd;
+  /* 画面に出す形：点（lin）・秒（neg）・中央値と桁（log10） */
+  const dist = !sd ? null : trName === 'lin' ? { mean, sd, unit: '点' }
+    : trName === 'neg' ? { mean: -mean, sd, unit: '秒' }
+    : { mean: Math.pow(10, mean), sd, unit: '桁', log: true };
+  const listMax = list[list.length - 1].r, extraUsed = pts.filter(p => p.src === 'extra').length;
   return {
-    name: cat.name || '', N, asc, tr: trName, f: tr.f, inv: tr.inv, ok: tr.ok, pts, last, b, contig,
-    listMax, extraUsed, tailFrom: tail[tail.length - 1].r, zTop: zOfRank(1, N), zBottom,
-    zFloor: Math.max(zBottom, last.z - dz)
+    name: cat.name || '', N, asc, tr: trName, f: tr.f, inv: tr.inv, ok: tr.ok, pts, last, contig,
+    sd, mean, b: sd, dist, clamp, listMax, extraUsed, tailFrom: tail[tail.length - 1].r,
+    zTop: zOfRank(1, N), zBottom, zFloor: zBottom
   };
+}
+/** 予測分布だけで出した偏差値 ＝ 50 ＋ 10 ×（点数 − 予測平均点）÷ 予測標準偏差（タイムは 速いほど上） */
+function classicT(m, value) {
+  if (!m || !m.sd) return null;
+  const v = Number(value);
+  if (!isFinite(v) || !m.ok(v)) return null;
+  return tOfZ((m.f(v) - m.mean) / m.sd);
 }
 
 /** その記録の 順位・上位%・偏差値。
@@ -182,16 +205,12 @@ function locate(m, value) {
     const rank = Math.min(b.r, Math.max(a.r + 1, Math.round(N * upper(z) + 0.5)));
     return out(rank, z, 'interp', { from: a.r, to: b.r });
   }
-  /* 3) 読めた点より下：いちばん下の所の傾きで延ばします（延ばすのは zFloor まで） */
+  /* 3) 読めた点より下：予測分布で出します。z ＝（点数 − 予測平均点）÷ 予測標準偏差（最下位で止めます） */
   const L = m.last;
-  const below = zb => ({ rank: null, z: null, T: null, top: null, conf: 'below', mark: MARK.below, N, below: L.r,
-    rankMin: Math.min(N, Math.round(N * upper(zb) + 0.5)), tMax: tOfZ(zb) });
-  if (!m.b) return below(L.z);
-  let z = y === -Infinity ? -Infinity : L.z - (L.y - y) / m.b;
-  if (!(z >= m.zFloor)) {
-    if (m.zFloor > m.zBottom) return below(m.zFloor);
-    z = m.zBottom;
-  }
+  if (!m.sd) return { rank: null, z: null, T: null, top: null, conf: 'below', mark: MARK.below, N, below: L.r, rankMin: L.r + 1, tMax: tOfZ(L.z) };
+  let z = y === -Infinity ? -Infinity : (y - m.mean) / m.sd;
+  if (!(z >= m.zBottom)) z = m.zBottom;
+  if (z > L.z) z = L.z;
   const rank = Math.min(N, Math.max(L.r + 1, Math.round(N * upper(z) + 0.5)));
   return out(rank, z, 'extrap', { from: L.r });
 }
@@ -217,12 +236,11 @@ function valueForT(m, T) {
     const y = a.y + (z - a.z) / (b.z - a.z) * (b.y - a.y);
     return res(m.inv(y), 'interp', { from: a.r, to: b.r });
   }
-  if (!m.b) return res(null, 'below', { below: m.last.r });
-  if (z < m.zFloor) return res(null, m.zFloor > m.zBottom ? 'below' : 'under', { below: m.last.r, tMin: tOfZ(m.zFloor) });
-  const L = m.last;
-  let value = m.inv(L.y - (L.z - z) * m.b), zero = false;
+  if (!m.sd) return res(null, 'below', { below: m.last.r });
+  if (z < m.zBottom) return res(null, 'under');
+  let value = m.inv(m.mean + z * m.sd), zero = false;
   if (m.tr === 'lin' && value <= 0) { value = 0; zero = true; }
-  return res(value, 'extrap', { from: L.r, zero });
+  return res(value, 'extrap', { from: m.last.r, zero });
 }
 
 /* ---------- 公開データ（rankings/）の形 ---------- */
@@ -327,9 +345,9 @@ function pickWeek(idx, date) {
 }
 
 G.RankModel = {
-  VERSION: 1, TAIL_SPAN, EXTRAP_DZ, EXTRAP_DZ_WIDE, MARK, CONF_TEXT,
+  VERSION: 2, TAIL_SPAN, MARK, CONF_TEXT,
   erfc, upper, normCdf, normInv, zOfRank, tOfZ, zOfT, tOfRank, rankOfT,
-  build, locate, valueForT, readWeek, toPublic, stringify, addToIndex, pickWeek
+  build, locate, valueForT, classicT, readWeek, toPublic, stringify, addToIndex, pickWeek
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = G.RankModel;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

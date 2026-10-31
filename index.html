@@ -2183,6 +2183,83 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
 }
 /* 太字の合成は、どこでも止めます */
 *{font-synthesis-weight:none}
+/* ══════════ 成績表（全統模試ふうの 個人成績表）══════════
+   紙の成績表のように、太い線の表と 大きな偏差値で見せます。
+   グラフの色：50 より上は青、下は だいだい（色覚のちがいでも見分けられる組み合わせ） */
+.seki{--sk-up:#3987e5;--sk-dn:#d95926;background:var(--card);border:1px solid var(--line2);border-top:6px solid var(--acc);
+  border-radius:8px;padding:18px 16px 14px;color:var(--tx);max-width:980px;margin:0 auto}
+html[data-theme="light"] .seki{--sk-up:#2a78d6;--sk-dn:#eb6834;background:#fff}
+.seki-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.seki-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;
+  border-bottom:2px solid var(--tx);padding-bottom:8px;margin-bottom:10px}
+.seki-org{font-size:.72rem;color:var(--dim);letter-spacing:.12em}
+.seki-title{font-size:1.4rem;font-weight:800;letter-spacing:.16em;margin-top:2px}
+.seki-kai{font-size:.78rem;color:var(--dim);text-align:right;line-height:1.5}
+.seki-kai b{font-size:1.05rem;color:var(--tx)}
+.seki table{border-collapse:collapse}
+.seki-who{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line2);border:1px solid var(--line2);margin:6px 0 12px}
+.seki-who>div{display:flex;background:var(--card);min-width:0}
+html[data-theme="light"] .seki-who>div{background:#fff}
+.seki-who span{flex:none;width:5.6em;background:var(--panel2);color:var(--dim);font-weight:700;font-size:.78rem;padding:6px 9px}
+.seki-who b{font-weight:600;font-size:.84rem;padding:6px 9px;min-width:0;overflow-wrap:break-word}
+.seki h3{font-size:.86rem;margin:18px 0 8px;padding:5px 10px;background:var(--panel2);border-left:4px solid var(--acc);
+  color:var(--tx);letter-spacing:.06em;border-radius:0 4px 4px 0}
+.seki-main{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:10px;align-items:stretch}
+.seki-dev{border:2px solid var(--acc);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 8px;text-align:center}
+.seki-dev .l{font-size:.78rem;color:var(--dim);letter-spacing:.16em}
+.seki-dev .v{font-family:var(--numf);font-size:2.7rem;font-weight:800;line-height:1.15}
+.seki-kv{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+.seki-kv>div{background:var(--card);padding:7px 10px;min-width:0}
+html[data-theme="light"] .seki-kv>div{background:#fff}
+.seki-kv span{display:block;font-size:.7rem;color:var(--dim);letter-spacing:.06em}
+.seki-kv b{display:block;font-family:var(--numf);font-size:1.08rem;overflow-wrap:anywhere}
+.seki-kv i{display:block;font-style:normal;font-size:.7rem;color:var(--dim2)}
+.seki-ref{font-size:.78rem;color:var(--dim);margin:8px 2px 0}
+.seki-tbl{width:100%;min-width:max-content}
+.seki-tbl th,.seki-tbl td{border:1px solid var(--line2);padding:5px 6px;font-size:.78rem}
+.seki-tbl th{background:var(--panel2);color:var(--dim);text-align:center;white-space:nowrap}
+.seki-tbl td:first-child{text-align:left;white-space:normal;min-width:7.2em}
+.seki-tbl td.dv{font-weight:800;font-size:.88rem;color:var(--tx)}
+.seki-tbl td.c{text-align:center}
+.seki-tbl tr.seki-grp td{background:var(--accsoft);color:var(--acc);font-weight:700;font-size:.78rem;text-align:left;font-family:inherit}
+.seki-tbl tr.no td{color:var(--dim2)}
+.seki-mk{font-size:.7rem;color:var(--dim);margin-left:3px;font-family:inherit}
+.seki-g{display:inline-flex;align-items:center;justify-content:center;width:1.7em;height:1.7em;border-radius:5px;
+  font-weight:800;font-family:var(--numf);font-size:.86rem;border:1.5px solid var(--line2);color:var(--tx)}
+.seki-g.S,.seki-g.A{background:var(--acc);border-color:var(--acc);color:#fff}
+.seki-g.B,.seki-g.C{border-color:var(--acc);color:var(--acc)}
+.seki-g.D,.seki-g.E{color:var(--dim)}
+.seki-dev .seki-g{margin-top:6px;width:2em;height:2em;font-size:1.05rem}
+.seki-judge .seki-g{width:2.1em;height:2.1em;font-size:1.1rem}
+.seki-judge td.j{text-align:center;line-height:1.2}
+.seki-chart{position:relative;margin-top:4px}
+.seki-chart svg{display:block;max-width:100%;height:auto;overflow:visible}
+.seki-chart text{font-size:11px;fill:var(--dim);font-family:var(--avenir),"Hiragino Sans",Meiryo,sans-serif}
+.seki-chart text.lb{fill:var(--tx)}
+.seki-chart g[data-i]:focus{outline:none}
+.seki-chart g[data-i]:focus rect{fill:var(--accsoft)}
+.seki-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.74rem;color:var(--dim);margin-top:4px}
+.seki-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.seki-tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line2);border-radius:8px;
+  padding:6px 9px;font-size:.76rem;box-shadow:var(--shadow);display:none;z-index:3;white-space:nowrap;color:var(--tx);line-height:1.5}
+.seki-next{margin:4px 0 0;padding-left:1.4em;font-size:.86rem;line-height:1.7}
+.seki-note{margin-top:16px;padding-top:8px;border-top:1px solid var(--line2);font-size:.72rem;color:var(--dim);line-height:1.65}
+.seki-note ol{margin:4px 0 0;padding-left:1.5em}
+/* 成績表は 明朝体（タブの中身ぜんぶ）。数字も同じ明朝体で、表の数字は けたをそろえます */
+#seiseki{--sekif:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho",YuMincho,"BIZ UDPMincho","Noto Serif JP","Noto Serif CJK JP","Source Han Serif JP","MS PMincho",serif}
+#seiseki,#seiseki *{font-family:var(--sekif)!important}
+#seiseki td,#seiseki .seki-kv b,#seiseki .seki-dev .v{font-variant-numeric:tabular-nums}
+/* 明朝体は線が細いので、小さい字だけ 少し太くします */
+.seki th,.seki-who span,.seki-kv span,.seki-kv i,.seki-org,.seki-kai,.seki-legend,.seki-note,.seki-mk,#seiseki .tiny,#seiseki .muted{font-weight:600}
+@media(max-width:640px){
+  .seki{padding:14px 10px}
+  .seki-main{grid-template-columns:1fr}
+  .seki-kv{grid-template-columns:repeat(2,1fr)}
+  .seki-who{grid-template-columns:1fr}
+  .seki-dev .v{font-size:2.3rem}
+  .seki-title{font-size:1.15rem}
+}
 </style>
 </head>
 <body>
@@ -2224,6 +2301,7 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
 <nav class="tabs" id="tabs" hidden>
   <div class="grp" data-g="home"><div class="ghead">ホーム</div>
     <button data-tab="profile" class="on">ホーム</button>
+    <button data-tab="seiseki">成績表</button>
     <button data-tab="pgbc">PGBC</button>
     <button data-tab="stats">統計情報</button></div>
   <div class="grp" data-g="me"><div class="ghead">個人データ</div>
@@ -2966,6 +3044,15 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
   </div>
 </section>
 
+<section id="seiseki" hidden>
+  <div class="card">
+    <h2>成績表</h2>
+    <p class="muted" style="margin-top:-8px">ゲームのランキング（全部の順位）と あなたの記録から作った、模試ふうの 個人成績表です。</p>
+    <div class="seki-tools"><label class="tiny" for="sekiWeek">回</label><select id="sekiWeek" aria-label="成績表の回"></select></div>
+    <div id="sekiBody"><p class="tiny">読み込んでいます…</p></div>
+  </div>
+</section>
+
 <section id="pgbc" hidden>
   <div class="card">
     <h2>PGBC　<span class="tiny">Prime Game Border Center</span></h2>
@@ -3021,7 +3108,7 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
     <h2>偏差値（概算）</h2>
     <p class="muted" style="margin-top:-8px">ランキングの全部の順位（ゲームの画面から読み取ったもの）から、あなたの記録が
       「何位くらい・上位何%・偏差値いくつ」かを出します。<br>
-      <span class="tiny">しるし：◎ 読めた順位で ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 読めた順位より下を延ばした あらい見つもり</span></p>
+      <span class="tiny">しるし：◎ 読めた順位で ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 予測分布（予測平均点・予測標準偏差）からの見つもり</span></p>
     <div id="anaDev"></div>
   </div>
   <div class="card">
@@ -3711,7 +3798,7 @@ h1,h2,h3,h4,h5,h6,b,strong,th,
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="rank-model.js?v=1"></script>
+<script src="rank-model.js?v=2"></script>
 <script>
 window.addEventListener("error",e=>{
   const b=document.getElementById("errBanner");
@@ -3736,7 +3823,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v150";
+const APP_VERSION = "v151";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4425,6 +4512,13 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v151":[
+    "ホームの下に「成績表」タブを足しました（全統模試ふうの 個人成績表です。中身は ぜんぶ明朝体です）",
+    "　総合偏差値（十種競技総合スコア・素数判定を除く）を大きく出し、得点・全国順位・受験者数・上位%も出します",
+    "　素数ゲーム 18 種目と、生成した乱数の累積・スコアの累積も、偏差値・全国順位・予測平均点・予測標準偏差を出します",
+    "　偏差値と予測標準偏差は 小数第2位まで、全国順位は いつも出します",
+    "　偏差値グラフ・目標判定（1000位〜1位）・次の目標・計算の注も のせました",
+    "ランキングに載っていない記録も、予測分布（予測平均点・予測標準偏差）から 順位と偏差値を出すようにしました"],
   "v150":[
     "「分析」に「偏差値（概算）」を足しました",
     "　ランキングの全部の順位から、記録ごとに「何位くらい・上位何%・偏差値いくつ」かを出します",
@@ -8048,7 +8142,7 @@ async function renderAnaDev(){
   catch(e){ box.innerHTML='<p class="tiny">偏差値を計算できませんでした：'+esc(String(e.message||e))+'</p>'; }
 }
 function anaDevHtml(w){
-  const M=rkpM(), f1=t=>t==null||!isFinite(t)?"—":t.toFixed(1);
+  const M=rkpM(), f1=t=>t==null||!isFinite(t)?"—":t.toFixed(2);
   const link=`<p class="tiny" style="margin-top:10px">${esc(w.date)} のランキング（ゲームの画面から読み取った全部の順位）で計算しています。
     参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」の人数です。<br>
     <a href="./ranking-analysis.html" target="_blank" rel="noopener">くわしい分析と、偏差値の出し方（だれでも見られます）→</a></p>`;
@@ -8095,6 +8189,234 @@ function anaDevHtml(w){
     偏差値 60 は上位 約16%、70 は上位 約2.3%、80 は上位 約0.13% です。参加人数が少ない種目は、1位でも偏差値が低めに出ます。</p>`;
   return h+link;
 }
+
+/* =========================================================
+   5y. 成績表（全統模試ふうの 個人成績表）
+   ・公開データ（rankings/）と、あなたの記録（rec）から作ります
+   ・偏差値・予測平均点・予測標準偏差は 小数第2位まで、全国順位は いつも出します
+   ・計算は rank-model.js：ランキングに載っている所は順位から、載っていない所は予測分布から
+   ========================================================= */
+const SEKI={sel:null,tok:0,tips:[],rs:0};
+/** 評価（S〜E）と、目標判定（A〜E） */
+const SEKI_GRADE=[[75,"S"],[65,"A"],[60,"B"],[55,"C"],[50,"D"],[-Infinity,"E"]];
+const sekiGrade=t=>SEKI_GRADE.find(g=>t>=g[0])[1];
+const sekiJudge=d=>d>=0?"A":d>-1?"B":d>-2.5?"C":d>-5?"D":"E";
+const SEKI_JTXT={A:"到達",B:"あと少し",C:"もう一歩",D:"がんばれば届く",E:"これから"};
+const SEKI_TGT=[1000,500,100,50,10,1];
+/** 小数第2位まで（3けたごとの区切りつき） */
+const seki2=x=>(x==null||!isFinite(x))?"—":Number(x).toLocaleString("ja-JP",{minimumFractionDigits:2,maximumFractionDigits:2});
+const sekiDate=d=>{ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||""); return m?`${+m[1]}年${+m[2]}月${+m[3]}日`:(d||"—"); };
+/** 全国順位（読めた順位でぴったりの時だけ「約」を付けません） */
+const sekiRank=d=>(!d||d.rank==null)?"—":((d.conf==="exact"||d.conf==="top")?"":"約 ")+jp(d.rank)+"位";
+/** 予測平均点・予測標準偏差（タイムは秒、累積は 中央値と桁） */
+function sekiDist(n,m){
+  if(!m||!m.dist) return {mean:"—",sd:"—"};
+  const D=m.dist;
+  if(D.log) return {mean:jp(Math.round(D.mean)),sd:seki2(D.sd)+" 桁"};
+  const u=LOW.has(n)?"秒":"";
+  return {mean:seki2(D.mean)+u,sd:seki2(D.sd)+u};
+}
+/** 1つの種目の成績 */
+function sekiItem(w,n){
+  const m=rkpModel(w,n), v=rkpVal(n);
+  return {n,v,m,d:(m&&v>0)?rkpM().locate(m,v):null};
+}
+const sekiRec=(n,v)=>fmtRec(n,v)+(LOW.has(n)?"秒":"");
+const sekiPct=p=>(p==null||!isFinite(p))?"—":(p<0.1?p.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3}):seki2(p))+"%";
+const SEKI_SHORT={"合計スコア":"総合（十種競技）",[RKP_ALL]:"スコアの合計 全種",[RAND]:"乱数の累積",[SCORE]:"スコアの累積"};
+async function renderSeki(){
+  const box=$("#sekiBody"); if(!box) return;
+  const tok=++SEKI.tok;
+  if(!rkpM()){ box.innerHTML='<p class="tiny">計算に使うファイル（rank-model.js）を読めませんでした。ページを読み直してください。</p>'; return; }
+  if(RKP.state!=="ok"){
+    box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
+    const ok=await rkpIndex();
+    if(tok!==SEKI.tok) return;
+    if(!ok){ box.innerHTML='<p class="tiny">ランキングのデータ（rankings/）を読めませんでした。ネットにつながっているか確かめてください。</p>'; return; }
+  }
+  const weeks=(RKP.idx&&Array.isArray(RKP.idx.weeks)?RKP.idx.weeks:[]).filter(x=>x&&x.date).slice().sort((a,b)=>a.date<b.date?-1:1);
+  if(!weeks.length){ box.innerHTML='<p class="tiny">公開されたランキングのデータが、まだありません。</p>'; return; }
+  if(!SEKI.sel||!weeks.some(x=>x.date===SEKI.sel)) SEKI.sel=weeks[weeks.length-1].date;
+  const sel=$("#sekiWeek");
+  if(sel) sel.innerHTML=weeks.map((x,i)=>`<option value="${esc(x.date)}"${x.date===SEKI.sel?" selected":""}>第${i+1}回（${esc(x.date)}）</option>`).join("");
+  const ent=weeks.find(x=>x.date===SEKI.sel), kai=weeks.indexOf(ent)+1;
+  const w=await rkpWeek(ent);
+  if(tok!==SEKI.tok) return;
+  if(!w){ box.innerHTML=`<p class="tiny">${esc(ent.date)} のランキングを読めませんでした。</p>`; return; }
+  try{ box.innerHTML=sekiHtml(w,kai,Math.max(300,Math.floor(box.clientWidth-34))); sekiBind(box); }
+  catch(e){ box.innerHTML='<p class="tiny">成績表を作れませんでした：'+esc(String(e.message||e))+'</p>'; }
+}
+function sekiHtml(w,kai,W){
+  const tot=sekiItem(w,"合計スコア"), all=sekiItem(w,RKP_ALL);
+  const evs=EVENTS.map(n=>sekiItem(w,n)), cums=[RAND,SCORE].map(n=>sekiItem(w,n));
+  const nEv=evs.filter(it=>it.d).length;
+  let R=null; try{ R=compute(rec); }catch(e){ R=null; }
+  const today=new Intl.DateTimeFormat("ja-JP",Object.assign({year:"numeric",month:"long",day:"numeric"},JST)).format(new Date());
+  let h=`<article class="seki">
+    <div class="seki-head"><div><div class="seki-org">素数あつめ RATING ・ 全国ランキング</div><div class="seki-title">個人成績表</div></div>
+      <div class="seki-kai">第 <b>${kai}</b> 回　${esc(sekiDate(w.date))} 集計<br>発行 ${esc(today)}</div></div>
+    <div class="seki-who">
+      <div><span>氏名</span><b>${pro.name?esc(pro.name)+" さん":"（名前は設定から入れられます）"}</b></div>
+      <div><span>ID</span><b>${pro.handle?"@"+esc(pro.handle):"—"}</b></div>
+      <div><span>受験種目</span><b>素数ゲーム ${nEv} / 18 種目</b></div>
+      <div><span>RATING</span><b>${R&&R.total>0?f3(R.total)+"　"+esc(rankOf(R.total).n):"—"}</b></div>
+    </div>`;
+  /* 総合成績（メイン：十種競技総合スコア・素数判定を除く） */
+  h+=`<h3>総合成績　十種競技総合スコア（素数判定を除く 9 種目）</h3>`;
+  if(!tot.m) h+='<p class="tiny">この回のデータに、十種競技総合スコアがありません。</p>';
+  else if(!tot.d) h+='<p class="tiny">十種競技総合スコア（合計スコア）を入れると、ここに総合成績が出ます。</p>';
+  else{
+    const d=tot.d, D=sekiDist("合計スコア",tot.m), g=sekiGrade(d.T);
+    h+=`<div class="seki-main">
+      <div class="seki-dev"><div class="l">総合偏差値</div><div class="v">${seki2(d.T)}</div><span class="seki-g ${g}" title="評価 ${g}">${g}</span></div>
+      <div class="seki-kv">
+        <div><span>得点</span><b>${jp(tot.v)}</b><i>満点 ${jp(MAXSCORE*9)}</i></div>
+        <div><span>全国順位</span><b>${sekiRank(d)}</b><i>${d.mark} ${esc(rkpM().CONF_TEXT[d.conf]||"")}</i></div>
+        <div><span>受験者数</span><b>${jp(d.N)}人</b><i>上位 ${sekiPct(d.top)}</i></div>
+        <div><span>予測平均点</span><b>${D.mean}</b></div>
+        <div><span>予測標準偏差</span><b>${D.sd}</b></div>
+        <div><span>評価</span><b>${g}</b><i>${esc(sekiGradeText(g))}</i></div>
+      </div></div>`;
+    h+=`<div class="seki-chart">${sekiMeter(d.T,W)}</div>`;
+  }
+  if(all.d) h+=`<p class="seki-ref">参考：スコアの合計 全種（素数判定を含む 10 種目）　得点 ${jp(all.v)}　偏差値 <b>${seki2(all.d.T)}</b>　全国順位 ${sekiRank(all.d)} ／ ${jp(all.d.N)}人</p>`;
+  /* 種目別成績 */
+  const head=`<tr><th>種目</th><th>得点</th><th>偏差値</th><th>全国順位</th><th>受験者数</th><th>上位</th><th>予測平均点</th><th>予測標準偏差</th><th>評価</th></tr>`;
+  const row=it=>{
+    if(!it.m) return `<tr class="no"><td>${esc(it.n)}</td><td colspan="8" class="c">この回のデータがありません</td></tr>`;
+    const D=sekiDist(it.n,it.m);
+    if(!it.d) return `<tr class="no"><td>${esc(it.n)}</td><td class="c">未受験</td><td class="c">—</td><td class="c">—</td><td>${jp(it.m.N)}人</td><td class="c">—</td><td>${D.mean}</td><td>${D.sd}</td><td class="c">—</td></tr>`;
+    const d=it.d, g=sekiGrade(d.T);
+    return `<tr><td>${esc(it.n)}</td><td>${sekiRec(it.n,it.v)}</td><td class="dv">${seki2(d.T)}</td><td>${sekiRank(d)}<span class="seki-mk">${d.mark}</span></td>`
+      +`<td>${jp(d.N)}人</td><td>${sekiPct(d.top)}</td><td>${D.mean}</td><td>${D.sd}</td><td class="c"><span class="seki-g ${g}">${g}</span></td></tr>`;
+  };
+  const grp=(t,list)=>`<tr class="seki-grp"><td colspan="9">${t}</td></tr>`+list.map(row).join("");
+  h+=`<h3>種目別成績（素数ゲーム 18 種目）</h3><div class="scroll"><table class="seki-tbl"><thead>${head}</thead><tbody>`
+    +grp("② 素数ゲームV1・V2／暗素因数分解 Lv.1-3",evs.filter(it=>CAT2.includes(it.n)))
+    +grp("③ EX系・タイムアタック系（タイムは 速いほど上）",evs.filter(it=>CAT3.includes(it.n)))+`</tbody></table></div>`;
+  /* やりこみ（累積） */
+  h+=`<h3>やりこみ成績（生成した乱数の累積・スコアの累積）</h3><div class="scroll"><table class="seki-tbl"><thead>
+    <tr><th>項目</th><th>記録</th><th>偏差値</th><th>全国順位</th><th>受験者数</th><th>上位</th><th>予測中央値</th><th>予測標準偏差</th><th>評価</th></tr></thead><tbody>`
+    +cums.map(row).join("")+`</tbody></table></div>`;
+  /* 偏差値グラフ */
+  const gr=[tot].concat(evs,cums).filter(it=>it.d&&it.d.T!=null);
+  SEKI.tips=gr.map(it=>[rkpName(it.n),`偏差値 ${seki2(it.d.T)}（評価 ${sekiGrade(it.d.T)}）`,`全国順位 ${sekiRank(it.d)} ／ ${jp(it.d.N)}人`,`上位 ${sekiPct(it.d.top)}`]);
+  if(gr.length){
+    h+=`<h3>偏差値グラフ</h3><div class="seki-chart" id="sekiChart">${sekiBars(gr.map(it=>({label:SEKI_SHORT[it.n]||it.n,T:it.d.T})),W)}<div class="seki-tip" id="sekiTip"></div></div>
+      <div class="seki-legend"><span><i style="background:var(--sk-up)"></i>偏差値 50 より上</span><span><i style="background:var(--sk-dn)"></i>偏差値 50 より下</span><span>たての線：10 ごと（太い線が 50）</span></div>`;
+  }
+  /* 目標判定（総合） */
+  if(tot.d&&tot.m) h+=sekiJudgeHtml(tot);
+  /* 次の目標 */
+  h+=sekiNextHtml([tot].concat(evs));
+  /* 注 */
+  const evMax=Math.max(0,...evs.filter(it=>it.m).map(it=>it.m.listMax));
+  h+=`<div class="seki-note"><b>注</b><ol>
+    <li>偏差値：ランキングに載っている所（順位が わかる所）は、上位の割合 p ＝（順位 − 0.5）÷ 受験者数 を、つりがね形（標準正規分布）の位置 z ＝ Φ⁻¹(1 − p) に直して、偏差値 ＝ 50 ＋ 10 × z で出しています。
+      載っていない所は、偏差値 ＝ 50 ＋ 10 ×（得点 − 予測平均点）÷ 予測標準偏差 で出し、全国順位も そこから見つもっています。</li>
+    <li>予測平均点・予測標準偏差：読めた順位の いちばん下の所に「点数 ＝ 予測平均点 ＋ 予測標準偏差 × z」の直線を当てはめた値です。
+      最下位の人は 0点くらい（以下）・まん中の人は 0点以上、という決まりで はばを決めています。0点の近くに人が とても多い種目は、予測平均点が 0.00 になります。
+      もっと下の順位まで読み取ると、より確かな値になります。</li>
+    <li>タイムの種目は 速いほど上です（予測平均点・予測標準偏差は 秒）。生成した乱数の累積・スコアの累積は「常用対数」で計算します（予測中央値は まん中の人の記録、予測標準偏差の単位「桁」は 10 倍）。</li>
+    <li>全国順位のしるし：◎ ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 予測分布からの見つもり（「約」が付きます）。</li>
+    <li>評価：S 75.00以上 ／ A 65.00以上 ／ B 60.00以上 ／ C 55.00以上 ／ D 50.00以上 ／ E 50.00未満。
+      判定：A 到達 ／ B 偏差値の差が 1.00 未満 ／ C 2.50 未満 ／ D 5.00 未満 ／ E 5.00 以上。</li>
+    <li>受験者数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った その種目の参加人数です。
+      データ：${esc(sekiDate(w.date))}のランキング（素数ゲームは ${jp(evMax)}位まで などを読み取り・名前なし）。</li>
+  </ol></div></article>`;
+  return h;
+}
+function sekiGradeText(g){ return {S:"75.00 以上",A:"65.00〜74.99",B:"60.00〜64.99",C:"55.00〜59.99",D:"50.00〜54.99",E:"50.00 未満"}[g]||""; }
+/** 総合偏差値の位置（20〜90 のめもりと、評価の帯） */
+function sekiMeter(T,W){
+  W=Math.max(300,W); const H=48, L=14, Rr=14;
+  const X=t=>L+(Math.max(20,Math.min(90,t))-20)/70*(W-L-Rr);
+  const zones=[[20,50,"E"],[50,55,"D"],[55,60,"C"],[60,65,"B"],[65,75,"A"],[75,90,"S"]];
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="総合偏差値 ${seki2(T)} の位置（20〜90）">`;
+  for(let t=20;t<=90;t+=10) s+=`<text x="${X(t)}" y="10" text-anchor="middle">${t}</text>`;
+  s+=`<rect x="${L}" y="16" width="${W-L-Rr}" height="10" rx="5" fill="var(--panel2)"/>`;
+  s+=`<rect x="${L}" y="16" width="${Math.max(10,X(T)-L)}" height="10" rx="5" fill="var(--sk-up)"/>`;
+  zones.forEach(([a,b,g])=>{ if(a>20) s+=`<line x1="${X(a)}" x2="${X(a)}" y1="14" y2="28" stroke="var(--line2)" stroke-width="1"/>`;
+    s+=`<text x="${(X(a)+X(b))/2}" y="42" text-anchor="middle">${g}</text>`; });
+  s+=`<circle cx="${X(T)}" cy="21" r="7" fill="var(--sk-up)" stroke="var(--card)" stroke-width="2"/>`;
+  return s+`</svg>`;
+}
+/** 偏差値グラフ：50 を まん中に、右へ のびるのが上、左へ のびるのが下 */
+function sekiBars(rows,W){
+  W=Math.max(300,W);
+  const RH=24, BH=12, TOP=18, LW=Math.min(150,Math.round(W*0.34)), RW=46;
+  const H=TOP+rows.length*RH+6, ts=rows.map(r=>r.T);
+  const lo=Math.min(30,Math.floor((Math.min(...ts)-2)/10)*10), hi=Math.max(80,Math.ceil((Math.max(...ts)+2)/10)*10);
+  const X=t=>LW+(Math.max(lo,Math.min(hi,t))-lo)/(hi-lo)*(W-LW-RW);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="偏差値グラフ。50 を まん中に、右が上・左が下">`;
+  for(let t=lo;t<=hi;t+=10) s+=`<line x1="${X(t)}" x2="${X(t)}" y1="${TOP-4}" y2="${H-2}" stroke="${t===50?"var(--line2)":"var(--line)"}" stroke-width="${t===50?1.5:1}"/>`
+    +`<text x="${X(t)}" y="${TOP-7}" text-anchor="middle">${t}</text>`;
+  rows.forEach((r,i)=>{
+    const y=TOP+i*RH+(RH-BH)/2, x0=X(50), x1=X(r.T), up=r.T>=50;
+    const a=Math.min(x0,x1), b=Math.max(x0,x1), rad=Math.min(4,Math.max(0,(b-a)/2));
+    const d=up?`M${a} ${y}H${b-rad}Q${b} ${y} ${b} ${y+rad}V${y+BH-rad}Q${b} ${y+BH} ${b-rad} ${y+BH}H${a}Z`
+              :`M${b} ${y}H${a+rad}Q${a} ${y} ${a} ${y+rad}V${y+BH-rad}Q${a} ${y+BH} ${a+rad} ${y+BH}H${b}Z`;
+    const lab=r.label.length>11&&W<520?r.label.slice(0,10)+"…":r.label;
+    const vx=up?b+5:x0+5;
+    s+=`<g data-i="${i}" tabindex="0" role="listitem" aria-label="${esc(r.label)} 偏差値 ${seki2(r.T)}">`
+      +`<rect x="0" y="${TOP+i*RH}" width="${W}" height="${RH}" fill="transparent"/>`
+      +`<text x="${LW-8}" y="${y+BH/2+4}" text-anchor="end" class="lb">${esc(lab)}</text>`
+      +(b-a>0.5?`<path d="${d}" fill="${up?"var(--sk-up)":"var(--sk-dn)"}"/>`:"")
+      +`<text x="${vx}" y="${y+BH/2+4}" class="lb">${seki2(r.T)}</text></g>`;
+  });
+  return s+`</svg>`;
+}
+/** グラフの ふきだし（ポインターでも キーボードでも） */
+function sekiBind(box){
+  const ch=box.querySelector("#sekiChart"), tip=box.querySelector("#sekiTip");
+  if(!ch||!tip) return;
+  const show=g=>{
+    const t=SEKI.tips[+g.dataset.i]; if(!t) return;
+    tip.innerHTML=`<b>${esc(t[0])}</b><br>`+t.slice(1).map(esc).join("<br>");
+    tip.style.display="block";
+    const cr=ch.getBoundingClientRect(), gr=g.getBoundingClientRect();
+    let left=Math.min(Math.max(0,cr.width-tip.offsetWidth),Math.max(0,cr.width*0.45));
+    tip.style.left=left+"px"; tip.style.top=Math.max(0,gr.bottom-cr.top+2)+"px";
+  };
+  const hide=()=>{ tip.style.display="none"; };
+  ch.querySelectorAll("g[data-i]").forEach(g=>{
+    g.addEventListener("pointerenter",()=>show(g)); g.addEventListener("focus",()=>show(g));
+    g.addEventListener("pointerleave",hide); g.addEventListener("blur",hide);
+  });
+}
+/** 目標判定（総合）：1000位〜1位 */
+function sekiJudgeHtml(it){
+  const M=rkpM(), m=it.m, N=m.N, d=it.d;
+  const rows=SEKI_TGT.filter(R=>R<=N).map(R=>{
+    const p=m.pts.find(q=>q.r===R);
+    const need=p?p.v:((M.valueForT(m,M.tOfRank(R,N))||{}).value);
+    const tT=M.tOfRank(R,N), diff=d.T-tT;
+    const reached=d.rank!=null&&d.rank<=R;
+    let j=sekiJudge(diff); if(reached) j="A"; else if(j==="A") j="B";
+    const gap=need!=null?need-it.v:null;
+    return `<tr><td>${R===1?"1位":jp(R)+"位以内"}</td><td>${need!=null?jp(Math.ceil(need)):"—"}</td><td>${seki2(tT)}</td>`
+      +`<td>${diff>=0?"+":""}${seki2(diff)}</td><td>${reached?"到達しています":(gap>0?"あと +"+jp(Math.ceil(gap))+" 点":"—")}</td>`
+      +`<td class="j"><span class="seki-g ${j}">${j}</span><div class="tiny">${SEKI_JTXT[j]}</div></td></tr>`;
+  }).join("");
+  return `<h3>目標判定（総合）</h3><div class="scroll"><table class="seki-tbl seki-judge"><thead><tr><th>目標</th><th>必要な得点</th><th>目標の偏差値</th><th>あなたとの差</th><th>あと</th><th>判定</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+/** 次の目標：あと少しで届くものを 3 つ */
+function sekiNextHtml(items){
+  const goals=items.filter(it=>it.d&&it.d.T!=null&&it.m).map(it=>({it,g:rkpGoal(it.n,it.m,it.v,it.d)}))
+    .filter(x=>x.g&&!x.g.top&&x.g.gain>0);
+  goals.forEach(x=>{ if(x.g.rel==null) x.g.rel=x.g.gain/Math.max(LOW.has(x.it.n)?x.it.v:x.g.need,1e-9); });
+  goals.sort((a,b)=>a.g.rel-b.g.rel);
+  const top=goals.slice(0,3);
+  if(!top.length) return "";
+  return `<h3>次の目標（あと少しで届くもの）</h3><ol class="seki-next">`+top.map(x=>{
+    const g=x.g, n=x.it.n, unit=LOW.has(n)?"":" 点";
+    const what=g.kind==="rank"?`${jp(g.rank)}位`:`偏差値 ${g.T}.00`;
+    return `<li><b>${esc(rkpName(n))}</b>：あと <b>${rkpGain(n,g.gain)}${unit}</b> で ${what}（目標 ${esc(sekiRec(n,g.need))}）</li>`;
+  }).join("")+`</ol>`;
+}
+$("#sekiWeek")&&($("#sekiWeek").onchange=e=>{ SEKI.sel=e.target.value; renderSeki(); });
+window.addEventListener("resize",()=>{ clearTimeout(SEKI.rs);
+  SEKI.rs=setTimeout(()=>{ if($("#seiseki")&&!$("#seiseki").hidden) renderSeki(); },250); });
 
 /* =========================================================
    6. 入力イベント
@@ -8284,7 +8606,7 @@ const saveWhere=()=>{ try{ localStorage.setItem(K_TAB,JSON.stringify(
   {tab:(document.querySelector("#tabs button.on")||{}).dataset?.tab||"profile",sv:snsView})); }catch(e){} };
 $$("#tabs button").forEach(b=>b.onclick=()=>{
   $$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["profile","pgbc","stats","arena","sp","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
+  ["profile","seiseki","pgbc","stats","arena","sp","plan","analysis","hist","mood","ls","card","input","sns","settings","rprank","rankedit","help","cheer"]
     .concat(EXT.hide).forEach(id=>{ const el=$("#"+id); if(el) el.hidden=(id!==b.dataset.tab); });
   /* スタソスの白い背景は、ほかの画面に移ったら もとに戻します */
   document.body.classList.remove("spon");
@@ -8306,6 +8628,7 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); renderAnaDev(); }
+  if(b.dataset.tab==="seiseki") renderSeki();
   if(b.dataset.tab==="hist"){ histEnter(); }
   if(b.dataset.tab==="mood"){ moodEnter(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
@@ -31928,6 +32251,7 @@ function applyData(){
   try{ render(); }catch(e){ console.error(e); }
   try{ if($("#card")&&!$("#card").hidden) drawCard(); }catch(e){}
   try{ if($("#analysis")&&!$("#analysis").hidden){ renderAnalysis(); renderAnaDeca(); renderAnaDev(); } }catch(e){}
+  try{ if($("#seiseki")&&!$("#seiseki").hidden) renderSeki(); }catch(e){}
 }
 function normalize(j){
   if(j&&Array.isArray(j.weeks)&&j.weeks.length) return j.weeks;
