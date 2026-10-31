@@ -2246,6 +2246,12 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
 .seki-next{margin:4px 0 0;padding-left:1.4em;font-size:.86rem;line-height:1.7}
 .seki-note{margin-top:16px;padding-top:8px;border-top:1px solid var(--line2);font-size:.72rem;color:var(--dim);line-height:1.65}
 .seki-note ol{margin:4px 0 0;padding-left:1.5em}
+/* 成績表は 明朝体（タブの中身ぜんぶ）。数字も同じ明朝体で、表の数字は けたをそろえます */
+#seiseki{--sekif:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho",YuMincho,"BIZ UDPMincho","Noto Serif JP","Noto Serif CJK JP","Source Han Serif JP","MS PMincho",serif}
+#seiseki,#seiseki *{font-family:var(--sekif)!important}
+#seiseki td,#seiseki .seki-kv b,#seiseki .seki-dev .v{font-variant-numeric:tabular-nums}
+/* 明朝体は線が細いので、小さい字だけ 少し太くします */
+.seki th,.seki-who span,.seki-kv span,.seki-kv i,.seki-org,.seki-kai,.seki-legend,.seki-note,.seki-mk,#seiseki .tiny,#seiseki .muted{font-weight:600}
 @media(max-width:640px){
   .seki{padding:14px 10px}
   .seki-main{grid-template-columns:1fr}
@@ -4507,7 +4513,7 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
   "v151":[
-    "ホームの下に「成績表」タブを足しました（全統模試ふうの 個人成績表です）",
+    "ホームの下に「成績表」タブを足しました（全統模試ふうの 個人成績表です。中身は ぜんぶ明朝体です）",
     "　総合偏差値（十種競技総合スコア・素数判定を除く）を大きく出し、得点・全国順位・受験者数・上位%も出します",
     "　素数ゲーム 18 種目と、生成した乱数の累積・スコアの累積も、偏差値・全国順位・予測平均点・予測標準偏差を出します",
     "　偏差値と予測標準偏差は 小数第2位まで、全国順位は いつも出します",
