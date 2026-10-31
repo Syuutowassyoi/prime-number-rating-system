@@ -138,12 +138,19 @@ function cmdTrain(dir, mapFile) {
   const { O, html, templates } = loadOCR();
   const map = mapFile ? JSON.parse(fs.readFileSync(mapFile, 'utf8')) : {};
   const D = O._dev;
-  const bags = { score: {}, rank: {}, info: {} };
+  /* 1つの文字につき 1200 個まで（多すぎる時は、まんべんなく選びます） */
+  const bags = { score: {}, rank: {}, info: {} }, seen = { score: {}, rank: {}, info: {} };
+  const CAP = 1200;
+  let seed = 12345;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
   const add = (kind, ch) => {
     if (!ch.vec || ch.c.length !== 1 || ch.unsure) return;
-    (bags[kind][ch.c] = bags[kind][ch.c] || []).push(Array.from(ch.vec));
+    const bag = bags[kind][ch.c] = bags[kind][ch.c] || [];
+    const n = seen[kind][ch.c] = (seen[kind][ch.c] || 0) + 1;
+    if (bag.length < CAP) bag.push(Array.from(ch.vec));
+    else { const k = Math.floor(rnd() * n); if (k < CAP) bag[k] = Array.from(ch.vec); }
   };
-  const titles = {};
+  const prints = {};
   for (const f of listPNG(dir)) {
     const img = decodePNG(fs.readFileSync(f));
     const forced = map[path.basename(f)] || null;
@@ -151,7 +158,7 @@ function cmdTrain(dir, mapFile) {
     if (r.categoryId) {
       const hdr = D.findHeader(img);
       const p = hdr && D.titlePrint(img, hdr);
-      if (p && (forced || r.categorySure)) titles[r.categoryId] = { id: r.categoryId, w: p.w, h: p.h, a: Buffer.from(p.a).toString('base64') };
+      if (p && !p.prefix && (forced || r.categorySure)) (prints[r.categoryId] = prints[r.categoryId] || []).push(p);
     }
     /* checking! の出ない、形の正しい行だけを お手本に使います */
     for (const row of r._rows || []) {
@@ -182,10 +189,25 @@ function cmdTrain(dir, mapFile) {
         out[kind].push({ c, v: b64(mean.map(x => x / k.m.length)) });
       }
     }
-    console.log(`${kind}: ${[...fresh].map(c => `${c}(${bags[kind][c].length})`).join(' ')} → お手本 ${out[kind].length} 個`);
+    console.log(`${kind}: ${[...fresh].map(c => `${c}(${seen[kind][c]})`).join(' ')} → お手本 ${out[kind].length} 個`);
   }
-  out.titles = (templates.titles || []).filter(t => !titles[t.id]).concat(Object.values(titles));
-  console.log(`種目名の指紋：${Object.keys(titles).length} 種目を作り直し、合計 ${out.titles.length} 種目`);
+  /* 種目名の指紋：種目ごとに いちばん代表的なもの（ほかとの ちがいの合計が いちばん小さいもの）と、
+     それから いちばん はなれたもの（見え方のちがいを おぼえるため）を残します */
+  const titles = [];
+  for (const id of Object.keys(prints)) {
+    const ps = prints[id];
+    let best = ps[0], bs = Infinity;
+    for (const a of ps) { let s2 = 0; for (const b of ps) if (a !== b) s2 += D.titleDistance(a, b); if (s2 < bs) { bs = s2; best = a; } }
+    titles.push(best);
+    let far = null, fd = 0;
+    for (const b of ps) { const dd = D.titleDistance(b, best); if (dd > fd) { fd = dd; far = b; } }
+    if (far && fd > 0.02) titles.push(far);
+    best.id = id; if (far) far.id = id;
+  }
+  const fresh = new Set(Object.keys(prints));
+  out.titles = (templates.titles || []).filter(t => !fresh.has(t.id))
+    .concat(titles.map(p => ({ id: p.id, w: p.w, h: p.h, a: Buffer.from(p.a).toString('base64') })));
+  console.log(`種目名の指紋：${fresh.size} 種目を作り直し、合計 ${out.titles.length} 個`);
   const next = html.replace(/(<script type="application\/json" id="ocr-templates">)[\s\S]*?(<\/script>)/,
     (m0, a, b) => a + JSON.stringify(out) + b);
   fs.writeFileSync(HTML, next);
