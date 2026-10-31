@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>素数あつめ ランキング集計</title>
 <meta name="description" content="素数あつめのランキングのスクリーンショットを読み取って、種目ごとの順位表と JSON を作ります。画像はどこにも送らず、この端末の中だけで読み取ります。">
 <style>
@@ -198,13 +199,18 @@ pre.out{background:var(--card2);border:1px solid var(--line);border-radius:10px;
 
   <section class="card hide" id="cardOut">
     <h2><span class="step">4</span>JSON に書き出す</h2>
-    <p class="tiny" style="margin-top:-4px">種目ごとの全部の順位と、data.json にそのまま入る形（borders / totalBorders / lsBorders）を1つのファイルにします。</p>
+    <p class="tiny" style="margin-top:-4px"><b>読み取れた順位だけ</b>を入れます。間が抜けていても、そのまま書き出して提出できます。
+      checking! が残っている順位は入れずに「入れなかった順位」として書いておきます（直すと入ります）。<br>
+      data.json の週と同じ形（borders / totalBorders / lsBorders）も いっしょに入ります。<br>
+      <b>提出のしかた：</b>RATING の「開発者メニュー」→「集計の JSON を読み込む」でこのファイルを選ぶと、ボーダーの欄に入ります。
+      あとは いつもどおり「GitHubに直接反映する」を押してください。</p>
     <div class="tools" style="margin-top:0">
       <button class="btn pri" id="btnJson" type="button">JSON をダウンロード</button>
       <button class="btn" id="btnJsonCp" type="button">JSON をコピー</button>
+      <a class="btn" href="./ranking-analysis.html" target="_blank" rel="noopener">ランキング分析で見る（管理者向け）</a>
     </div>
     <div id="outWarn" class="tiny" style="margin-top:8px"></div>
-    <details style="margin-top:10px"><summary class="tiny">RATING の「開発者メニュー → 貼り付けて一括入力」に貼る文字</summary>
+    <details style="margin-top:10px"><summary class="tiny">（JSON を使わない時）RATING の「開発者メニュー → 貼り付けて一括入力」に貼る文字</summary>
       <div class="grid2" style="margin-top:8px">
         <div><div class="tools" style="margin-top:0"><b class="tiny">素数ゲームのボーダー</b><button class="btn sm" data-copy="game" type="button">コピー</button></div><pre class="out" id="outGame"></pre></div>
         <div><div class="tools" style="margin-top:0"><b class="tiny">十種競技総合（判定除外）</b></div><pre class="out" id="outTotal"></pre></div>
@@ -1069,6 +1075,7 @@ function today() {
 }
 /* 手で直した値は、週の日付ごとに この端末へ控えておきます（読み直しても消えません） */
 const K_MANUAL = 'sa-rankocr-manual-v1';
+const K_LAST = 'sa-rankocr-last-v1';
 function loadManual() {
   try { const all = JSON.parse(localStorage.getItem(K_MANUAL) || '{}'); S.manual = all[S.date] || {}; }
   catch (e) { S.manual = {}; }
@@ -1475,35 +1482,43 @@ function jumpTo(key) {
 function syncSeg() { document.querySelectorAll('#segOnly button').forEach(b => b.classList.toggle('on', (b.dataset.v === '1') === S.only)); }
 
 /* ===== 書き出し ===== */
+/* 書き出す順位：読み取れていて、checking! の残っていない順位だけ（手で直した値は入ります） */
+const okRow = s => !isNaN(s.score) && !s.flags.length;
 function buildJson() {
   const out = {
-    app: '素数あつめ ランキング集計', format: 1, date: S.date, createdAt: new Date().toISOString(),
+    app: '素数あつめ ランキング集計', format: 2, date: S.date, createdAt: new Date().toISOString(),
     images: S.files.length,
+    note: '読み取れた順位だけが入っています。抜けている順位は入っていません。',
     categories: {},
     week: { date: S.date, borders: {}, totalBorders: {}, lsBorders: { rand: {}, score: {} } },
-    checking: []
+    excluded: []
   };
   for (const c of O.CATS) {
     const m = M[c.id]; if (!m) continue;
     const ranks = {}, manual = [];
-    m.rows.forEach(s => { if (!isNaN(s.score)) ranks[s.rank] = s.score; if (s.src === 'manual') manual.push(s.rank); });
+    for (const s of m.rows) {
+      if (isNaN(s.score)) continue;
+      if (!okRow(s)) { out.excluded.push({ category: c.name, rank: s.rank, value: s.score, flags: s.flags }); continue; }
+      ranks[s.rank] = s.score;
+      if (s.src === 'manual') manual.push(s.rank);
+    }
+    const got = Object.keys(ranks).map(Number);
+    if (!got.length) continue;
     out.categories[c.name] = {
       unit: c.kind === 'time' ? '秒' : '点', order: c.kind === 'time' ? 'asc' : 'desc',
-      players: m.playerCount, count: Object.keys(ranks).length,
-      maxRank: m.rows.length ? m.rows[m.rows.length - 1].rank : 0,
-      missing: ranges(m.missing), manual, ranks
+      players: m.playerCount, count: got.length, top: Math.max(...got),
+      manual, ranks
     };
     const pick = list => { const o = {}; list.forEach(r => { if (ranks[r] != null) o[r] = ranks[r]; }); return o; };
-    if (EVENT_IDS.indexOf(c.id) >= 0) out.week.borders[c.name] = pick(GAME_RANKS);
+    if (EVENT_IDS.indexOf(c.id) >= 0) { const b = pick(GAME_RANKS); if (Object.keys(b).length) out.week.borders[c.name] = b; }
     if (c.id === 'sumex') out.week.totalBorders = pick(TOTAL_RANKS);
     if (c.id === 'rand') out.week.lsBorders.rand = pick(LS_RANKS);
     if (c.id === 'lscore') out.week.lsBorders.score = pick(LS_RANKS);
-    m.checking.forEach(s => out.checking.push({ category: c.name, rank: s.rank, value: isNaN(s.score) ? null : s.score, flags: s.flags }));
   }
   return out;
 }
 function pasteTexts() {
-  const val = (id, r) => { const m = M[id]; const s = m && m.map[r]; return s && !isNaN(s.score) ? s.score : null; };
+  const val = (id, r) => { const m = M[id]; const s = m && m.map[r]; return s && okRow(s) ? s.score : null; };
   const num = (id, v) => O.CAT_BY_ID[id].kind === 'int' ? Math.round(v).toLocaleString('en-US') : String(v);
   const game = [];
   for (const id of EVENT_IDS) {
@@ -1516,7 +1531,7 @@ function pasteTexts() {
 }
 function missingBorders() {
   const miss = [];
-  for (const id of EVENT_IDS) { const m = M[id]; const lack = GAME_RANKS.filter(r => !(m && m.map[r] && !isNaN(m.map[r].score))); if (lack.length) miss.push(`${O.CAT_BY_ID[id].name}（${lack.join('・')}位）`); }
+  for (const id of EVENT_IDS) { const m = M[id]; const lack = GAME_RANKS.filter(r => !(m && m.map[r] && okRow(m.map[r]))); if (lack.length) miss.push(`${O.CAT_BY_ID[id].name}（${lack.join('・')}位）`); }
   return miss;
 }
 function renderOut() {
@@ -1524,11 +1539,15 @@ function renderOut() {
   $('#outGame').textContent = t.game || '（まだありません）';
   $('#outRand').textContent = t.rand || '（まだありません）';
   $('#outScore').textContent = t.score || '（まだありません）';
-  $('#outTotal').textContent = t.total + '\n\n※ この段は貼り付け欄がないので、手で入れてください';
-  const chk = Object.keys(M).reduce((a, id) => a + M[id].checking.length, 0);
+  $('#outTotal').textContent = t.total + '\n\n※ この段は貼り付け欄がありません。RATING の「集計の JSON を読み込む」なら自動で入ります';
+  const j = buildJson();
+  const nIn = Object.values(j.categories).reduce((a, c) => a + c.count, 0);
   const miss = missingBorders();
-  $('#outWarn').innerHTML = (chk ? `<b style="color:var(--warn)">checking! が ${chk} 件のこっています。</b>先に直すと安心です。<br>` : '<span class="okmsg">checking! はありません。</span><br>')
-    + (miss.length ? `ボーダー（1・5・10・50・100・200位）がまだ足りない種目：${esc(miss.slice(0, 6).join('、'))}${miss.length > 6 ? ` …ほか ${miss.length - 6} 種目` : ''}` : 'ボーダーの順位は全部そろっています。');
+  $('#outWarn').innerHTML = `JSON に入る順位：<b>${nIn.toLocaleString('en-US')}</b> 件（${Object.keys(j.categories).length} 種目）`
+    + (j.excluded.length ? `　／ <b style="color:var(--warn)">checking! が残っていて入れない順位：${j.excluded.length} 件</b>（直すと入ります）` : '　／ checking! はありません')
+    + (miss.length ? `<br>ボーダーの順位（1・5・10・50・100・200位）が まだ無い種目：${esc(miss.slice(0, 6).join('、'))}${miss.length > 6 ? ` …ほか ${miss.length - 6} 種目` : ''}（無い順位は入れずに書き出します）` : '<br>ボーダーの順位は全部そろっています。');
+  /* ランキング分析のページが読めるように、この端末にも最新の結果を置いておきます */
+  try { localStorage.setItem(K_LAST, JSON.stringify(j)); } catch (e) { /* 入りきらない時はファイルで渡してください */ }
 }
 async function copyText(s) {
   try { await navigator.clipboard.writeText(s); toast('コピーしました'); }
@@ -1538,11 +1557,6 @@ async function copyText(s) {
     ta.remove();
   }
 }
-function confirmChecking() {
-  const chk = Object.keys(M).reduce((a, id) => a + M[id].checking.length, 0);
-  return !chk || confirm(`checking! が ${chk} 件のこっています。このまま書き出しますか？`);
-}
-
 /* ===== ボタンなど ===== */
 const drop = $('#drop');
 ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
@@ -1571,13 +1585,12 @@ $('#btnReset').onclick = () => {
 $('#viewSel').onchange = e => { S.view = e.target.value; renderTiles(); renderTable(); };
 $('#segOnly').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.only = b.dataset.v === '1'; syncSeg(); renderTable(); };
 $('#btnJson').onclick = () => {
-  if (!confirmChecking()) return;
   const blob = new Blob([JSON.stringify(buildJson(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ranking-${S.date}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
-$('#btnJsonCp').onclick = () => { if (confirmChecking()) copyText(JSON.stringify(buildJson(), null, 2)); };
+$('#btnJsonCp').onclick = () => copyText(JSON.stringify(buildJson(), null, 2));
 $('#addGo').onclick = () => {
   const m = S.view && M[S.view]; if (!m) return;
   const rk = parseInt(String($('#addRank').value).normalize('NFKC').replace(/[^\d]/g, ''), 10);

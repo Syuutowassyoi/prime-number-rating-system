@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>素数あつめ ランキング分析</title>
+<meta name="description" content="ランキング集計の JSON から、種目のむずかしさ・プレイヤーの位置・RATING への影響を調べる管理者向けのページです。">
+<style>
+/* 色は 素数あつめ RATING（index.html）とそろえています。グラフの色は色覚のちがいでも見分けられる4色です */
+:root{
+  color-scheme:dark;
+  --bg:#0d1220; --card:#161f30; --card2:#111a29; --line:#28374f; --line2:#33455f;
+  --tx:#e9eff8; --dim:#8ba0bd; --dim2:#61748f;
+  --acc:#4da3ff; --acc2:#57e0a0; --warn:#ffc861; --bad:#ff7b8a;
+  --accsoft:#2b3d5a; --warnsoft:#ffc8611a; --shadow:0 6px 22px #0006;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  --grid:#223049; --axis:#3a4a63;
+  --font:"Avenir Next","Avenir","Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",system-ui,sans-serif;
+  --numf:"Avenir Next","Avenir","Helvetica Neue",Arial,sans-serif;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eef2f7; --card:#ffffff; --card2:#f6f8fc; --line:#dbe2ec; --line2:#c3cddb;
+  --tx:#0f172a; --dim:#556579; --dim2:#7d8ca0;
+  --acc:#1565c0; --acc2:#0f7a4d; --warn:#9a5b00; --bad:#c02033;
+  --accsoft:#dce9f9; --warnsoft:#fff3d6; --shadow:0 2px 10px #0f172a14,0 1px 3px #0f172a0f;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --grid:#e8edf3; --axis:#c3cddb;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--font);font-size:15px;line-height:1.65}
+.wrap{max-width:1040px;margin:0 auto;padding:18px 16px 70px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
+header nav{display:flex;gap:14px;flex-wrap:wrap}
+h1{font-size:1.4rem;margin:0}
+h1 small{display:block;font-size:.78rem;color:var(--dim);font-weight:500}
+h2{font-size:1.06rem;margin:0 0 6px}
+h3{font-size:.95rem;margin:14px 0 6px}
+a{color:var(--acc)}
+.muted{color:var(--dim)}
+.tiny{font-size:.8rem;color:var(--dim)}
+.num{font-family:var(--numf);font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;margin:14px 0;box-shadow:var(--shadow)}
+.btn{appearance:none;border:1px solid var(--line2);background:var(--card2);color:var(--tx);border-radius:10px;
+  padding:9px 14px;font:inherit;font-size:.88rem;cursor:pointer;line-height:1.3;display:inline-block;text-decoration:none}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn.sm{padding:6px 10px;font-size:.8rem}
+.btn:disabled{opacity:.45;cursor:default}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.txt{background:var(--card2);color:var(--tx);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;font:inherit;font-size:.9rem;max-width:100%}
+.txt:focus{outline:2px solid var(--acc);outline-offset:1px}
+.linkbtn{background:none;border:0;color:var(--acc);cursor:pointer;font:inherit;font-size:.82rem;padding:0;text-decoration:underline}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--card2);color:var(--dim);padding:7px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+.seg button.on{background:var(--acc);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line2);background:var(--card2);color:var(--dim);border-radius:99px;padding:4px 10px;font:inherit;font-size:.78rem;cursor:pointer}
+.chip.on{color:var(--tx);border-color:var(--acc);background:var(--accsoft)}
+.chip i{display:inline-block;width:12px;height:2px;border-radius:2px;margin-right:6px;vertical-align:middle}
+/* 週を選ぶ帯（この下の全部に効きます） */
+.filter{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.filter b{font-size:.9rem}
+/* 表 */
+.tblwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;white-space:nowrap}
+th{font-size:.76rem;color:var(--dim);font-weight:600;background:var(--card2)}
+td{font-size:.86rem}
+td.r,th.r{text-align:right}
+tr:last-child td{border-bottom:0}
+td.nm{white-space:normal;min-width:120px}
+.up{color:var(--acc2)} .down{color:var(--bad)}
+.note{font-size:.8rem;color:var(--dim);margin-top:8px}
+.kpis{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.kpi{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:150px}
+.kpi .l{font-size:.76rem;color:var(--dim)}
+.kpi .v{font-size:1.35rem;font-weight:700}
+/* グラフ */
+.chart{position:relative;margin-top:8px;outline:none}
+.chart:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--numf);font-size:11px;fill:var(--dim)}
+.chart text.lab{fill:var(--tx);font-family:var(--font)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:var(--tx);margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:2px;border-radius:2px}
+.ycap{font-size:.78rem;color:var(--dim);margin-top:8px}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow);
+  padding:8px 10px;font-size:.8rem;min-width:150px;z-index:3;display:none}
+.tip .h{color:var(--dim);margin-bottom:4px}
+.tip .rw{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.tip .rw i{display:inline-block;width:12px;height:2px;border-radius:2px;flex:none}
+.tip .rw b{font-family:var(--numf);font-variant-numeric:tabular-nums}
+.tip .rw span{color:var(--dim)}
+.empty{padding:18px;text-align:center;color:var(--dim);font-size:.86rem;border:1px dashed var(--line2);border-radius:12px;margin-top:8px}
+.hide{display:none!important}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--card);color:var(--tx);border:1px solid var(--acc);
+  border-radius:12px;padding:10px 16px;box-shadow:var(--shadow);font-size:.9rem;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.pos input{width:130px;text-align:right}
+.total{margin-top:12px;padding:12px 14px;border:1px solid var(--acc);border-radius:12px;background:var(--accsoft)}
+.total .v{font-size:1.5rem;font-weight:700}
+@media (max-width:640px){
+  .wrap{padding:12px 12px 60px}
+  .card{padding:14px 12px;border-radius:14px}
+  th,td{padding:6px 7px}
+  .pos input{width:104px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><small>素数あつめ RATING ・ 管理者向け</small>ランキング分析</h1>
+    <nav class="tiny"><a href="./ranking-ocr.html">ランキング集計（画像読み取り）</a><a href="./index.html">RATING にもどる</a></nav>
+  </header>
+  <p class="muted" style="margin:6px 0 0">ランキング集計で作った JSON から、種目のむずかしさ・プレイヤーの位置・RATING への影響を調べます。
+    読み取れた順位だけで計算するので、間が抜けていても使えます。</p>
+
+  <section class="card" id="cardData">
+    <h2>データ</h2>
+    <div class="tools" style="margin-top:0">
+      <button class="btn pri" id="btnLast" type="button">この端末の最新の集計を読み込む</button>
+      <label class="btn" for="jsonIn">JSON ファイルを選ぶ</label>
+      <input type="file" id="jsonIn" accept=".json,application/json" multiple hidden>
+    </div>
+    <div id="dataMsg" class="tiny" style="margin-top:8px"></div>
+    <div class="tblwrap hide" id="weeksWrap"><table><thead><tr><th>週</th><th class="r">種目</th><th class="r">順位</th><th>読み込み元</th><th></th></tr></thead><tbody id="weeksBody"></tbody></table></div>
+    <p class="note" id="dataJsonMsg"></p>
+  </section>
+
+  <div id="main" class="hide">
+    <div class="filter"><b>見る週</b><select class="txt" id="weekSel"></select><span class="tiny" id="weekInfo"></span></div>
+
+    <section class="card" id="cardSum">
+      <h2>この週のまとめ</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">参加</th><th class="r">読めた順位</th><th class="r">1位</th><th class="r">10位</th><th class="r">50位</th><th class="r">100位</th><th class="r">200位</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+      <p class="note">「読めた順位」は、1位から抜けなく読めている所まで（その先に読めた順位があれば、いちばん下の順位も）です。</p>
+    </section>
+
+    <section class="card" id="cardDiff">
+      <h2>種目のむずかしさ（素数ゲーム 18 種目）</h2>
+      <div class="seg" id="diffSeg">
+        <button data-m="r200pct" class="on" type="button">200位に入るむずかしさ</button>
+        <button data-m="spread" type="button">1位と100位の差</button>
+        <button data-m="step100rel" type="button">100位あたりの1つの重さ</button>
+        <button data-m="rate1" type="button">上位1%のすごさ</button>
+      </div>
+      <p class="tiny" id="diffHelp" style="margin:8px 0 0"></p>
+      <div class="chart" id="diffChart"></div>
+      <details style="margin-top:10px"><summary class="tiny">表で見る（全部の目安）</summary>
+        <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">参加</th><th class="r">200位は上位</th><th class="r">上位1%は</th><th class="r">1位と100位の差</th><th class="r">100位あたり 1つ上がるのに</th><th class="r">上位0.1%</th><th class="r">上位0.5%</th><th class="r">上位1%</th><th class="r">上位2%</th></tr></thead><tbody id="diffBody"></tbody></table></div>
+        <p class="note">右の4つは、その上位%にいる人が いまの RATING の計算でもらえる「すごさ」（0〜1）です。読めた順位の中で計算できる所だけ出しています。</p>
+      </details>
+    </section>
+
+    <section class="card" id="cardCurve">
+      <h2>順位と点数</h2>
+      <div class="tools" style="margin-top:0">
+        <div class="seg" id="curveX"><button data-v="rank" class="on" type="button">横：順位</button><button data-v="pct" type="button">横：上位%</button></div>
+        <div class="seg" id="curveLog"><button data-v="1" class="on" type="button">対数のめもり</button><button data-v="0" type="button">ふつうのめもり</button></div>
+      </div>
+      <p class="tiny" style="margin:8px 0 0">種目を4つまで えらべます。2つ以上の時は、くらべやすいように「1位を100%」にそろえます（タイムは 1位のタイム÷記録）。</p>
+      <div class="chips" id="curveChips"></div>
+      <div class="ycap" id="curveCap"></div>
+      <div class="legend" id="curveLegend"></div>
+      <div class="chart" id="curveChart"></div>
+      <details style="margin-top:10px"><summary class="tiny">表で見る</summary><div class="tblwrap"><table id="curveTable"></table></div></details>
+    </section>
+
+    <section class="card" id="cardRate">
+      <h2>RATING への影響</h2>
+      <p class="tiny" style="margin:0">いまの RATING は「200位→0.4、100位→0.5、50位→0.6、10位→0.8、1位→1.0」の間を、点数でまっすぐ割りふって「すごさ」を出しています。
+        参加人数は種目ごとにちがうので、<b>同じ上位%でも もらえる すごさ がちがいます</b>。その差を見るグラフです。</p>
+      <div class="chips" id="rateChips"></div>
+      <div class="ycap">たて：すごさ（0〜1）　よこ：上位%（対数のめもり）</div>
+      <div class="legend" id="rateLegend"></div>
+      <div class="chart" id="rateChart"></div>
+      <p class="note" id="rateNote"></p>
+    </section>
+
+    <section class="card" id="cardPos">
+      <h2>位置しらべ</h2>
+      <p class="tiny" style="margin:0">記録を入れると、この週のランキングで「何位くらい・上位何%・すごさ」が出ます。何も入れていない種目は とばします。</p>
+      <div class="tools"><button class="btn" id="btnMyRec" type="button">この端末の RATING の記録を入れる</button><button class="btn sm" id="btnPosClear" type="button">消す</button><span class="tiny" id="posMsg"></span></div>
+      <div class="tblwrap pos"><table><thead><tr><th>種目</th><th class="r">記録</th><th class="r">順位</th><th class="r">上位</th><th class="r">すごさ</th><th>帯</th></tr></thead><tbody id="posBody"></tbody></table></div>
+      <div class="total" id="posTotal"></div>
+    </section>
+
+    <section class="card" id="cardWeek">
+      <h2>週ごとの変化</h2>
+      <div class="tools" style="margin-top:0"><select class="txt" id="trendCat"></select>
+        <div class="seg" id="trendRank"></div></div>
+      <div class="chart" id="trendChart"></div>
+      <div class="tblwrap"><table id="trendTable"></table></div>
+      <p class="note">2つ以上の週を読み込むと、くらべられます。差は「前の週から どれだけ動いたか」です。</p>
+    </section>
+  </div>
+
+  <p class="tiny" style="text-align:center;margin-top:24px">このページは管理者向けです。データはこの端末の中だけで計算し、外には送りません。</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script id="ana-core">
+/* ============================================================
+   ランキング分析の計算（画面を持たない、計算だけの部分です）
+   ・ranking-ocr.html で書き出した JSON（週ごと）を読みます
+   ・RATING（index.html）と同じ式で「すごさ」と RATING を出します
+   ============================================================ */
+(function (G) {
+'use strict';
+
+/* ---------- 種目（RATING と同じ名前・同じ並び） ---------- */
+const CAT2 = ['素因数分解・初級', '素因数分解・上級', '素数判定', '素数特定', '素数判定・改',
+  '素数増強', '二数限定', '暗素因数分解 Lv.1', '暗素因数分解 Lv.2', '暗素因数分解 Lv.3'];
+const CAT3 = ['暗素因数分解・壱', '暗素因数分解・参', '暗素因数分解・闇', '1から順に', '2から順に',
+  '1桁素数', '2の累乗数', '1から順にEX'];
+const EVENTS = CAT2.concat(CAT3);
+const LOW = new Set(['1から順に', '2から順に', '1桁素数', '2の累乗数']);
+const SUMEX = 'スコアの合計 全種（素数判定を除外）', SUMALL = 'スコアの合計 全種';
+const RAND = '生成した乱数の累積', LSCORE = 'スコアの累積';
+const ALL = [SUMEX, SUMALL].concat(EVENTS, [RAND, LSCORE]);
+const kindOf = n => LOW.has(n) ? 'time' : (n === '1から順にEX' ? 'dec2' : 'int');
+
+/* RATING の式（index.html と同じ値） */
+const IND_RANKS = [200, 100, 50, 10, 1], IND_PCT = [0, 0.4, 0.5, 0.6, 0.8, 1.0];
+const IND_BAND = ['200位より下', '100〜200位', '50〜100位', '10〜50位', '1〜10位', '1位'];
+const TOT_RANKS = [1000, 500, 100, 50, 25, 10, 5, 1], TOT_PCT = [0, 0, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0];
+const TOT_BAND = ['1000位より下', '500〜1000位', '100〜500位', '50〜100位', '25〜50位', '10〜25位', '5〜10位', '1〜5位', '1位'];
+
+/* 種目名の「ゆれ」をそろえます（全角半角・スペース・かっこ・前の名前） */
+const normKey = s => String(s == null ? '' : s).normalize('NFKC').toLowerCase()
+  .replace(/[\s　]/g, '').replace(/[（）()［］\[\]・･、,．]/g, '');
+const CANON = {};
+ALL.forEach(n => { CANON[normKey(n)] = n; });
+[['素因数分解（初級）', '素因数分解・初級'], ['素因数分解（上級）', '素因数分解・上級'],
+ ['暗素因数分解lv.1', '暗素因数分解 Lv.1'], ['暗素因数分解lv.2', '暗素因数分解 Lv.2'],
+ ['暗素因数分解lv.3', '暗素因数分解 Lv.3'], ['乱数累積', RAND], ['スコア累積', LSCORE],
+ ['合計スコア', SUMEX], ['十種競技総合', SUMEX]].forEach(([a, b]) => { CANON[normKey(a)] = b; });
+const canon = s => CANON[normKey(s)] || null;
+
+/* ---------- 読み込み ---------- */
+/** ranking-ocr.html の JSON を、分析しやすい形にします */
+function normalizeWeek(j, source) {
+  if (!j || typeof j !== 'object' || !j.categories || typeof j.categories !== 'object') {
+    throw new Error('ランキング集計の JSON ではないようです');
+  }
+  /* 前の形（format 1）は checking! の順位も入っているので、ここで外します */
+  const bad = new Set();
+  if (Array.isArray(j.checking)) j.checking.forEach(c => { if (c) bad.add(canon(c.category) + ':' + c.rank); });
+  if (Array.isArray(j.excluded)) j.excluded.forEach(c => { if (c) bad.add(canon(c.category) + ':' + c.rank); });
+  const cats = {};
+  for (const name0 of Object.keys(j.categories)) {
+    const name = canon(name0);
+    const c = j.categories[name0];
+    if (!name || !c || typeof c !== 'object') continue;
+    const pts = [];
+    for (const rk of Object.keys(c.ranks || {})) {
+      const r = Number(rk), v = Number(c.ranks[rk]);
+      if (!Number.isInteger(r) || r < 1 || !isFinite(v) || v < 0) continue;
+      if (bad.has(name + ':' + r)) continue;
+      pts.push([r, v]);
+    }
+    pts.sort((a, b) => a[0] - b[0]);
+    if (!pts.length) continue;
+    const players = Number(c.players) > 0 ? Math.round(Number(c.players)) : null;
+    cats[name] = { name, kind: kindOf(name), asc: LOW.has(name), players, pts,
+      manual: Array.isArray(c.manual) ? c.manual.length : 0 };
+  }
+  const d = String(j.date || (j.week && j.week.date) || '');
+  return { date: /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '日付なし', source: source || '', createdAt: j.createdAt || null, cats };
+}
+/** data.json（RATING のボーダー）を、種目名をそろえて読みます */
+function normalizeData(dj) {
+  if (!dj || !Array.isArray(dj.weeks)) return null;
+  const weeks = dj.weeks.filter(w => w && /^\d{4}-\d{2}-\d{2}$/.test(w.date || '')).map(w => {
+    const borders = {};
+    for (const k of Object.keys(w.borders || {})) { const n = canon(k); if (n) borders[n] = w.borders[k]; }
+    return { date: w.date, borders, totalBorders: w.totalBorders || {} };
+  }).sort((a, b) => a.date < b.date ? -1 : 1);
+  return weeks.length ? { weeks } : null;
+}
+/** その週に使う data.json の週（同じ日付、なければ その日より前でいちばん新しい週） */
+function dataWeekFor(data, date) {
+  if (!data) return null;
+  const same = data.weeks.find(w => w.date === date);
+  if (same) return same;
+  const before = data.weeks.filter(w => w.date <= date);
+  return before.length ? before[before.length - 1] : data.weeks[data.weeks.length - 1];
+}
+
+/* ---------- 順位と点数 ---------- */
+/** 「a は b より良い」（タイムは小さいほど良い） */
+const better = (cat, a, b) => cat.asc ? a < b : a > b;
+/** ちょうどその順位の値（読めていなければ null） */
+function exactAt(cat, r) {
+  const p = cat.pts;
+  let lo = 0, hi = p.length - 1;
+  while (lo <= hi) {
+    const m = (lo + hi) >> 1;
+    if (p[m][0] === r) return p[m][1];
+    if (p[m][0] < r) lo = m + 1; else hi = m - 1;
+  }
+  return null;
+}
+/** その順位の値。読めていない順位は、前後の読めた順位から まっすぐ見つもります。
+    maxGap を超える大きな抜けの中は、見つもりが あらくなるので null にします */
+function valueAt(cat, r, maxGap) {
+  const p = cat.pts;
+  if (!p.length || r < p[0][0] || r > p[p.length - 1][0]) return null;
+  let lo = 0, hi = p.length - 1;
+  while (lo <= hi) {
+    const m = (lo + hi) >> 1;
+    if (p[m][0] === r) return { v: p[m][1], exact: true };
+    if (p[m][0] < r) lo = m + 1; else hi = m - 1;
+  }
+  const a = p[hi], b = p[lo];
+  const gap = b[0] - a[0];
+  const lim = maxGap == null ? Math.max(20, Math.round(r * 0.25)) : maxGap;
+  if (gap > lim) return null;
+  return { v: a[1] + (b[1] - a[1]) * (r - a[0]) / gap, exact: false, from: a[0], to: b[0] };
+}
+/** その記録なら何位くらいか。
+    rank：順位（null は読めた範囲の外）／exact：読めた順位でぴったり決まった時 true
+    above：読めた範囲より上（その順位より上）／below：読めた範囲より下 */
+function rankOf(cat, v) {
+  const p = cat.pts;
+  if (!(v >= 0) || !p.length) return null;
+  let i = 0;
+  while (i < p.length && better(cat, p[i][1], v)) i++;
+  if (i === 0) return p[0][0] === 1 ? { rank: 1, exact: true } : { rank: null, above: p[0][0] };
+  const prev = p[i - 1];
+  if (i === p.length) return { rank: null, below: prev[0] };
+  const next = p[i];
+  if (next[0] === prev[0] + 1) return { rank: next[0], exact: true };
+  const s = cat.asc ? -1 : 1;
+  const den = s * prev[1] - s * next[1];
+  const t = den > 0 ? (s * prev[1] - s * v) / den : 1;
+  const gap = next[0] - prev[0];
+  const r = Math.min(next[0], Math.max(prev[0] + 1, prev[0] + Math.ceil(t * gap)));
+  return { rank: r, exact: false, from: prev[0], to: next[0] };
+}
+const pctOf = (cat, rank) => cat && cat.players && rank ? rank / cat.players * 100 : null;
+/** 1位から何位まで、抜けなく読めているか */
+function contiguous(cat) {
+  let n = 0;
+  for (const [r] of cat.pts) { if (r === n + 1) n = r; else if (r > n + 1) break; }
+  return n;
+}
+
+/* ---------- RATING の「すごさ」（index.html と同じ計算） ---------- */
+function interp(x, nodes, pct) {
+  if (!(x > 0)) return { r: 0, k: 0 };
+  const last = nodes.length - 1;
+  if (x >= nodes[last]) return { r: pct[last], k: last };
+  let k = 0;
+  for (let i = 0; i < last; i++) if (x >= nodes[i]) k = i;
+  const span = nodes[k + 1] - nodes[k];
+  return { r: span === 0 ? pct[k] : pct[k] + (pct[k + 1] - pct[k]) * (x - nodes[k]) / span, k };
+}
+/** すごさを出すのに使うボーダー。この週の JSON の値を先に使い、無い順位は data.json の週で補います */
+function bordersOf(week, name, dataWeek) {
+  const ranks = name === SUMEX ? TOT_RANKS : IND_RANKS;
+  const cat = week && week.cats[name];
+  const B = {}, src = {};
+  for (const r of ranks) {
+    const ex = cat ? exactAt(cat, r) : null;
+    if (ex > 0) { B[r] = ex; src[r] = 'json'; continue; }
+    const d = dataWeek && (name === SUMEX ? dataWeek.totalBorders : (dataWeek.borders || {})[name]);
+    const v = d ? Number(d[r]) : NaN;
+    if (v > 0) { B[r] = v; src[r] = 'data'; }
+  }
+  return { B, src, ranks, complete: ranks.every(r => B[r] > 0), fromData: ranks.filter(r => src[r] === 'data') };
+}
+/** その記録の「すごさ」（0〜1）と、どの帯に入るか */
+function rateOf(name, value, bd) {
+  if (!(value > 0) || !bd || !bd.complete) return null;
+  const B = bd.B;
+  if (name === SUMEX) {
+    const { r, k } = interp(value, [0].concat(TOT_RANKS.map(x => B[x])), TOT_PCT);
+    return { r, band: TOT_BAND[k] };
+  }
+  if (EVENTS.indexOf(name) < 0) return null;
+  const low = LOW.has(name);
+  const nodes = [0].concat(IND_RANKS.map(x => low ? 1 / B[x] : B[x]));
+  const { r, k } = interp(low ? 1 / value : value, nodes, IND_PCT);
+  return { r, band: IND_BAND[k] };
+}
+/** RATING（20点満点）。records は { 種目名: 記録 }（合計スコアは「合計スコア」でも可） */
+function ratingOf(records, week, dataWeek) {
+  const rec = {};
+  for (const k of Object.keys(records || {})) { const n = canon(k); if (n && Number(records[k]) > 0) rec[n] = Number(records[k]); }
+  const rates = {}, lack = [];
+  for (const n of [SUMEX].concat(EVENTS)) {
+    if (!rec[n]) { rates[n] = 0; continue; }
+    const bd = bordersOf(week, n, dataWeek);
+    const rr = rateOf(n, rec[n], bd);
+    if (!rr) { rates[n] = 0; lack.push(n); continue; }
+    rates[n] = rr.r;
+  }
+  const top = (list, k) => list.map(n => rates[n]).sort((a, b) => b - a).slice(0, k);
+  const t2 = top(CAT2, 4), t3 = top(CAT3, 3);
+  const parts = { total: 6 * rates[SUMEX], cat2: 2 * t2.reduce((a, b) => a + b, 0), cat3: 2 * t3.reduce((a, b) => a + b, 0) };
+  return { rates, parts, rating: parts.total + parts.cat2 + parts.cat3, lack, used: Object.keys(rec) };
+}
+
+/* ---------- 種目のむずかしさ ---------- */
+/** r 位あたりで「1つ順位を上げるのに要る差」（前後 w 位の平均） */
+function stepAt(cat, r) {
+  const w = Math.max(2, Math.round(r * 0.1));
+  if (r - w < 1) return null;
+  const a = valueAt(cat, r - w), b = valueAt(cat, r + w);
+  if (!a || !b) return null;
+  return Math.abs(a.v - b.v) / (2 * w);
+}
+function metrics(week, name, dataWeek) {
+  const c = week && week.cats[name];
+  if (!c) return null;
+  const P = c.players;
+  const v = r => { const x = valueAt(c, r); return x ? x.v : null; };
+  const v1 = v(1), v100 = v(100);
+  const spread = v1 && v100 ? (c.asc ? (v100 - v1) / v1 : (v1 - v100) / v1) * 100 : null;
+  const step = stepAt(c, 100), v100b = v(100);
+  const top1Rank = P ? Math.max(1, Math.round(P * 0.01)) : null;
+  const top1 = top1Rank ? valueAt(c, top1Rank) : null;
+  const bd = EVENTS.indexOf(name) >= 0 || name === SUMEX ? bordersOf(week, name, dataWeek) : null;
+  const rateAtPct = p => {
+    if (!P || !bd) return null;
+    const rk = Math.max(1, Math.round(P * p / 100));
+    const x = valueAt(c, rk);
+    if (!x) return null;
+    const rr = rateOf(name, x.v, bd);
+    return rr ? rr.r : null;
+  };
+  return {
+    name, players: P, read: c.pts.length, top: c.pts[c.pts.length - 1][0], contiguous: contiguous(c),
+    r200pct: P ? 200 / P * 100 : null,
+    top1Rank, top1Val: top1 ? top1.v : null,
+    spread, step100: step, step100rel: step != null && v100b ? step / v100b * 1000 : null,
+    rate01: rateAtPct(0.1), rate05: rateAtPct(0.5), rate1: rateAtPct(1), rate2: rateAtPct(2),
+    borders: bd
+  };
+}
+
+/* ---------- グラフ用の線 ---------- */
+/** 順位 → 値（normalize の時は 1位を 100 とした割合。タイムは 1位÷記録） */
+function curve(week, name, opt) {
+  opt = opt || {};
+  const c = week && week.cats[name];
+  if (!c) return [];
+  const v1 = exactAt(c, 1);
+  return c.pts.map(([r, v]) => {
+    const x = opt.x === 'pct' ? pctOf(c, r) : r;
+    let y = v;
+    if (opt.normalize) y = v1 > 0 && v > 0 ? (c.asc ? v1 / v : v / v1) * 100 : null;
+    return [x, y];
+  }).filter(p => p[0] != null && p[1] != null && (opt.x !== 'pct' || p[0] > 0));
+}
+/** 上位% → すごさ */
+function rateCurve(week, name, dataWeek, opt) {
+  opt = opt || {};
+  const c = week && week.cats[name];
+  if (!c) return [];
+  const bd = bordersOf(week, name, dataWeek);
+  if (!bd.complete) return [];
+  return c.pts.map(([r, v]) => {
+    const x = opt.x === 'rank' ? r : pctOf(c, r);
+    const rr = rateOf(name, v, bd);
+    return [x, rr ? rr.r : null];
+  }).filter(p => p[0] != null && p[1] != null);
+}
+
+/* ---------- 週ごとの変化 ---------- */
+function weekly(weeks, name, ranks) {
+  const rows = weeks.slice().sort((a, b) => a.date < b.date ? -1 : 1).map(w => {
+    const c = w.cats[name];
+    return { date: w.date, players: c ? c.players : null, vals: ranks.map(r => c ? exactAt(c, r) : null) };
+  });
+  rows.forEach((row, i) => {
+    const prev = rows[i - 1];
+    row.diffs = row.vals.map((v, k) => prev && v != null && prev.vals[k] != null ? v - prev.vals[k] : null);
+    row.pdiff = prev && row.players != null && prev.players != null ? row.players - prev.players : null;
+  });
+  return rows;
+}
+
+G.RankAna = {
+  CAT2, CAT3, EVENTS, LOW, SUMEX, SUMALL, RAND, LSCORE, ALL, kindOf, canon,
+  IND_RANKS, TOT_RANKS, normalizeWeek, normalizeData, dataWeekFor,
+  exactAt, valueAt, rankOf, pctOf, contiguous, bordersOf, rateOf, ratingOf, stepAt, metrics, curve, rateCurve, weekly
+};
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+(() => {
+'use strict';
+const A = window.RankAna;
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+try {
+  const sk = JSON.parse(localStorage.getItem('sa-skin-v1') || '{}');
+  if (sk && sk.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+} catch (e) { /* ダークのまま */ }
+
+const K_WEEKS = 'sa-rankana-weeks-v1', K_LAST = 'sa-rankocr-last-v1', K_REC = 'sa-rec-v3', K_POS = 'sa-rankana-pos-v1';
+const ST = { weeks: [], raw: {}, data: null, sel: null, metric: 'r200pct', curve: [], curveX: 'rank', curveLog: true, rate: [], trendCat: null, trendRank: 1, pos: {} };
+const SLOT = { curve: {}, rate: {} };    /* グラフごとに 種目 → 色（1〜4）。えらび直しても色は変わりません */
+const SHORT = { [A.SUMEX]: '十種競技総合スコア', [A.SUMALL]: 'スコアの合計 全種' };
+const short = n => SHORT[n] || n;
+
+/* ---------- 数の見せ方 ---------- */
+function fmtV(name, v) {
+  if (v == null || !isFinite(v)) return '—';
+  const k = A.kindOf(name);
+  if (k === 'time') return v.toFixed(3) + '秒';
+  if (k === 'dec2') return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Math.round(v).toLocaleString('en-US');
+}
+const fmtN = v => v == null ? '—' : Math.round(v).toLocaleString('en-US');
+function fmtPct(p) {
+  if (p == null || !isFinite(p)) return '—';
+  return (p < 0.1 ? p.toFixed(3) : p < 10 ? p.toFixed(2) : p.toFixed(1)) + '%';
+}
+const fmtRate = r => r == null || !isFinite(r) ? '—' : r.toFixed(3);
+function fmtStep(name, s) {
+  if (s == null || !isFinite(s)) return '—';
+  const k = A.kindOf(name);
+  if (k === 'time') return s.toFixed(4) + '秒';
+  if (k === 'dec2') return s.toFixed(3) + '点';
+  return (s >= 100 ? Math.round(s).toLocaleString('en-US') : s.toFixed(1)) + '点';
+}
+let toastT = 0;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); }
+
+/* ---------- 週の読み込みと保存 ---------- */
+function addWeek(json, source) {
+  const w = A.normalizeWeek(json, source);
+  if (!Object.keys(w.cats).length) throw new Error('読み取れた順位が1つもありません');
+  const i = ST.weeks.findIndex(x => x.date === w.date);
+  if (i >= 0) ST.weeks[i] = w; else ST.weeks.push(w);
+  ST.weeks.sort((a, b) => a.date < b.date ? -1 : 1);
+  ST.raw[w.date] = json;
+  ST.sel = w.date;
+  saveWeeks();
+  return { w, replaced: i >= 0 };
+}
+function saveWeeks() {
+  try { localStorage.setItem(K_WEEKS, JSON.stringify(ST.weeks.map(w => ({ source: w.source, json: ST.raw[w.date] })))); $('#dataMsg').dataset.full = ''; }
+  catch (e) { $('#dataMsg').dataset.full = '1'; }
+}
+function loadSaved() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(K_WEEKS) || '[]');
+    for (const x of arr) { try { addWeek(x.json, x.source); } catch (e) { /* こわれた週はとばします */ } }
+  } catch (e) { /* 何もしない */ }
+  try { ST.pos = JSON.parse(localStorage.getItem(K_POS) || '{}') || {}; } catch (e) { ST.pos = {}; }
+}
+async function loadDataJson() {
+  try {
+    const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    ST.data = A.normalizeData(await res.json());
+  } catch (e) { ST.data = null; }
+}
+const curWeek = () => ST.weeks.find(w => w.date === ST.sel) || null;
+const dataWeek = () => { const w = curWeek(); return w ? A.dataWeekFor(ST.data, w.date) : null; };
+
+/* ---------- 色（種目ごとに決まった色。えらび直しても変わりません） ---------- */
+function slotOf(map, name, list) {
+  const used = new Set(list.filter(n => n !== name && map[n]).map(n => map[n]));
+  if (map[name] && !used.has(map[name])) return map[name];
+  for (let s = 1; s <= 4; s++) if (!used.has(s)) { map[name] = s; return s; }
+  return 1;
+}
+
+/* ============================================================
+   グラフ（SVG）。線は2px、点は4px＋まわりに2pxの すき間。
+   ポインターや ← → キーで、その位置の値を出します
+   ============================================================ */
+const NS = 'http://www.w3.org/2000/svg';
+function sv(tag, at, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in at) e.setAttribute(k, at[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function niceTicks(a, b, n) {
+  if (!(b > a)) b = a + 1;
+  const raw = (b - a) / Math.max(1, n), mag = Math.pow(10, Math.floor(Math.log10(raw))), e = raw / mag;
+  const step = (e >= 7.5 ? 10 : e >= 3.5 ? 5 : e >= 1.5 ? 2 : 1) * mag;
+  const out = [];
+  for (let t = Math.ceil(a / step - 1e-9) * step; t <= b + step * 1e-9; t += step) out.push(+t.toPrecision(12));
+  return out;
+}
+function logTicks(a, b) {
+  const out = [];
+  for (let e = Math.floor(Math.log10(a)); e <= Math.ceil(Math.log10(b)); e++) {
+    for (const m of [1, 2, 5]) { const t = m * Math.pow(10, e); if (t >= a * 0.999 && t <= b * 1.001) out.push(+t.toPrecision(12)); }
+  }
+  return out;
+}
+/** めもりの数字。間かくに合わせて桁をそろえます（10,000 以上で間かくが 1,000 以上なら K で短くします） */
+function tickFmt(ticks) {
+  const step = ticks.length > 1 ? Math.abs(ticks[1] - ticks[0]) : 1;
+  const big = Math.max(...ticks.map(Math.abs));
+  if (big >= 10000 && step >= 1000) {
+    const d = Math.max(0, Math.ceil(-Math.log10(step / 1000) - 1e-9));
+    return t => (t / 1000).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) + 'K';
+  }
+  const d = step >= 1 ? 0 : Math.min(6, Math.ceil(-Math.log10(step) - 1e-9));
+  return t => t.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function tickTxt(t) {
+  if (Math.abs(t) >= 10000) return (t / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'K';
+  if (Math.abs(t) >= 1) return t.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  return String(+t.toPrecision(3));
+}
+function tipRow(tip, color, value, label) {
+  const rw = document.createElement('div'); rw.className = 'rw';
+  const i = document.createElement('i'); i.style.background = color; rw.appendChild(i);
+  const b = document.createElement('b'); b.textContent = value; rw.appendChild(b);
+  const s = document.createElement('span'); s.textContent = label; rw.appendChild(s);
+  tip.appendChild(rw);
+}
+function placeTip(host, tip, px, py) {
+  tip.style.display = 'block';
+  const hw = host.clientWidth, tw = tip.offsetWidth;
+  let left = px + 14;
+  if (left + tw > hw) left = Math.max(0, px - tw - 14);
+  tip.style.left = left + 'px';
+  tip.style.top = Math.max(0, py - 10) + 'px';
+}
+
+/** 線のグラフ。series: [{ name, slot, pts:[[x,y],...] }] */
+function lineChart(host, cfg) {
+  host.textContent = '';
+  const series = cfg.series.filter(s => s.pts.length);
+  if (!series.length) { const d = document.createElement('div'); d.className = 'empty'; d.textContent = cfg.empty || 'グラフにできるデータがありません'; host.appendChild(d); return; }
+  const W = Math.max(300, host.clientWidth || 640), H = cfg.height || 300;
+  const multi = series.length > 1;
+  const M = { l: 56, r: multi ? 120 : 20, t: 12, b: 36 };
+  const allX = [], allY = [];
+  series.forEach(s => s.pts.forEach(p => { allX.push(p[0]); allY.push(p[1]); }));
+  let x0 = Math.min(...allX), x1 = Math.max(...allX);
+  if (cfg.xLog) { x0 = Math.max(x0, 1e-6); if (x1 <= x0) x1 = x0 * 10; } else if (x1 === x0) x1 = x0 + 1;
+  let y0 = cfg.yMin != null ? cfg.yMin : Math.min(...allY), y1 = cfg.yMax != null ? cfg.yMax : Math.max(...allY);
+  if (y1 === y0) { const e = Math.max(Math.abs(y0) * 0.01, 1); y0 -= e; y1 += e; }
+  const yT = niceTicks(y0, y1, 5);
+  y0 = Math.min(y0, yT[0]); y1 = Math.max(y1, yT[yT.length - 1]);
+  const yFmt = tickFmt(yT);
+  const pw = W - M.l - M.r, ph = H - M.t - M.b;
+  const X = v => M.l + (cfg.xLog ? (Math.log(v) - Math.log(x0)) / (Math.log(x1) - Math.log(x0)) : (v - x0) / (x1 - x0)) * pw;
+  const Y = v => M.t + (1 - (v - y0) / (y1 - y0)) * ph;
+  const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': cfg.label || 'グラフ' });
+  /* めもり（うすい細い線） */
+  for (const t of yT) {
+    sv('line', { x1: M.l, x2: W - M.r, y1: Y(t), y2: Y(t), stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+    sv('text', { x: M.l - 8, y: Y(t) + 4, 'text-anchor': 'end' }, svg).textContent = yFmt(t) + (cfg.ySuffix || '');
+  }
+  const xT = cfg.xLog ? logTicks(x0, x1) : niceTicks(x0, x1, 6);
+  let lastTx = -1e9;
+  for (const t of xT) {
+    if (t < x0 - 1e-9 || t > x1 + 1e-9) continue;
+    const x = X(t);
+    if (x - lastTx < 34) continue;
+    lastTx = x;
+    sv('text', { x, y: H - M.b + 16, 'text-anchor': 'middle' }, svg).textContent = cfg.fmtX ? cfg.fmtX(t, true) : tickTxt(t);
+  }
+  sv('line', { x1: M.l, x2: W - M.r, y1: M.t + ph, y2: M.t + ph, stroke: 'var(--axis)', 'stroke-width': 1 }, svg);
+  if (cfg.xLabel) sv('text', { x: M.l + pw / 2, y: H - 4, 'text-anchor': 'middle' }, svg).textContent = cfg.xLabel;
+  for (const mx of cfg.marksX || []) {
+    if (mx < x0 || mx > x1) continue;
+    sv('line', { x1: X(mx), x2: X(mx), y1: M.t, y2: M.t + ph, stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+  }
+  /* 線 */
+  const ends = [];
+  for (const s of series) {
+    const col = `var(--s${s.slot || 1})`;
+    const d = s.pts.map((p, i) => (i ? 'L' : 'M') + X(Math.max(p[0], x0)).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join('');
+    sv('path', { d, fill: 'none', stroke: col, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+    const lp = s.pts[s.pts.length - 1];
+    sv('circle', { cx: X(lp[0]), cy: Y(lp[1]), r: 4, fill: col, stroke: 'var(--card)', 'stroke-width': 2 }, svg);
+    ends.push({ s, x: X(lp[0]), y: Y(lp[1]) });
+  }
+  /* 線の右はしに名前（重なる時は出さず、上の色の見本で見分けます） */
+  if (multi) {
+    const ys = ends.map(e => e.y).sort((a, b) => a - b);
+    const crowd = ys.some((y, i) => i && y - ys[i - 1] < 13);
+    if (!crowd) for (const e of ends) sv('text', { x: e.x + 8, y: e.y + 4, class: 'lab' }, svg).textContent = cfg.endLabel ? cfg.endLabel(e.s) : e.s.name;
+  }
+  /* なぞると値を出す層 */
+  const cross = sv('line', { x1: 0, x2: 0, y1: M.t, y2: M.t + ph, stroke: 'var(--axis)', 'stroke-width': 1, visibility: 'hidden' }, svg);
+  const dots = series.map(s => sv('circle', { r: 4, fill: `var(--s${s.slot || 1})`, stroke: 'var(--card)', 'stroke-width': 2, visibility: 'hidden' }, svg));
+  const hit = sv('rect', { x: M.l, y: M.t, width: pw, height: ph, fill: 'transparent' }, svg);
+  host.appendChild(svg);
+  const tip = document.createElement('div'); tip.className = 'tip'; host.appendChild(tip);
+  const xsAll = [...new Set(allX.filter(x => x >= x0 && x <= x1))].sort((a, b) => a - b);
+  const valAt = (s, x) => {
+    const p = s.pts;
+    let lo = 0, hi = p.length - 1;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (p[m][0] === x) return { v: p[m][1], exact: true }; if (p[m][0] < x) lo = m + 1; else hi = m - 1; }
+    if (hi < 0 || lo >= p.length) return null;
+    const a = p[hi], b = p[lo];
+    return { v: a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]), exact: false };
+  };
+  let idx = -1;
+  const show = i => {
+    idx = Math.max(0, Math.min(xsAll.length - 1, i));
+    const x = xsAll[idx], px = X(x);
+    cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.setAttribute('visibility', 'visible');
+    tip.textContent = '';
+    const h = document.createElement('div'); h.className = 'h'; h.textContent = cfg.fmtX ? cfg.fmtX(x, false) : tickTxt(x); tip.appendChild(h);
+    let py = M.t + ph / 2;
+    series.forEach((s, k) => {
+      const r = valAt(s, x);
+      if (!r) { dots[k].setAttribute('visibility', 'hidden'); return; }
+      dots[k].setAttribute('cx', px); dots[k].setAttribute('cy', Y(r.v)); dots[k].setAttribute('visibility', 'visible');
+      py = Math.min(py, Y(r.v));
+      tipRow(tip, `var(--s${s.slot || 1})`, (r.exact ? '' : '≈') + (cfg.fmtY ? cfg.fmtY(r.v, false, s) : tickTxt(r.v)), s.name);
+    });
+    const sc = host.clientWidth / W;
+    placeTip(host, tip, px * sc, py * sc);
+  };
+  const hideAll = () => { tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden'); dots.forEach(d => d.setAttribute('visibility', 'hidden')); };
+  hit.addEventListener('pointermove', ev => {
+    const r = svg.getBoundingClientRect();
+    const px = (ev.clientX - r.left) * W / r.width;
+    let best = 0, bd = Infinity;
+    xsAll.forEach((x, i) => { const d = Math.abs(X(x) - px); if (d < bd) { bd = d; best = i; } });
+    show(best);
+  });
+  hit.addEventListener('pointerleave', hideAll);
+  host.tabIndex = 0;
+  host.setAttribute('aria-label', (cfg.label || 'グラフ') + '。左右のキーで値を読めます');
+  host.onkeydown = ev => {
+    if (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') { ev.preventDefault(); show((idx < 0 ? 0 : idx) + (ev.key === 'ArrowRight' ? 1 : -1)); }
+    else if (ev.key === 'Escape') hideAll();
+  };
+  host.onfocus = () => { if (idx < 0) show(Math.floor(xsAll.length / 2)); else show(idx); };
+  host.onblur = hideAll;
+}
+
+/** よこ棒のグラフ（大きい順）。rows: [{ name, value, text, extra }] */
+function barChart(host, cfg) {
+  host.textContent = '';
+  const rows = cfg.rows.filter(r => r.value != null && isFinite(r.value));
+  if (!rows.length) { const d = document.createElement('div'); d.className = 'empty'; d.textContent = cfg.empty || 'データが足りません'; host.appendChild(d); return; }
+  const W = Math.max(300, host.clientWidth || 640), RH = 28, BH = 14;
+  const LW = Math.min(150, Math.round(W * 0.34)), TW = 86;
+  const H = rows.length * RH + 8;
+  const max = Math.max(...rows.map(r => r.value)) || 1;
+  const pw = W - LW - TW;
+  const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': cfg.label || '棒グラフ' });
+  sv('line', { x1: LW, x2: LW, y1: 2, y2: H - 4, stroke: 'var(--axis)', 'stroke-width': 1 }, svg);
+  const tip = document.createElement('div'); tip.className = 'tip';
+  rows.forEach((r, i) => {
+    const y = 4 + i * RH + (RH - BH) / 2;
+    const w = Math.max(2, r.value / max * pw);
+    const g = sv('g', { tabindex: 0, role: 'listitem' }, svg);
+    sv('rect', { x: 0, y: 4 + i * RH, width: W, height: RH, fill: 'transparent' }, g);
+    const nm = sv('text', { x: LW - 8, y: y + BH / 2 + 4, 'text-anchor': 'end', class: 'lab' }, g);
+    nm.textContent = r.name.length > 12 && W < 520 ? r.name.slice(0, 11) + '…' : r.name;
+    const rad = Math.min(4, w / 2);
+    sv('path', { d: `M${LW} ${y}H${LW + w - rad}Q${LW + w} ${y} ${LW + w} ${y + rad}V${y + BH - rad}Q${LW + w} ${y + BH} ${LW + w - rad} ${y + BH}H${LW}Z`, fill: 'var(--s1)' }, g);
+    sv('text', { x: LW + w + 6, y: y + BH / 2 + 4 }, g).textContent = r.text;
+    const showTip = () => {
+      tip.textContent = '';
+      const h = document.createElement('div'); h.className = 'h'; h.textContent = r.name; tip.appendChild(h);
+      tipRow(tip, 'var(--s1)', r.text, cfg.unitLabel || '');
+      (r.extra || []).forEach(t => { const d = document.createElement('div'); d.className = 'tiny'; d.textContent = t; tip.appendChild(d); });
+      const sc = host.clientWidth / W;
+      placeTip(host, tip, (LW + w) * sc, (4 + i * RH) * sc);
+    };
+    g.addEventListener('pointerenter', showTip);
+    g.addEventListener('focus', showTip);
+    g.addEventListener('pointerleave', () => { tip.style.display = 'none'; });
+    g.addEventListener('blur', () => { tip.style.display = 'none'; });
+  });
+  host.appendChild(svg);
+  host.appendChild(tip);
+}
+
+/* ============================================================
+   画面
+   ============================================================ */
+function renderData() {
+  const body = $('#weeksBody');
+  $('#weeksWrap').classList.toggle('hide', !ST.weeks.length);
+  body.innerHTML = ST.weeks.slice().reverse().map(w => {
+    const n = Object.values(w.cats).reduce((a, c) => a + c.pts.length, 0);
+    return `<tr><td class="num"><b>${esc(w.date)}</b></td><td class="r num">${Object.keys(w.cats).length}</td><td class="r num">${n.toLocaleString('en-US')}</td>
+      <td class="tiny">${esc(w.source)}</td><td><button class="linkbtn" data-del="${esc(w.date)}" type="button">消す</button></td></tr>`;
+  }).join('');
+  const full = $('#dataMsg').dataset.full === '1';
+  $('#dataMsg').innerHTML = ST.weeks.length
+    ? `${ST.weeks.length} 週ぶんを読み込んでいます。` + (full ? '<b style="color:var(--warn)">この端末に保存しきれませんでした（ページを閉じると消えます）。古い週を消すと保存できます。</b>' : '（この端末に保存しています）')
+    : 'まだデータがありません。ランキング集計のページで画像を読み取ってから、上のボタンで読み込んでください。';
+  $('#dataJsonMsg').textContent = ST.data
+    ? `RATING のボーダー（data.json）：${ST.data.weeks.length} 週ぶんを読みました。JSON に無いボーダーの順位（100位・200位など）は、同じ週（無ければ その前の週）の data.json の値で補います。`
+    : 'RATING のボーダー（data.json）は読めませんでした。すごさは、JSON に入っているボーダーの順位だけで計算します（足りない種目は出せません）。';
+  $('#main').classList.toggle('hide', !ST.weeks.length);
+  const sel = $('#weekSel');
+  sel.innerHTML = ST.weeks.slice().reverse().map(w => `<option value="${esc(w.date)}"${w.date === ST.sel ? ' selected' : ''}>${esc(w.date)}</option>`).join('');
+}
+function renderAll() {
+  renderData();
+  const w = curWeek();
+  if (!w) return;
+  const dw = dataWeek();
+  $('#weekInfo').textContent = `${Object.keys(w.cats).length} 種目・${Object.values(w.cats).reduce((a, c) => a + c.pts.length, 0).toLocaleString('en-US')} 順位` + (dw ? `　／ ボーダーの補い：data.json ${dw.date} の週` : '');
+  defaults(w);
+  renderSummary(w);
+  renderDiff(w);
+  renderCurve(w);
+  renderRate(w);
+  renderPos(w);
+  renderTrend();
+}
+function defaults(w) {
+  const games = A.EVENTS.filter(n => w.cats[n]);
+  ST.curve = ST.curve.filter(n => w.cats[n]);
+  if (!ST.curve.length && games.length) ST.curve = [games[0]];
+  ST.rate = ST.rate.filter(n => w.cats[n]);
+  if (!ST.rate.length && games.length) {
+    /* 参加人数がいちばん多い種目・少ない種目・まん中の種目をくらべます */
+    const byP = games.filter(n => w.cats[n].players).sort((a, b) => w.cats[b].players - w.cats[a].players);
+    if (byP.length >= 3) ST.rate = [byP[0], byP[Math.floor(byP.length / 2)], byP[byP.length - 1]];
+    else ST.rate = byP.slice(0, 3);
+  }
+  if (!ST.trendCat || !A.ALL.some(n => n === ST.trendCat)) ST.trendCat = games[0] || Object.keys(w.cats)[0];
+}
+
+function renderSummary(w) {
+  const cats = A.ALL.filter(n => w.cats[n]);
+  const total = cats.reduce((a, n) => a + w.cats[n].pts.length, 0);
+  const people = A.EVENTS.filter(n => w.cats[n] && w.cats[n].players).map(n => w.cats[n].players);
+  $('#kpis').innerHTML = `<div class="kpi"><div class="l">読めた順位</div><div class="v">${total.toLocaleString('en-US')}</div></div>
+    <div class="kpi"><div class="l">種目</div><div class="v">${cats.length}</div></div>
+    ${people.length ? `<div class="kpi"><div class="l">素数ゲームの参加（いちばん多い／少ない）</div><div class="v">${fmtN(Math.max(...people))} ／ ${fmtN(Math.min(...people))}</div></div>` : ''}`;
+  $('#sumBody').innerHTML = cats.map(n => {
+    const c = w.cats[n], cont = A.contiguous(c), top = c.pts[c.pts.length - 1][0];
+    const v = r => { const x = A.exactAt(c, r); return x == null ? '<span class="tiny">—</span>' : esc(fmtV(n, x)); };
+    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(c.players)}</td>
+      <td class="r num">${cont ? `1〜${cont}位` : '—'}${top > cont ? `<span class="tiny">（〜${top}位）</span>` : ''}</td>
+      <td class="r num">${v(1)}</td><td class="r num">${v(10)}</td><td class="r num">${v(50)}</td><td class="r num">${v(100)}</td><td class="r num">${v(200)}</td></tr>`;
+  }).join('');
+}
+
+const METRIC = {
+  r200pct: { help: '200位が参加者の上位何%にあたるか。小さいほど 200位に入るのが むずかしい種目です（参加人数が多い）。', key: m => m.r200pct, text: (m) => '上位 ' + fmtPct(m.r200pct), asc: true, unit: '200位は' },
+  spread: { help: '1位と100位の記録の差を、1位の記録に対する%で表します。大きいほど 上と下の差が大きく、順位を上げるのに大きな伸びが要る種目です。', key: m => m.spread, text: m => fmtPct(m.spread), unit: '1位と100位の差' },
+  step100rel: { help: '100位あたりで順位を1つ上げるのに要る差（前後10位の平均）を、100位の記録に対する ‰（千分率）で表します。大きいほど 1つの順位が重い種目です。', key: m => m.step100rel, text: m => m.step100rel.toFixed(2) + '‰', unit: '1つ上がるのに' },
+  rate1: { help: '参加者の上位1%の人が、いまの RATING の計算でもらえる「すごさ」（0〜1）です。高いほど RATING が出やすい種目です。', key: m => m.rate1, text: m => m.rate1.toFixed(3), unit: '上位1%のすごさ' }
+};
+function renderDiff(w) {
+  const dw = dataWeek();
+  const ms = A.EVENTS.filter(n => w.cats[n]).map(n => A.metrics(w, n, dw));
+  const def = METRIC[ST.metric];
+  $('#diffHelp').textContent = def.help;
+  document.querySelectorAll('#diffSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === ST.metric));
+  const rows = ms.filter(m => def.key(m) != null).map(m => ({
+    name: m.name, value: def.key(m), text: def.text(m),
+    extra: [`参加 ${fmtN(m.players)} 人`, `読めた順位：1〜${m.contiguous}位${m.top > m.contiguous ? `（〜${m.top}位）` : ''}`]
+  }));
+  rows.sort((a, b) => def.asc ? a.value - b.value : b.value - a.value);
+  const lack = ms.filter(m => def.key(m) == null).map(m => m.name);
+  barChart($('#diffChart'), { rows, unitLabel: def.unit, label: '種目のむずかしさ', empty: ST.metric === 'r200pct' ? '参加人数が読めていません' : '計算に要る順位（100位まわりなど）が、まだ読めていません' });
+  if (lack.length && rows.length) {
+    const p = document.createElement('p'); p.className = 'note';
+    p.textContent = `計算に要る順位が足りない種目：${lack.join('、')}`;
+    $('#diffChart').appendChild(p);
+  }
+  $('#diffBody').innerHTML = ms.map(m => `<tr><td class="nm">${esc(m.name)}</td><td class="r num">${fmtN(m.players)}</td>
+    <td class="r num">${fmtPct(m.r200pct)}</td><td class="r num">${m.top1Rank ? m.top1Rank.toLocaleString('en-US') + '位' : '—'}${m.top1Val != null ? `<br><span class="tiny">${esc(fmtV(m.name, m.top1Val))}</span>` : ''}</td>
+    <td class="r num">${fmtPct(m.spread)}</td><td class="r num">${esc(fmtStep(m.name, m.step100))}</td>
+    <td class="r num">${fmtRate(m.rate01)}</td><td class="r num">${fmtRate(m.rate05)}</td><td class="r num">${fmtRate(m.rate1)}</td><td class="r num">${fmtRate(m.rate2)}</td></tr>`).join('');
+}
+
+function chipsHtml(names, list, map, key) {
+  return names.map(n => {
+    const on = list.indexOf(n) >= 0;
+    return `<button class="chip${on ? ' on' : ''}" data-${key}="${esc(n)}" type="button" aria-pressed="${on}">${on ? `<i style="background:var(--s${map[n] || 1})"></i>` : ''}${esc(short(n))}</button>`;
+  }).join('');
+}
+function legendHtml(list, map) {
+  return list.length > 1 ? list.map(n => `<span><i style="background:var(--s${map[n]})"></i>${esc(short(n))}</span>`).join('') : '';
+}
+function renderCurve(w) {
+  ST.curve.forEach(n => slotOf(SLOT.curve, n, ST.curve));
+  $('#curveChips').innerHTML = chipsHtml(A.ALL.filter(n => w.cats[n]), ST.curve, SLOT.curve, 'curve');
+  $('#curveLegend').innerHTML = legendHtml(ST.curve, SLOT.curve);
+  document.querySelectorAll('#curveX button').forEach(b => b.classList.toggle('on', b.dataset.v === ST.curveX));
+  document.querySelectorAll('#curveLog button').forEach(b => b.classList.toggle('on', (b.dataset.v === '1') === ST.curveLog));
+  const norm = ST.curve.length > 1;
+  const one = ST.curve[0];
+  $('#curveCap').textContent = norm ? 'たて：1位を100%とした割合' : `たて：${short(one)} の記録（${A.kindOf(one) === 'time' ? '秒。小さいほど上' : '点'}）`;
+  const series = ST.curve.map(n => ({ name: short(n), cat: n, slot: SLOT.curve[n], pts: A.curve(w, n, { x: ST.curveX, normalize: norm }) }));
+  lineChart($('#curveChart'), {
+    series, xLog: ST.curveLog, label: '順位と点数',
+    xLabel: ST.curveX === 'rank' ? '順位' : '上位%（参加者の中で）',
+    fmtX: (x, tick) => ST.curveX === 'rank' ? (tick ? tickTxt(x) : Math.round(x).toLocaleString('en-US') + '位') : (tick ? tickTxt(x) + '%' : '上位 ' + fmtPct(x)),
+    fmtY: y => norm ? y.toFixed(2) + '%' : fmtV(one, y), ySuffix: norm ? '%' : '',
+    marksX: ST.curveX === 'rank' ? [10, 50, 100, 200] : [],
+    empty: ST.curveX === 'pct' ? '参加人数が読めていないので、上位%にできません' : 'この種目は まだ順位が読めていません'
+  });
+  /* 表で見る */
+  const RANKS = [1, 2, 3, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 750, 1000];
+  const cols = ST.curve;
+  $('#curveTable').innerHTML = `<thead><tr><th class="r">順位</th>${cols.map(n => `<th class="r">${esc(short(n))}</th>`).join('')}</tr></thead><tbody>` +
+    RANKS.filter(r => cols.some(n => A.exactAt(w.cats[n], r) != null)).map(r => `<tr><td class="r num">${r}位</td>${cols.map(n => { const v = A.exactAt(w.cats[n], r); return `<td class="r num">${v == null ? '—' : esc(fmtV(n, v))}${v != null && w.cats[n].players ? `<br><span class="tiny">上位 ${fmtPct(r / w.cats[n].players * 100)}</span>` : ''}</td>`; }).join('')}</tr>`).join('') + '</tbody>';
+}
+
+function renderRate(w) {
+  const dw = dataWeek();
+  ST.rate.forEach(n => slotOf(SLOT.rate, n, ST.rate));
+  $('#rateChips').innerHTML = chipsHtml(A.EVENTS.concat([A.SUMEX]).filter(n => w.cats[n]), ST.rate, SLOT.rate, 'rate');
+  $('#rateLegend').innerHTML = legendHtml(ST.rate, SLOT.rate);
+  const series = ST.rate.map(n => ({ name: short(n), cat: n, slot: SLOT.rate[n], pts: A.rateCurve(w, n, dw) }));
+  lineChart($('#rateChart'), {
+    series, xLog: true, yMin: 0, yMax: 1, label: 'RATING への影響',
+    xLabel: '上位%（参加者の中で）',
+    fmtX: (x, tick) => tick ? tickTxt(x) + '%' : '上位 ' + fmtPct(x),
+    fmtY: y => y.toFixed(3),
+    empty: '参加人数かボーダー（1・10・50・100・200位）が足りないので、まだ出せません'
+  });
+  const notes = [];
+  for (const n of ST.rate) {
+    const c = w.cats[n];
+    const bd = A.bordersOf(w, n, dw);
+    if (!c.players) notes.push(`${short(n)}：参加人数が読めていません`);
+    else if (!bd.complete) notes.push(`${short(n)}：ボーダー（${bd.ranks.filter(r => !(bd.B[r] > 0)).join('・')}位）が足りません`);
+    else notes.push(`${short(n)}：参加 ${fmtN(c.players)} 人なので、200位＝上位 ${fmtPct(200 / c.players * 100)}・10位＝上位 ${fmtPct(10 / c.players * 100)}` + (bd.fromData.length ? `（${bd.fromData.join('・')}位のボーダーは data.json の値）` : ''));
+  }
+  $('#rateNote').innerHTML = notes.map(esc).join('<br>') + (notes.length ? '<br>' : '') + '同じ上位%のところで線が上にある種目ほど、RATING が出やすい（やさしい）種目です。';
+}
+
+function posRows() { return [A.SUMEX].concat(A.EVENTS, [A.RAND, A.LSCORE, A.SUMALL]); }
+function renderPos(w) {
+  const dw = dataWeek();
+  $('#posBody').innerHTML = posRows().map(n => {
+    const c = w.cats[n];
+    const raw = ST.pos[n] != null ? ST.pos[n] : '';
+    const v = parseRec(n, raw);
+    let rk = '<span class="tiny">—</span>', pc = '<span class="tiny">—</span>', ra = '<span class="tiny">—</span>', band = '';
+    if (v != null && c) {
+      const r = A.rankOf(c, v);
+      if (r && r.rank) {
+        const big = !r.exact && r.to - r.from > 20;
+        rk = r.exact ? `<b>${r.rank.toLocaleString('en-US')}位</b>`
+          : big ? `<span class="tiny">${r.from}〜${r.to}位のあいだ</span><br>目安 ${r.rank.toLocaleString('en-US')}位`
+          : `≈<b>${r.rank.toLocaleString('en-US')}位</b><br><span class="tiny">${r.from}〜${r.to}位のあいだ</span>`;
+        const p = A.pctOf(c, r.rank);
+        pc = p != null ? '上位 ' + fmtPct(p) : '—';
+      } else if (r && r.below) {
+        rk = `<span class="tiny">${r.below.toLocaleString('en-US')}位より下</span>`;
+        pc = c.players ? `<span class="tiny">上位 ${fmtPct(r.below / c.players * 100)} より下</span>` : '—';
+      } else if (r && r.above) {
+        rk = `<span class="tiny">${r.above}位より上</span>`;
+      }
+      if (n === A.SUMEX || A.EVENTS.indexOf(n) >= 0) {
+        const rr = A.rateOf(n, v, A.bordersOf(w, n, dw));
+        if (rr) { ra = `<b>${rr.r.toFixed(3)}</b>`; band = esc(rr.band); }
+        else ra = '<span class="tiny">ボーダー不足</span>';
+      }
+    } else if (v != null && !c) rk = '<span class="tiny">この週のデータなし</span>';
+    return `<tr><td class="nm">${esc(n === A.SUMEX ? '十種競技総合スコア（合計スコア）' : n)}</td>
+      <td class="r"><input class="txt num" data-pos="${esc(n)}" inputmode="decimal" value="${esc(raw)}" placeholder="${A.kindOf(n) === 'time' ? '秒' : '記録'}" aria-label="${esc(n)} の記録"></td>
+      <td class="r num">${rk}</td><td class="r num">${pc}</td><td class="r num">${ra}</td><td class="tiny">${band}</td></tr>`;
+  }).join('');
+  const recs = {};
+  for (const n of posRows()) { const v = parseRec(n, ST.pos[n]); if (v != null) recs[n] = v; }
+  if (!Object.keys(recs).length) { $('#posTotal').innerHTML = '<span class="tiny">記録を入れると、この週のボーダーで計算した RATING がここに出ます。</span>'; return; }
+  const R = A.ratingOf(recs, w, dw);
+  $('#posTotal').innerHTML = `<div class="tiny">この週のボーダーで計算した RATING（20点満点）</div><div class="v num">${R.rating.toFixed(3)}</div>
+    <div class="tiny">① 十種競技総合スコア ${R.parts.total.toFixed(3)} ／ ② 素数ゲームV1・V2／暗素因数分解 Lv.1-3 の上位4種目 ${R.parts.cat2.toFixed(3)} ／ ③ EX系・タイムアタック系の上位3種目 ${R.parts.cat3.toFixed(3)}</div>`
+    + (R.lack.length ? `<div class="tiny" style="color:var(--warn)">ボーダーが足りず 0 で数えた種目：${esc(R.lack.join('、'))}</div>` : '');
+}
+function parseRec(n, s) {
+  if (s == null || s === '') return null;
+  const t = String(s).normalize('NFKC').replace(/[,\s秒点]/g, '');
+  if (!/^\d*\.?\d+$/.test(t)) return null;
+  const v = parseFloat(t);
+  return v > 0 ? v : null;
+}
+
+function renderTrend() {
+  const names = A.ALL.filter(n => ST.weeks.some(w => w.cats[n]));
+  if (!names.length) return;
+  if (names.indexOf(ST.trendCat) < 0) ST.trendCat = names[0];
+  $('#trendCat').innerHTML = names.map(n => `<option value="${esc(n)}"${n === ST.trendCat ? ' selected' : ''}>${esc(short(n))}</option>`).join('');
+  const RK = [1, 5, 10, 50, 100, 200];
+  $('#trendRank').innerHTML = RK.map(r => `<button data-tr="${r}" class="${r === ST.trendRank ? 'on' : ''}" type="button">${r}位</button>`).join('');
+  const rows = A.weekly(ST.weeks, ST.trendCat, RK);
+  const k = RK.indexOf(ST.trendRank);
+  const idxDate = {}; rows.forEach((r, i) => { idxDate[i] = r.date; });
+  const ser = rows.length < 2 ? [] : rows.map((r, i) => [i, r.vals[k]]).filter(p => p[1] != null);
+  lineChart($('#trendChart'), {
+    series: [{ name: `${ST.trendRank}位`, slot: 1, pts: ser }], height: 220, label: '週ごとの変化',
+    fmtX: (x, tick) => idxDate[Math.round(x)] != null && Math.abs(x - Math.round(x)) < 1e-9 ? idxDate[Math.round(x)].slice(5) : '',
+    fmtY: y => fmtV(ST.trendCat, y),
+    empty: rows.length < 2 ? '2つ以上の週を読み込むと、線で見られます' : 'この順位は、どの週でも読めていません'
+  });
+  const sign = (d, n) => d == null ? '' : d === 0 ? '<span class="tiny">±0</span>' :
+    `<span class="tiny ${(A.LOW.has(n) ? d < 0 : d > 0) ? 'up' : 'down'}">${d > 0 ? '+' : '−'}${esc(fmtV(n, Math.abs(d)).replace('秒', ''))}</span>`;
+  $('#trendTable').innerHTML = `<thead><tr><th>週</th><th class="r">参加</th>${RK.map(r => `<th class="r">${r}位</th>`).join('')}</tr></thead><tbody>` +
+    rows.slice().reverse().map(r => `<tr><td class="num">${esc(r.date)}</td><td class="r num">${fmtN(r.players)}${r.pdiff != null ? `<br><span class="tiny ${r.pdiff >= 0 ? 'up' : 'down'}">${r.pdiff >= 0 ? '+' : '−'}${fmtN(Math.abs(r.pdiff))}</span>` : ''}</td>` +
+      r.vals.map((v, i) => `<td class="r num">${v == null ? '—' : esc(fmtV(ST.trendCat, v))}${r.diffs[i] != null ? '<br>' + sign(r.diffs[i], ST.trendCat) : ''}</td>`).join('') + '</tr>').join('') + '</tbody>';
+}
+
+/* ---------- 操作 ---------- */
+async function readFiles(list) {
+  let ok = 0, ng = 0, rep = 0;
+  for (const f of Array.from(list || [])) {
+    try { const r = addWeek(JSON.parse(await f.text()), f.name); ok++; if (r.replaced) rep++; }
+    catch (e) { ng++; }
+  }
+  renderAll();
+  toast(`${ok} 週を読み込みました` + (rep ? `（${rep} 週は同じ日付を入れかえ）` : '') + (ng ? `／ ${ng} 個は読めませんでした` : ''));
+}
+$('#jsonIn').addEventListener('change', e => { readFiles(e.target.files); e.target.value = ''; });
+$('#btnLast').onclick = () => {
+  let j = null;
+  try { j = JSON.parse(localStorage.getItem(K_LAST) || 'null'); } catch (e) { j = null; }
+  if (!j) { toast('この端末には まだ集計がありません（ランキング集計のページで読み取ってください）'); return; }
+  try { const r = addWeek(j, 'この端末の最新の集計'); renderAll(); toast(`${r.w.date} の週を読み込みました`); }
+  catch (e) { toast('読めませんでした：' + e.message); }
+};
+$('#weekSel').onchange = e => { ST.sel = e.target.value; renderAll(); };
+$('#diffSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; ST.metric = b.dataset.m; renderDiff(curWeek()); };
+$('#curveX').onclick = e => { const b = e.target.closest('button'); if (!b) return; ST.curveX = b.dataset.v; renderCurve(curWeek()); };
+$('#curveLog').onclick = e => { const b = e.target.closest('button'); if (!b) return; ST.curveLog = b.dataset.v === '1'; renderCurve(curWeek()); };
+$('#trendCat').onchange = e => { ST.trendCat = e.target.value; renderTrend(); };
+$('#trendRank').onclick = e => { const b = e.target.closest('button'); if (!b) return; ST.trendRank = +b.dataset.tr; renderTrend(); };
+function toggle(list, n) {
+  const i = list.indexOf(n);
+  if (i >= 0) { list.splice(i, 1); return true; }
+  if (list.length >= 4) { toast('4つまで えらべます。どれかを外してください'); return false; }
+  list.push(n); return true;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-curve],[data-rate],[data-del]');
+  if (!t) return;
+  if (t.dataset.curve) { if (toggle(ST.curve, t.dataset.curve)) renderCurve(curWeek()); }
+  else if (t.dataset.rate) { if (toggle(ST.rate, t.dataset.rate)) renderRate(curWeek()); }
+  else if (t.dataset.del) {
+    if (!confirm(`${t.dataset.del} の週を消しますか？`)) return;
+    ST.weeks = ST.weeks.filter(w => w.date !== t.dataset.del); delete ST.raw[t.dataset.del];
+    if (ST.sel === t.dataset.del) ST.sel = ST.weeks.length ? ST.weeks[ST.weeks.length - 1].date : null;
+    saveWeeks(); renderAll();
+  }
+});
+let posT = 0;
+document.addEventListener('input', e => {
+  const inp = e.target.closest && e.target.closest('input[data-pos]');
+  if (!inp) return;
+  ST.pos[inp.dataset.pos] = inp.value;
+  try { localStorage.setItem(K_POS, JSON.stringify(ST.pos)); } catch (er) { /* 保存できなくても計算はできます */ }
+  clearTimeout(posT);
+  posT = setTimeout(() => {
+    const id = inp.dataset.pos, pos = inp.selectionStart;
+    renderPos(curWeek());
+    const again = document.querySelector(`input[data-pos="${CSS.escape(id)}"]`);
+    if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (er) { /* 数字の欄では使えない端末があります */ } }
+  }, 450);
+});
+$('#btnMyRec').onclick = () => {
+  let rec = null;
+  try { rec = JSON.parse(localStorage.getItem(K_REC) || 'null'); } catch (e) { rec = null; }
+  if (!rec || typeof rec !== 'object') { $('#posMsg').textContent = 'この端末には RATING の記録がありません（RATING で記録を入れた端末で開いてください）'; return; }
+  let n = 0;
+  for (const k of Object.keys(rec)) {
+    const name = A.canon(k);
+    const v = Number(rec[k]);
+    if (name && v > 0) { ST.pos[name] = String(v); n++; }
+  }
+  try { localStorage.setItem(K_POS, JSON.stringify(ST.pos)); } catch (e) { /* 保存できなくても計算はできます */ }
+  $('#posMsg').textContent = `${n} 種目の記録を入れました`;
+  renderPos(curWeek());
+};
+$('#btnPosClear').onclick = () => { ST.pos = {}; try { localStorage.removeItem(K_POS); } catch (e) { /* 何もしない */ } $('#posMsg').textContent = ''; renderPos(curWeek()); };
+let rsT = 0, lastW = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(rsT);
+  rsT = setTimeout(() => { const w = document.body.clientWidth; if (w !== lastW && curWeek()) { lastW = w; renderDiff(curWeek()); renderCurve(curWeek()); renderRate(curWeek()); renderTrend(); } }, 200);
+});
+
+(async () => {
+  loadSaved();
+  await loadDataJson();
+  if (!ST.weeks.length) {
+    /* はじめて開いた時は、この端末の最新の集計があれば読み込みます */
+    try { const j = JSON.parse(localStorage.getItem(K_LAST) || 'null'); if (j) addWeek(j, 'この端末の最新の集計'); } catch (e) { /* 無ければ空のまま */ }
+  }
+  if (ST.weeks.length && !ST.sel) ST.sel = ST.weeks[ST.weeks.length - 1].date;
+  lastW = document.body.clientWidth;
+  renderAll();
+})();
+})();
+</script>
+</body>
+</html>
