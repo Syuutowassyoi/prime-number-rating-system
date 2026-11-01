@@ -10,7 +10,9 @@
      2. 読めた順位の点数を入れると、その順位になるか
      3. 偏差値 → 記録 → 偏差値 と もどしても、もとの偏差値に とどくか
      4. 記録が良いほど、偏差値が下がらないか
-     5. （見るだけ）一覧の外の点を かくして、一覧だけで当てると どれくらい ずれるか
+     5. 予測平均点・予測標準偏差が出るか（0 より大きいか）、順位ごとに足した値が 積分で出した値と合うか
+     6. （見るだけ）上位 200・500 位だけで当てはめて その下を当てた時の ずれ（この計算 と「全員が正規分布」）
+     7. （見るだけ）一覧の外の点を かくして、一覧だけで当てると どれくらい ずれるか
    ============================================================ */
 'use strict';
 const fs = require('fs'), path = require('path');
@@ -38,19 +40,52 @@ for (const p of [1e-9, 1e-6, 0.001, 0.02, 0.3, 0.5, 0.7, 0.98, 0.999999]) {
 
 const j = loadWeek(process.argv[2]);
 const w = M.readWeek(j);
-console.log(`週：${w.date}　種目：${Object.keys(w.cats).length}`);
+console.log(`週：${w.date}　種目：${Object.keys(w.cats).length}　（rank-model.js v${M.VERSION}）`);
+/* 参加人数が読めていない種目は、前の週の人数を使います（rankings/ に前の週がある時） */
+if (!process.argv[2]) {
+  const dir = path.join(__dirname, '..', 'rankings');
+  const idx = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
+  const older = (idx.weeks || []).filter(x => x.date < w.date).map(x => M.readWeek(JSON.parse(fs.readFileSync(path.join(dir, x.file), 'utf8'))));
+  const n = M.fillPlayers(older.concat([w]));
+  if (n) console.log(`参加人数が読めていない ${n} 種目は、前の週の人数を使います：` + Object.keys(w.cats).filter(k => w.cats[k].playersFrom).map(k => `${k}（${w.cats[k].playersFrom}）`).join('・'));
+}
+/** 予測平均点を 順位ごとに足すのとは別のやり方（z の積分）で出して、くらべます */
+function integralMean(m) {
+  const N = m.N, L = m.last;
+  let s = 0;
+  for (let r = 1; r <= L.r; r++) { const x = M.valueAtZ(m, M.zOfRank(r, N)); s += m.log ? Math.log10(x) : x; }
+  /* 読めた順位より下：上側確率 q を (r_L ÷ N, 1) で 細かく区切って 中点で足します */
+  const q0 = L.r / N, K = 20000;
+  for (let i = 0; i < K; i++) {
+    const q = q0 + (1 - q0) * (i + 0.5) / K;
+    const z = Math.max(m.zBottom, -M.normInv(q));
+    let x = m.inv(m.mu + m.sigma * z); if (m.floor && !(x > 0)) x = 0;
+    s += (m.log ? Math.log10(x) : x) * (1 - q0) * N / K;
+  }
+  return m.log ? Math.pow(10, s / N) : s / N;
+}
 const fmt = (c, v) => c.asc ? v.toFixed(3) + '秒' : Math.round(v).toLocaleString('en-US');
-const fmtD = d => d.log ? `中央値 ${Math.round(d.mean).toLocaleString('en-US')} ／ σ ${d.sd.toFixed(2)} 桁`
-  : `平均 ${d.mean.toLocaleString('en-US', { maximumFractionDigits: 2 })} ／ σ ${d.sd.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${d.unit}`;
-const val = [], dist = [];
+const fmtD = d => d.log ? `幾何平均 ${Math.round(d.mean).toLocaleString('en-US')} ／ 標準偏差 ${d.sd.toFixed(2)} 桁`
+  : `平均 ${d.mean.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ／ 標準偏差 ${d.sd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${d.unit}`;
+const val = [], dist = [], hold = [];
 for (const name of Object.keys(w.cats)) {
   const c = w.cats[name], m = M.build(c);
   if (!m) { console.log(`  ${name}：参加人数が無いので とばします`); continue; }
-  /* 予測分布があるか（予測標準偏差 > 0、予測平均点は 点数なら 0 以上） */
-  if (!m.dist || !(m.sd > 0)) ng('no predicted distribution', name);
+  /* 5. 予測分布があるか（予測標準偏差 > 0、予測平均点 > 0）、順位ごとに足した値と 積分の値が合うか */
+  const D = m.dist;
+  if (!D || !(m.sigma > 0) || !(D.sd > 0) || !(D.mean > 0)) ng('no predicted distribution', name, D && D.mean, D && D.sd);
   else {
-    if (m.tr === 'lin' && m.mean < -1e-6) ng('negative predicted mean', name, m.mean);
-    dist.push(`  ${name.padEnd(20)} 参加 ${String(m.N).padStart(6)}  ${fmtD(m.dist)}${m.clamp ? `（${m.clamp === 'low' ? '最下位≈0点' : 'まん中≥0点'} の決まりで調整）` : ''}`);
+    const im = integralMean(m);
+    if (!(Math.abs(im - D.mean) <= Math.max(1e-6, Math.abs(D.mean) * 2e-3))) ng('mean (sum vs integral)', name, D.mean, im);
+    dist.push(`  ${name.padEnd(20)} 参加 ${String(m.N).padStart(6)}${m.playersFrom ? '*' : ' '} ${fmtD(D)}` +
+      (D.log ? `（中央値 ${Math.round(D.median).toLocaleString('en-US')}）` : `（中央値 ${fmt(c, D.median)}${D.zeroN ? `・0点と予測 ${(D.zero * 100).toFixed(1)}%` : ''}）`) +
+      (m.clamp ? '（最下位≈0点 の決まりで σ を調整）' : ''));
+  }
+  /* 6. 上位 K 位だけで当てはめて、その下を当てる */
+  if (!m.log) {
+    const cell = K => { const a = M.holdout(c, K, 'v3'), b = M.holdout(c, K, 'normal'); return a && b ? [a.mae, b.mae] : null; };
+    const h2 = cell(200), h5 = cell(500);
+    if (h2 || h5) hold.push({ name, h2, h5 });
   }
   /* 2. 読めた点 → その順位 */
   for (const p of m.pts) {
@@ -87,7 +122,15 @@ for (const name of Object.keys(w.cats)) {
       (!L ? '—' : L.T == null ? `${L.tMax.toFixed(1)} より下（${T < L.tMax ? '合う' : 'はずれ'}）` : `${L.T.toFixed(1)}${L.mark}（ずれ ${Math.abs(L.T - T) < 0.05 ? '±0.0' : (L.T - T > 0 ? '+' : '') + (L.T - T).toFixed(1)}）`));
   }
 }
-if (dist.length) console.log('予測分布（予測平均点・予測標準偏差）：\n' + dist.join('\n'));
+if (dist.length) console.log('予測平均点・予測標準偏差（参加者 全員の 予測した記録の 平均と標準偏差。* は前の週の人数）：\n' + dist.join('\n'));
+if (hold.length) {
+  const f = x => x == null ? '   —' : x.toFixed(2).padStart(5);
+  const avg = k => { const a = hold.filter(h => h[k]); return a.length ? [a.reduce((s, h) => s + h[k][0], 0) / a.length, a.reduce((s, h) => s + h[k][1], 0) / a.length] : [null, null]; };
+  console.log('上位 K 位だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれ（平均）：この計算 ／ 全員が正規分布');
+  hold.forEach(h => console.log(`  ${h.name.padEnd(20)} K=200：${f(h.h2 && h.h2[0])} ／${f(h.h2 && h.h2[1])}    K=500：${f(h.h5 && h.h5[0])} ／${f(h.h5 && h.h5[1])}`));
+  const a2 = avg('h2'), a5 = avg('h5');
+  console.log(`  ${'（種目の平均）'.padEnd(18)} K=200：${f(a2[0])} ／${f(a2[1])}    K=500：${f(a5[0])} ／${f(a5[1])}`);
+}
 if (val.length) console.log('一覧の外の点を かくして当てた結果：\n' + val.join('\n'));
 console.log(bad ? `\n確かめ：${bad} か所 おかしい所があります` : '\n確かめ：ぜんぶ合っています');
 process.exit(bad ? 1 : 0);

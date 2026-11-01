@@ -234,9 +234,10 @@ details>summary{cursor:pointer}
       <div class="tools" style="margin-top:0"><label class="tiny" for="bellT">偏差値</label><input type="range" id="bellT" min="20" max="95" step="0.5" value="70"><b class="num" id="bellV">70.00</b></div>
       <div class="chart" id="bellChart"></div>
       <p class="tiny" id="bellTxt"></p>
+      <div id="howV3"></div>
       <details style="margin-top:10px"><summary class="tiny">見つもりの確かめ（一覧の外の点を かくして当ててみる）</summary>
         <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">一覧の外の点</th><th class="r">本当の偏差値</th><th class="r">一覧だけの見つもり</th><th class="r">ずれ</th></tr></thead><tbody id="valBody"></tbody></table></div>
-        <p class="note">一覧（1〜200位など）だけで、その下の点を当てられるかを確かめています。ずれが大きい種目ほど、△ の見つもりも ずれやすい種目です。</p>
+        <p class="note">一覧（1〜1000位など）だけで、その下の点を当てられるかを確かめています。ずれが大きい種目ほど、△ の見つもりも ずれやすい種目です。</p>
       </details>
     </section>
   </div>
@@ -245,7 +246,7 @@ details>summary{cursor:pointer}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="rank-model.js?v=2"></script>
+<script src="rank-model.js?v=3"></script>
 <script id="ana-core">
 /* ============================================================
    ランキング分析の計算（画面を持たない、計算だけの部分です）
@@ -524,7 +525,8 @@ function rateCurve(week, name, dataWeek, opt) {
 function modelOf(week, name, opt) {
   const RM = G.RankModel, c = week && week.cats[name];
   if (!RM || !c) return null;
-  const key = name + (opt && opt.extra === false ? '|noextra' : '');
+  /* 参加人数を前の週から借りた時に 作りなおせるよう、人数も かぎに入れます */
+  const key = name + '|' + (c.players || 0) + (opt && opt.extra === false ? '|noextra' : '');
   if (!week._models) Object.defineProperty(week, '_models', { value: {}, enumerable: false });
   if (!(key in week._models)) {
     week._models[key] = RM.build(Object.assign({}, c, { kind: name === RAND || name === LSCORE ? 'cum' : c.kind }), opt);
@@ -630,6 +632,8 @@ function addWeek(json, source, opt) {
   if (i >= 0 && w.pub && !ST.weeks[i].pub) return { w: ST.weeks[i], replaced: false, kept: true };
   if (i >= 0) ST.weeks[i] = w; else ST.weeks.push(w);
   ST.weeks.sort((a, b) => a.date < b.date ? -1 : 1);
+  /* 参加人数が読めていない種目は、前の週の人数を使います（その種目には playersFrom が付きます） */
+  if (RM && RM.fillPlayers) RM.fillPlayers(ST.weeks);
   ST.raw[w.date] = json;
   if (!opt.keepSel) ST.sel = w.date;
   if (!w.pub) saveWeeks();
@@ -1013,7 +1017,7 @@ function renderSummary(w) {
   $('#sumBody').innerHTML = cats.map(n => {
     const c = w.cats[n], cont = A.contiguous(c), top = c.pts[c.pts.length - 1][0];
     const v = r => { const x = A.exactAt(c, r); return x == null ? '<span class="tiny">—</span>' : esc(fmtV(n, x)); };
-    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(c.players)}</td>
+    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(c.players)}${fromMark(c)}</td>
       <td class="r num">${cont ? `1〜${cont}位` : '—'}${top > cont ? `<span class="tiny">（〜${top}位）</span>` : ''}</td>
       <td class="r num">${v(1)}</td><td class="r num">${v(10)}</td><td class="r num">${v(50)}</td><td class="r num">${v(100)}</td><td class="r num">${v(200)}</td></tr>`;
   }).join('');
@@ -1109,6 +1113,8 @@ function renderRate(w) {
 
 function posRows() { return [A.SUMEX].concat(A.EVENTS, [A.RAND, A.LSCORE, A.SUMALL]); }
 const DASH = '<span class="tiny">—</span>';
+/** 参加人数を前の週から借りた時の しるし */
+const fromMark = c => c && c.playersFrom ? `<span class="tiny" title="${esc(c.playersFrom)} の人数（この週は読めていません）">*</span>` : '';
 const fmtT = t => t == null || !isFinite(t) ? '—' : t.toFixed(2);
 /** 予測平均点・予測標準偏差（小数第2位まで。タイムは秒、累積は 中央値と桁） */
 function fmtDist(n, m) {
@@ -1208,10 +1214,12 @@ function renderDev(w) {
       return `<td class="r num">${esc(r.zero ? '0' : fmtV(n, safeV(n, r.value)))}<span class="mk">${r.mark}</span><br><span class="tiny">約 ${fmtN(Math.max(1, Math.floor(r.rank)))}位</span></td>`;
     }).join('');
     const D = fmtDist(n, m);
-    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}</td><td class="r num">${D.mean}</td><td class="r num">${D.sd}</td><td class="r num">${fmtT(RM.tOfRank(1, m.N))}</td>${cells}</tr>`;
+    return `<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}${fromMark(m)}</td><td class="r num">${D.mean}</td><td class="r num">${D.sd}</td><td class="r num">${fmtT(RM.tOfRank(1, m.N))}</td>${cells}</tr>`;
   }).join('');
-  $('#devNote').innerHTML = '参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った人数です。参加人数が少ない種目は、1位でも偏差値が低めに出ます。<br>'
-    + '予測平均点・予測標準偏差は、読めた順位の いちばん下の所に つりがね形（正規分布）を当てはめた値です（タイムは秒、累積は 中央値と「桁」＝10倍）。0点の近くに人が とても多い種目は、予測平均点が 0.00 になります。';
+  const from = names.map(n => A.modelOf(w, n)).filter(m => m && m.playersFrom);
+  $('#devNote').innerHTML = '参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った人数です。参加人数が少ない種目は、1位でも偏差値が低めに出ます。'
+    + (from.length ? `<br>* は、この週に参加人数が読めていないので、前の週（${esc([...new Set(from.map(m => m.playersFrom))].join('・'))}）の人数を使っています。` : '') + '<br>'
+    + '予測平均点・予測標準偏差は、参加者 全員の記録を 1位から最下位まで予測して並べた時の 平均と標準偏差です（読めた順位は その記録、その下は 予測分布。タイムは秒）。出し方は 下の「偏差値の出し方」に あります。';
 }
 
 /* 偏差値の出し方 */
@@ -1236,18 +1244,96 @@ function renderHow(w) {
         <span class="ex">${esc(e2)}</span><span class="ex">Φ⁻¹ は「下から その割合になる所」の値を返す関数です。下の図で、色の付いた所の面積が p です。</span></li>
       <li><b>偏差値にします</b>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span><span class="ex">${esc(e3)}</span></li>
     </ol>
-    <p class="tiny">点数が つりがね形に ちらばっている時は、この出し方と ふつうの偏差値が 同じになります。ちらばり方が ちがっても「上位何%か」は そのまま正しく出るのが、この出し方の よい所です。</p>
-    <h3>読めた順位の外は？（予測平均点・予測標準偏差）</h3>
-    <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、点数と z を まっすぐ結んで見つもります（○）。<br>
-      いちばん下の読めた順位より下は「予測分布」を使います（△）。読めた順位の いちばん下の所に、直線 <span class="f">点数 ＝ μ ＋ σ × z</span> を当てはめて、
-      傾き σ を <b>予測標準偏差</b>、z ＝ 0（まん中の人）の所の μ を <b>予測平均点</b> とします。すると
-      <span class="f">偏差値 ＝ 50 ＋ 10 ×（点数 − μ）÷ σ</span>、順位 ≈ 参加人数 × Q(z) ＋ 0.5 で、どの記録にも 順位と偏差値が出せます。<br>
-      点数は 0点より下が無いので「最下位の人は 0点くらい（以下）」「まん中の人は 0点以上」という2つの決まりで σ の はばを決めています（0点の近くに人が とても多い種目は μ ＝ 0）。<br>
-      タイムは 秒のまま（速いほど上）、生成した乱数の累積・スコアの累積は 上と下で何万倍も ちがうので「常用対数」で、同じように計算します（σ の単位は「桁」＝10倍）。<br>
-      201位より下の順位も読み取って入れると、その所までは ◎・○ で出せるので、ずっと確かになります。</p>
-    <p class="tiny">参加人数が少ない種目は、1位でも偏差値が低めに出ます（参加 N 人の1位は p ＝ 0.5 ÷ N だからです）。</p>`;
+    <p class="tiny">点数が つりがね形に ちらばっている時は、この出し方と ふつうの偏差値が 同じになります。ちらばり方が ちがっても「上位何%か」は そのまま正しく出るのが、この出し方の よい所です。</p>`;
+  $('#howV3').innerHTML = howV3(w);
   renderBell();
   renderVal(w);
+}
+/** v3 の式の説明（いちばん参加人数の多い種目で、じっさいの数を入れて見せます） */
+function howV3(w) {
+  const ex = exampleCat(w), m = ex ? A.modelOf(w, ex) : null;
+  const f3 = x => x.toLocaleString('en-US', { maximumFractionDigits: 3, minimumFractionDigits: 3 });
+  const f2 = x => x.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  let ex1 = '', ex2 = '', ex3 = '', ex4 = '', ex5 = '';
+  if (m && m.sigma) {
+    const L = m.last, D = m.dist, k = RM.POW.score;
+    ex1 = `例：${ex}：いちばん下の読めた順位 L ＝ ${fmtN(L.r)}位（${fmtV(ex, L.v)}）→ z_L ＝ ${f3(L.z)}、y_L ＝ ${fmtN(L.v)}^(3/4) ＝ ${f3(L.y)}。`
+      + `${fmtN(m.tailFrom)}〜${fmtN(L.r)}位の ${fmtN(m.tailN)} 点で σ ＝ ${f3(m.sigma)}` + (m.clamp ? `（最下位 ≈ 0 の決まりで σ ＝ y_L ÷（z_L − z_N）＝ ${f3(L.y)} ÷（${f3(L.z)} − (${f3(m.zBottom)})））` : '');
+    ex2 = `例：μ ＝ ${f3(L.y)} − ${f3(m.sigma)} × ${f3(L.z)} ＝ ${f3(m.mu)}`;
+    const xr = RM.valueAtZ(m, L.z - 0.6), x = xr > 1000 ? Math.round(xr / 1000) * 1000 : Math.round(xr);
+    if (x > 0) {
+      const y = Math.pow(x, k), z = (y - m.mu) / m.sigma, d = RM.locate(m, x);
+      ex3 = `例：${fmtV(ex, x)} → y ＝ ${fmtN(x)}^(3/4) ＝ ${f3(y)} → z ＝（${f3(y)} − ${f3(m.mu)}）÷ ${f3(m.sigma)} ＝ ${f3(z)} → 順位 ≈ ${fmtN(m.N)} × ${RM.upper(z).toFixed(6)} ＋ 0.5 ≈ ${fmtN(d.rank)}位、偏差値 ${fmtT(d.T)}`;
+    }
+    if (D) {
+      ex4 = `例：${ex}（参加 ${fmtN(m.N)} 人）は 予測平均点 ${f2(D.mean)}、予測標準偏差 ${f2(D.sd)}`
+        + (D.zeroN ? `（${fmtN(D.zeroN)} 人＝${fmtPct(D.zero * 100)} は「μ ＋ σz が 0 より下」なので 0 点として数えています）` : '');
+      const pt = RM.plainT(m, L.v);
+      if (pt != null) ex5 = `例えば ${ex} の ${fmtV(ex, L.v)}（${fmtN(L.r)}位）は、順位からの偏差値 ${fmtT(RM.tOfRank(L.r, m.N))}、ふつうの偏差値 ${fmtT(pt)} です。`;
+    }
+  }
+  return `
+    <h3>読めた順位の外は？（予測分布）</h3>
+    <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、記録を下の y に直して、y と z を まっすぐ結んで見つもります（○）。
+      いちばん下の読めた順位 L より下は「予測分布」を使います（△）。</p>
+    <ol class="calc">
+      <li><b>記録 x を y に直します</b>　<span class="f">点数：y ＝ x^(3/4)</span>　<span class="f">タイム：y ＝ −√x</span>　<span class="f">累積：y ＝ x^0.3</span>
+        <span class="ex">y が つりがね形（正規分布）に ちらばる、と考えます。べき（3/4・1/2・0.3）は、上位 200・300・500 位だけで当てはめて その下を当てる ためし（下の表）と、累積は もっと下の順位（1480〜10000位）を当てる ためしで、いちばん よく当たったものです。</span></li>
+      <li><b>いちばん下の所の傾き σ</b>　<span class="f">σ ＝ Σ(z_i − z̄)(y_i − ȳ) ÷ Σ(z_i − z̄)²</span>
+        <span class="ex">L から z の幅 0.4 の中にある 読めた点 i（z_i − z_L ≦ 0.4）で、y を z の直線で表した時の傾き（最小二乗）です。z̄・ȳ は その点の平均です。
+          点数と累積は「最下位（N 位）の人は 0 くらい」とするので、σ ≧ y_L ÷（z_L − z_N）にします（z_N は N 位の z）。</span>
+        <span class="ex">${esc(ex1)}</span></li>
+      <li><b>直線が L を通るように</b>　<span class="f">μ ＝ y_L − σ z_L</span><span class="ex">${esc(ex2)}</span></li>
+      <li><b>順位と偏差値</b>　<span class="f">z ＝（y − μ）÷ σ</span>　<span class="f">順位 ≈ N × Q(z) ＋ 0.5</span>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span>
+        <span class="ex">Q(z) は z より上にいる人の割合（上側確率）です。z は z_N より下に しません。</span><span class="ex">${esc(ex3)}</span></li>
+    </ol>
+    <h3>予測平均点・予測標準偏差</h3>
+    <p class="tiny" style="margin:0">参加者 N 人の記録を 1位から N 位まで並べたもの x̂₁, x̂₂, …, x̂_N を作って、ふつうに 平均 と 標準偏差 を出します。</p>
+    <ol class="calc">
+      <li><b>並べる</b>　<span class="f">r ≦ r_L：x̂_r ＝ 読めた記録</span>　<span class="f">r ＞ r_L：x̂_r ＝（μ ＋ σ z_r）^(4/3)</span>
+        <span class="ex">z_r ＝ Φ⁻¹(1 − (r − 0.5) ÷ N)。タイムは x̂_r ＝（μ ＋ σ z_r）²（μ ＋ σ z_r は マイナス）、累積は x̂_r ＝（μ ＋ σ z_r）^(1/0.3)。μ ＋ σ z_r が 0 より下なら 0 です。読めた順位の中で 抜けている所は、まっすぐ結んだ値です。</span></li>
+      <li><b>平均と標準偏差</b>　<span class="f">x̄ ＝（x̂₁ ＋ x̂₂ ＋ … ＋ x̂_N）÷ N</span>　<span class="f">s ＝ √(（(x̂₁ − x̄)² ＋ … ＋ (x̂_N − x̄)²）÷ N)</span>
+        <span class="ex">x̄ が 予測平均点、s が 予測標準偏差 です。${esc(ex4)}</span></li>
+    </ol>
+    <p class="tiny">偏差値は 順位から出しているので、ふつうの偏差値「50 ＋ 10 ×（x − x̄）÷ s」とは ぴったり同じには なりません（記録が つりがね形に ちらばっていないためです）。${esc(ex5)}<br>
+      読めた順位より ずっと下（0 点に近い所など）は、見えない所なので、予測の形の決め方で 大きく変わります。もっと下の順位まで読み取ると、その所までは ◎・○ になります。</p>
+    <p class="tiny">参加人数が少ない種目は、1位でも偏差値が低めに出ます（参加 N 人の1位は p ＝ 0.5 ÷ N だからです）。</p>
+    <h3>「参加者 全員が 正規分布」と考えると？</h3>
+    <p class="tiny" style="margin:0">参加 N 人の記録 x が そのまま 正規分布 N(μ, σ²) に したがう、と考えると、上位 k 人の記録 x₁ ≧ … ≧ x_k と「残りの N − k 人は x_k より下」ということから、
+      μ と σ を 最尤推定で決められます：<span class="f">ℓ(μ, σ) ＝ −k log σ − Σ (x_i − μ)² ÷ (2σ²) ＋ (N − k) log Φ((x_k − μ) ÷ σ)</span> を いちばん大きくする μ・σ です（タイムは −x で考えます）。<br>
+      人数が多いので「たまたま」による ずれは小さいのですが、記録の ちらばり方が つりがね形でないと、<b>形の ちがいによる ずれは、人数が多くても小さくなりません</b>。
+      上位 1000 位は 参加者の上の 数% なので、まん中（z ＝ 0）までは 読めた はばの 2 倍くらい 先まで のばすことになり、少しの曲がりが 大きな ずれになります。
+      下の表で、2つのやり方を くらべられます（上位 K 位だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれの平均）。</p>
+    <div class="tools"><button class="btn sm" id="cmpRun" type="button">くらべる（少し時間がかかります）</button><span class="tiny" id="cmpMsg"></span></div>
+    <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">参加</th><th class="r">全員が正規分布<br><span class="tiny">μ ／ σ</span></th><th class="r">0 点より下<br><span class="tiny">と出る人</span></th>
+      <th class="r">この計算<br><span class="tiny">予測平均点 ／ 予測標準偏差</span></th><th class="r">K ＝ 200<br><span class="tiny">この計算 ／ 正規分布</span></th><th class="r">K ＝ 500<br><span class="tiny">この計算 ／ 正規分布</span></th></tr></thead><tbody id="cmpBody"><tr><td colspan="7" class="tiny">「くらべる」を押すと出ます。</td></tr></tbody></table></div>
+    <p class="note" id="cmpNote"></p>`;
+}
+/** 「全員が正規分布」と この計算の くらべ */
+function renderCmp(w) {
+  const names = [A.SUMEX].concat(A.EVENTS, [A.SUMALL]).filter(n => w.cats[n]);
+  const f2 = x => x.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  const rows = [], sums = { a2: 0, b2: 0, n2: 0, a5: 0, b5: 0, n5: 0, neg: [] };
+  for (const n of names) {
+    const m = A.modelOf(w, n, { extra: false });
+    if (!m) continue;
+    const c = w.cats[n], cat = Object.assign({}, c, { extra: [] });
+    const nf = RM.fitNormalAll(m), D = m.dist, u = m.asc ? '秒' : '';
+    const h = K => { const a = RM.holdout(cat, K, 'v3'), b = RM.holdout(cat, K, 'normal'); return a && b ? [a.mae, b.mae] : null; };
+    const h2 = h(200), h5 = h(500);
+    if (h2) { sums.a2 += h2[0]; sums.b2 += h2[1]; sums.n2++; }
+    if (h5) { sums.a5 += h5[0]; sums.b5 += h5[1]; sums.n5++; }
+    if (nf && !m.asc && nf.mu < 0) sums.neg.push(short(n));
+    const cell = x => !x ? '—' : `${x[0].toFixed(2)} ／ <span class="${x[1] > x[0] ? 'down' : ''}">${x[1].toFixed(2)}</span>`;
+    rows.push(`<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}</td>`
+      + `<td class="r num">${nf ? `${f2(nf.mu)} ／ ${f2(nf.sd)}${u}` : '—'}</td><td class="r num">${nf && nf.below0 != null ? fmtPct(nf.below0 * 100) : '—'}</td>`
+      + `<td class="r num">${D ? `${f2(D.mean)} ／ ${f2(D.sd)}${u}` : '—'}</td><td class="r num">${cell(h2)}</td><td class="r num">${cell(h5)}</td></tr>`);
+  }
+  $('#cmpBody').innerHTML = rows.join('') || '<tr><td colspan="7" class="tiny">くらべられる種目が ありません（参加人数と、上から抜けなく読めた順位が要ります）。</td></tr>';
+  $('#cmpNote').innerHTML = rows.length ? `偏差値のずれの平均（種目の平均）：K ＝ 200 で この計算 ${(sums.a2 / Math.max(1, sums.n2)).toFixed(2)} ／ 全員が正規分布 ${(sums.b2 / Math.max(1, sums.n2)).toFixed(2)}、`
+    + `K ＝ 500 で ${(sums.a5 / Math.max(1, sums.n5)).toFixed(2)} ／ ${(sums.b5 / Math.max(1, sums.n5)).toFixed(2)}。`
+    + (sums.neg.length ? `<br>全員が正規分布 と考えると、${esc(sums.neg.join('・'))} は μ（平均点）が マイナスになります（点数は 0 点より下が無いので、形が合っていない しるしです）。` : '')
+    + '<br>「0 点より下と出る人」は、正規分布 N(μ, σ²) で 0 点より下になる人の割合 Φ(−μ ÷ σ) です。' : '';
 }
 function renderBell() {
   const host = $('#bellChart');
@@ -1334,6 +1420,13 @@ async function readFiles(list) {
   toast(`${ok} 週を読み込みました` + (rep ? `（${rep} 週は同じ日付を入れかえ）` : '') + (ng ? `／ ${ng} 個は読めませんでした` : ''));
 }
 $('#jsonIn').addEventListener('change', e => { readFiles(e.target.files); e.target.value = ''; });
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('#cmpRun');
+  if (!b) return;
+  const w = curWeek(); if (!w) return;
+  b.disabled = true; $('#cmpMsg').textContent = '計算しています…';
+  setTimeout(() => { try { renderCmp(w); $('#cmpMsg').textContent = ''; } catch (err) { $('#cmpMsg').textContent = '計算できませんでした：' + (err.message || err); } b.disabled = false; }, 30);
+});
 $('#btnLast').onclick = () => {
   let j = null;
   try { j = JSON.parse(localStorage.getItem(K_LAST) || 'null'); } catch (e) { j = null; }

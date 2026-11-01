@@ -1,16 +1,22 @@
 /* ============================================================
-   素数あつめ ランキングの「偏差値」（概算）と、公開データの形
+   素数あつめ ランキングの「偏差値」（概算）と、公開データの形（v3）
    ・RATING（index.html）と ランキング分析（ranking-analysis.html）の両方で使います
    ・画面を持たない、計算だけの部分です（Node.js でも そのまま動きます）
 
    偏差値の出し方
-     1. 上位の割合     p ＝（順位 − 0.5）÷ 参加人数
+     1. 上位の割合     p ＝（順位 − 0.5）÷ 参加人数 N
      2. 標準正規分布で「上から p の所」にある値     z ＝ Φ⁻¹(1 − p)
      3. 偏差値 ＝ 50 ＋ 10 × z
-   読めた順位のあいだは、点数と z をまっすぐ結んで見つもります。
-   読めた順位より下は「予測分布」（つりがね形。予測平均点 μ・予測標準偏差 σ）で出します：
-     z ＝（点数 − μ）÷ σ、偏差値 ＝ 50 ＋ 10 ×（点数 − μ）÷ σ、順位 ≈ 参加人数 × Q(z)
-   μ と σ は、読めた順位のいちばん下の所に 直線「点数 ＝ μ ＋ σz」を当てはめて出します。
+   記録 x は、まず y ＝ g(x) に直します（点数 g(x) ＝ x^(3/4)、タイム g(t) ＝ −√t、累積 g(x) ＝ x^0.3）。
+   読めた順位のあいだは、y と z を まっすぐ結んで見つもります。
+   読めた順位より下は「予測分布」で出します：y は つりがね形（正規分布）に ちらばる、と考えて
+     y ＝ μ ＋ σz、z ＝（y − μ）÷ σ、順位 ≈ N × Q(z) ＋ 0.5（Q は上側確率）
+     σ：読めた順位の いちばん下の点 L から、z の幅 0.4 の中の点で「y を z の直線で表した傾き」（最小二乗）。
+        点数と累積は「最下位（N 位）の人は 0 くらい」とするので σ ≥ y_L ÷（z_L − z_N）
+     μ：直線が L を通るように μ ＝ y_L − σ z_L
+   予測平均点・予測標準偏差：参加者 N 人の記録を 1 位から N 位まで並べたもの x̂₁ … x̂_N の 平均と標準偏差です。
+     x̂_r は、読めた順位は その記録、読めた順位のあいだは 上の まっすぐ結んだ値、
+     読めた順位より下は x̂_r ＝ g⁻¹(μ ＋ σ z_r)（μ ＋ σ z_r が 0 より下なら 0）。
    ============================================================ */
 (function (G) {
 'use strict';
@@ -56,15 +62,23 @@ const tOfRank = (r, N) => tOfZ(zOfRank(r, N));
 /** 偏差値 → 順位（小数のまま。ちょうど その偏差値になる順位） */
 const rankOfT = (t, N) => N * upper(zOfT(t)) + 0.5;
 
-/* ---------- 点数の見方 ----------
-   lin：そのまま（素数ゲームの点・スコアの合計）。予測平均点・予測標準偏差の単位は「点」
-   neg：マイナスを付ける（タイム。小さいほど良いので）。単位は「秒」
-   log10：常用対数（生成した乱数の累積・スコアの累積。上と下で 何万倍もちがうので）。
-          予測平均は「中央値」、予測標準偏差の単位は「桁」（1 桁 ＝ 10 倍） */
+/* ---------- 記録の見方（y ＝ g(x)） ----------
+   pow：点数の 3/4 乗（素数ゲームの点・スコアの合計）。0 点 → 0。予測平均点・予測標準偏差の単位は「点」
+   nsqrt：タイムの √（1/2 乗）に マイナスを付けたもの（小さいほど良いので）。単位は「秒」
+   pcum：累積の 0.3 乗（生成した乱数の累積・スコアの累積）。0 → 0
+   lin・neg・log10：v2 までの形（そのまま・タイムに マイナス・常用対数）。くらべる時だけ使います
+   べき（3/4・1/2・0.3）は、2026-11-01 の 1〜1000 位で「上位 200・300・500 位だけで当てはめて、その下を当てる」こと、
+   一覧より下の記録（非公開）を当てること、累積は 2026-10-31 に読めた 1480〜10000 位を当てることを ためして、
+   いちばん よく当たったものです */
+const POW = { score: 0.75, time: 0.5, cum: 0.3 };
+const powTR = (k, unit) => ({ f: v => Math.pow(v, k), inv: y => y > 0 ? Math.pow(y, 1 / k) : 0, ok: v => v >= 0, floor: true, unit, pow: k });
 const TR = {
-  lin: { f: v => v, inv: y => y, ok: v => v >= 0 },
-  neg: { f: v => -v, inv: y => -y, ok: v => v > 0 },
-  log10: { f: v => v > 0 ? Math.log10(v) : -Infinity, inv: y => Math.pow(10, y), ok: v => v >= 0 }
+  pow: powTR(POW.score, '点'),
+  nsqrt: { f: v => -Math.pow(v, POW.time), inv: y => y < 0 ? Math.pow(-y, 1 / POW.time) : 0, ok: v => v > 0, unit: '秒', pow: POW.time },
+  pcum: powTR(POW.cum, ''),
+  lin: { f: v => v, inv: y => y > 0 ? y : 0, ok: v => v >= 0, floor: true, unit: '点', pow: 1 },
+  neg: { f: v => -v, inv: y => -y, ok: v => v > 0, unit: '秒', pow: 1 },
+  log10: { f: v => v > 0 ? Math.log10(v) : -Infinity, inv: y => Math.pow(10, y), ok: v => v >= 0, unit: '桁', log: true }
 };
 /** いちばん下の所の傾きを出すのに使う、z の幅 */
 const TAIL_SPAN = 0.4;
@@ -75,7 +89,7 @@ const CONF_TEXT = {
   top: 'いまの1位より上（または同じ）です',
   interp: '読めた順位のあいだを見つもっています',
   above: '読めた順位より上です',
-  extrap: '読めた順位より下なので、予測分布（予測平均点と予測標準偏差）から出しています',
+  extrap: '読めた順位より下なので、予測分布から出しています',
   below: '見つもれません'
 };
 
@@ -93,14 +107,14 @@ function slope(list) {
 
 /** 種目のモデルを作ります。
     cat = { name, asc（小さいほど良い）, kind（'cum' は累積）, players（参加人数）, pts: [[順位, 値], …], extra: [[順位, 値], …] }
-    opt.N で参加人数を変えられます。opt.extra === false で 一覧の外の点を使いません */
+    opt.N で参加人数を変えられます。opt.extra === false で 一覧の外の点を使いません。opt.tr で 記録の見方を変えられます */
 function build(cat, opt) {
   opt = opt || {};
   if (!cat || !Array.isArray(cat.pts) || !cat.pts.length) return null;
   const N = opt.N > 0 ? Math.round(opt.N) : (cat.players > 0 ? Math.round(cat.players) : 0);
   if (!N) return null;
   const asc = !!cat.asc;
-  const trName = opt.tr || (asc ? 'neg' : (cat.kind === 'cum' || /累積/.test(String(cat.name || '')) ? 'log10' : 'lin'));
+  const trName = TR[opt.tr] ? opt.tr : (asc ? 'nsqrt' : (cat.kind === 'cum' || /累積/.test(String(cat.name || '')) ? 'pcum' : 'pow'));
   const tr = TR[trName];
   const good = (a, b) => asc ? a <= b : a >= b;       // a は b と同じか、それより良い
   /* 一覧の点（並びが さかさまの所があれば、上の値にそろえます） */
@@ -144,40 +158,90 @@ function build(cat, opt) {
     tail.push(pts[i]);
     if (tail.length >= 2 && pts[i].z - last.z >= TAIL_SPAN) break;
   }
-  /* 予測分布（つりがね形）：いちばん下の所の点に 直線「y ＝ μ ＋ σz」を当てはめます。
-     傾き σ が予測標準偏差、z ＝ 0（まん中の人）の所の μ が予測平均点です（直線は いちばん下の点を通します）。
-     点数（lin）は 0点より下が無いので、2つの決まりで σ の はばを決めます：
-       ・最下位（N 位）の人は 0点か、それより下になる  → σ ≥ y_L ÷（z_L − z_N）
-       ・まん中の人は 0点より下にならない（z_L > 0 の時）→ σ ≤ y_L ÷ z_L */
-  let sd = slope(tail), clamp = '';
-  if (!(sd > 0) || !isFinite(sd)) sd = slope(pts);
+  /* 予測分布：y ＝ μ ＋ σz。σ は いちばん下の所の傾き、μ は 直線が いちばん下の点 L を通るように決めます。
+     点数と累積（0 より下が無いもの）は「最下位（N 位）の人は 0 くらい」とするので、
+     直線が z_N より上で 0 に とどくくらいの傾きは要ります：σ ≥ y_L ÷（z_L − z_N） */
   const zBottom = zOfRank(N, N);
-  if (trName === 'lin' && last.y > 0) {
-    const lo = last.y / (last.z - zBottom), hi = last.z > 0 ? last.y / last.z : Infinity;
-    if (!(sd > 0) || !isFinite(sd)) { sd = lo; clamp = 'low'; }
-    else if (sd < lo) { sd = lo; clamp = 'low'; }
-    else if (sd > hi) { sd = hi; clamp = 'high'; }
+  let sigma = slope(tail), clamp = '';
+  if (!(sigma > 0) || !isFinite(sigma)) sigma = slope(pts);
+  if (tr.floor && last.y > 0 && last.z > zBottom) {
+    const lo = last.y / (last.z - zBottom);
+    if (!(sigma >= lo) || !isFinite(sigma)) { sigma = lo; clamp = 'low'; }
   }
-  if (!(sd > 0) || !isFinite(sd)) sd = null;
-  /* 「まん中 ≥ 0点」の決まりで止めた時は、予測平均点は ちょうど 0点です（−0 にならないように） */
-  const mean = !sd ? null : clamp === 'high' ? 0 : last.y - last.z * sd;
-  /* 画面に出す形：点（lin）・秒（neg）・中央値と桁（log10） */
-  const dist = !sd ? null : trName === 'lin' ? { mean, sd, unit: '点' }
-    : trName === 'neg' ? { mean: -mean, sd, unit: '秒' }
-    : { mean: Math.pow(10, mean), sd, unit: '桁', log: true };
+  if (!(sigma > 0) || !isFinite(sigma)) sigma = null;
+  const mu = sigma ? last.y - last.z * sigma : null;
   const listMax = list[list.length - 1].r, extraUsed = pts.filter(p => p.src === 'extra').length;
-  return {
-    name: cat.name || '', N, asc, tr: trName, f: tr.f, inv: tr.inv, ok: tr.ok, pts, last, contig,
-    sd, mean, b: sd, dist, clamp, listMax, extraUsed, tailFrom: tail[tail.length - 1].r,
-    zTop: zOfRank(1, N), zBottom, zFloor: zBottom
+  const m = {
+    name: cat.name || '', N, asc, tr: trName, f: tr.f, inv: tr.inv, ok: tr.ok, floor: !!tr.floor, log: !!tr.log, unit: tr.unit,
+    pts, last, contig, mu, sigma, b: sigma, clamp, listMax, extraUsed, tailFrom: tail[tail.length - 1].r, tailN: tail.length,
+    zTop: zOfRank(1, N), zBottom, playersFrom: cat.playersFrom || null
   };
+  /* 予測平均点・予測標準偏差は、はじめて使う時に 計算します（参加人数ぶん 足すので） */
+  let dist;
+  Object.defineProperty(m, 'dist', { enumerable: true, get() { if (dist === undefined) dist = sigma ? moments(m) : null; return dist; } });
+  return m;
 }
-/** 予測分布だけで出した偏差値 ＝ 50 ＋ 10 ×（点数 − 予測平均点）÷ 予測標準偏差（タイムは 速いほど上） */
+
+/** 読めた順位の中の z の所の y（まっすぐ結んだ値）。z が いちばん上の点より上なら いちばん上の点の y */
+function yInside(m, z) {
+  const P = m.pts;
+  if (z >= P[0].z) return P[0].y;
+  let lo = 0, hi = P.length - 1;            // P[lo].z > z >= P[hi].z
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (P[mid].z > z) lo = mid; else hi = mid; }
+  const a = P[lo], b = P[hi];
+  return b.z === a.z ? b.y : a.y + (z - a.z) / (b.z - a.z) * (b.y - a.y);
+}
+/** 参加者 N 人の「予測した記録の並び」x̂₁ … x̂_N の 平均・標準偏差（記録の見方が log10 の時だけ、y ＝ log₁₀ のまま）。
+    読めた順位 r ≤ r_L：読めた記録（抜けている順位は まっすぐ結んだ値）
+    読めた順位より下 r > r_L：x̂_r ＝ g⁻¹(μ ＋ σ z_r)、z_r ＝ Φ⁻¹(1 − (r − 0.5) ÷ N)（点数と累積は 0 より下を 0） */
+function moments(m) {
+  const N = m.N, P = m.pts, L = m.last;
+  let n = 0, mean = 0, M2 = 0, zero = 0, worst = null, i = 0;
+  for (let r = 1; r <= N; r++) {
+    let y;
+    if (r <= L.r) {
+      while (P[i].r < r) i++;
+      y = P[i].r === r ? P[i].y : (i === 0 ? P[0].y : yInside(m, zOfRank(r, N)));
+    } else y = m.mu + m.sigma * zOfRank(r, N);
+    let x = m.log ? y : m.inv(y);
+    if (m.floor && !(x > 0)) { x = 0; if (r > L.r) zero++; }
+    if (!isFinite(x)) continue;
+    n++; const d = x - mean; mean += d / n; M2 += d * (x - mean);
+    if (r === N) worst = x;
+  }
+  if (!n) return null;
+  const sd = Math.sqrt(M2 / n);
+  const med = valueAtZ(m, 0);
+  if (m.log) return { mean: Math.pow(10, mean), sd, logMean: mean, median: med, unit: '桁', log: true, N, read: L.r, worst: worst == null ? null : Math.pow(10, worst) };
+  return { mean, sd, median: med, unit: m.unit, N, read: L.r, worst, zero: zero / N, zeroN: zero };
+}
+/** z の所の 記録（読めた順位の中は まっすぐ結んだ値、下は 予測分布。点数は 0 点より下を 0 点） */
+function valueAtZ(m, z) {
+  if (!m) return null;
+  const L = m.last;
+  let y;
+  if (z >= L.z) y = yInside(m, z);
+  else if (m.sigma) y = m.mu + m.sigma * Math.max(z, m.zBottom);
+  else return null;
+  const x = m.inv(y);
+  return m.floor && !(x > 0) ? 0 : x;
+}
+/** 予測分布の中での偏差値 ＝ 50 ＋ 10 ×（y − μ）÷ σ（y ＝ g(記録)。読めた順位より下では、偏差値と同じになります） */
 function classicT(m, value) {
-  if (!m || !m.sd) return null;
+  if (!m || !m.sigma) return null;
   const v = Number(value);
   if (!isFinite(v) || !m.ok(v)) return null;
-  return tOfZ((m.f(v) - m.mean) / m.sd);
+  return tOfZ((m.f(v) - m.mu) / m.sigma);
+}
+/** ふつうの偏差値 ＝ 50 ＋ 10 ×（記録 − 予測平均点）÷ 予測標準偏差（タイムは 速いほど上、累積は 対数で）。
+    くらべるための参考です（点数の ちらばりが つりがね形でないと、上位% と合いません） */
+function plainT(m, value) {
+  const D = m && m.dist;
+  if (!D || !(D.sd > 0)) return null;
+  const v = Number(value);
+  if (!isFinite(v) || !m.ok(v)) return null;
+  if (D.log) return v > 0 ? tOfZ((Math.log10(v) - D.logMean) / D.sd) : null;
+  return tOfZ((m.asc ? D.mean - v : v - D.mean) / D.sd);
 }
 
 /** その記録の 順位・上位%・偏差値。
@@ -205,10 +269,10 @@ function locate(m, value) {
     const rank = Math.min(b.r, Math.max(a.r + 1, Math.round(N * upper(z) + 0.5)));
     return out(rank, z, 'interp', { from: a.r, to: b.r });
   }
-  /* 3) 読めた点より下：予測分布で出します。z ＝（点数 − 予測平均点）÷ 予測標準偏差（最下位で止めます） */
+  /* 3) 読めた点より下：予測分布で出します。z ＝（y − μ）÷ σ（最下位で止めます） */
   const L = m.last;
-  if (!m.sd) return { rank: null, z: null, T: null, top: null, conf: 'below', mark: MARK.below, N, below: L.r, rankMin: L.r + 1, tMax: tOfZ(L.z) };
-  let z = y === -Infinity ? -Infinity : (y - m.mean) / m.sd;
+  if (!m.sigma) return { rank: null, z: null, T: null, top: null, conf: 'below', mark: MARK.below, N, below: L.r, rankMin: L.r + 1, tMax: tOfZ(L.z) };
+  let z = y === -Infinity ? -Infinity : (y - m.mu) / m.sigma;
   if (!(z >= m.zBottom)) z = m.zBottom;
   if (z > L.z) z = L.z;
   const rank = Math.min(N, Math.max(L.r + 1, Math.round(N * upper(z) + 0.5)));
@@ -236,11 +300,103 @@ function valueForT(m, T) {
     const y = a.y + (z - a.z) / (b.z - a.z) * (b.y - a.y);
     return res(m.inv(y), 'interp', { from: a.r, to: b.r });
   }
-  if (!m.sd) return res(null, 'below', { below: m.last.r });
+  if (!m.sigma) return res(null, 'below', { below: m.last.r });
   if (z < m.zBottom) return res(null, 'under');
-  let value = m.inv(m.mean + z * m.sd), zero = false;
-  if (m.tr === 'lin' && value <= 0) { value = 0; zero = true; }
+  let value = m.inv(m.mu + z * m.sigma), zero = false;
+  if (m.floor && !(value > 0)) { value = 0; zero = true; }
   return res(value, 'extrap', { from: m.last.r, zero });
+}
+
+/* ---------- くらべ：「参加者 全員の記録が 正規分布」と考えた時 ----------
+   上位 k 人の記録 x₁ ≥ … ≥ x_k と、残りの N − k 人は「x_k より下」ということから、
+   正規分布 N(μ, σ²) の μ・σ を 最尤推定で決めます（打ち切りのある正規分布）：
+     対数尤度 ℓ(μ, σ) ＝ −k log σ − Σ (x_i − μ)² ÷ (2σ²) ＋ (N − k) log Φ((x_k − μ) ÷ σ)（＋ 定数）
+   タイムは −t で（速いほど大きく）考えます。累積は（何万倍も ちがうので）くらべません */
+function logPhi(z) {
+  if (z > -30) return Math.log(Math.max(1e-300, normCdf(z)));
+  return -z * z / 2 - Math.log(-z) - 0.5 * Math.log(2 * Math.PI);   // とても小さい時（漸近形）
+}
+/** ネルダー–ミード法（f を小さくする x を さがします） */
+function nelderMead(f, x0, step, iters) {
+  const n = x0.length;
+  let S = [x0.slice()].concat(x0.map((_, i) => { const p = x0.slice(); p[i] += step[i]; return p; })).map(p => ({ p, f: f(p) }));
+  for (let it = 0; it < (iters || 2000); it++) {
+    S.sort((a, b) => a.f - b.f);
+    if (it > 50 && Math.abs(S[n].f - S[0].f) <= 1e-11 * (1 + Math.abs(S[0].f))) break;
+    const c = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) for (let d = 0; d < n; d++) c[d] += S[i].p[d] / n;
+    const at = t => c.map((v, d) => v + t * (v - S[n].p[d]));
+    const r = at(1), fr = f(r);
+    if (fr < S[0].f) { const e = at(2), fe = f(e); S[n] = fe < fr ? { p: e, f: fe } : { p: r, f: fr }; }
+    else if (fr < S[n - 1].f) S[n] = { p: r, f: fr };
+    else {
+      const k = at(-0.5), fk = f(k);
+      if (fk < S[n].f) S[n] = { p: k, f: fk };
+      else S = S.map((q, i) => { if (!i) return q; const p = q.p.map((v, d) => (v + S[0].p[d]) / 2); return { p, f: f(p) }; });
+    }
+  }
+  S.sort((a, b) => a.f - b.f);
+  return S[0];
+}
+/** 「全員が正規分布」の μ・σ（上位から抜けなく読めた所 1〜k 位を使います）。m は build の結果 */
+function fitNormalAll(m) {
+  if (!m || m.log || m.tr === 'pcum') return null;
+  const xs = [];
+  for (const p of m.pts) { if (p.r !== xs.length + 1) break; xs.push(m.asc ? -p.v : p.v); }
+  const k = xs.length, N = m.N;
+  if (k < 3 || k >= N) return null;
+  const xk = xs[k - 1];
+  const nll = ([mu, ls]) => {
+    const sd = Math.exp(ls); let s = k * ls;
+    for (const x of xs) { const e = (x - mu) / sd; s += e * e / 2; }
+    return s - (N - k) * logPhi((xk - mu) / sd);
+  };
+  /* はじめの値：x を z の直線で表した時の 切片と傾き */
+  const P = xs.map((x, i) => ({ z: zOfRank(i + 1, N), y: x }));
+  const s0 = slope(P) > 0 ? slope(P) : 1, my = P.reduce((a, p) => a + p.y, 0) / k, mz = P.reduce((a, p) => a + p.z, 0) / k;
+  const best = nelderMead(nll, [my - s0 * mz, Math.log(s0)], [s0 * 0.3, 0.2], 3000);
+  const mu = best.p[0], sd = Math.exp(best.p[1]);
+  /* 点数は 0 点より下が無いので、0 点より下の人は 0 点として 平均を出します（タイムは そのまま） */
+  const a = mu / sd, floorMean = m.asc ? null : mu * normCdf(a) + sd * Math.exp(-a * a / 2) / Math.sqrt(2 * Math.PI);
+  return { mu: m.asc ? -mu : mu, sd, k, floorMean, below0: m.asc ? null : normCdf(-a) };
+}
+/** 上位 K 位まで だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれ。
+    how：'v3'（この計算）／'normal'（全員が正規分布）。返す値 { n, mae（平均の大きさ）, max, end（いちばん下の点の ずれ） } */
+function holdout(cat, K, how) {
+  const full = build(cat, { extra: false });
+  if (!full) return null;
+  const fitPts = cat.pts.filter(p => p[0] <= K);
+  const m = build(Object.assign({}, cat, { pts: fitPts, extra: [] }), { N: full.N });
+  if (!m) return null;
+  let nf = null;
+  if (how === 'normal') { nf = fitNormalAll(m); if (!nf) return null; }
+  let n = 0, sa = 0, mx = 0, end = null;
+  for (const p of full.pts) {
+    if (p.r <= K) continue;
+    const T = tOfRank(p.r, full.N);
+    const Tp = how === 'normal' ? tOfZ((m.asc ? nf.mu - p.v : p.v - nf.mu) / nf.sd) : locate(m, p.v).T;
+    if (Tp == null || !isFinite(Tp)) continue;
+    const e = Tp - T; n++; sa += Math.abs(e); mx = Math.max(mx, Math.abs(e)); end = e;
+  }
+  return n ? { n, mae: sa / n, max: mx, end } : null;
+}
+
+/** 参加人数が読めていない種目に、前の週（日付が前で いちばん新しい週）の人数を入れます。
+    入れた種目には playersFrom（人数を読んだ週の日付）を付けます。weeks は readWeek の結果（{ date, cats }）の配列です */
+function fillPlayers(weeks) {
+  const ws = (Array.isArray(weeks) ? weeks : []).filter(w => w && w.cats && w.date).slice().sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  let filled = 0;
+  for (let i = 1; i < ws.length; i++) {
+    for (const name of Object.keys(ws[i].cats)) {
+      const c = ws[i].cats[name];
+      if (c.players > 0) continue;
+      for (let k = i - 1; k >= 0; k--) {
+        const o = ws[k].cats[name];
+        if (o && o.players > 0) { c.players = o.players; c.playersFrom = o.playersFrom || ws[k].date; filled++; break; }
+      }
+    }
+  }
+  return filled;
 }
 
 /* ---------- 公開データ（rankings/）の形 ---------- */
@@ -345,9 +501,10 @@ function pickWeek(idx, date) {
 }
 
 G.RankModel = {
-  VERSION: 2, TAIL_SPAN, MARK, CONF_TEXT,
+  VERSION: 3, TAIL_SPAN, POW, TR, MARK, CONF_TEXT,
   erfc, upper, normCdf, normInv, zOfRank, tOfZ, zOfT, tOfRank, rankOfT,
-  build, locate, valueForT, classicT, readWeek, toPublic, stringify, addToIndex, pickWeek
+  build, moments, valueAtZ, locate, valueForT, classicT, plainT, fillPlayers, fitNormalAll, holdout,
+  readWeek, toPublic, stringify, addToIndex, pickWeek
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = G.RankModel;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -2225,6 +2225,7 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
 .seki-tbl tr.seki-grp td{background:var(--accsoft);color:var(--acc);font-weight:700;font-size:.78rem;text-align:left;font-family:inherit}
 .seki-tbl tr.no td{color:var(--dim2)}
 .seki-mk{font-size:.7rem;color:var(--dim);margin-left:3px;font-family:inherit}
+.seki-from{display:block;font-size:.66rem;color:var(--dim);font-weight:600;line-height:1.3}
 .seki-g{display:inline-flex;align-items:center;justify-content:center;width:1.7em;height:1.7em;border-radius:5px;
   font-weight:800;font-family:var(--numf);font-size:.86rem;border:1.5px solid var(--line2);color:var(--tx)}
 .seki-g.S,.seki-g.A{background:var(--acc);border-color:var(--acc);color:#fff}
@@ -3108,7 +3109,7 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
     <h2>偏差値（概算）</h2>
     <p class="muted" style="margin-top:-8px">ランキングの全部の順位（ゲームの画面から読み取ったもの）から、あなたの記録が
       「何位くらい・上位何%・偏差値いくつ」かを出します。<br>
-      <span class="tiny">しるし：◎ 読めた順位で ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 予測分布（予測平均点・予測標準偏差）からの見つもり</span></p>
+      <span class="tiny">しるし：◎ 読めた順位で ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 予測分布からの見つもり</span></p>
     <div id="anaDev"></div>
   </div>
   <div class="card">
@@ -3798,7 +3799,7 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="rank-model.js?v=2"></script>
+<script src="rank-model.js?v=3"></script>
 <script>
 window.addEventListener("error",e=>{
   const b=document.getElementById("errBanner");
@@ -3823,7 +3824,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v151";
+const APP_VERSION = "v152";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4512,6 +4513,11 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v152":[
+    "成績表の 予測平均点・予測標準偏差を、受験者 全員の得点を 1位から最下位まで予測して並べた時の 平均と標準偏差にしました（0.00 には なりません）",
+    "ランキングに載っていない記録の 順位と偏差値の見つもりを 新しくしました（点数は 3/4 乗・タイムは √・累積は 0.3 乗にして つりがね形と考えます）",
+    "　1〜1000位のデータで ためして、いちばん よく当たる形にしました（くわしい式は ランキング分析のページに あります）",
+    "参加人数が読めていない回は、前の回の人数を使うようにしました（成績表に「◯月◯日の人数」と出ます）"],
   "v151":[
     "ホームの下に「成績表」タブを足しました（全統模試ふうの 個人成績表です。中身は ぜんぶ明朝体です）",
     "　総合偏差値（十種競技総合スコア・素数判定を除く）を大きく出し、得点・全国順位・受験者数・上位%も出します",
@@ -8072,18 +8078,35 @@ async function rkpIndex(){
     RKP.idx=await r.json(); RKP.state="ok"; return true;
   }catch(e){ RKP.state="ng"; return false; }
 }
-/** その週のファイルを読みます（読んだ週は おぼえておきます） */
-async function rkpWeek(ent){
-  if(RKP.weeks[ent.date]) return RKP.weeks[ent.date];
+/** その週のファイルを読みます（読んだ週は おぼえておきます）。
+    参加人数が読めていない種目は、前の週の人数を使います（その種目には playersFrom が付きます） */
+function rkpWeek(ent){
+  if(!RKP.weeks[ent.date]) RKP.weeks[ent.date]=rkpLoad(ent).then(w=>{ if(!w) delete RKP.weeks[ent.date]; return w; });
+  return RKP.weeks[ent.date];
+}
+async function rkpLoad(ent){
   if(!/^[\w.-]+\.json$/.test(String(ent.file||""))) return null;
+  let w=null;
   try{
     const r=await fetch("rankings/"+ent.file,{cache:"no-cache"});
     if(!r.ok) return null;
-    const w=rkpM().readWeek(await r.json());
+    w=rkpM().readWeek(await r.json());
     if(!w) return null;
     w.date=w.date||ent.date; w.models={};
-    RKP.weeks[ent.date]=w; return w;
   }catch(e){ return null; }
+  /* 参加人数の抜け：日付が前の週を 新しい順に読んで、見つかった人数を入れます */
+  const lack=()=>Object.keys(w.cats).some(k=>!(w.cats[k].players>0));
+  if(lack()&&rkpM().fillPlayers){
+    const older=(RKP.idx&&Array.isArray(RKP.idx.weeks)?RKP.idx.weeks:[]).filter(x=>x&&x.date&&x.date<w.date).sort((a,b)=>a.date<b.date?1:-1);
+    const got=[];
+    for(const o of older){
+      const ow=await rkpWeek(o).catch(()=>null);
+      if(ow) got.push(ow);
+      rkpM().fillPlayers(got.concat([w]));
+      if(!lack()) break;
+    }
+  }
+  return w;
 }
 /** RATING の種目名 → その週の種目（「合計スコア」は「スコアの合計 全種（素数判定を除外）」です） */
 function rkpCat(w,n){
@@ -8208,7 +8231,7 @@ const seki2=x=>(x==null||!isFinite(x))?"—":Number(x).toLocaleString("ja-JP",{m
 const sekiDate=d=>{ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||""); return m?`${+m[1]}年${+m[2]}月${+m[3]}日`:(d||"—"); };
 /** 全国順位（読めた順位でぴったりの時だけ「約」を付けません） */
 const sekiRank=d=>(!d||d.rank==null)?"—":((d.conf==="exact"||d.conf==="top")?"":"約 ")+jp(d.rank)+"位";
-/** 予測平均点・予測標準偏差（タイムは秒、累積は 中央値と桁） */
+/** 予測平均点・予測標準偏差（受験者 全員の 予測した記録の 平均と標準偏差。タイムは秒） */
 function sekiDist(n,m){
   if(!m||!m.dist) return {mean:"—",sd:"—"};
   const D=m.dist;
@@ -8216,6 +8239,9 @@ function sekiDist(n,m){
   const u=LOW.has(n)?"秒":"";
   return {mean:seki2(D.mean)+u,sd:seki2(D.sd)+u};
 }
+/** 受験者数（前の回の人数を使った時は、その日付も） */
+const sekiN=m=>jp(m.N)+"人"+(m.playersFrom?`<span class="seki-from">${esc(sekiMD(m.playersFrom))}の人数</span>`:"");
+const sekiMD=d=>{ const x=/^\d{4}-(\d{2})-(\d{2})$/.exec(d||""); return x?`${+x[1]}月${+x[2]}日`:(d||""); };
 /** 1つの種目の成績 */
 function sekiItem(w,n){
   const m=rkpModel(w,n), v=rkpVal(n);
@@ -8272,7 +8298,7 @@ function sekiHtml(w,kai,W){
       <div class="seki-kv">
         <div><span>得点</span><b>${jp(tot.v)}</b><i>満点 ${jp(MAXSCORE*9)}</i></div>
         <div><span>全国順位</span><b>${sekiRank(d)}</b><i>${d.mark} ${esc(rkpM().CONF_TEXT[d.conf]||"")}</i></div>
-        <div><span>受験者数</span><b>${jp(d.N)}人</b><i>上位 ${sekiPct(d.top)}</i></div>
+        <div><span>受験者数</span><b>${sekiN(tot.m)}</b><i>上位 ${sekiPct(d.top)}</i></div>
         <div><span>予測平均点</span><b>${D.mean}</b></div>
         <div><span>予測標準偏差</span><b>${D.sd}</b></div>
         <div><span>評価</span><b>${g}</b><i>${esc(sekiGradeText(g))}</i></div>
@@ -8285,10 +8311,10 @@ function sekiHtml(w,kai,W){
   const row=it=>{
     if(!it.m) return `<tr class="no"><td>${esc(it.n)}</td><td colspan="8" class="c">この回のデータがありません</td></tr>`;
     const D=sekiDist(it.n,it.m);
-    if(!it.d) return `<tr class="no"><td>${esc(it.n)}</td><td class="c">未受験</td><td class="c">—</td><td class="c">—</td><td>${jp(it.m.N)}人</td><td class="c">—</td><td>${D.mean}</td><td>${D.sd}</td><td class="c">—</td></tr>`;
+    if(!it.d) return `<tr class="no"><td>${esc(it.n)}</td><td class="c">未受験</td><td class="c">—</td><td class="c">—</td><td>${sekiN(it.m)}</td><td class="c">—</td><td>${D.mean}</td><td>${D.sd}</td><td class="c">—</td></tr>`;
     const d=it.d, g=sekiGrade(d.T);
     return `<tr><td>${esc(it.n)}</td><td>${sekiRec(it.n,it.v)}</td><td class="dv">${seki2(d.T)}</td><td>${sekiRank(d)}<span class="seki-mk">${d.mark}</span></td>`
-      +`<td>${jp(d.N)}人</td><td>${sekiPct(d.top)}</td><td>${D.mean}</td><td>${D.sd}</td><td class="c"><span class="seki-g ${g}">${g}</span></td></tr>`;
+      +`<td>${sekiN(it.m)}</td><td>${sekiPct(d.top)}</td><td>${D.mean}</td><td>${D.sd}</td><td class="c"><span class="seki-g ${g}">${g}</span></td></tr>`;
   };
   const grp=(t,list)=>`<tr class="seki-grp"><td colspan="9">${t}</td></tr>`+list.map(row).join("");
   h+=`<h3>種目別成績（素数ゲーム 18 種目）</h3><div class="scroll"><table class="seki-tbl"><thead>${head}</thead><tbody>`
@@ -8296,7 +8322,7 @@ function sekiHtml(w,kai,W){
     +grp("③ EX系・タイムアタック系（タイムは 速いほど上）",evs.filter(it=>CAT3.includes(it.n)))+`</tbody></table></div>`;
   /* やりこみ（累積） */
   h+=`<h3>やりこみ成績（生成した乱数の累積・スコアの累積）</h3><div class="scroll"><table class="seki-tbl"><thead>
-    <tr><th>項目</th><th>記録</th><th>偏差値</th><th>全国順位</th><th>受験者数</th><th>上位</th><th>予測中央値</th><th>予測標準偏差</th><th>評価</th></tr></thead><tbody>`
+    <tr><th>項目</th><th>記録</th><th>偏差値</th><th>全国順位</th><th>受験者数</th><th>上位</th><th>予測平均</th><th>予測標準偏差</th><th>評価</th></tr></thead><tbody>`
     +cums.map(row).join("")+`</tbody></table></div>`;
   /* 偏差値グラフ */
   const gr=[tot].concat(evs,cums).filter(it=>it.d&&it.d.T!=null);
@@ -8312,16 +8338,19 @@ function sekiHtml(w,kai,W){
   /* 注 */
   const evMax=Math.max(0,...evs.filter(it=>it.m).map(it=>it.m.listMax));
   h+=`<div class="seki-note"><b>注</b><ol>
-    <li>偏差値：ランキングに載っている所（順位が わかる所）は、上位の割合 p ＝（順位 − 0.5）÷ 受験者数 を、つりがね形（標準正規分布）の位置 z ＝ Φ⁻¹(1 − p) に直して、偏差値 ＝ 50 ＋ 10 × z で出しています。
-      載っていない所は、偏差値 ＝ 50 ＋ 10 ×（得点 − 予測平均点）÷ 予測標準偏差 で出し、全国順位も そこから見つもっています。</li>
-    <li>予測平均点・予測標準偏差：読めた順位の いちばん下の所に「点数 ＝ 予測平均点 ＋ 予測標準偏差 × z」の直線を当てはめた値です。
-      最下位の人は 0点くらい（以下）・まん中の人は 0点以上、という決まりで はばを決めています。0点の近くに人が とても多い種目は、予測平均点が 0.00 になります。
-      もっと下の順位まで読み取ると、より確かな値になります。</li>
-    <li>タイムの種目は 速いほど上です（予測平均点・予測標準偏差は 秒）。生成した乱数の累積・スコアの累積は「常用対数」で計算します（予測中央値は まん中の人の記録、予測標準偏差の単位「桁」は 10 倍）。</li>
+    <li>偏差値：全国順位から出しています。上位の割合 p ＝（順位 − 0.5）÷ 受験者数 を、つりがね形（標準正規分布）の位置 z ＝ Φ⁻¹(1 − p) に直して、偏差値 ＝ 50 ＋ 10 × z です
+      （得点が つりがね形に ちらばっていれば、ふつうの偏差値と同じになります）。</li>
+    <li>ランキングに載っていない得点の全国順位：得点 x を y ＝ x^(3/4)（タイムは y ＝ −√x、累積は y ＝ x^0.3）に直すと つりがね形に ちらばる、と考えます。
+      読めた いちばん下の順位 L から z の幅 0.4 の中の点で、y を z の直線 y ＝ μ ＋ σz で表し（傾き σ は最小二乗、直線は L を通します）、
+      z ＝（y − μ）÷ σ、全国順位 ≈ 受験者数 × Q(z) ＋ 0.5 で出します（Q(z) は z より上の人の割合）。得点と累積は「最下位の人は 0 くらい」として σ ≧ y_L ÷（z_L − z_N）にしています。</li>
+    <li>予測平均点・予測標準偏差：受験者 全員（N 人）の得点を 1位から N 位まで並べて（読めた順位は その得点、その下は 上の直線から出した x̂ ＝（μ ＋ σ z_r）^(4/3)。0 より下は 0 点）、
+      その 平均 と 標準偏差 を出したものです。偏差値は順位から出しているので、「50 ＋ 10 ×（得点 − 予測平均点）÷ 予測標準偏差」とは ぴったり同じには なりません。
+      読めた順位より ずっと下は 見えない所なので、もっと下の順位まで読み取ると、より確かになります。</li>
+    <li>タイムの種目は 速いほど上です（予測平均点・予測標準偏差は 秒）。</li>
     <li>全国順位のしるし：◎ ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 予測分布からの見つもり（「約」が付きます）。</li>
     <li>評価：S 75.00以上 ／ A 65.00以上 ／ B 60.00以上 ／ C 55.00以上 ／ D 50.00以上 ／ E 50.00未満。
       判定：A 到達 ／ B 偏差値の差が 1.00 未満 ／ C 2.50 未満 ／ D 5.00 未満 ／ E 5.00 以上。</li>
-    <li>受験者数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った その種目の参加人数です。
+    <li>受験者数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った その種目の参加人数です（読めていない回は、前の回の人数を使い「◯月◯日の人数」と出します）。
       データ：${esc(sekiDate(w.date))}のランキング（素数ゲームは ${jp(evMax)}位まで などを読み取り・名前なし）。</li>
   </ol></div></article>`;
   return h;
