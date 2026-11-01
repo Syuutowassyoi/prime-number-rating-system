@@ -78,8 +78,8 @@ for (const name of Object.keys(w.cats)) {
     const im = integralMean(m);
     if (!(Math.abs(im - D.mean) <= Math.max(1e-6, Math.abs(D.mean) * 2e-3))) ng('mean (sum vs integral)', name, D.mean, im);
     dist.push(`  ${name.padEnd(20)} 参加 ${String(m.N).padStart(6)}${m.playersFrom ? '*' : ' '} ${fmtD(D)}` +
-      (D.log ? `（中央値 ${Math.round(D.median).toLocaleString('en-US')}）` : `（中央値 ${fmt(c, D.median)}${D.zeroN ? `・0点と予測 ${(D.zero * 100).toFixed(1)}%` : ''}）`) +
-      (m.clamp ? '（最下位≈0点 の決まりで σ を調整）' : ''));
+      (D.log ? `（中央値 ${Math.round(D.median).toLocaleString('en-US')}）` : `（中央値 ${fmt(c, D.median)}${D.zeroN ? `・0 と予測 ${(D.zero * 100).toFixed(1)}%` : ''}）`) +
+      (m.clamp ? `（${m.clamp === 'low' ? '最下位≈0' : 'まん中≥0点'} の決まりで σ を調整）` : ''));
   }
   /* 6. 上位 K 位だけで当てはめて、その下を当てる */
   if (!m.log) {

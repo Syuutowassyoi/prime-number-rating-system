@@ -12,7 +12,8 @@
    読めた順位より下は「予測分布」で出します：y は つりがね形（正規分布）に ちらばる、と考えて
      y ＝ μ ＋ σz、z ＝（y − μ）÷ σ、順位 ≈ N × Q(z) ＋ 0.5（Q は上側確率）
      σ：読めた順位の いちばん下の点 L から、z の幅 0.4 の中の点で「y を z の直線で表した傾き」（最小二乗）。
-        点数と累積は「最下位（N 位）の人は 0 くらい」とするので σ ≥ y_L ÷（z_L − z_N）
+        点数と累積は「最下位（N 位）の人は 0 くらい」とするので σ ≥ y_L ÷（z_L − z_N）、
+        点数は「まん中の人は 0 点より上」とするので σ ≤ y_L ÷ z_L（z_L > 0 の時）
      μ：直線が L を通るように μ ＝ y_L − σ z_L
    予測平均点・予測標準偏差：参加者 N 人の記録を 1 位から N 位まで並べたもの x̂₁ … x̂_N の 平均と標準偏差です。
      x̂_r は、読めた順位は その記録、読めた順位のあいだは 上の まっすぐ結んだ値、
@@ -71,12 +72,12 @@ const rankOfT = (t, N) => N * upper(zOfT(t)) + 0.5;
    一覧より下の記録（非公開）を当てること、累積は 2026-10-31 に読めた 1480〜10000 位を当てることを ためして、
    いちばん よく当たったものです */
 const POW = { score: 0.75, time: 0.5, cum: 0.3 };
-const powTR = (k, unit) => ({ f: v => Math.pow(v, k), inv: y => y > 0 ? Math.pow(y, 1 / k) : 0, ok: v => v >= 0, floor: true, unit, pow: k });
+const powTR = (k, unit, mid) => ({ f: v => Math.pow(v, k), inv: y => y > 0 ? Math.pow(y, 1 / k) : 0, ok: v => v >= 0, floor: true, mid: !!mid, unit, pow: k });
 const TR = {
-  pow: powTR(POW.score, '点'),
+  pow: powTR(POW.score, '点', true),
   nsqrt: { f: v => -Math.pow(v, POW.time), inv: y => y < 0 ? Math.pow(-y, 1 / POW.time) : 0, ok: v => v > 0, unit: '秒', pow: POW.time },
   pcum: powTR(POW.cum, ''),
-  lin: { f: v => v, inv: y => y > 0 ? y : 0, ok: v => v >= 0, floor: true, unit: '点', pow: 1 },
+  lin: { f: v => v, inv: y => y > 0 ? y : 0, ok: v => v >= 0, floor: true, mid: true, unit: '点', pow: 1 },
   neg: { f: v => -v, inv: y => -y, ok: v => v > 0, unit: '秒', pow: 1 },
   log10: { f: v => v > 0 ? Math.log10(v) : -Infinity, inv: y => Math.pow(10, y), ok: v => v >= 0, unit: '桁', log: true }
 };
@@ -160,7 +161,9 @@ function build(cat, opt) {
   }
   /* 予測分布：y ＝ μ ＋ σz。σ は いちばん下の所の傾き、μ は 直線が いちばん下の点 L を通るように決めます。
      点数と累積（0 より下が無いもの）は「最下位（N 位）の人は 0 くらい」とするので、
-     直線が z_N より上で 0 に とどくくらいの傾きは要ります：σ ≥ y_L ÷（z_L − z_N） */
+     直線が z_N より上で 0 に とどくくらいの傾きは要ります：σ ≥ y_L ÷（z_L − z_N）
+     点数は「まん中（z ＝ 0）の人は 0 点より上」とするので、傾きは σ ≤ y_L ÷ z_L まで（z_L > 0 の時）。
+     （累積に この決まりを入れると、10-31 に読めた 1480〜10000 位が かえって当たらなくなるので、入れません） */
   const zBottom = zOfRank(N, N);
   let sigma = slope(tail), clamp = '';
   if (!(sigma > 0) || !isFinite(sigma)) sigma = slope(pts);
@@ -168,6 +171,7 @@ function build(cat, opt) {
     const lo = last.y / (last.z - zBottom);
     if (!(sigma >= lo) || !isFinite(sigma)) { sigma = lo; clamp = 'low'; }
   }
+  if (tr.mid && last.y > 0 && last.z > 0 && sigma > last.y / last.z) { sigma = last.y / last.z; clamp = 'high'; }
   if (!(sigma > 0) || !isFinite(sigma)) sigma = null;
   const mu = sigma ? last.y - last.z * sigma : null;
   const listMax = list[list.length - 1].r, extraUsed = pts.filter(p => p.src === 'extra').length;

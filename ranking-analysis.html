@@ -1258,7 +1258,10 @@ function howV3(w) {
   if (m && m.sigma) {
     const L = m.last, D = m.dist, k = RM.POW.score;
     ex1 = `例：${ex}：いちばん下の読めた順位 L ＝ ${fmtN(L.r)}位（${fmtV(ex, L.v)}）→ z_L ＝ ${f3(L.z)}、y_L ＝ ${fmtN(L.v)}^(3/4) ＝ ${f3(L.y)}。`
-      + `${fmtN(m.tailFrom)}〜${fmtN(L.r)}位の ${fmtN(m.tailN)} 点で σ ＝ ${f3(m.sigma)}` + (m.clamp ? `（最下位 ≈ 0 の決まりで σ ＝ y_L ÷（z_L − z_N）＝ ${f3(L.y)} ÷（${f3(L.z)} − (${f3(m.zBottom)})））` : '');
+      + `${fmtN(m.tailFrom)}〜${fmtN(L.r)}位の ${fmtN(m.tailN)} 点で σ ＝ ${f3(m.sigma)}`
+      + (m.clamp === 'low' ? `（最下位 ≈ 0 の決まりで σ ＝ y_L ÷（z_L − z_N）＝ ${f3(L.y)} ÷（${f3(L.z)} − (${f3(m.zBottom)})））`
+        : m.clamp === 'high' ? `（まん中 ≧ 0 点 の決まりで σ ＝ y_L ÷ z_L ＝ ${f3(L.y)} ÷ ${f3(L.z)}）`
+        : `（σ の はば：${f3(L.y / (L.z - m.zBottom))} 〜 ${L.z > 0 ? f3(L.y / L.z) : '∞'} の中です）`);
     ex2 = `例：μ ＝ ${f3(L.y)} − ${f3(m.sigma)} × ${f3(L.z)} ＝ ${f3(m.mu)}`;
     const xr = RM.valueAtZ(m, L.z - 0.6), x = xr > 1000 ? Math.round(xr / 1000) * 1000 : Math.round(xr);
     if (x > 0) {
@@ -1281,7 +1284,8 @@ function howV3(w) {
         <span class="ex">y が つりがね形（正規分布）に ちらばる、と考えます。べき（3/4・1/2・0.3）は、上位 200・300・500 位だけで当てはめて その下を当てる ためし（下の表）と、累積は もっと下の順位（1480〜10000位）を当てる ためしで、いちばん よく当たったものです。</span></li>
       <li><b>いちばん下の所の傾き σ</b>　<span class="f">σ ＝ Σ(z_i − z̄)(y_i − ȳ) ÷ Σ(z_i − z̄)²</span>
         <span class="ex">L から z の幅 0.4 の中にある 読めた点 i（z_i − z_L ≦ 0.4）で、y を z の直線で表した時の傾き（最小二乗）です。z̄・ȳ は その点の平均です。
-          点数と累積は「最下位（N 位）の人は 0 くらい」とするので、σ ≧ y_L ÷（z_L − z_N）にします（z_N は N 位の z）。</span>
+          点数と累積は「最下位（N 位）の人は 0 くらい」とするので σ ≧ y_L ÷（z_L − z_N）（z_N は N 位の z）、
+          点数は「まん中（z ＝ 0）の人は 0 点より上」とするので σ ≦ y_L ÷ z_L にします（z_L ＞ 0 の時）。</span>
         <span class="ex">${esc(ex1)}</span></li>
       <li><b>直線が L を通るように</b>　<span class="f">μ ＝ y_L − σ z_L</span><span class="ex">${esc(ex2)}</span></li>
       <li><b>順位と偏差値</b>　<span class="f">z ＝（y − μ）÷ σ</span>　<span class="f">順位 ≈ N × Q(z) ＋ 0.5</span>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span>
