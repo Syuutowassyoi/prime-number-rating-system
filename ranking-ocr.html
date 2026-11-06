@@ -232,12 +232,21 @@ pre.out{background:var(--card2);border:1px solid var(--line);border-radius:10px;
     <p class="tiny" style="margin-top:-4px">種目がちがう時は「種目を変える」で選び直すと、その画像だけ読み直します。</p>
     <div class="tools" style="margin-top:0"><span class="tiny" id="fileSum"></span>
       <div class="seg" id="segFiles"><button data-v="bad" class="on" type="button">気になる画像だけ</button><button data-v="all" type="button">ぜんぶ</button></div></div>
+    <div class="tools hide" id="bulkBox"><span class="tiny">種目がわからない画像（自信なしも）を まとめて</span>
+      <select class="txt" id="bulkCat" style="font-size:.85rem;padding:5px 8px"></select>
+      <button class="btn sm" id="bulkGo" type="button">この種目にする</button></div>
     <div id="filePager"></div>
     <div class="files"><table><thead><tr><th>画像</th><th>種目</th><th class="r">行</th><th>状態</th></tr></thead><tbody id="fileBody"></tbody></table></div>
     <div class="tools" id="fileMore"></div>
+    <details style="margin-top:10px"><summary class="tiny">うまく読めない時（診断用のファイルを書き出す）</summary>
+      <p class="tiny" style="margin:6px 0 0">種目が読めなかった画像（自信なしも）を 12 枚まで えらんで、<b>画面の上の所（時刻・種目名の帯）だけ</b>を 1 つのファイルにまとめます。
+        名前の行は入りません。このファイルを送ってもらえれば、読めない わけを 調べられます。</p>
+      <div class="tools"><button class="btn sm" id="btnDiag" type="button">診断用のファイルを書き出す</button><span class="tiny" id="diagMsg"></span></div>
+    </details>
   </section>
 
-  <p class="tiny" style="text-align:center;margin-top:24px">読み取りは この端末の中だけで行います。画像やデータを外に送ることはありません。</p>
+  <p class="tiny" style="text-align:center;margin-top:24px">読み取りは この端末の中だけで行います。画像やデータを外に送ることはありません。<br>
+    ランキング集計 <span id="ocrVer"></span> 版（新しい版が出たのに ここが変わらない時は、ページを読み直してください）</p>
 </div>
 <div class="toast" id="toast"></div>
 <div class="modal hide" id="modal"><div class="in"><div id="modalBody"></div><div class="tools"><button class="btn" id="modalClose" type="button">閉じる</button></div></div></div>
@@ -603,15 +612,22 @@ const TITLE_TOP = 0.297;
 function altHeader(img, hdr, tp) {
   if (!tp) return null;
   const W = img.width, d = img.data, x0 = tp.box.x, x1 = tp.box.x + tp.box.w;
-  let top = -1;
-  for (let y = hdr.top + 2; y < hdr.bottom - 2 && top < 0; y++) {
+  const bh = hdr.bottom - hdr.top;
+  /* 字のある行（帯より 70 明るい点が 2 つ以上ある行）を、帯の上 15% より下で さがします
+     （帯の上はしの 光った線などを 字とまちがえないように）。字の行が いちばん長く続く所の 上はしを使います
+     （あいだが 2 行まで あいても 続きとみなします） */
+  let best = null, cur = null, gap = 0;
+  for (let y = hdr.top + Math.round(bh * 0.15); y < hdr.bottom - 2; y++) {
     let n = 0;
-    for (let x = x0; x < x1; x++) if (lumOf(d, (y * W + x) * 4) > tp.bg + 70 && ++n >= 2) { top = y; break; }
+    for (let x = x0; x < x1 && n < 2; x++) if (lumOf(d, (y * W + x) * 4) > tp.bg + 70) n++;
+    if (n >= 2) { if (!cur) cur = { top: y, rows: 0 }; cur.rows++; gap = 0; }
+    else if (cur && ++gap > 2) { if (!best || cur.rows > best.rows) best = cur; cur = null; gap = 0; }
   }
-  if (top < 0) return null;
-  const h = (hdr.bottom - top) / (1 - TITLE_TOP);
+  if (cur && (!best || cur.rows > best.rows)) best = cur;
+  if (!best) return null;
+  const h = (hdr.bottom - best.top) / (1 - TITLE_TOP);
   /* 前の形と同じなら（ちがいが 3% より小さければ）、作りなおしません */
-  if (!(h > 8) || Math.abs(h - (hdr.bottom - hdr.top)) < 0.03 * (hdr.bottom - hdr.top)) return null;
+  if (!(h > 8) || Math.abs(h - bh) < 0.03 * bh) return null;
   return { top: Math.round(hdr.bottom - h), bottom: hdr.bottom, alt: true };
 }
 /** 見出しの帯を探して、種目名の指紋を作り、お手本と くらべます。
@@ -1264,6 +1280,10 @@ const GAME_RANKS = [1, 5, 10, 50, 100, 200];
 const TOTAL_RANKS = [1, 5, 10, 25, 50, 100, 500, 1000];
 const LS_RANKS = [1,2,3,4,5,6,7,8,9,10,15,20,25,30,50,75,100,150,200,250,300,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000];
 
+/* この画面の版（直した時に 書きかえます。診断用のファイルにも入ります） */
+const OCR_VERSION = '2026-11-07';
+$('#ocrVer').textContent = OCR_VERSION;
+
 /* ===== 状態 ===== */
 const S = { files: [], manual: {}, date: today(), view: null, only: false, running: false, stop: false, done: 0, t0: 0,
   fileMode: 'bad', filePage: 0, tblPage: 0, chkPage: 0, forceOpen: null };
@@ -1628,12 +1648,19 @@ function renderChecking() {
   </div>`).join('');
   lazyCrops();
 }
+/* 種目がわからない（自信なしも）画像。自分で種目を決めた画像は のぞきます */
+const catUnknown = f => f.status === 'done' && f.result && !f.forced && (!f.result.categoryId || !f.result.categorySure);
 /* 気になる画像：読めなかった・種目がわからない・行が見つからない・種目に自信がない */
 const fileBad = f => f.status === 'err' || (f.status === 'done' && !!f.err) || (f.status === 'done' && f.result && f.result.categoryId && !f.result.categorySure && !f.forced);
 function renderFiles() {
   let nDone = 0, nBad = 0, nWait = 0;
   for (const f of S.files) { if (f.status === 'done' || f.status === 'err') nDone++; else nWait++; if (fileBad(f)) nBad++; }
   $('#fileSum').textContent = S.files.length ? `${S.files.length.toLocaleString('en-US')} 枚（読み終わり ${nDone.toLocaleString('en-US')}${nWait ? '・のこり ' + nWait.toLocaleString('en-US') : ''}）／ 気になる画像 ${nBad}` : '';
+  /* 種目がわからない画像が ある時は、まとめて種目を決められます（種目ごとに 画像を入れた時に べんりです） */
+  const nUnknown = S.files.filter(catUnknown).length;
+  $('#bulkBox').classList.toggle('hide', !nUnknown);
+  if (nUnknown && !$('#bulkCat').options.length) $('#bulkCat').innerHTML = O.CATS.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  $('#bulkGo').textContent = `この種目にする（${nUnknown} 枚）`;
   document.querySelectorAll('#segFiles button').forEach(b => b.classList.toggle('on', b.dataset.v === S.fileMode));
   const idx = [];
   S.files.forEach((f, i) => { if (S.fileMode === 'all' || fileBad(f)) idx.push(i); });
@@ -1877,6 +1904,14 @@ $('#btnReset').onclick = () => {
 };
 $('#viewSel').onchange = e => { S.view = e.target.value; S.tblPage = 0; renderTiles(); renderTable(); };
 $('#segOnly').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.only = b.dataset.v === '1'; S.tblPage = 0; syncSeg(); renderTable(); };
+$('#bulkGo').onclick = () => {
+  const id = $('#bulkCat').value, list = S.files.filter(catUnknown);
+  if (!id || !list.length) return;
+  if (!confirm(`種目がわからない画像 ${list.length} 枚を、ぜんぶ「${O.CAT_BY_ID[id].name}」として 読み直しますか？`)) return;
+  list.forEach(f => { f.forced = id; f.status = 'wait'; f.result = null; f.err = ''; });
+  recompute(); renderAll(false); run();
+  toast(`${list.length} 枚を「${O.CAT_BY_ID[id].name}」として 読み直します`);
+};
 $('#segFiles').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.fileMode = b.dataset.v; S.filePage = 0; renderFiles(); };
 /** ページを切りかえます（下の切りかえを押した時は、その一覧の上まで もどります） */
 function goPage(kind, p, fromBottom) {
@@ -1891,6 +1926,41 @@ $('#btnJson').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
 $('#btnJsonCp').onclick = () => copyText(JSON.stringify(buildJson(), null, 2));
+/* 診断用のファイル：種目が読めなかった画像（自信なしも）を 12 枚まで。画面の上の所（見出しの帯の下はしまで）だけを PNG で入れます。
+   見出しの帯が見つからない時は、上から 9% まで（どちらの見た目でも、名前の行より上です） */
+$('#btnDiag').onclick = async () => {
+  const msg = $('#diagMsg');
+  const done = S.files.map((f, i) => i).filter(i => S.files[i].status === 'done' || S.files[i].status === 'err');
+  const bad = done.filter(i => { const r = S.files[i].result; return !r || !r.categoryId || !r.categorySure; });
+  const pick = (bad.length ? bad : done).slice(0, bad.length ? 12 : 3);
+  if (!pick.length) { msg.textContent = '先に画像を読み取ってください'; return; }
+  msg.textContent = 'まとめています…';
+  const out = { app: '素数あつめ ランキング集計（診断用）', version: OCR_VERSION, createdAt: new Date().toISOString(), ua: navigator.userAgent,
+    files: S.files.length, done: done.length, bad: bad.length, images: [] };
+  for (const i of pick) {
+    const f = S.files[i], r = f.result || {};
+    const it = { name: f.name, type: f.file.type || null, bytes: f.file.size, status: f.status, err: f.err || null,
+      categoryId: r.categoryId || null, sure: !!r.categorySure, forced: f.forced || null,
+      header: r.header || null, headerAlt: r.headerAlt || null, titleBox: r.titleBox || null,
+      titleMatch: (r.titleMatch || []).slice(0, 4), titleContrast: r.titleContrast || null,
+      layout: r.layout || null, rows: r.entries ? r.entries.length : null, warnings: r.warnings || [] };
+    try {
+      let bmp;
+      try { bmp = await createImageBitmap(f.file, { colorSpaceConversion: 'none' }); } catch (e) { bmp = await createImageBitmap(f.file); }
+      const W = bmp.width, H = bmp.height, bottom = r.header ? Math.min(H, r.header.bottom + 4) : Math.round(H * 0.09);
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = bottom;
+      cv.getContext('2d').drawImage(bmp, 0, 0, W, bottom, 0, 0, W, bottom);
+      it.width = W; it.height = H; it.crop = cv.toDataURL('image/png');
+      if (bmp.close) bmp.close();
+    } catch (e) { it.cropErr = String((e && e.message) || e); }
+    out.images.push(it);
+  }
+  const blob = new Blob([JSON.stringify(out)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ranking-ocr-diag-${S.date}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  msg.textContent = `${out.images.length} 枚ぶんを書き出しました（${Math.round(blob.size / 1024)} KB）。このファイルを送ってください。`;
+};
 $('#addGo').onclick = () => {
   const m = S.view && M[S.view]; if (!m) return;
   const rk = parseInt(String($('#addRank').value).normalize('NFKC').replace(/[^\d]/g, ''), 10);
