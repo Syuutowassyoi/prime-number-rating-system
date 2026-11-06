@@ -11,7 +11,7 @@
      3. 偏差値 → 記録 → 偏差値 と もどしても、もとの偏差値に とどくか
      4. 記録が良いほど、偏差値が下がらないか
      5. 予測平均点・予測標準偏差が出るか（0 より大きいか）、順位ごとに足した値が 積分で出した値と合うか
-     6. （見るだけ）上位 200・500 位だけで当てはめて その下を当てた時の ずれ（この計算 と「全員が正規分布」）
+     6. （見るだけ）上位 200・500・1000 位だけで当てはめて その下を当てた時の ずれ（この計算 と「全員が正規分布」）
      7. （見るだけ）一覧の外の点を かくして、一覧だけで当てると どれくらい ずれるか
    ============================================================ */
 'use strict';
@@ -84,8 +84,8 @@ for (const name of Object.keys(w.cats)) {
   /* 6. 上位 K 位だけで当てはめて、その下を当てる */
   if (!m.log) {
     const cell = K => { const a = M.holdout(c, K, 'v3'), b = M.holdout(c, K, 'normal'); return a && b ? [a.mae, b.mae] : null; };
-    const h2 = cell(200), h5 = cell(500);
-    if (h2 || h5) hold.push({ name, h2, h5 });
+    const h2 = cell(200), h5 = cell(500), h10 = cell(1000);
+    if (h2 || h5) hold.push({ name, h2, h5, h10 });
   }
   /* 2. 読めた点 → その順位 */
   for (const p of m.pts) {
@@ -127,9 +127,11 @@ if (hold.length) {
   const f = x => x == null ? '   —' : x.toFixed(2).padStart(5);
   const avg = k => { const a = hold.filter(h => h[k]); return a.length ? [a.reduce((s, h) => s + h[k][0], 0) / a.length, a.reduce((s, h) => s + h[k][1], 0) / a.length] : [null, null]; };
   console.log('上位 K 位だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれ（平均）：この計算 ／ 全員が正規分布');
-  hold.forEach(h => console.log(`  ${h.name.padEnd(20)} K=200：${f(h.h2 && h.h2[0])} ／${f(h.h2 && h.h2[1])}    K=500：${f(h.h5 && h.h5[0])} ／${f(h.h5 && h.h5[1])}`));
-  const a2 = avg('h2'), a5 = avg('h5');
-  console.log(`  ${'（種目の平均）'.padEnd(18)} K=200：${f(a2[0])} ／${f(a2[1])}    K=500：${f(a5[0])} ／${f(a5[1])}`);
+  const k10 = hold.some(h => h.h10);
+  const c10 = h => k10 ? `    K=1000：${f(h && h[0])} ／${f(h && h[1])}` : '';
+  hold.forEach(h => console.log(`  ${h.name.padEnd(20)} K=200：${f(h.h2 && h.h2[0])} ／${f(h.h2 && h.h2[1])}    K=500：${f(h.h5 && h.h5[0])} ／${f(h.h5 && h.h5[1])}${c10(h.h10)}`));
+  const a2 = avg('h2'), a5 = avg('h5'), a10 = avg('h10');
+  console.log(`  ${'（種目の平均）'.padEnd(18)} K=200：${f(a2[0])} ／${f(a2[1])}    K=500：${f(a5[0])} ／${f(a5[1])}${c10(a10[0] == null ? null : a10)}`);
 }
 if (val.length) console.log('一覧の外の点を かくして当てた結果：\n' + val.join('\n'));
 console.log(bad ? `\n確かめ：${bad} か所 おかしい所があります` : '\n確かめ：ぜんぶ合っています');
