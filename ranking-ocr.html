@@ -47,6 +47,9 @@ a{color:var(--acc)}
 .btn.sm{padding:6px 10px;font-size:.8rem}
 .btn:disabled{opacity:.45;cursor:default}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+/* 100 ずつの ページ切りかえ */
+.pager{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}
+.pager select.txt{font-size:.85rem;padding:5px 8px;max-width:260px}
 input.txt,select.txt{background:var(--card2);color:var(--tx);border:1px solid var(--line2);border-radius:9px;
   padding:7px 10px;font:inherit;font-size:.9rem;max-width:100%}
 input.txt:focus,select.txt:focus{outline:2px solid var(--acc);outline-offset:1px}
@@ -171,12 +174,14 @@ pre.out{background:var(--card2);border:1px solid var(--line);border-radius:10px;
     <div class="chkhead"><span class="chkbadge">checking!</span><span id="chkSum" class="muted"></span></div>
     <p class="tiny" style="margin:4px 0 0">数字の読み取りがあやしい所です。画像の切り抜きを見て、正しい値を入れてください。
       「順位一覧へ」を押すと、その行に飛びます。</p>
+    <div id="chkPager"></div>
     <div id="chkList"></div>
+    <div id="chkMore"></div>
   </section>
 
   <section class="card hide" id="cardCats">
     <h2><span class="step">2</span>種目ごとの結果</h2>
-    <p class="tiny" style="margin-top:-4px">タイルを押すと、下にその種目の順位一覧が出ます。</p>
+    <p class="tiny" style="margin-top:-4px">タイルを押すと、下にその種目の順位一覧が出ます（100 位ずつ。「← 前の100」「次の100 →」で切りかえます）。</p>
     <div class="tiles" id="tiles"></div>
   </section>
 
@@ -187,6 +192,7 @@ pre.out{background:var(--card2);border:1px solid var(--line);border-radius:10px;
       <div class="seg" id="segOnly"><button data-v="0" class="on" type="button">ぜんぶ</button><button data-v="1" type="button">おかしい所だけ</button></div>
     </div>
     <div id="tblInfo" class="tiny" style="margin-top:8px"></div>
+    <div id="tblPager"></div>
     <div class="tblwrap"><table><thead><tr><th class="r">順位</th><th class="r">スコア</th><th>状態</th><th>画像・直す</th></tr></thead>
       <tbody id="tbody"></tbody></table></div>
     <div class="tools" id="tblMore"></div>
@@ -226,6 +232,7 @@ pre.out{background:var(--card2);border:1px solid var(--line);border-radius:10px;
     <p class="tiny" style="margin-top:-4px">種目がちがう時は「種目を変える」で選び直すと、その画像だけ読み直します。</p>
     <div class="tools" style="margin-top:0"><span class="tiny" id="fileSum"></span>
       <div class="seg" id="segFiles"><button data-v="bad" class="on" type="button">気になる画像だけ</button><button data-v="all" type="button">ぜんぶ</button></div></div>
+    <div id="filePager"></div>
     <div class="files"><table><thead><tr><th>画像</th><th>種目</th><th class="r">行</th><th>状態</th></tr></thead><tbody id="fileBody"></tbody></table></div>
     <div class="tools" id="fileMore"></div>
   </section>
@@ -1179,9 +1186,10 @@ const LS_RANKS = [1,2,3,4,5,6,7,8,9,10,15,20,25,30,50,75,100,150,200,250,300,500
 
 /* ===== 状態 ===== */
 const S = { files: [], manual: {}, date: today(), view: null, only: false, running: false, stop: false, done: 0, t0: 0,
-  fileMode: 'bad', fileLimit: 100, tblLimit: 300, forceOpen: null };
-/* 表と画像一覧は、はじめに この数だけ描きます（300 枚以上でも 画面が重くならないように） */
-const TBL_STEP = 300, FILE_STEP = 100;
+  fileMode: 'bad', filePage: 0, tblPage: 0, chkPage: 0, forceOpen: null };
+/* 順位一覧・checking!・画像一覧は、100 ずつ ページで切りかえて見せます（2000 位・何千枚でも 画面が重くならないように）。
+   順位一覧の「ぜんぶ」は 順位で 1〜100位、101〜200位… に分けます */
+const PAGE = 100;
 let M = {};        /* 種目ごとの まとめ */
 let FID = 0;
 
@@ -1453,13 +1461,44 @@ function badgeHtml(s) {
   if (s.self) b.push('<span class="badge">自分の行</span>');
   return b.join('');
 }
+/** 順位一覧のページ。ぜんぶ：順位で 100 位ずつ（一覧の範囲 1〜listMax と、その外の行がある所）。おかしい所だけ：100 行ずつ */
+function tablePages(m) {
+  if (S.only) {
+    const list = m.rows.filter(s => s.flags.length), pages = [];
+    for (let i = 0; i < list.length; i += PAGE) {
+      const part = list.slice(i, i + PAGE);
+      pages.push({ rows: part, label: `${(i + 1).toLocaleString('en-US')}〜${(i + part.length).toLocaleString('en-US')} 件目（#${part[0].rank}〜#${part[part.length - 1].rank}）` });
+    }
+    return pages.length ? pages : [{ rows: [], label: '0 件' }];
+  }
+  const by = new Map(), miss = new Map();
+  const lastP = Math.floor((Math.max(1, m.listMax) - 1) / PAGE);
+  for (let p = 0; p <= lastP; p++) by.set(p, []);
+  for (const s of m.rows) { const p = Math.floor((s.rank - 1) / PAGE); if (!by.has(p)) by.set(p, []); by.get(p).push(s); }
+  for (const r of m.missing) { const p = Math.floor((r - 1) / PAGE); miss.set(p, (miss.get(p) || 0) + 1); }
+  return [...by.keys()].sort((a, b) => a - b).map(p => {
+    const rows = by.get(p), chk = rows.filter(s => s.flags.length).length, mi = miss.get(p) || 0;
+    const a = p * PAGE + 1, b = (p + 1) * PAGE;
+    return { rows, from: a, to: b, label: `${a.toLocaleString('en-US')}〜${b.toLocaleString('en-US')}位` + (chk ? `（checking! ${chk}）` : mi ? `（未読 ${mi}）` : '') };
+  });
+}
+/** ページの切りかえ（← 前の100・えらぶ・次の100 →）。kind：tbl（順位一覧）／ chk（checking!）／ file（画像一覧） */
+function pagerHtml(kind, labels, cur) {
+  if (labels.length <= 1) return '';
+  return `<div class="pager"><button class="btn sm" data-page="${kind}:${cur - 1}" type="button"${cur <= 0 ? ' disabled' : ''}>← 前の100</button>
+    <select class="txt" data-pagesel="${kind}" aria-label="ページ">${labels.map((l, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>
+    <button class="btn sm" data-page="${kind}:${cur + 1}" type="button"${cur >= labels.length - 1 ? ' disabled' : ''}>次の100 →</button>
+    <span class="tiny">${cur + 1} / ${labels.length} ページ</span></div>`;
+}
+const clampPage = (p, n) => Math.max(0, Math.min(n - 1, p | 0));
 function renderTable() {
   const m = S.view && M[S.view];
-  if (!m) { $('#tbody').innerHTML = ''; $('#tblInfo').textContent = ''; $('#tblMiss').textContent = ''; return; }
-  const all = S.only ? m.rows.filter(s => s.flags.length) : m.rows;
-  const rows = all.length > S.tblLimit ? all.slice(0, S.tblLimit) : all;
+  if (!m) { $('#tbody').innerHTML = ''; $('#tblInfo').textContent = ''; $('#tblMiss').textContent = ''; $('#tblPager').innerHTML = ''; $('#tblMore').innerHTML = ''; return; }
+  const pages = tablePages(m);
+  S.tblPage = clampPage(S.tblPage, pages.length);
+  const pg = pages[S.tblPage], rows = pg.rows;
   const top = m.listMax;
-  $('#tblInfo').innerHTML = `${esc(m.name)}：<b>${m.rows.length}</b> 行（一覧は 1〜${top}位）`
+  $('#tblInfo').innerHTML = `${esc(m.name)}：<b>${m.rows.length.toLocaleString('en-US')}</b> 行（一覧は 1〜${top.toLocaleString('en-US')}位）`
     + `　${m.kind === 'time' ? 'タイムなので、小さいほど上です' : '大きいほど上です'}`
     + (m.playerCount ? `　／ 参加 ${m.playerCount.toLocaleString('en-US')} 人` : '')
     + (m.checking.length ? `　／ <b style="color:var(--warn)">checking! ${m.checking.length} 件</b>` : '')
@@ -1471,12 +1510,13 @@ function renderTable() {
     <td class="acts">${s.reads.length ? `<button class="linkbtn" data-crop="${m.id}:${s.rank}" type="button">見る</button>` : ''}
       <button class="linkbtn" data-fix="${m.id}:${s.rank}" type="button">直す</button>
       ${s.src === 'manual' ? `<button class="linkbtn" data-unedit="${m.id}:${s.rank}" type="button">もどす</button>` : ''}</td>
-  </tr>`).join('') || `<tr><td colspan="4" class="tiny">${S.only ? 'おかしい所はありません' : 'まだ行がありません'}</td></tr>`;
-  const more = all.length - rows.length;
-  $('#tblMore').innerHTML = more > 0 ? `<button class="btn sm" id="tblMoreBtn" type="button">もっと見る（のこり ${more.toLocaleString('en-US')} 行）</button>` : '';
+  </tr>`).join('') || `<tr><td colspan="4" class="tiny">${S.only ? 'おかしい所はありません' : m.rows.length ? `${pg.from.toLocaleString('en-US')}〜${pg.to.toLocaleString('en-US')}位は、まだ読めていません` : 'まだ行がありません'}</td></tr>`;
+  const pager = pagerHtml('tbl', pages.map(x => x.label), S.tblPage);
+  $('#tblPager').innerHTML = pager;
+  $('#tblMore').innerHTML = pager;
   $('#tblMiss').innerHTML = m.missing.length
     ? `まだ読んでいない順位（${m.missing.length.toLocaleString('en-US')}）：${esc(ranges(m.missing, 40))}<br><span class="tiny">間が抜けていても、そのまま JSON に書き出せます。その順位が写った画像を足すと埋まります。</span>`
-    : (m.rows.length ? `1〜${top}位まで、抜けはありません。` : '');
+    : (m.rows.length ? `1〜${top.toLocaleString('en-US')}位まで、抜けはありません。` : '');
 }
 function renderChecking() {
   const list = [];
@@ -1486,12 +1526,18 @@ function renderChecking() {
   if (!list.length) {
     card.classList.toggle('hide', !doneAll || !Object.keys(M).length);
     $('#chkSum').innerHTML = '<span class="okmsg">おかしい所は見つかりませんでした</span>';
-    $('#chkList').innerHTML = '';
+    $('#chkList').innerHTML = ''; $('#chkPager').innerHTML = ''; $('#chkMore').innerHTML = '';
     return;
   }
   card.classList.remove('hide');
-  $('#chkSum').textContent = `${list.length} 件あります`;
-  $('#chkList').innerHTML = list.map(([m, s]) => `<div class="chk" id="c-${m.id}-${s.rank}">
+  $('#chkSum').textContent = `${list.length.toLocaleString('en-US')} 件あります`;
+  const nPage = Math.ceil(list.length / PAGE);
+  S.chkPage = clampPage(S.chkPage, nPage);
+  const labels = Array.from({ length: nPage }, (_, p) => `${(p * PAGE + 1).toLocaleString('en-US')}〜${Math.min(list.length, (p + 1) * PAGE).toLocaleString('en-US')} 件目`);
+  const pager = pagerHtml('chk', labels, S.chkPage);
+  $('#chkPager').innerHTML = pager;
+  $('#chkMore').innerHTML = pager;
+  $('#chkList').innerHTML = list.slice(S.chkPage * PAGE, (S.chkPage + 1) * PAGE).map(([m, s]) => `<div class="chk" id="c-${m.id}-${s.rank}">
     <div class="top"><h3>${esc(m.name)}　<span class="num">#${s.rank}</span>　<span class="num">${esc(isNaN(s.score) ? '—' : fmt(m.kind, s.score))}</span></h3>
       <button class="linkbtn" data-jump="${m.id}:${s.rank}" type="button">順位一覧へ →</button></div>
     <ul>${s.flags.map(f => `<li>${FLAG_TEXT[f] ? FLAG_TEXT[f](s, m) : esc(f)}</li>`).join('')}</ul>
@@ -1511,7 +1557,12 @@ function renderFiles() {
   document.querySelectorAll('#segFiles button').forEach(b => b.classList.toggle('on', b.dataset.v === S.fileMode));
   const idx = [];
   S.files.forEach((f, i) => { if (S.fileMode === 'all' || fileBad(f)) idx.push(i); });
-  const show = idx.slice(0, S.fileLimit);
+  const nPage = Math.max(1, Math.ceil(idx.length / PAGE));
+  S.filePage = clampPage(S.filePage, nPage);
+  const show = idx.slice(S.filePage * PAGE, (S.filePage + 1) * PAGE);
+  const fl = Array.from({ length: nPage }, (_, p) => `${(p * PAGE + 1).toLocaleString('en-US')}〜${Math.min(idx.length, (p + 1) * PAGE).toLocaleString('en-US')} 枚目`);
+  const fpager = pagerHtml('file', fl, S.filePage);
+  $('#filePager').innerHTML = fpager;
   $('#fileBody').innerHTML = show.map(i => {
     const f = S.files[i], r = f.result;
     const st = { wait: '待っています', run: '読み取り中…', done: f.err ? f.err : 'OK', err: f.err }[f.status];
@@ -1526,8 +1577,7 @@ function renderFiles() {
       <td class="r num">${r ? r.entries.length : '—'}</td>
       <td class="${cls}">${esc(st)}${r && r.rejected.length ? `<div class="tiny">切れていた行 ${r.rejected.length}（使っていません）</div>` : ''}</td></tr>`;
   }).join('') || `<tr><td colspan="4" class="tiny">${S.fileMode === 'bad' ? (S.files.length ? '気になる画像はありません' : '') : 'まだ画像がありません'}</td></tr>`;
-  const more = idx.length - show.length;
-  $('#fileMore').innerHTML = more > 0 ? `<button class="btn sm" id="fileMoreBtn" type="button">もっと見る（のこり ${more.toLocaleString('en-US')} 枚）</button>` : '';
+  $('#fileMore').innerHTML = fpager;
 }
 
 /* ===== 画像の切り抜き ===== */
@@ -1623,9 +1673,8 @@ function jumpTo(key) {
   S.view = id;
   if (S.only && M[id] && M[id].map[rk] && !M[id].map[rk].flags.length) S.only = false;
   if (M[id]) {
-    const list = S.only ? M[id].rows.filter(s => s.flags.length) : M[id].rows;
-    const at = list.findIndex(s => String(s.rank) === String(rk));
-    if (at >= S.tblLimit) S.tblLimit = at + 50;
+    const at = tablePages(M[id]).findIndex(pg => pg.rows.some(s => String(s.rank) === String(rk)));
+    S.tblPage = at >= 0 ? at : 0;
   }
   syncSeg();
   renderTiles(); renderTable();
@@ -1703,8 +1752,14 @@ function renderOut() {
   $('#outWarn').innerHTML = `JSON に入る順位：<b>${nIn.toLocaleString('en-US')}</b> 件（${Object.keys(j.categories).length} 種目）`
     + (j.excluded.length ? `　／ <b style="color:var(--warn)">checking! が残っていて入れない順位：${j.excluded.length} 件</b>（直すと入ります）` : '　／ checking! はありません')
     + (miss.length ? `<br>ボーダーの順位（1・5・10・50・100・200位）が まだ無い種目：${esc(miss.slice(0, 6).join('、'))}${miss.length > 6 ? ` …ほか ${miss.length - 6} 種目` : ''}（無い順位は入れずに書き出します）` : '<br>ボーダーの順位は全部そろっています。');
-  /* ランキング分析のページが読めるように、この端末にも最新の結果を置いておきます */
-  try { localStorage.setItem(K_LAST, JSON.stringify(j)); } catch (e) { /* 入りきらない時はファイルで渡してください */ }
+  /* ランキング分析のページが読めるように、この端末にも最新の結果を置いておきます
+     （2000 位ぶんだと 0.5 MB ほどあるので、直すたびではなく 少し待ってから まとめて しまいます） */
+  saveLast(j);
+}
+let saveLastT = 0;
+function saveLast(j) {
+  clearTimeout(saveLastT);
+  saveLastT = setTimeout(() => { try { localStorage.setItem(K_LAST, JSON.stringify(j)); } catch (e) { /* 入りきらない時はファイルで渡してください */ } }, 800);
 }
 async function copyText(s) {
   try { await navigator.clipboard.writeText(s); toast('コピーしました'); }
@@ -1735,16 +1790,20 @@ $('#btnStop').onclick = () => { if (S.running) { S.stop = true; } else run(); };
 $('#btnReset').onclick = () => {
   if (S.files.length && !confirm('読み取った画像と結果を消して、はじめからやり直しますか？\n（手で直した値は、この端末に残ります）')) return;
   BMP.forEach(p => Promise.resolve(p).then(b => { if (b && b.close) b.close(); })); BMP.clear();
-  S.stop = true; S.files = []; M = {}; S.view = null; S.fileMode = 'bad'; S.fileLimit = FILE_STEP; S.tblLimit = TBL_STEP; S.forceOpen = null;
+  S.stop = true; S.files = []; M = {}; S.view = null; S.fileMode = 'bad'; S.filePage = 0; S.tblPage = 0; S.chkPage = 0; S.forceOpen = null;
   ['#cardChk', '#cardCats', '#cardTable', '#cardOut', '#cardFiles', '#prog'].forEach(s => $(s).classList.add('hide'));
   renderFiles();
   setTimeout(() => { S.stop = false; }, 0);
 };
-$('#viewSel').onchange = e => { S.view = e.target.value; S.tblLimit = TBL_STEP; renderTiles(); renderTable(); };
-$('#segOnly').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.only = b.dataset.v === '1'; S.tblLimit = TBL_STEP; syncSeg(); renderTable(); };
-$('#segFiles').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.fileMode = b.dataset.v; S.fileLimit = FILE_STEP; renderFiles(); };
-$('#tblMore').onclick = e => { if (!e.target.closest('#tblMoreBtn')) return; S.tblLimit += TBL_STEP; renderTable(); };
-$('#fileMore').onclick = e => { if (!e.target.closest('#fileMoreBtn')) return; S.fileLimit += FILE_STEP * 2; renderFiles(); };
+$('#viewSel').onchange = e => { S.view = e.target.value; S.tblPage = 0; renderTiles(); renderTable(); };
+$('#segOnly').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.only = b.dataset.v === '1'; S.tblPage = 0; syncSeg(); renderTable(); };
+$('#segFiles').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.fileMode = b.dataset.v; S.filePage = 0; renderFiles(); };
+/** ページを切りかえます（下の切りかえを押した時は、その一覧の上まで もどります） */
+function goPage(kind, p, fromBottom) {
+  if (kind === 'tbl') { S.tblPage = p; renderTable(); if (fromBottom) $('#tblPager').scrollIntoView({ block: 'start' }); }
+  else if (kind === 'chk') { S.chkPage = p; renderChecking(); if (fromBottom) $('#chkPager').scrollIntoView({ block: 'start' }); }
+  else if (kind === 'file') { S.filePage = p; renderFiles(); }
+}
 $('#btnJson').onclick = () => {
   const blob = new Blob([JSON.stringify(buildJson(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ranking-${S.date}.json`;
@@ -1762,10 +1821,11 @@ $('#modalClose').onclick = () => { $('#modal').classList.add('hide'); $('#modalB
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') $('#modalClose').onclick(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').classList.contains('hide')) $('#modalClose').onclick(); });
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-view],[data-jump],[data-crop],[data-editgo],[data-keep],[data-unedit],[data-full],[data-copy],[data-fix],[data-cancel],[data-forceopen]');
+  const t = e.target.closest('[data-view],[data-jump],[data-crop],[data-editgo],[data-keep],[data-unedit],[data-full],[data-copy],[data-fix],[data-cancel],[data-forceopen],[data-page]');
   if (!t) return;
   const d = t.dataset;
-  if (d.view) { S.view = d.view; S.tblLimit = TBL_STEP; renderTiles(); renderTable(); $('#cardTable').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  if (d.page) { const k = d.page.slice(0, d.page.indexOf(':')); goPage(k, +d.page.slice(d.page.indexOf(':') + 1), !!t.closest('#tblMore,#chkMore,#fileMore')); }
+  else if (d.view) { S.view = d.view; S.tblPage = 0; renderTiles(); renderTable(); $('#cardTable').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   else if (d.jump) jumpTo(d.jump);
   else if (d.crop) showCropModal(d.crop);
   else if (d.editgo) { const inp = t.parentElement.querySelector('input'); setManual(d.editgo, inp.value); }
@@ -1783,6 +1843,8 @@ document.addEventListener('keydown', e => {
   if (inp && inp.value.trim()) setManual(inp.dataset.edit, inp.value);
 });
 document.addEventListener('change', e => {
+  const ps = e.target.closest && e.target.closest('select[data-pagesel]');
+  if (ps) { goPage(ps.dataset.pagesel, +ps.value, !!ps.closest('#tblMore,#chkMore,#fileMore')); return; }
   const sel = e.target.closest && e.target.closest('select[data-force]');
   if (!sel) return;
   const f = S.files[+sel.dataset.force];

@@ -1077,11 +1077,11 @@ function renderCurve(w) {
     xLabel: ST.curveX === 'rank' ? '順位' : '上位%（参加者の中で）',
     fmtX: (x, tick) => ST.curveX === 'rank' ? (tick ? tickTxt(x) : Math.round(x).toLocaleString('en-US') + '位') : (tick ? tickTxt(x) + '%' : '上位 ' + fmtPct(x)),
     fmtY: y => norm ? y.toFixed(2) + '%' : fmtV(one, y), ySuffix: norm ? '%' : '',
-    marksX: ST.curveX === 'rank' ? [10, 50, 100, 200] : [],
+    marksX: ST.curveX === 'rank' ? [10, 50, 100, 200, 1000] : [],
     empty: ST.curveX === 'pct' ? '参加人数が読めていないので、上位%にできません' : 'この種目は まだ順位が読めていません'
   });
   /* 表で見る */
-  const RANKS = [1, 2, 3, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 750, 1000];
+  const RANKS = [1, 2, 3, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 1500, 2000];
   const cols = ST.curve;
   $('#curveTable').innerHTML = `<thead><tr><th class="r">順位</th>${cols.map(n => `<th class="r">${esc(short(n))}</th>`).join('')}</tr></thead><tbody>` +
     RANKS.filter(r => cols.some(n => A.exactAt(w.cats[n], r) != null)).map(r => `<tr><td class="r num">${r}位</td>${cols.map(n => { const v = A.exactAt(w.cats[n], r); return `<td class="r num">${v == null ? '—' : esc(fmtV(n, v))}${v != null && w.cats[n].players ? `<br><span class="tiny">上位 ${fmtPct(r / w.cats[n].players * 100)}</span>` : ''}</td>`; }).join('')}</tr>`).join('') + '</tbody>';
@@ -1310,32 +1310,34 @@ function howV3(w) {
       下の表で、2つのやり方を くらべられます（上位 K 位だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれの平均）。</p>
     <div class="tools"><button class="btn sm" id="cmpRun" type="button">くらべる（少し時間がかかります）</button><span class="tiny" id="cmpMsg"></span></div>
     <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">参加</th><th class="r">全員が正規分布<br><span class="tiny">μ ／ σ</span></th><th class="r">0 点より下<br><span class="tiny">と出る人</span></th>
-      <th class="r">この計算<br><span class="tiny">予測平均点 ／ 予測標準偏差</span></th><th class="r">K ＝ 200<br><span class="tiny">この計算 ／ 正規分布</span></th><th class="r">K ＝ 500<br><span class="tiny">この計算 ／ 正規分布</span></th></tr></thead><tbody id="cmpBody"><tr><td colspan="7" class="tiny">「くらべる」を押すと出ます。</td></tr></tbody></table></div>
+      <th class="r">この計算<br><span class="tiny">予測平均点 ／ 予測標準偏差</span></th><th class="r">K ＝ 200<br><span class="tiny">この計算 ／ 正規分布</span></th><th class="r">K ＝ 500<br><span class="tiny">この計算 ／ 正規分布</span></th><th class="r">K ＝ 1000<br><span class="tiny">この計算 ／ 正規分布</span></th></tr></thead><tbody id="cmpBody"><tr><td colspan="8" class="tiny">「くらべる」を押すと出ます。</td></tr></tbody></table></div>
     <p class="note" id="cmpNote"></p>`;
 }
 /** 「全員が正規分布」と この計算の くらべ */
 function renderCmp(w) {
   const names = [A.SUMEX].concat(A.EVENTS, [A.SUMALL]).filter(n => w.cats[n]);
   const f2 = x => x.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-  const rows = [], sums = { a2: 0, b2: 0, n2: 0, a5: 0, b5: 0, n5: 0, neg: [] };
+  const rows = [], sums = { a2: 0, b2: 0, n2: 0, a5: 0, b5: 0, n5: 0, a10: 0, b10: 0, n10: 0, neg: [] };
   for (const n of names) {
     const m = A.modelOf(w, n, { extra: false });
     if (!m) continue;
     const c = w.cats[n], cat = Object.assign({}, c, { extra: [] });
     const nf = RM.fitNormalAll(m), D = m.dist, u = m.asc ? '秒' : '';
     const h = K => { const a = RM.holdout(cat, K, 'v3'), b = RM.holdout(cat, K, 'normal'); return a && b ? [a.mae, b.mae] : null; };
-    const h2 = h(200), h5 = h(500);
+    const h2 = h(200), h5 = h(500), h10 = h(1000);
     if (h2) { sums.a2 += h2[0]; sums.b2 += h2[1]; sums.n2++; }
     if (h5) { sums.a5 += h5[0]; sums.b5 += h5[1]; sums.n5++; }
+    if (h10) { sums.a10 += h10[0]; sums.b10 += h10[1]; sums.n10++; }
     if (nf && !m.asc && nf.mu < 0) sums.neg.push(short(n));
     const cell = x => !x ? '—' : `${x[0].toFixed(2)} ／ <span class="${x[1] > x[0] ? 'down' : ''}">${x[1].toFixed(2)}</span>`;
     rows.push(`<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}</td>`
       + `<td class="r num">${nf ? `${f2(nf.mu)} ／ ${f2(nf.sd)}${u}` : '—'}</td><td class="r num">${nf && nf.below0 != null ? fmtPct(nf.below0 * 100) : '—'}</td>`
-      + `<td class="r num">${D ? `${f2(D.mean)} ／ ${f2(D.sd)}${u}` : '—'}</td><td class="r num">${cell(h2)}</td><td class="r num">${cell(h5)}</td></tr>`);
+      + `<td class="r num">${D ? `${f2(D.mean)} ／ ${f2(D.sd)}${u}` : '—'}</td><td class="r num">${cell(h2)}</td><td class="r num">${cell(h5)}</td><td class="r num">${cell(h10)}</td></tr>`);
   }
-  $('#cmpBody').innerHTML = rows.join('') || '<tr><td colspan="7" class="tiny">くらべられる種目が ありません（参加人数と、上から抜けなく読めた順位が要ります）。</td></tr>';
+  $('#cmpBody').innerHTML = rows.join('') || '<tr><td colspan="8" class="tiny">くらべられる種目が ありません（参加人数と、上から抜けなく読めた順位が要ります）。</td></tr>';
   $('#cmpNote').innerHTML = rows.length ? `偏差値のずれの平均（種目の平均）：K ＝ 200 で この計算 ${(sums.a2 / Math.max(1, sums.n2)).toFixed(2)} ／ 全員が正規分布 ${(sums.b2 / Math.max(1, sums.n2)).toFixed(2)}、`
-    + `K ＝ 500 で ${(sums.a5 / Math.max(1, sums.n5)).toFixed(2)} ／ ${(sums.b5 / Math.max(1, sums.n5)).toFixed(2)}。`
+    + `K ＝ 500 で ${(sums.a5 / Math.max(1, sums.n5)).toFixed(2)} ／ ${(sums.b5 / Math.max(1, sums.n5)).toFixed(2)}`
+    + (sums.n10 ? `、K ＝ 1000 で ${(sums.a10 / sums.n10).toFixed(2)} ／ ${(sums.b10 / sums.n10).toFixed(2)}（1000位より下まで読めた ${sums.n10} 種目）。` : '。K ＝ 1000 は、1000位より下まで読めた週で出ます。')
     + (sums.neg.length ? `<br>全員が正規分布 と考えると、${esc(sums.neg.join('・'))} は μ（平均点）が マイナスになります（点数は 0 点より下が無いので、形が合っていない しるしです）。` : '')
     + '<br>「0 点より下と出る人」は、正規分布 N(μ, σ²) で 0 点より下になる人の割合 Φ(−μ ÷ σ) です。' : '';
 }
