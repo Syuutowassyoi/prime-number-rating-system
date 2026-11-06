@@ -12,6 +12,9 @@
          ranking-ocr.html に書き込みます（アプリの見た目が変わった時用）。
          種目表.json は { "IMG_0001.png": "g01", ... } の形で、
          種目名がまだ読めない画像の種目を教える時だけ使います。
+     node tools/ranking-ocr-dev.js train-titles <画像フォルダ> [種目表.json]
+       … 種目名の指紋だけを作り直します（数字のお手本は そのまま）。
+         縮めた画像・ほかの画面の大きさ・新しい見た目の画像を まぜて入れると、それも見分けられるようになります。
    ============================================================ */
 'use strict';
 const fs = require('fs');
@@ -134,7 +137,7 @@ function cmdTest(dir) {
 }
 
 /* ---------- train ---------- */
-function cmdTrain(dir, mapFile) {
+function cmdTrain(dir, mapFile, titlesOnly) {
   const { O, html, templates } = loadOCR();
   const map = mapFile ? JSON.parse(fs.readFileSync(mapFile, 'utf8')) : {};
   const D = O._dev;
@@ -156,10 +159,11 @@ function cmdTrain(dir, mapFile) {
     const forced = map[path.basename(f)] || null;
     const r = O.analyze(img, { dev: true, categoryId: forced });
     if (r.categoryId) {
-      const hdr = D.findHeader(img);
-      const p = hdr && D.titlePrint(img, hdr);
+      /* 読み取りと同じ指紋（帯の上に すき間がある見た目では、前の形の帯で作ったもの）を使います */
+      const p = D.titleOf(img).tp;
       if (p && !p.prefix && (forced || r.categorySure)) (prints[r.categoryId] = prints[r.categoryId] || []).push(p);
     }
+    if (titlesOnly) continue;
     /* checking! の出ない、形の正しい行だけを お手本に使います */
     for (const row of r._rows || []) {
       const e = r.entries.find(x => x.y === Math.round(row.yc) && x.col === row.col);
@@ -173,6 +177,7 @@ function cmdTrain(dir, mapFile) {
   const b64 = v => Buffer.from(Uint8Array.from(v, x => Math.max(0, Math.min(255, Math.round(x * 255))))).toString('base64');
   const out = { score: [], rank: [], info: [], titles: [] };
   for (const kind of ['score', 'rank', 'info']) {
+    if (titlesOnly) { out[kind] = templates[kind] || []; continue; }
     const fresh = new Set(Object.keys(bags[kind]));
     /* 新しい画像に出てこなかった文字は、前のお手本をそのまま残します */
     out[kind] = (templates[kind] || []).filter(t => !fresh.has(t.c));
@@ -191,18 +196,25 @@ function cmdTrain(dir, mapFile) {
     }
     console.log(`${kind}: ${[...fresh].map(c => `${c}(${seen[kind][c]})`).join(' ')} → お手本 ${out[kind].length} 個`);
   }
-  /* 種目名の指紋：種目ごとに いちばん代表的なもの（ほかとの ちがいの合計が いちばん小さいもの）と、
-     それから いちばん はなれたもの（見え方のちがいを おぼえるため）を残します */
+  /* 種目名の指紋：種目ごとに、まず いちばん代表的なもの（ほかとの ちがいの合計が いちばん小さいもの）を残し、
+     そのあと「残したものの どれからも TITLE_GAP より遠い指紋」のうち いちばん遠いものを 足していきます（TITLE_MAX 個まで）。
+     見え方のちがい（縮めた画像・画面の大きさ・iOS の新しい帯）を おぼえるためです */
+  const TITLE_GAP = 0.025, TITLE_MAX = 6;
   const titles = [];
   for (const id of Object.keys(prints)) {
     const ps = prints[id];
     let best = ps[0], bs = Infinity;
     for (const a of ps) { let s2 = 0; for (const b of ps) if (a !== b) s2 += D.titleDistance(a, b); if (s2 < bs) { bs = s2; best = a; } }
-    titles.push(best);
-    let far = null, fd = 0;
-    for (const b of ps) { const dd = D.titleDistance(b, best); if (dd > fd) { fd = dd; far = b; } }
-    if (far && fd > 0.02) titles.push(far);
-    best.id = id; if (far) far.id = id;
+    const chosen = [best], near = ps.map(b => D.titleDistance(b, best));
+    while (chosen.length < TITLE_MAX) {
+      let k = -1;
+      for (let i = 0; i < ps.length; i++) if (near[i] > TITLE_GAP && (k < 0 || near[i] > near[k])) k = i;
+      if (k < 0) break;
+      chosen.push(ps[k]);
+      ps.forEach((b, i) => { near[i] = Math.min(near[i], D.titleDistance(b, ps[k])); });
+    }
+    chosen.forEach(p => { p.id = id; titles.push(p); });
+    console.log(`  ${id}：指紋 ${ps.length} 枚 → お手本 ${chosen.length} 個`);
   }
   const fresh = new Set(Object.keys(prints));
   out.titles = (templates.titles || []).filter(t => !fresh.has(t.id))
@@ -217,8 +229,10 @@ function cmdTrain(dir, mapFile) {
 const [cmd, dir, extra] = process.argv.slice(2);
 if (cmd === 'test' && dir) cmdTest(dir);
 else if (cmd === 'train' && dir) cmdTrain(dir, extra);
+else if (cmd === 'train-titles' && dir) cmdTrain(dir, extra, true);
 else {
   console.log('使い方：node tools/ranking-ocr-dev.js test <画像フォルダ>');
   console.log('　　　　node tools/ranking-ocr-dev.js train <画像フォルダ> [種目表.json]');
+  console.log('　　　　node tools/ranking-ocr-dev.js train-titles <画像フォルダ> [種目表.json]');
   process.exit(1);
 }
