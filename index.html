@@ -2261,6 +2261,182 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
   .seki-dev .v{font-size:2.3rem}
   .seki-title{font-size:1.15rem}
 }
+/* ══════════ 紙の成績表（回の一覧・たたまれた紙・ひらいた紙）══════════
+   紙は テーマにかかわらず クリーム色の紙と 黒い字です（机の上の紙のように見せます）。
+   いちばん新しい回は 金色に ゆっくり光ります（動きを へらす設定の時は 光ったまま止めます） */
+#sekiBody{--pgdim:var(--dim);--pgtx:var(--tx)}
+.sk-lead{margin:0 0 12px}
+.sk-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.sk-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;min-height:118px;text-align:left;cursor:pointer;
+  padding:14px 14px 12px;border-radius:6px;border:1px solid #cdbf9f;color:#2a2117;font:inherit;
+  background:#fbf6e9 linear-gradient(160deg,rgba(255,255,255,.7),rgba(255,255,255,0) 55%);
+  box-shadow:0 1px 2px rgba(0,0,0,.18),0 6px 14px rgba(0,0,0,.14);overflow:hidden;transition:transform .15s ease}
+.sk-card:hover{transform:translateY(-2px)}
+.sk-card:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.sk-card::before{content:"";position:absolute;left:0;right:0;top:0;height:48%;pointer-events:none;
+  background:linear-gradient(to bottom right,transparent 49.4%,rgba(120,95,50,.18) 50%,transparent 50.8%),
+             linear-gradient(to bottom left,transparent 49.4%,rgba(120,95,50,.18) 50%,transparent 50.8%)}
+.sk-kai{font-size:.86rem;letter-spacing:.12em;margin-top:18px}
+.sk-kai b{font-size:1.55rem}
+.sk-date{font-size:.8rem;color:#5b4f3d}
+.sk-src{font-size:.7rem;color:#7a6d57}
+.sk-seal{position:absolute;right:12px;bottom:12px;width:3.3em;height:3.3em;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:800;letter-spacing:.04em;color:#fff;background:radial-gradient(circle at 35% 30%,#d65a4c,#a2261c);
+  box-shadow:0 1px 3px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.18);transform:rotate(-12deg)}
+.sk-seal.done{background:none;color:#857860;border:1.5px solid #b3a587;box-shadow:none}
+.sk-new{position:absolute;top:10px;left:12px;font-size:.66rem;font-weight:800;letter-spacing:.12em;padding:2px 9px;border-radius:999px;
+  color:#5a3e00;background:linear-gradient(135deg,#ffe58a,#d4a017);box-shadow:0 0 0 1px rgba(160,110,0,.4)}
+.sk-card.latest{border-color:#d4af37;background:#fff5d8 linear-gradient(160deg,rgba(255,255,255,.8),rgba(255,230,150,.3) 60%);
+  animation:skGlow 4.2s ease-in-out infinite}
+.sk-card.latest::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 35%,rgba(255,250,215,.9) 47%,rgba(255,214,90,.4) 52%,transparent 64%);
+  background-size:260% 100%;background-repeat:no-repeat;animation:skSheen 6.5s ease-in-out infinite}
+@keyframes skGlow{0%,100%{box-shadow:0 0 0 1px rgba(212,175,55,.6),0 0 8px 1px rgba(212,175,55,.28),0 6px 14px rgba(0,0,0,.14)}
+  50%{box-shadow:0 0 0 1.5px rgba(255,214,0,.95),0 0 26px 7px rgba(255,196,30,.55),0 6px 14px rgba(0,0,0,.14)}}
+@keyframes skSheen{0%{background-position:160% 0}55%,100%{background-position:-70% 0}}
+@media (prefers-reduced-motion:reduce){
+  .sk-card.latest{animation:none;box-shadow:0 0 0 2px #e0b52f,0 0 16px 3px rgba(255,200,40,.45)}
+  .sk-card.latest::after{animation:none;opacity:0}
+}
+.sk-bar{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin:0 0 12px}
+.sk-state{font-size:.82rem;color:var(--dim);flex:1 1 100%;order:3}
+.sk-state b{color:var(--tx)}
+/* 紙 */
+.sk-paper{--ph:clamp(186px,50vw,214px);position:relative;max-width:980px;margin:0 auto 4px;
+  --tx:#231c13;--dim:#5b5141;--dim2:#7a6f5d;--line:#d8ccb2;--line2:#b5a88d;--panel2:#efe6d0;--card:#fbf7ec;
+  --acc:#213f8c;--accsoft:rgba(33,63,140,.08);--sk-up:#2a63c6;--sk-dn:#d2602a;--shadow:0 4px 14px rgba(0,0,0,.2);color:var(--tx)}
+.sk-tex{background-color:#fbf7ec;background-image:
+  radial-gradient(120% 80% at 15% 0%,rgba(255,255,255,.75),rgba(255,255,255,0) 60%),
+  radial-gradient(90% 70% at 100% 100%,rgba(150,120,70,.09),rgba(150,120,70,0) 60%),
+  repeating-linear-gradient(0deg,rgba(110,90,50,.03) 0 1px,transparent 1px 3px),
+  repeating-linear-gradient(90deg,rgba(110,90,50,.022) 0 1px,transparent 1px 4px)}
+.sk-sheet{position:relative;height:calc(var(--ph) * 3);perspective:1500px;perspective-origin:50% -20%;transform-style:preserve-3d}
+.sk-pa,.sk-hb,.sk-hc{height:var(--ph)}
+.sk-pa{position:relative;border-radius:4px 4px 0 0;box-shadow:0 1px 2px rgba(0,0,0,.16)}
+.sk-hb{position:absolute;left:0;right:0;top:var(--ph);transform-origin:50% 0;transform:rotateX(var(--tb,0deg));transform-style:preserve-3d}
+.sk-hc{position:absolute;left:0;right:0;top:100%;transform-origin:50% 0;transform:rotateX(var(--tc,0deg));transform-style:preserve-3d}
+.sk-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.sk-back{transform:rotateX(180deg);background-color:#f1e9d6}
+.sk-hc .sk-front{border-radius:0 0 4px 4px}
+.sk-shade{position:absolute;inset:0;background:#2a1e0e;opacity:var(--sb,0);pointer-events:none}
+.sk-hc .sk-shade{opacity:0}
+.sk-in{position:absolute;inset:0;padding:12px 14px;overflow:hidden}
+@media(max-width:380px){.sk-in{padding:9px 11px}#sekiBody .sk-in .seki-kv b{font-size:.8rem}#sekiBody .sk-in .seki-kv>div{padding:2px 6px}#sekiBody .sk-in .seki-who b{font-size:.66rem}}
+.sk-pa::after,.sk-hb>.sk-front::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(60,40,10,.07) 75%,rgba(255,255,255,.55))}
+.sk-paper.folding .sk-sheet{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.sk-paper.folding.dragging .sk-sheet{cursor:grabbing}
+/* たたまれている時は、上の紙を ほんの少し手前に出します（3 枚が 同じ面に重なった時に、上の紙が いちばん上に見えるように） */
+.sk-paper.folding .sk-pa{box-shadow:0 2px 3px rgba(0,0,0,.25),0 12px 24px rgba(0,0,0,.24);transform:translateZ(3px)}
+.sk-paper.opened .sk-hb,.sk-paper.opened .sk-hc{transform:none}
+.sk-pull{position:absolute;left:0;right:0;top:calc(var(--ph) + 20px);text-align:center;color:var(--pgdim);font-size:.84rem;
+  opacity:var(--pull,1);pointer-events:none}
+.sk-pull span{display:block;font-size:1.7rem;line-height:1.2;color:var(--pgtx);animation:skBob 1.6s ease-in-out infinite}
+@keyframes skBob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+@media (prefers-reduced-motion:reduce){.sk-pull span{animation:none}}
+#sekiBody .sk-paper .sk-rest{max-width:none;border:0;border-top:1px dashed rgba(120,100,60,.38);border-radius:0 0 5px 5px;
+  box-shadow:0 10px 22px rgba(0,0,0,.18);background-color:#fbf7ec}
+.sk-appear{animation:skAppear .55s ease-out both}
+@keyframes skAppear{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+/* 紙の中（明るいテーマの「白」を 上書きします） */
+#sekiBody .sk-paper .seki-who>div,#sekiBody .sk-paper .seki-kv>div{background:rgba(251,247,236,.92)}
+#sekiBody .sk-paper .seki-who span{background:var(--panel2)}
+.sk-ah{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;border-bottom:2px solid var(--tx);padding-bottom:5px;margin-bottom:8px}
+.sk-ah>div:first-child{min-width:0}
+.sk-kai{text-align:right;font-size:.64rem;line-height:1.4;white-space:nowrap;color:var(--dim);flex:none}
+.sk-kai b{font-size:1rem;color:var(--tx)}
+.sk-kai span{color:var(--dim2)}
+#sekiBody .sk-in .seki-title{font-size:clamp(1.1rem,5vw,1.45rem);margin-top:1px}
+#sekiBody .sk-in .seki-org{font-size:.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sekiBody .sk-in .seki-who{grid-template-columns:1fr 1fr;margin:4px 0 0}
+#sekiBody .sk-in .seki-who span{width:auto;padding:4px 7px;font-size:.62rem}
+#sekiBody .sk-in .seki-who b{padding:4px 7px;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sk-h3{font-size:.74rem;font-weight:700;margin:0 0 8px;padding:3px 9px;background:var(--panel2);border-left:4px solid var(--acc);
+  letter-spacing:.05em;border-radius:0 3px 3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sk-empty{font-size:.8rem;color:var(--dim);margin:12px 4px}
+#sekiBody .sk-in .seki-main{grid-template-columns:34% 1fr;gap:7px}
+#sekiBody .sk-in .seki-dev{padding:4px;border-width:2px}
+#sekiBody .sk-in .seki-dev .l{font-size:.62rem;letter-spacing:.1em}
+#sekiBody .sk-in .seki-dev .v{font-size:clamp(1.55rem,7.2vw,2.5rem)}
+#sekiBody .sk-in .seki-dev .seki-g{margin-top:3px;width:1.75em;height:1.75em;font-size:.92rem}
+#sekiBody .sk-in .seki-kv{grid-template-columns:repeat(2,1fr)}
+#sekiBody .sk-in .seki-kv>div{padding:3px 7px}
+#sekiBody .sk-in .seki-kv span{font-size:.6rem}
+#sekiBody .sk-in .seki-kv b{font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sekiBody .sk-in .seki-kv span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sekiBody .sk-in .seki-kv b i.seki-mk{display:inline;font-style:normal;margin-left:3px;font-size:.7rem;color:var(--dim)}
+.sk-best{list-style:none;margin:0;padding:0;counter-reset:skb}
+.sk-best li{display:grid;grid-template-columns:1.4em minmax(0,1fr) auto auto auto;align-items:center;gap:7px;padding:4px 2px;
+  border-bottom:1px solid var(--line);font-size:.8rem;counter-increment:skb}
+.sk-best li::before{content:counter(skb);font-weight:800;color:var(--acc);text-align:center}
+.sk-best .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sk-best .tv{font-weight:800;font-size:.95rem;font-variant-numeric:tabular-nums}
+.sk-best .rk{font-size:.68rem;color:var(--dim);min-width:4.6em;text-align:right}
+.sk-best .seki-g{width:1.55em;height:1.55em;font-size:.78rem}
+.sk-stamp{position:absolute;right:14px;top:4px;width:3.5em;height:3.5em;background:rgba(251,247,236,.35);border:2px solid #c0392b;border-radius:50%;color:#c0392b;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-14deg);opacity:.8;font-size:.64rem;line-height:1.15;pointer-events:none}
+.sk-stamp b{font-size:.8rem}
+@media(min-width:641px){#sekiBody .sk-in .seki-kv{grid-template-columns:repeat(3,1fr)}#sekiBody .sk-in{padding:16px 22px}}
+@media(max-width:640px){#sekiBody .sk-in .seki-main{grid-template-columns:34% 1fr}#sekiBody .sk-in .seki-who{grid-template-columns:1fr 1fr}}
+/* ══════════ 統計情報：順位の動き（ヒートマップ・マイルストーン・不動日数）と 独自の集計データ ══════════
+   ヒートマップの面は、テーマにかかわらず 明るい紙の色です（「変化が大きいほど 濃い赤」を どちらのテーマでも同じに見せるため） */
+.trd-tools{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:4px 0 10px}
+.trd-tools select{max-width:100%}
+.trd-seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.trd-seg button{border:0;background:transparent;color:var(--dim);font:inherit;font-size:.78rem;font-weight:700;padding:6px 10px;cursor:pointer;min-height:32px}
+.trd-seg button+button{border-left:1px solid var(--line2)}
+.trd-seg button.on{background:var(--accsoft);color:var(--acc)}
+.trd-chk{display:inline-flex;gap:5px;align-items:center}
+.trd-plot{position:relative;background:#fcfcfb;border:1px solid var(--line2);border-radius:10px;padding:6px;overflow:hidden}
+.trd-plot canvas{display:block;touch-action:manipulation;max-width:100%}
+.trd-tip{position:absolute;z-index:3;pointer-events:none;background:#fff;color:#2f2c27;border:1px solid #d6d1c6;border-radius:8px;padding:6px 9px;
+  font-size:.76rem;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:nowrap}
+.trd-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:.74rem;color:var(--dim);margin-top:8px}
+.trd-sw{display:inline-block;width:16px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.14)}
+.trd-none{background:repeating-linear-gradient(135deg,#fcfcfb 0 3px,#d9d4ca 3px 4px)}
+.trd-bar{display:inline-block;width:120px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.14)}
+.trd-bart{font-variant-numeric:tabular-nums}
+.trd-tbl,.trd-ms,.trd-fudo{border-collapse:collapse;font-size:.76rem;font-variant-numeric:tabular-nums}
+.trd-tbl th,.trd-tbl td{border:1px solid var(--line2);padding:4px 6px;text-align:right;white-space:nowrap}
+.trd-tbl td{font-weight:700}
+.trd-tbl thead th{background:var(--panel2);color:var(--dim);text-align:center;font-size:.7rem;position:sticky;top:0;z-index:1}
+.trd-tbl tbody th{background:var(--panel2);text-align:right;position:sticky;left:0}
+.trd-tbl td.trd-na{color:var(--dim2);background:transparent;font-weight:400;text-align:center}
+.trd-tblw{max-height:560px;overflow:auto}
+.trd-ms th,.trd-ms td,.trd-fudo th,.trd-fudo td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right;white-space:nowrap}
+.trd-ms thead th,.trd-fudo thead th{color:var(--dim);font-size:.7rem}
+.trd-row{cursor:pointer}
+.trd-row:hover,.trd-row:focus-visible{background:var(--accsoft);outline:none}
+.trd-row.on{background:var(--accsoft)}
+.trd-gap td{color:var(--dim2);text-align:left!important;font-size:.72rem;white-space:normal!important}
+.trd-chip{display:inline-block;padding:1px 7px;border-radius:999px;font-weight:700}
+.trd-hist td{text-align:left!important;background:var(--panel2);white-space:normal!important}
+.trd-histw{display:flex;flex-wrap:wrap;gap:6px 16px}
+.trd-hp i{font-style:normal;color:var(--dim);margin-left:6px;font-size:.7rem}
+.trd-hp.z i{color:var(--acc2)}
+.trd-fudo td:nth-child(2){text-align:left}
+.cu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.cu-item{border:1px solid var(--line2);border-radius:12px;padding:12px 14px;background:var(--panel2)}
+.cu-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.cu-title{font-size:.95rem}
+.cu-date{font-size:.72rem;color:var(--dim)}
+.cu-val{font-size:1.6rem;font-weight:800;margin:6px 0 2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.cu-val .pgd{font-size:.82rem;margin-left:6px}
+.cu-unit{font-size:.8rem;margin-left:3px;color:var(--dim)}
+.cu-from{font-size:.7rem;color:var(--dim);font-weight:600}
+.cu-desc{font-size:.8rem;color:var(--dim);margin:6px 0 0;white-space:pre-wrap}
+.cu-hist{margin-top:8px;font-size:.78rem}
+.cu-hist table,.cu-vals{border-collapse:collapse;font-size:.78rem;font-variant-numeric:tabular-nums}
+.cu-hist th,.cu-hist td,.cu-vals th,.cu-vals td{border-bottom:1px solid var(--line);padding:4px 8px;text-align:right;white-space:nowrap}
+.cu-new,.cu-ed{margin:10px 0}
+.cu-edh{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-bottom:8px}
+.cu-badge{font-size:.68rem;font-weight:800;padding:1px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--dim)}
+.cu-badge.on{border-color:var(--acc);color:var(--acc)}
+.cu-addv{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.cu-addv input[type=date]{max-width:170px}
+.cu-addv input[data-k=val]{max-width:180px}
+.cu-def{margin-top:8px}
+.cu-save{position:sticky;bottom:0;background:var(--card);padding:8px 0;margin-top:12px;border-top:1px solid var(--line);z-index:2}
 </style>
 </head>
 <body>
@@ -3048,8 +3224,8 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
 <section id="seiseki" hidden>
   <div class="card">
     <h2>成績表</h2>
-    <p class="muted" style="margin-top:-8px">ゲームのランキング（全部の順位）と あなたの記録から作った、模試ふうの 個人成績表です。</p>
-    <div class="seki-tools"><label class="tiny" for="sekiWeek">回</label><select id="sekiWeek" aria-label="成績表の回"></select></div>
+    <p class="muted" style="margin-top:-8px">ゲームのランキング（全部の順位）・ボーダーと あなたの記録から作った、模試ふうの 個人成績表です。
+      GitHub に新しいデータが上がると、すぐに新しい回が増えます。</p>
     <div id="sekiBody"><p class="tiny">読み込んでいます…</p></div>
   </div>
 </section>
@@ -3090,6 +3266,21 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
     <p class="muted" style="margin-top:-8px">乱数累積・スコア累積の全体ボーダーと、参加している人の数です。
       <span class="tiny">「比較」は、先週からどれだけ増えたかを表しています。</span></p>
     <div id="stBody"></div>
+  </div>
+  <div class="card" id="custCard" hidden>
+    <h2>運営が集めたデータ</h2>
+    <p class="muted" style="margin-top:-8px">管理者が 自分で集計した数字です（例：完全制覇した人の数）。</p>
+    <div id="custBody"></div>
+  </div>
+  <div class="card">
+    <h2>順位の動き（週ごとの変化）</h2>
+    <p class="muted" style="margin-top:-8px">集計した順位（ふだんは 1000 位か 2000 位まで）の記録が、週ごとに どれだけ変わったかを 赤の こさで表します。
+      <span class="tiny">変化が大きいほど 濃い赤、小さいほど うすい赤、変わっていない所は 灰色です。</span></p>
+    <div id="trdBody"><p class="tiny">読み込んでいます…</p></div>
+  </div>
+  <div class="card" id="custAdmin" hidden>
+    <h2>独自の集計データを入れる（管理者）</h2>
+    <div id="custAdminBody"></div>
   </div>
   <div class="card" id="stAdmin" hidden>
     <h2>統計情報を取り込む（管理者）</h2>
@@ -3799,7 +3990,7 @@ html[data-theme="light"] .seki-kv>div{background:#fff}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="rank-model.js?v=3"></script>
+<script src="rank-model.js?v=4"></script>
 <script>
 window.addEventListener("error",e=>{
   const b=document.getElementById("errBanner");
@@ -3824,7 +4015,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_7OPxCWecRJh1GVpj4Ckp-A_4hVS4UvU";
 
 /* 開発者コードは PBKDF2-SHA256 / 310,000回 のハッシュのみを保持 */
 /* RATING の表示。false＝ゴシック体（既定）／true＝7セグ風 */
-const APP_VERSION = "v152";
+const APP_VERSION = "v153";
 const DIGITAL = false;
 
 const DEV_SALT = "7a3f1c9e5b2d84061f8a3c7e9d0b4526";
@@ -4513,6 +4704,21 @@ const ntcSetSeen=id=>{ try{ localStorage.setItem(K_NTC,String(id)); }catch(e){} 
 
 /** 今回の版で何が変わったか。管理者がお知らせを書く時の下書きに使います */
 const CHANGES={
+  "v153":[
+    "GitHub に上がったデータが すぐに成績表などに出るようにしました（GitHub のいちばん新しいコミットを読みます。GitHub Pages の公開を待ちません）",
+    "　data.json のボーダーだけの週も、成績表の回に入るようにしました（11月7日・11月16日の回が増えました）",
+    "　読めていない深い順位は、近い日（28日以内）の全部の順位を借りて計算します",
+    "　管理者メニューの「GitHubに直接反映する」で、読み込んだ集計 JSON の全部の順位も いっしょに公開できます",
+    "予測平均点・予測標準偏差と、ランキングに載っていない記録の 順位・偏差値の出し方を v4 にしました",
+    "　とちゅうで 0 点にならない形（最下位の 1 人だけが 0）にして、「偏差値 60 に要る記録が 0」のような所を なくしました",
+    "　いろいろな形を くらべて、いちばん よく当たる形を えらびました（くわしくは ランキング分析のページ）。標準正規分布の計算も 相対誤差 10⁻¹⁶ ほどに 細かくしました",
+    "統計情報に「順位の動き」を足しました",
+    "　週ごとの変化のヒートマップ（変化が大きいほど 濃い赤・小さいほど うすい赤）と、マイルストーン順位の表",
+    "　1〜10・15・20・30〜90・100〜2000 位の くわしい変化と「不動日数」（記録が何日 変わっていないか）、不動日数ランキング",
+    "統計情報に「運営が集めたデータ」を足しました（管理者が タイトル・説明文・単位・全員に表示するか を決めて 値を入れられます。値は custom-data.json に のこります）",
+    "成績表を 紙の成績表にしました",
+    "　タブを押すと まず回の一覧が出ます（いちばん新しい回は 金色に光ります）",
+    "　はじめて見る回は、たたまれた紙を 下へ引っぱって ひらきます（半分より多く ひらいて 指をはなすと、最後まで ひらきます）。2回目からは すぐ ひらいた状態で出ます"],
   "v152":[
     "成績表の 予測平均点・予測標準偏差を、受験者 全員の得点を 1位から最下位まで予測して並べた時の 平均と標準偏差にしました（0.00 には なりません）",
     "ランキングに載っていない記録の 順位と偏差値の見つもりを 新しくしました（点数は 3/4 乗・タイムは √・累積は 0.3 乗にして つりがね形と考えます）",
@@ -8061,53 +8267,242 @@ function renderAnaDeca(){
 }
 
 /* =========================================================
+   5w. GitHub に上がったデータを すぐ読む（GitHub Pages の公開を待ちません）
+   ・いちばん新しいコミット（main）の SHA を GitHub に たずねて、
+     raw.githubusercontent.com の「その SHA のファイル」を読みます。中身が変わらない URL なので、古いものが出てきません
+   ・GitHub に たずねられない時（1時間 60 回の回数制限・通信）は、いままでどおり このサイトのファイルを読みます
+   ・画面にもどった時（1分より前に たずねていたら）もう一度たずね、新しいコミットがあれば 読み直します
+   ========================================================= */
+const FRESH={sha:null,at:0,busy:null,tree:null,treeSha:null,treeBusy:null,fail:0,src:""};
+const FRESH_TTL=60*1000;
+const FRESH_REPO={o:"syuutowassyoi",r:"prime-number-rating-system",b:"main"};
+try{ const s=JSON.parse(sessionStorage.getItem("sa-fresh-v1")||"null");
+  if(s&&/^[0-9a-f]{40}$/.test(s.sha)){ FRESH.sha=s.sha; FRESH.at=+s.at||0; } }catch(e){}
+/** どのリポジトリを読むか（管理者の GitHub 連携 → このサイトの URL（◯◯.github.io/リポジトリ名/）→ ふだんの場所） */
+function freshRepo(){
+  let o="",r="",b="main";
+  try{ if(gh&&gh.owner&&gh.repo){ o=gh.owner; r=gh.repo; b=gh.branch||"main"; } }catch(e){}
+  if(!o){
+    const m=/^([\w-]+)\.github\.io$/i.exec(location.hostname||""), seg=(location.pathname||"").split("/").filter(Boolean)[0];
+    if(m&&seg&&!/\./.test(seg)){ o=m[1]; r=seg; }
+  }
+  if(!o){ o=FRESH_REPO.o; r=FRESH_REPO.r; b=FRESH_REPO.b; }
+  return {o,r,b};
+}
+/** タイムアウトつきの fetch */
+function fetchT(url,opt,ms){
+  const ac=typeof AbortController!=="undefined"?new AbortController():null;
+  const t=ac?setTimeout(()=>{ try{ ac.abort(); }catch(e){} },ms||8000):null;
+  return fetch(url,Object.assign({},opt||{},ac?{signal:ac.signal}:{})).finally(()=>{ if(t) clearTimeout(t); });
+}
+/** いちばん新しいコミットの SHA（1分は おぼえておきます）。たずねられない時は、前に分かった SHA か null */
+function freshSha(force){
+  const now=Date.now();
+  if(!force&&FRESH.sha&&now-FRESH.at<FRESH_TTL) return Promise.resolve(FRESH.sha);
+  if(!force&&FRESH.fail&&now-FRESH.at<FRESH_TTL) return Promise.resolve(FRESH.sha);
+  if(FRESH.busy) return FRESH.busy;
+  const R=freshRepo();
+  FRESH.busy=(async()=>{
+    try{
+      const res=await fetchT(`https://api.github.com/repos/${encodeURIComponent(R.o)}/${encodeURIComponent(R.r)}/commits/${encodeURIComponent(R.b)}`,
+        {headers:{Accept:"application/vnd.github.sha"},cache:"no-cache"},6000);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const t=(await res.text()).trim();
+      if(!/^[0-9a-f]{40}$/.test(t)) throw new Error("sha");
+      const changed=!!FRESH.sha&&FRESH.sha!==t;
+      FRESH.sha=t; FRESH.at=Date.now(); FRESH.fail=0;
+      try{ sessionStorage.setItem("sa-fresh-v1",JSON.stringify({sha:t,at:FRESH.at})); }catch(e){}
+      if(changed) setTimeout(freshChanged,0);
+      return t;
+    }catch(e){ FRESH.fail++; FRESH.at=Date.now(); return FRESH.sha; }
+    finally{ FRESH.busy=null; }
+  })();
+  return FRESH.busy;
+}
+/** ファイルを読みます：GitHub の いちばん新しいコミット → だめなら このサイト。
+    返す値 { json, src（"github"／"site"／"none"）, sha, missing（ファイルが無い）}。opt.noSite で このサイトは読みません */
+async function freshJson(path,opt){
+  opt=opt||{};
+  const sha=await freshSha();
+  if(sha){
+    const R=freshRepo();
+    try{
+      const res=await fetchT(`https://raw.githubusercontent.com/${encodeURIComponent(R.o)}/${encodeURIComponent(R.r)}/${sha}/${path.split("/").map(encodeURIComponent).join("/")}`,
+        {cache:"force-cache"},15000);
+      if(res.ok){ const j=await res.json(); FRESH.src="github"; return {json:j,src:"github",sha}; }
+      if(res.status===404) return {json:null,src:"github",sha,missing:true};
+    }catch(e){}
+  }
+  if(opt.noSite) return {json:null,src:"none"};
+  try{
+    const res=await fetchT(path+(path.indexOf("?")<0?"?":"&")+"t="+Date.now(),{cache:"no-store"},15000);
+    if(res.ok) return {json:await res.json(),src:"site"};
+    return {json:null,src:"site",missing:res.status===404};
+  }catch(e){ return {json:null,src:"site",error:String(e&&e.message||e)}; }
+}
+/** そのコミットの JSON ファイルの一覧（rankings/ に足された週や、GitHub に直接 上げたランキングを見つけるため）。たずねられない時は null */
+async function freshTree(){
+  const sha=await freshSha();
+  if(!sha) return null;
+  if(FRESH.tree&&FRESH.treeSha===sha) return FRESH.tree;
+  try{ const s=JSON.parse(sessionStorage.getItem("sa-fresh-tree-v1")||"null");
+    if(s&&s.sha===sha&&Array.isArray(s.paths)){ FRESH.tree=s.paths; FRESH.treeSha=sha; return s.paths; } }catch(e){}
+  if(FRESH.treeBusy) return FRESH.treeBusy;
+  const R=freshRepo();
+  FRESH.treeBusy=(async()=>{
+    try{
+      const res=await fetchT(`https://api.github.com/repos/${encodeURIComponent(R.o)}/${encodeURIComponent(R.r)}/git/trees/${sha}?recursive=1`,{cache:"force-cache"},8000);
+      if(!res.ok) return null;
+      const j=await res.json();
+      const paths=(j&&Array.isArray(j.tree)?j.tree:[]).filter(t=>t&&t.type==="blob"&&/\.json$/i.test(t.path||"")).map(t=>t.path);
+      FRESH.tree=paths; FRESH.treeSha=sha;
+      try{ sessionStorage.setItem("sa-fresh-tree-v1",JSON.stringify({sha,paths})); }catch(e){}
+      return paths;
+    }catch(e){ return null; }
+    finally{ FRESH.treeBusy=null; }
+  })();
+  return FRESH.treeBusy;
+}
+/** data.json の中身の しるし（同じ中身かどうかを くらべるため） */
+let DATA_SIG="";
+const dataSig=j=>{ try{ const s=JSON.stringify(j); let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return s.length+":"+h; }catch(e){ return ""; } };
+/** GitHub から読んだ data.json を使います（この端末だけの一時データを使っている時は 何もしません） */
+function freshApplyData(j){
+  const lb=$("#localBanner"); if(lb&&!lb.hidden) return false;
+  const pub=normalize(j); if(!pub||!pub.length) return false;
+  const sig=dataSig(j); if(sig===DATA_SIG) return false;
+  const cur=(DATA()||{}).date, wasLatest=wIdx===WEEKS.length-1;
+  DATA_SIG=sig; WEEKS=pub;
+  const i=WEEKS.findIndex(w=>w&&w.date===cur);
+  wIdx=(wasLatest||i<0)?WEEKS.length-1:i;
+  RKU.weeks=null; RKU.model=null;
+  applyData();
+  return true;
+}
+/** 新しいコミットが見つかった時：データを読み直して、見ている画面を作り直します */
+let freshReloading=false;
+async function freshChanged(){
+  if(freshReloading) return;
+  freshReloading=true;
+  try{
+    RKP.state="idle"; RKP.idx=null; RKP.weeks={}; RKU.weeks=null; RKU.model=null; CUST.json=null;
+    const r=await freshJson("data.json",{noSite:true});
+    const changed=r&&r.json?freshApplyData(r.json):false;
+    if(changed) toast("新しいデータを読み込みました");
+    if($("#seiseki")&&!$("#seiseki").hidden) renderSeki();
+    if($("#stats")&&!$("#stats").hidden) stEnter();
+    if($("#analysis")&&!$("#analysis").hidden) renderAnaDev();
+  }catch(e){}
+  finally{ freshReloading=false; }
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") freshSha().catch(()=>{}); });
+/* ページを開いたままでも、5分おきに 新しいコミットが無いか見ます（見えている時だけ。1時間に 12 回まで） */
+setInterval(()=>{ if(document.visibilityState==="visible") freshSha().catch(()=>{}); },5*60*1000);
+
+/* =========================================================
    5x. ランキングの全部の順位（rankings/）と 偏差値（概算）
-   ・公開データ rankings/index.json と、週ごとのファイルを読みます
+   ・公開データ rankings/index.json と、週ごとのファイルを読みます（GitHub に上がったものを すぐ読みます）
    ・計算は rank-model.js（RankModel）で、ranking-analysis.html と同じです
      偏差値 ＝ 50 ＋ 10 × z、z ＝ Φ⁻¹(1 − p)、p ＝（順位 − 0.5）÷ 参加人数
+   ・data.json のボーダー（1・5・10・50・100・200 位など）と 日付ごとに あわせて使います（RKU）
    ========================================================= */
-const RKP={state:"idle",idx:null,weeks:{},tok:0};
+const RKP={state:"idle",idx:null,weeks:{},tok:0,busy:null,src:""};
 const RKP_TOT="スコアの合計 全種（素数判定を除外）", RKP_ALL="スコアの合計 全種";
 const rkpM=()=>window.RankModel||null;
-/** 公開データの一覧（rankings/index.json）を読みます */
+/** 公開データの一覧（rankings/index.json）を読みます。
+    index.json に まだ入っていない rankings/YYYY-MM-DD.json や、上に直接 上げた ranking-YYYY-MM-DD.json も 見つけて足します */
 async function rkpIndex(){
   if(RKP.state==="ok") return true;
-  try{
-    const r=await fetch("rankings/index.json?t="+Date.now(),{cache:"no-store"});
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    RKP.idx=await r.json(); RKP.state="ok"; return true;
-  }catch(e){ RKP.state="ng"; return false; }
+  if(RKP.busy) return RKP.busy;
+  RKP.busy=(async()=>{
+    try{
+      const r=await freshJson("rankings/index.json");
+      const base=r.json&&Array.isArray(r.json.weeks)?r.json:null;
+      const weeks=(base?base.weeks:[]).filter(x=>x&&x.date&&(x.file||x.path)).map(x=>Object.assign({},x));
+      const tree=await freshTree().catch(()=>null);
+      if(tree){
+        const have=new Set(weeks.map(x=>x.date));
+        tree.forEach(p=>{ const m=/^rankings\/(\d{4}-\d{2}-\d{2})\.json$/.exec(p);
+          if(m&&!have.has(m[1])){ weeks.push({date:m[1],file:m[1]+".json",found:true}); have.add(m[1]); } });
+        tree.forEach(p=>{ const m=/^(?:rankings\/)?rankings?[-_](\d{4}-\d{2}-\d{2})\.json$/i.exec(p);
+          if(m&&!have.has(m[1])){ weeks.push({date:m[1],path:p,found:true}); have.add(m[1]); } });
+      }
+      if(!base&&!weeks.length) throw new Error("no index");
+      weeks.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+      RKP.idx=Object.assign({},base||{},{weeks,latest:weeks.length?weeks[weeks.length-1].date:null});
+      RKP.state="ok"; RKP.src=r.src; return true;
+    }catch(e){ RKP.state="ng"; return false; }
+    finally{ RKP.busy=null; }
+  })();
+  return RKP.busy;
 }
-/** その週のファイルを読みます（読んだ週は おぼえておきます）。
-    参加人数が読めていない種目は、前の週の人数を使います（その種目には playersFrom が付きます） */
+/** その週のファイルを読みます（読んだ週は おぼえておきます。名前と「あなたの順位」の欄は使いません） */
 function rkpWeek(ent){
   if(!RKP.weeks[ent.date]) RKP.weeks[ent.date]=rkpLoad(ent).then(w=>{ if(!w) delete RKP.weeks[ent.date]; return w; });
   return RKP.weeks[ent.date];
 }
 async function rkpLoad(ent){
-  if(!/^[\w.-]+\.json$/.test(String(ent.file||""))) return null;
-  let w=null;
+  const path=ent.path||("rankings/"+String(ent.file||""));
+  if(!/^[\w.\/-]+\.json$/.test(path)||/\.\./.test(path)) return null;
   try{
-    const r=await fetch("rankings/"+ent.file,{cache:"no-cache"});
-    if(!r.ok) return null;
-    w=rkpM().readWeek(await r.json());
+    const r=await freshJson(path);
+    if(!r.json) return null;
+    const w=rkpM().readWeek(r.json,{self:false});
     if(!w) return null;
     w.date=w.date||ent.date; w.models={};
+    return w;
   }catch(e){ return null; }
-  /* 参加人数の抜け：日付が前の週を 新しい順に読んで、見つかった人数を入れます */
-  const lack=()=>Object.keys(w.cats).some(k=>!(w.cats[k].players>0));
-  if(lack()&&rkpM().fillPlayers){
-    const older=(RKP.idx&&Array.isArray(RKP.idx.weeks)?RKP.idx.weeks:[]).filter(x=>x&&x.date&&x.date<w.date).sort((a,b)=>a.date<b.date?1:-1);
-    const got=[];
-    for(const o of older){
-      const ow=await rkpWeek(o).catch(()=>null);
-      if(ow) got.push(ow);
-      rkpM().fillPlayers(got.concat([w]));
-      if(!lack()) break;
-    }
-  }
-  return w;
 }
+/** 成績表・分析・統計情報で使う「週」：全部の順位（rankings/）と data.json を 日付ごとに あわせたもの */
+const RKU={key:"",weeks:null,model:null,busy:null,busyKey:"",rankDates:[]};
+function rkuKey(){
+  const ents=RKP.idx&&Array.isArray(RKP.idx.weeks)?RKP.idx.weeks:[];
+  const last=WEEKS[WEEKS.length-1]||{};
+  return (FRESH.sha||"-")+"|"+ents.map(e=>e.date+":"+(e.file||e.path)).join(",")+"|"+WEEKS.length+":"+(last.date||"")+":"+DATA_SIG;
+}
+async function rkuLoad(){
+  const ok=await rkpIndex();
+  const ents=ok&&RKP.idx?RKP.idx.weeks.filter(x=>x&&x.date):[];
+  const key=rkuKey();
+  if(RKU.weeks&&RKU.key===key) return RKU;
+  if(RKU.busy&&RKU.busyKey===key) return RKU.busy;
+  RKU.busyKey=key;
+  RKU.busy=(async()=>{
+    const rws=[];
+    for(let i=0;i<ents.length;i+=3){
+      const part=await Promise.all(ents.slice(i,i+3).map(e=>rkpWeek(e).catch(()=>null)));
+      part.forEach(w=>{ if(w) rws.push(w); });
+    }
+    const dws=(WEEKS||[]).map(w=>{ try{ return rkpM().fromDataWeek(w); }catch(e){ return null; } }).filter(Boolean);
+    RKU.weeks=rkpM().unify(rws,dws); RKU.model=null; RKU.key=key;
+    RKU.rankDates=rws.map(w=>w.date).filter(Boolean).sort();
+    RKU.busy=null;
+    return RKU;
+  })();
+  return RKU.busy;
+}
+/** 偏差値の計算用の週（近い日に もっと深い順位まで あれば、その順位を借ります。週の点そのものは変えません） */
+function rkuModelWeeks(){
+  if(RKU.model) return RKU.model;
+  const W=(RKU.weeks||[]).map(u=>{
+    const cats={};
+    Object.keys(u.cats).forEach(n=>{ const c=u.cats[n];
+      cats[n]=Object.assign({},c,{pts:c.pts.map(p=>[p[0],p[1]]),extra:(c.extra||[]).map(p=>[p[0],p[1]])}); });
+    return {date:u.date,hasRank:u.hasRank,hasData:u.hasData,cats,models:{}};
+  });
+  rkpM().borrowDeep(W,28);
+  return RKU.model=W;
+}
+/** その日付の週（同じ日付、なければ その日より前で いちばん新しい週、それも無ければ いちばん新しい週）。全部の順位が読めた日より前は使いません */
+function rkuPick(date){
+  const W=rkuModelWeeks(), first=RKU.rankDates[0];
+  const ok=W.filter(u=>first&&u.date>=first);
+  if(!ok.length) return null;
+  if(!date) return ok[ok.length-1];
+  const b=ok.filter(u=>u.date<=date);
+  return b.length?b[b.length-1]:ok[ok.length-1];
+}
+
 /** RATING の種目名 → その週の種目（「合計スコア」は「スコアの合計 全種（素数判定を除外）」です） */
 function rkpCat(w,n){
   const key=n==="合計スコア"?RKP_TOT:n;
@@ -8150,23 +8545,35 @@ async function renderAnaDev(){
   const box=$("#anaDev"); if(!box) return;
   const tok=++RKP.tok;
   if(!rkpM()){ box.innerHTML='<p class="tiny">偏差値の計算に使うファイル（rank-model.js）を読めませんでした。ページを読み直してください。</p>'; return; }
-  if(RKP.state!=="ok"){
-    box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
-    const ok=await rkpIndex();
-    if(tok!==RKP.tok) return;
-    if(!ok){ box.innerHTML='<p class="tiny">ランキングのデータ（rankings/）を読めませんでした。ネットにつながっているか確かめてください。</p>'; return; }
-  }
-  const ent=rkpM().pickWeek(RKP.idx,(DATA()||{}).date);
-  if(!ent){ box.innerHTML='<p class="tiny">公開されたランキングのデータが、まだありません。</p>'; return; }
-  const w=await rkpWeek(ent);
+  if(!RKU.weeks) box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
+  await rkuLoad();
   if(tok!==RKP.tok) return;
-  if(!w){ box.innerHTML=`<p class="tiny">${esc(ent.date)} のランキングを読めませんでした。</p>`; return; }
+  if(!RKU.rankDates.length){
+    box.innerHTML=RKP.state==="ng"?'<p class="tiny">ランキングのデータ（rankings/）を読めませんでした。ネットにつながっているか確かめてください。</p>'
+      :'<p class="tiny">公開されたランキングのデータが、まだありません。</p>';
+    return;
+  }
+  const w=rkuPick((DATA()||{}).date);
+  if(!w){ box.innerHTML='<p class="tiny">公開されたランキングのデータが、まだありません。</p>'; return; }
   try{ box.innerHTML=anaDevHtml(w); }
   catch(e){ box.innerHTML='<p class="tiny">偏差値を計算できませんでした：'+esc(String(e.message||e))+'</p>'; }
 }
+/** その週のデータが どこから来ているか（全部の順位・ボーダー） */
+const rkuMD=d=>{ const x=/^\d{4}-(\d{2})-(\d{2})$/.exec(d||""); return x?`${+x[1]}月${+x[2]}日`:(d||""); };
+function rkuSrcText(w){
+  const parts=[];
+  if(w.hasRank) parts.push(`${rkuMD(w.date)}のランキング（ゲームの画面から読み取った全部の順位）`);
+  if(w.hasData) parts.push(`${rkuMD(w.date)}のボーダー（data.json）`);
+  return parts.join("と")||rkuMD(w.date);
+}
+/** 近い日から借りた 深い順位の説明（借りていなければ 空） */
+function rkuBorrowText(w){
+  const bf=new Set(); Object.keys(w.cats||{}).forEach(n=>{ const c=w.cats[n]; if(c.borrowFrom) bf.add(c.borrowFrom); });
+  return bf.size?`読めていない深い順位は、近い日（${[...bf].sort().map(rkuMD).join("・")}）の順位を借りています。`:"";
+}
 function anaDevHtml(w){
   const M=rkpM(), f1=t=>t==null||!isFinite(t)?"—":t.toFixed(2);
-  const link=`<p class="tiny" style="margin-top:10px">${esc(w.date)} のランキング（ゲームの画面から読み取った全部の順位）で計算しています。
+  const link=`<p class="tiny" style="margin-top:10px">${esc(rkuSrcText(w))}で計算しています。${esc(rkuBorrowText(w))}
     参加人数は、ゲームの画面の「◯位 / ◯ プレイヤー」の人数です。<br>
     <a href="./ranking-analysis.html" target="_blank" rel="noopener">くわしい分析と、偏差値の出し方（だれでも見られます）→</a></p>`;
   const rows=[];
@@ -8214,12 +8621,26 @@ function anaDevHtml(w){
 }
 
 /* =========================================================
-   5y. 成績表（全統模試ふうの 個人成績表）
-   ・公開データ（rankings/）と、あなたの記録（rec）から作ります
-   ・偏差値・予測平均点・予測標準偏差は 小数第2位まで、全国順位は いつも出します
-   ・計算は rank-model.js：ランキングに載っている所は順位から、載っていない所は予測分布から
+   5y. 成績表（全統模試ふうの 個人成績表・紙の成績表）
+   ・タブを押すと、まず 回の一覧が出ます（いちばん新しい回は 金色に ゆっくり光ります）
+   ・はじめて見る回は、たたまれた紙を 自分で 下へ引っぱって ひらきます。
+     半分より多く ひらいて 指をはなすと、最後まで ひらきます（半分より少ないと もどります）
+   ・最後まで ひらいた しゅんかんに「ひらいた回数」を この端末に おぼえます。2回目からは すぐ ひらいた状態で出ます
+   ・中身は rank-model.js：ランキングに載っている所は順位から、載っていない所は予測分布から
    ========================================================= */
-const SEKI={sel:null,tok:0,tips:[],rs:0};
+const SEKI={sel:null,tok:0,tips:[],rs:0,view:"list",fold:null,W:0};
+/** ひらいた回数（回の日付 → { n, first, last }）。最後まで ひらいた時だけ 数えます */
+const K_SEKI_OPEN="sa-seki-open-v1";
+let sekiOpened=ls(K_SEKI_OPEN,{});
+if(!sekiOpened||typeof sekiOpened!=="object") sekiOpened={};
+const sekiOpenCount=d=>{ const o=sekiOpened[d]; return o&&o.n>0?o.n:0; };
+function sekiMarkOpened(d){
+  const now=new Date().toISOString(), o=Object.assign({n:0},sekiOpened[d]||{});
+  o.n=(o.n||0)+1; if(!o.first) o.first=now; o.last=now;
+  sekiOpened[d]=o;
+  try{ localStorage.setItem(K_SEKI_OPEN,JSON.stringify(sekiOpened)); }catch(e){}
+  return o.n;
+}
 /** 評価（S〜E）と、目標判定（A〜E） */
 const SEKI_GRADE=[[75,"S"],[65,"A"],[60,"B"],[55,"C"],[50,"D"],[-Infinity,"E"]];
 const sekiGrade=t=>SEKI_GRADE.find(g=>t>=g[0])[1];
@@ -8250,60 +8671,206 @@ function sekiItem(w,n){
 const sekiRec=(n,v)=>fmtRec(n,v)+(LOW.has(n)?"秒":"");
 const sekiPct=p=>(p==null||!isFinite(p))?"—":(p<0.1?p.toLocaleString("ja-JP",{minimumFractionDigits:3,maximumFractionDigits:3}):seki2(p))+"%";
 const SEKI_SHORT={"合計スコア":"総合（十種競技）",[RKP_ALL]:"スコアの合計 全種",[RAND]:"乱数の累積",[SCORE]:"スコアの累積"};
-async function renderSeki(){
+/** 成績表の回（全部の順位が はじめて読めた日から。data.json だけの週も入ります） */
+function sekiWeeks(){
+  const W=rkuModelWeeks(), first=RKU.rankDates[0];
+  if(!first) return [];
+  const ws=W.filter(u=>u.date>=first&&Object.keys(u.cats).length);
+  return ws.map((u,i)=>({date:u.date,kai:i+1,u,latest:i===ws.length-1}));
+}
+/** 成績表のタブ。fromTab：タブを押した時（いつも 回の一覧から始めます） */
+async function renderSeki(fromTab){
   const box=$("#sekiBody"); if(!box) return;
+  if(fromTab===true){ SEKI.view="list"; SEKI.fold=null; }
+  /* たたまれた紙を ひらいている とちゅうは 作り直しません */
+  if(SEKI.view==="fold"&&SEKI.fold&&fromTab!==true) return;
   const tok=++SEKI.tok;
   if(!rkpM()){ box.innerHTML='<p class="tiny">計算に使うファイル（rank-model.js）を読めませんでした。ページを読み直してください。</p>'; return; }
-  if(RKP.state!=="ok"){
-    box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
-    const ok=await rkpIndex();
-    if(tok!==SEKI.tok) return;
-    if(!ok){ box.innerHTML='<p class="tiny">ランキングのデータ（rankings/）を読めませんでした。ネットにつながっているか確かめてください。</p>'; return; }
-  }
-  const weeks=(RKP.idx&&Array.isArray(RKP.idx.weeks)?RKP.idx.weeks:[]).filter(x=>x&&x.date).slice().sort((a,b)=>a.date<b.date?-1:1);
-  if(!weeks.length){ box.innerHTML='<p class="tiny">公開されたランキングのデータが、まだありません。</p>'; return; }
-  if(!SEKI.sel||!weeks.some(x=>x.date===SEKI.sel)) SEKI.sel=weeks[weeks.length-1].date;
-  const sel=$("#sekiWeek");
-  if(sel) sel.innerHTML=weeks.map((x,i)=>`<option value="${esc(x.date)}"${x.date===SEKI.sel?" selected":""}>第${i+1}回（${esc(x.date)}）</option>`).join("");
-  const ent=weeks.find(x=>x.date===SEKI.sel), kai=weeks.indexOf(ent)+1;
-  const w=await rkpWeek(ent);
+  if(!RKU.weeks) box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
+  await rkuLoad();
   if(tok!==SEKI.tok) return;
-  if(!w){ box.innerHTML=`<p class="tiny">${esc(ent.date)} のランキングを読めませんでした。</p>`; return; }
-  try{ box.innerHTML=sekiHtml(w,kai,Math.max(300,Math.floor(box.clientWidth-34))); sekiBind(box); }
-  catch(e){ box.innerHTML='<p class="tiny">成績表を作れませんでした：'+esc(String(e.message||e))+'</p>'; }
+  const list=sekiWeeks();
+  if(!list.length){
+    box.innerHTML=RKP.state==="ng"?'<p class="tiny">ランキングのデータ（rankings/）を読めませんでした。ネットにつながっているか確かめてください。</p>'
+      :'<p class="tiny">公開されたランキングのデータが、まだありません。</p>';
+    return;
+  }
+  if(SEKI.view==="list"||!SEKI.sel||!list.some(x=>x.date===SEKI.sel)){ SEKI.view="list"; sekiListDraw(box,list); return; }
+  sekiShow(box,list.find(x=>x.date===SEKI.sel));
 }
-function sekiHtml(w,kai,W){
+/** 回の一覧（新しい順） */
+function sekiListDraw(box,list){
+  const items=list.slice().reverse();
+  box.innerHTML=`<p class="tiny sk-lead">見たい回の成績表を えらんでください。<b>いちばん新しい回</b>は 金色に光っています。
+      はじめて見る成績表は、たたまれた紙を 自分で ひらきます。</p>
+    <div class="sk-list" role="list">`+items.map(x=>{
+      const n=sekiOpenCount(x.date);
+      const src=x.u.hasRank&&x.u.hasData?"全部の順位＋ボーダー":x.u.hasRank?"全部の順位":"ボーダー";
+      return `<div role="listitem"><button type="button" class="sk-card${x.latest?" latest":""}${n?" opened":""}" data-d="${esc(x.date)}"
+          aria-label="第${x.kai}回 ${esc(sekiDate(x.date))} 集計の成績表（${n?"ひらいたことがあります":"まだ ひらいていません"}${x.latest?"・最新":""}）">
+        ${x.latest?'<span class="sk-new">最新</span>':""}
+        <span class="sk-kai">第 <b>${x.kai}</b> 回</span>
+        <span class="sk-date">${esc(sekiDate(x.date))} 集計</span>
+        <span class="sk-src">${src}</span>
+        <span class="sk-seal${n?" done":""}">${n?"開封済":"未開封"}</span>
+      </button></div>`;
+    }).join("")+`</div>`;
+  box.querySelectorAll(".sk-card").forEach(b=>b.onclick=()=>{
+    SEKI.sel=b.dataset.d; SEKI.view=sekiOpenCount(SEKI.sel)?"open":"fold"; SEKI.fold=null;
+    const L=sekiWeeks(), ent=L.find(x=>x.date===SEKI.sel);
+    if(ent){ sekiShow(box,ent); try{ box.scrollIntoView({block:"start",behavior:"smooth"}); }catch(e){} }
+  });
+}
+/** その回の成績表（はじめてなら たたまれた紙、2回目からは ひらいた紙） */
+function sekiShow(box,ent){
+  const opened=sekiOpenCount(ent.date)>0;
+  const W=Math.max(300,Math.floor(box.clientWidth-34));
+  SEKI.W=W;
+  let P;
+  try{ P=sekiParts(ent.u,ent.kai,W); }
+  catch(e){ box.innerHTML='<p class="tiny">成績表を作れませんでした：'+esc(String(e.message||e))+'</p>'; return; }
+  SEKI.view=opened?"open":"fold";
+  const n=sekiOpenCount(ent.date);
+  box.innerHTML=`<div class="sk-bar">
+      <button type="button" class="btn sm" id="sekiBack">← 成績表の一覧へ</button>
+      <span class="sk-state" id="sekiState" aria-live="polite">${opened?`第${ent.kai}回　ひらいた回数 ${jp(n)} 回`:`第${ent.kai}回　<b>下へ引っぱって</b> ひらいてください`}</span>
+      ${opened?"":`<button type="button" class="btn sm" id="sekiOpenBtn">ひらく</button>`}
+    </div>
+    <div class="sk-paper${opened?"":" folding"}" id="sekiPaper" style="--p:${opened?1:0}">
+      <div class="sk-sheet" id="sekiSheet">
+        <div class="sk-pa sk-tex"><div class="sk-in">${P.a}</div></div>
+        <div class="sk-hb"><div class="sk-face sk-front sk-tex"><div class="sk-in">${P.b}</div><i class="sk-shade"></i></div><div class="sk-face sk-back sk-tex"></div>
+          <div class="sk-hc"><div class="sk-face sk-front sk-tex"><div class="sk-in">${P.c}</div><i class="sk-shade"></i></div><div class="sk-face sk-back sk-tex"></div></div>
+        </div>
+        ${opened?"":`<div class="sk-pull" aria-hidden="true"><span>↓</span>下へ引っぱって ひらく</div>`}
+      </div>
+      <article class="seki sk-rest sk-tex"${opened?"":" hidden"}>${P.rest}</article>
+    </div>`;
+  box.querySelector("#sekiBack").onclick=()=>{ SEKI.view="list"; SEKI.fold=null; renderSeki(); try{ box.scrollIntoView({block:"start",behavior:"smooth"}); }catch(e){} };
+  if(opened){ sekiSetP(box.querySelector("#sekiPaper"),1); sekiBind(box); return; }
+  sekiFoldStart(box,ent);
+}
+/** たたまれた紙の ひらき具合 p（0 ＝ たたまれている、1 ＝ ぜんぶ ひらいた）を 画面に当てます。
+    3つに折った紙（上・まん中・下）。まん中は上の紙の下の辺で、下の紙は まん中の紙の下の辺で 折れています。
+    まん中の紙の角度 θ ＝ −180°×(1 − p)、下の紙は まん中に対して −θ（ジグザグに のびます） */
+function sekiSetP(paper,p){
+  if(!paper) return;
+  const t=-180*(1-p);
+  paper.style.setProperty("--p",p.toFixed(4));
+  paper.style.setProperty("--tb",t.toFixed(3)+"deg");
+  paper.style.setProperty("--tc",(-t).toFixed(3)+"deg");
+  /* 光の当たり方：まん中の紙は 向こうへ たおれるほど 暗く */
+  const c=Math.cos(t*Math.PI/180);
+  paper.style.setProperty("--sb",(0.42*(1-Math.max(0,c))).toFixed(3));
+  paper.style.setProperty("--pull",Math.max(0,1-p*5).toFixed(3));
+}
+/** 指の位置 → p。下の紙の下の辺が 指に ついてくるようにします（下の辺の高さ ＝ 2h − h cos(πp)） */
+function sekiFoldStart(box,ent){
+  const paper=box.querySelector("#sekiPaper"), sheet=box.querySelector("#sekiSheet");
+  const st=box.querySelector("#sekiState"), btn=box.querySelector("#sekiOpenBtn");
+  const F=SEKI.fold={date:ent.date,kai:ent.kai,p:0,done:false,anim:0,drag:null};
+  sekiSetP(paper,0);
+  const ph=()=>{ const a=sheet.querySelector(".sk-pa"); return Math.max(60,a?a.getBoundingClientRect().height:150); };
+  const reduce=()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
+  const frac=p=>(1-Math.cos(Math.PI*p))/2;           /* ひらいた割合（見た目の長さ） */
+  const set=p=>{ F.p=Math.max(0,Math.min(1,p)); sekiSetP(paper,F.p); if(F.p>=1) finish(); };
+  const finish=()=>{
+    if(F.done) return;
+    F.done=true; cancelAnimationFrame(F.anim);
+    const n=sekiMarkOpened(F.date);
+    SEKI.view="open";
+    if(st) st.innerHTML=`第${F.kai}回　ひらきました（ひらいた回数 ${jp(n)} 回）`;
+    if(btn) btn.remove();
+    paper.classList.remove("folding"); paper.classList.add("opened");
+    const pull=sheet.querySelector(".sk-pull"); if(pull) pull.remove();
+    const rest=paper.querySelector(".sk-rest"); if(rest){ rest.hidden=false; rest.classList.add("sk-appear"); }
+    sekiBind(box);
+    SEKI.fold=null;
+  };
+  const animTo=(to,ms)=>{
+    cancelAnimationFrame(F.anim);
+    const from=F.p, t0=performance.now(), dur=reduce()?1:Math.max(120,ms*Math.abs(to-from));
+    const ease=x=>1-Math.pow(1-x,3);
+    const step=now=>{ const k=Math.min(1,(now-t0)/dur); set(from+(to-from)*ease(k)); if(k<1&&!F.done) F.anim=requestAnimationFrame(step); };
+    F.anim=requestAnimationFrame(step);
+  };
+  const yOf=p=>2-Math.cos(Math.PI*p);                 /* 下の辺の高さ（h を 1 として） */
+  const pOf=y=>Math.acos(Math.max(-1,Math.min(1,2-y)))/Math.PI;
+  sheet.addEventListener("pointerdown",e=>{
+    if(F.done||(e.pointerType==="mouse"&&e.button!==0)) return;
+    cancelAnimationFrame(F.anim);
+    F.drag={id:e.pointerId,y0:e.clientY,base:yOf(F.p),h:ph(),moved:false};
+    try{ sheet.setPointerCapture(e.pointerId); }catch(er){}
+    paper.classList.add("dragging");
+  });
+  sheet.addEventListener("pointermove",e=>{
+    const D=F.drag; if(!D||e.pointerId!==D.id||F.done) return;
+    const dy=e.clientY-D.y0;
+    if(Math.abs(dy)>4) D.moved=true;
+    set(pOf(D.base+dy/D.h));
+    if(e.cancelable) e.preventDefault();
+  });
+  const up=e=>{
+    const D=F.drag; if(!D||(e&&e.pointerId!==D.id)) return;
+    F.drag=null; paper.classList.remove("dragging");
+    if(F.done) return;
+    if(!D.moved&&F.p<0.02){ /* 軽く さわっただけ：少し のぞかせて もどします */
+      const peek=0.16; animTo(peek,700); setTimeout(()=>{ if(!F.done&&!F.drag) animTo(0,900); },320);
+      if(st) st.innerHTML=`第${F.kai}回　指で <b>下へ引っぱって</b> ひらいてください`;
+      return;
+    }
+    if(frac(F.p)>=0.5) animTo(1,520); else animTo(0,520);
+  };
+  sheet.addEventListener("pointerup",up);
+  sheet.addEventListener("pointercancel",up);
+  sheet.addEventListener("lostpointercapture",up);
+  if(btn) btn.onclick=()=>{ if(!F.done) animTo(1,1100); };
+}
+/** 成績表の中身：3つ折りの紙（a 上・b まん中・c 下）と、その下に続く くわしい表（rest） */
+function sekiParts(w,kai,W){
   const tot=sekiItem(w,"合計スコア"), all=sekiItem(w,RKP_ALL);
   const evs=EVENTS.map(n=>sekiItem(w,n)), cums=[RAND,SCORE].map(n=>sekiItem(w,n));
   const nEv=evs.filter(it=>it.d).length;
   let R=null; try{ R=compute(rec); }catch(e){ R=null; }
   const today=new Intl.DateTimeFormat("ja-JP",Object.assign({year:"numeric",month:"long",day:"numeric"},JST)).format(new Date());
-  let h=`<article class="seki">
-    <div class="seki-head"><div><div class="seki-org">素数あつめ RATING ・ 全国ランキング</div><div class="seki-title">個人成績表</div></div>
-      <div class="seki-kai">第 <b>${kai}</b> 回　${esc(sekiDate(w.date))} 集計<br>発行 ${esc(today)}</div></div>
+  /* 上の紙：見出しと 名前 */
+  const a=`<div class="sk-ah"><div><div class="seki-org">素数あつめ RATING ・ 全国ランキング</div><div class="seki-title">個人成績表</div></div>
+      <div class="sk-kai">第 <b>${kai}</b> 回<br>${esc(sekiDate(w.date))} 集計<br><span>発行 ${esc(today)}</span></div></div>
     <div class="seki-who">
-      <div><span>氏名</span><b>${pro.name?esc(pro.name)+" さん":"（名前は設定から入れられます）"}</b></div>
+      <div><span>氏名</span><b>${pro.name?esc(pro.name)+" さん":"（未設定）"}</b></div>
       <div><span>ID</span><b>${pro.handle?"@"+esc(pro.handle):"—"}</b></div>
-      <div><span>受験種目</span><b>素数ゲーム ${nEv} / 18 種目</b></div>
-      <div><span>RATING</span><b>${R&&R.total>0?f3(R.total)+"　"+esc(rankOf(R.total).n):"—"}</b></div>
+      <div><span>受験</span><b>${nEv} / 18 種目</b></div>
+      <div><span>RATING</span><b>${R&&R.total>0?f3(R.total)+" "+esc(rankOf(R.total).n):"—"}</b></div>
     </div>`;
-  /* 総合成績（メイン：十種競技総合スコア・素数判定を除く） */
-  h+=`<h3>総合成績　十種競技総合スコア（素数判定を除く 9 種目）</h3>`;
-  if(!tot.m) h+='<p class="tiny">この回のデータに、十種競技総合スコアがありません。</p>';
-  else if(!tot.d) h+='<p class="tiny">十種競技総合スコア（合計スコア）を入れると、ここに総合成績が出ます。</p>';
+  /* まん中の紙：総合成績 */
+  let b=`<div class="sk-h3">総合成績　十種競技総合スコア（素数判定を除く 9 種目）</div>`;
+  if(!tot.m) b+='<p class="sk-empty">この回のデータに、十種競技総合スコアがありません。</p>';
+  else if(!tot.d) b+='<p class="sk-empty">十種競技総合スコア（合計スコア）を入れると、ここに総合成績が出ます。</p>';
   else{
     const d=tot.d, D=sekiDist("合計スコア",tot.m), g=sekiGrade(d.T);
-    h+=`<div class="seki-main">
+    b+=`<div class="seki-main">
       <div class="seki-dev"><div class="l">総合偏差値</div><div class="v">${seki2(d.T)}</div><span class="seki-g ${g}" title="評価 ${g}">${g}</span></div>
       <div class="seki-kv">
-        <div><span>得点</span><b>${jp(tot.v)}</b><i>満点 ${jp(MAXSCORE*9)}</i></div>
-        <div><span>全国順位</span><b>${sekiRank(d)}</b><i>${d.mark} ${esc(rkpM().CONF_TEXT[d.conf]||"")}</i></div>
-        <div><span>受験者数</span><b>${sekiN(tot.m)}</b><i>上位 ${sekiPct(d.top)}</i></div>
+        <div><span>得点</span><b>${jp(tot.v)}</b></div>
+        <div><span>全国順位</span><b>${sekiRank(d)}<i class="seki-mk">${d.mark}</i></b></div>
+        <div><span>受験者数${tot.m.playersFrom?`（${esc(trdMD(tot.m.playersFrom))}）`:""}</span><b>${jp(tot.m.N)}人</b></div>
+        <div><span>上位</span><b>${sekiPct(d.top)}</b></div>
         <div><span>予測平均点</span><b>${D.mean}</b></div>
         <div><span>予測標準偏差</span><b>${D.sd}</b></div>
-        <div><span>評価</span><b>${g}</b><i>${esc(sekiGradeText(g))}</i></div>
       </div></div>`;
-    h+=`<div class="seki-chart">${sekiMeter(d.T,W)}</div>`;
+  }
+  /* 下の紙：偏差値の高い種目 */
+  const best=evs.concat(cums).filter(it=>it.d&&it.d.T!=null).sort((x,y)=>y.d.T-x.d.T).slice(0,3);
+  let c=`<div class="sk-h3">偏差値の高い種目（ベスト 3）</div>`;
+  if(!best.length) c+='<p class="sk-empty">種目の記録を入れると、ここに 偏差値の高い種目が出ます。</p>';
+  else c+=`<ol class="sk-best">`+best.map(it=>{ const g=sekiGrade(it.d.T);
+      return `<li><span class="nm">${esc(SEKI_SHORT[it.n]||rkpName(it.n))}</span><span class="tv">${seki2(it.d.T)}</span><span class="seki-g ${g}">${g}</span><span class="rk">${sekiRank(it.d)}</span></li>`; }).join("")+`</ol>`;
+  c+=`<div class="sk-stamp" aria-hidden="true"><span>集計</span><b>${esc(w.date.slice(5).replace("-","."))}</b></div>`;
+  /* くわしい表 */
+  let h="";
+  if(tot.d){
+    h+=`<h3>総合偏差値の位置</h3><div class="seki-chart">${sekiMeter(tot.d.T,W)}</div>`;
+    h+=`<p class="seki-ref">総合の全国順位：${sekiRank(tot.d)} ${tot.d.mark} ${esc(rkpM().CONF_TEXT[tot.d.conf]||"")}　／　評価 ${sekiGrade(tot.d.T)}（${esc(sekiGradeText(sekiGrade(tot.d.T)))}）　／　満点 ${jp(MAXSCORE*9)}</p>`;
   }
   if(all.d) h+=`<p class="seki-ref">参考：スコアの合計 全種（素数判定を含む 10 種目）　得点 ${jp(all.v)}　偏差値 <b>${seki2(all.d.T)}</b>　全国順位 ${sekiRank(all.d)} ／ ${jp(all.d.N)}人</p>`;
   /* 種目別成績 */
@@ -8339,22 +8906,22 @@ function sekiHtml(w,kai,W){
   const evMax=Math.max(0,...evs.filter(it=>it.m).map(it=>it.m.listMax));
   h+=`<div class="seki-note"><b>注</b><ol>
     <li>偏差値：全国順位から出しています。上位の割合 p ＝（順位 − 0.5）÷ 受験者数 を、つりがね形（標準正規分布）の位置 z ＝ Φ⁻¹(1 − p) に直して、偏差値 ＝ 50 ＋ 10 × z です
-      （得点が つりがね形に ちらばっていれば、ふつうの偏差値と同じになります）。</li>
-    <li>ランキングに載っていない得点の全国順位：得点 x を y ＝ x^(3/4)（タイムは y ＝ −√x、累積は y ＝ x^0.3）に直すと つりがね形に ちらばる、と考えます。
-      読めた いちばん下の順位 L から z の幅 0.4 の中の点で、y を z の直線 y ＝ μ ＋ σz で表し（傾き σ は最小二乗、直線は L を通します）、
-      z ＝（y − μ）÷ σ、全国順位 ≈ 受験者数 × Q(z) ＋ 0.5 で出します（Q(z) は z より上の人の割合）。
-      得点と累積は「最下位の人は 0 くらい」として σ ≧ y_L ÷（z_L − z_N）、得点は「まん中の人は 0 点より上」として σ ≦ y_L ÷ z_L にしています。</li>
-    <li>予測平均点・予測標準偏差：受験者 全員（N 人）の得点を 1位から N 位まで並べて（読めた順位は その得点、その下は 上の直線から出した x̂ ＝（μ ＋ σ z_r）^(4/3)。0 より下は 0 点）、
-      その 平均 と 標準偏差 を出したものです。偏差値は順位から出しているので、「50 ＋ 10 ×（得点 − 予測平均点）÷ 予測標準偏差」とは ぴったり同じには なりません。
-      読めた順位より ずっと下は 見えない所なので、もっと下の順位まで読み取ると、より確かになります。</li>
+      （得点が つりがね形に ちらばっていれば、ふつうの偏差値と同じになります）。Φ⁻¹ は 相対誤差 10⁻¹⁶ ほどの式で 計算しています。</li>
+    <li>ランキングに載っていない得点の全国順位（予測分布）：読めた いちばん下の順位 L の得点 x_L から、
+      得点 x(z) ＝ x_L ×（(z − z_N) ÷ (z_L − z_N)）^κ と考えます（z_N は 最下位の z。最下位の 1 人で はじめて 0 点になり、とちゅうで 0 点には なりません）。
+      κ は L の すぐ上の点（z の幅 0.4）に合わせた 下がり方の強さで、点数は 4/3 以上、累積は 1/0.3 以上です。
+      全国順位 ≈ 受験者数 × Q(z) ＋ 0.5（Q(z) は z より上の人の割合）。タイムは −√t を z の直線にして出します。</li>
+    <li>予測平均点・予測標準偏差：受験者 全員（N 人）の得点を 1位から N 位まで並べて（読めた順位は その得点、その下は 上の予測分布）、
+      その 平均 と 標準偏差 を出したものです（誤差を補正して 足しています）。偏差値は順位から出しているので、「50 ＋ 10 ×（得点 − 予測平均点）÷ 予測標準偏差」とは ぴったり同じには なりません。
+      v3 では 0 点の人が多すぎる種目があったので、v4 で 予測分布の形を 直しました（いろいろな形を ためして、いちばん よく当たる形にしています）。</li>
     <li>タイムの種目は 速いほど上です（予測平均点・予測標準偏差は 秒）。</li>
     <li>全国順位のしるし：◎ ぴったり ／ ○ 読めた順位のあいだの見つもり ／ △ 予測分布からの見つもり（「約」が付きます）。</li>
     <li>評価：S 75.00以上 ／ A 65.00以上 ／ B 60.00以上 ／ C 55.00以上 ／ D 50.00以上 ／ E 50.00未満。
       判定：A 到達 ／ B 偏差値の差が 1.00 未満 ／ C 2.50 未満 ／ D 5.00 未満 ／ E 5.00 以上。</li>
     <li>受験者数は、ゲームの画面の「◯位 / ◯ プレイヤー」から読み取った その種目の参加人数です（読めていない回は、前の回の人数を使い「◯月◯日の人数」と出します）。
-      データ：${esc(sekiDate(w.date))}のランキング（素数ゲームは ${jp(evMax)}位まで などを読み取り・名前なし）。</li>
-  </ol></div></article>`;
-  return h;
+      データ：${esc(rkuSrcText(w))}（素数ゲームは ${jp(evMax)}位まで などを読み取り・名前なし）。${esc(rkuBorrowText(w))}</li>
+  </ol></div>`;
+  return {a,b,c,rest:h};
 }
 function sekiGradeText(g){ return {S:"75.00 以上",A:"65.00〜74.99",B:"60.00〜64.99",C:"55.00〜59.99",D:"50.00〜54.99",E:"50.00 未満"}[g]||""; }
 /** 総合偏差値の位置（20〜90 のめもりと、評価の帯） */
@@ -8444,9 +9011,14 @@ function sekiNextHtml(items){
     return `<li><b>${esc(rkpName(n))}</b>：あと <b>${rkpGain(n,g.gain)}${unit}</b> で ${what}（目標 ${esc(sekiRec(n,g.need))}）</li>`;
   }).join("")+`</ol>`;
 }
-$("#sekiWeek")&&($("#sekiWeek").onchange=e=>{ SEKI.sel=e.target.value; renderSeki(); });
+/* 画面の幅が変わった時だけ、ひらいた成績表を 作り直します（グラフの幅を合わせるため。たたまれている時と 一覧の時は そのまま） */
 window.addEventListener("resize",()=>{ clearTimeout(SEKI.rs);
-  SEKI.rs=setTimeout(()=>{ if($("#seiseki")&&!$("#seiseki").hidden) renderSeki(); },250); });
+  SEKI.rs=setTimeout(()=>{
+    if(!$("#seiseki")||$("#seiseki").hidden||SEKI.view!=="open") return;
+    const box=$("#sekiBody"); if(!box) return;
+    const W=Math.max(300,Math.floor(box.clientWidth-34));
+    if(Math.abs(W-SEKI.W)>=8) renderSeki();
+  },250); });
 
 /* =========================================================
    6. 入力イベント
@@ -8658,7 +9230,9 @@ $$("#tabs button").forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==="rankedit"){ rkEnter(); if(reTab==="rp") rpEditEnter(); }
   if(b.dataset.tab==="rprank") rpEnter();
   if(b.dataset.tab==="analysis"){ renderAnalysis(); renderAnaDeca(); renderAnaDev(); }
-  if(b.dataset.tab==="seiseki") renderSeki();
+  if(b.dataset.tab==="seiseki") renderSeki(true);
+  /* データを使うタブに入った時は、新しいコミットが無いかも見ます（1分より前に見ていれば 見ません） */
+  if(["seiseki","stats","analysis"].includes(b.dataset.tab)) freshSha().catch(()=>{});
   if(b.dataset.tab==="hist"){ histEnter(); }
   if(b.dataset.tab==="mood"){ moodEnter(); }
   if(b.dataset.tab==="plan"){ renderPicks(); renderPlanPick(); renderDecaPicks();
@@ -8852,6 +9426,8 @@ function stEnter(){
   stSubsDraw();
   stSubsLoad().then(stSubsDraw);
   stRender(stOf(DATA()));
+  try{ trdEnter(); }catch(e){ console.error(e); }
+  custEnter().catch(e=>console.error(e));
   const ad=$("#stAdmin"); if(ad) ad.hidden=!isAdmin();
   if(!isAdmin()) return;
   const rd=$("#stRead"); if(rd&&!rd.dataset.on){ rd.dataset.on="1"; rd.onclick=stReadPaste; }
@@ -8929,6 +9505,536 @@ async function stPublish(){
     msg.innerHTML=`<span style="color:var(--bad)">書き込めませんでした：${
       esc(String(e.message||e)).slice(0,200)}</span>`;
   }
+}
+
+/* ══════════════════════════════════════════════════════════
+   統計情報（2）：順位の動き
+   ・週ごとの変化のヒートマップ：横は「前の週 → 次の週」、たては順位。変化が大きい所ほど 濃い赤です
+   ・マイルストーン順位（1〜10・15・20・30〜90・100〜2000 位）の くわしい変化と、
+     不動日数（その順位の記録が 何日 変わっていないか）、不動日数ランキング
+   ・データは 全部の順位（rankings/）と data.json のボーダーを 日付ごとに あわせたもの（RKU）です。近い日から借りた点は 使いません
+   ══════════════════════════════════════════════════════════ */
+const TRD={name:"",view:"time",metric:"rel",scale:"log",onlyRank:false,pair:"",mode:"fig",fudoN:30,open:{},tok:0,cols:null};
+/* 赤の 1 色だけで、うすい → こい（OKLCH の明るさが 一方向に下がる段。いちばん うすい段は使わず、0 は灰色にします） */
+const HEAT_RAMP=["#fecdc8","#feb5ae","#fd9c94","#f9837c","#f36863","#e94f4d","#d73d3e","#c52a30","#b21723","#98181f","#7f171b","#671517"];
+const HEAT_ZERO="#e9e7e2", HEAT_SURF="#fcfcfb", HEAT_INK="#2f2c27", HEAT_MUTED="#6b675f";
+const heatRgb=HEAT_RAMP.map(h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
+/** 0〜1 → 色（となりの段の あいだを まぜます） */
+function heatColor(t){
+  const x=Math.max(0,Math.min(1,t))*(heatRgb.length-1), i=Math.min(heatRgb.length-2,Math.floor(x)), f=x-i;
+  const a=heatRgb[i], b=heatRgb[i+1];
+  return "rgb("+a.map((v,k)=>Math.round(v+(b[k]-v)*f)).join(",")+")";
+}
+/** 色の段の番号（字の色を決めるため） */
+const heatStep=t=>Math.round(Math.max(0,Math.min(1,t))*(HEAT_RAMP.length-1));
+/** 種目の並び（十種競技総合 → 素数ゲーム 18 種目 → スコアの合計 全種 → 累積） */
+function trdNames(){
+  const have=new Set(); (RKU.weeks||[]).forEach(u=>Object.keys(u.cats).forEach(n=>have.add(n)));
+  const order=[RKP_TOT].concat(EVENTS,[RKP_ALL,RAND,SCORE]);
+  return order.filter(n=>have.has(n)).concat([...have].filter(n=>!order.includes(n)).sort());
+}
+const trdLabel=n=>n===RKP_TOT?"十種競技総合（素数判定を除く）":n;
+const trdIsTime=n=>LOW.has(n)||rkpM().TIME_CATS.has(n);
+/** 記録の書き方（タイムは 秒を小数第3位まで、ほかは 3けた区切り） */
+function trdFmt(n,v){
+  if(v==null||!isFinite(v)) return "—";
+  if(trdIsTime(n)) return (+v).toFixed(3)+"秒";
+  return Number.isInteger(+v)?jp(+v):(+v).toLocaleString("ja-JP",{maximumFractionDigits:2});
+}
+function trdDelta(n,d){
+  if(d==null||!isFinite(d)) return "—";
+  if(d===0) return "±0";
+  const s=d>0?"+":"−", a=Math.abs(d);
+  return s+(trdIsTime(n)?a.toFixed(3)+"秒":(Number.isInteger(a)?jp(a):a.toLocaleString("ja-JP",{maximumFractionDigits:2})));
+}
+function trdPct(r){
+  if(r==null||!isFinite(r)) return "—";
+  if(r===0) return "±0%";
+  const a=Math.abs(r*100), s=r>0?"+":"−";
+  return s+(a<0.001?a.toExponential(1):a<0.1?a.toFixed(4):a<10?a.toFixed(2):a.toFixed(1))+"%";
+}
+const trdMD=d=>{ const x=/^\d{4}-(\d{2})-(\d{2})$/.exec(d||""); return x?`${+x[1]}/${+x[2]}`:(d||""); };
+const trdMDj=d=>{ const x=/^\d{4}-(\d{2})-(\d{2})$/.exec(d||""); return x?`${+x[1]}月${+x[2]}日`:(d||""); };
+/** 大きさ（割合なら %、差なら 点・秒） */
+const trdMag=c=>TRD.metric==="rel"?(c.rel==null?null:Math.abs(c.rel*100)):Math.abs(c.d);
+/** 色の こさの はば（0 でない大きさの 5% 点〜99% 点を、対数で 0〜1 に） */
+function trdNorm(mags){
+  const nz=mags.filter(m=>m>0&&isFinite(m)).sort((a,b)=>a-b);
+  if(!nz.length) return {lo:1,hi:10,t:()=>0};
+  const q=p=>nz[Math.min(nz.length-1,Math.max(0,Math.floor(p*(nz.length-1))))];
+  let lo=q(0.05), hi=q(0.99);
+  if(!(hi>lo)) { lo=nz[0]; hi=nz[nz.length-1]; }
+  if(!(hi>lo)) { lo=hi/10; }
+  const L0=Math.log(lo), L1=Math.log(hi);
+  return {lo,hi,t:m=>Math.max(0,Math.min(1,(Math.log(m)-L0)/(L1-L0)))};
+}
+const trdMagText=m=>TRD.metric==="rel"?(m<0.001?m.toExponential(1):m<0.1?m.toFixed(3):m<10?m.toFixed(2):m.toFixed(1))+"%":(m>=100?jp(Math.round(m)):m.toLocaleString("ja-JP",{maximumFractionDigits:3}));
+/** 統計情報タブに入った時：順位の動き（データを読んでから 描きます） */
+async function trdEnter(){
+  const box=$("#trdBody"); if(!box) return;
+  const tok=++TRD.tok;
+  if(!rkpM()){ box.innerHTML='<p class="tiny">計算に使うファイル（rank-model.js）を読めませんでした。</p>'; return; }
+  if(!RKU.weeks) box.innerHTML='<p class="tiny">ランキングのデータを読み込んでいます…</p>';
+  await rkuLoad();
+  if(tok!==TRD.tok) return;
+  const names=trdNames();
+  if(!names.length){ box.innerHTML='<p class="tiny">まだデータがありません。</p>'; return; }
+  if(!TRD.name||!names.includes(TRD.name)) TRD.name=names.includes("素因数分解・初級")?"素因数分解・初級":names[0];
+  const seg=(id,cur,opts)=>`<div class="trd-seg" role="group" id="${id}">`+opts.map(([v,t])=>`<button type="button" data-v="${v}" class="${cur===v?"on":""}" aria-pressed="${cur===v}">${t}</button>`).join("")+`</div>`;
+  box.innerHTML=`<div class="trd-tools">
+      <label class="tiny" for="trdName">種目</label>
+      <select id="trdName">${names.map(n=>`<option value="${esc(n)}"${n===TRD.name?" selected":""}>${esc(trdLabel(n))}</option>`).join("")}</select>
+      ${seg("trdMode",TRD.mode,[["fig","図"],["tbl","表"]])}
+      ${seg("trdView",TRD.view,[["time","週ごと"],["cats","種目ごと"]])}
+      ${seg("trdMetric",TRD.metric,[["rel","割合（%）"],["abs","差"]])}
+      ${seg("trdScale",TRD.scale,[["log","上位を大きく"],["lin","ふつう"]])}
+      <label class="tiny trd-chk"><input type="checkbox" id="trdOnly"${TRD.onlyRank?" checked":""}> 全部の順位がある週だけ</label>
+    </div>
+    <div id="trdHeat"></div>
+    <h3 style="margin-top:22px">マイルストーン順位の くわしい変化</h3>
+    <p class="tiny" style="margin-top:-4px">1〜10・15・20・30〜90（10 ごと）・100〜2000 位（100 ごと）の 39 の順位です。行を押すと、週ごとの記録が出ます。
+      <b>不動日数</b>は、いまの記録を はじめて見た日から 最後に見た日までの日数（そのあいだ 記録が変わっていない日数）です。</p>
+    <div id="trdMs"></div>
+    <h3 style="margin-top:22px">不動日数ランキング（全種目・マイルストーン順位）</h3>
+    <p class="tiny" style="margin-top:-4px">記録が 長く変わっていない順位ほど 上です。同じ日数なら、見た回数が多いほうが上です。</p>
+    <div id="trdFudo"></div>`;
+  const bindSeg=(id,key)=>box.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{ TRD[key]=b.dataset.v;
+    box.querySelectorAll(`#${id} button`).forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-pressed",x===b); }); trdHeatDraw(); });
+  bindSeg("trdMode","mode"); bindSeg("trdView","view"); bindSeg("trdMetric","metric"); bindSeg("trdScale","scale");
+  box.querySelector("#trdName").onchange=e=>{ TRD.name=e.target.value; TRD.open={}; trdHeatDraw(); trdMsDraw(); };
+  box.querySelector("#trdOnly").onchange=e=>{ TRD.onlyRank=e.target.checked; trdHeatDraw(); };
+  trdHeatDraw(); trdMsDraw(); trdFudoDraw();
+}
+/** ヒートマップに使う週 */
+const trdWeeks=()=>(RKU.weeks||[]).filter(u=>!TRD.onlyRank||u.hasRank);
+/** となりあう2つの日（その種目の点が両方にある日）の変化。cols：[{ from, to, days, cells: Map }]（新しいほうから 最大 max 個） */
+function trdCols(name,max){
+  const P=rkpM().heatPairs(trdWeeks(),name);
+  return P.slice(-(max||16));
+}
+/** 種目ごとに見る時の「前の日 → 次の日」（その2日の両方に点がある種目だけ） */
+function trdCatPairs(){
+  const ws=trdWeeks(), out=[];
+  for(let i=1;i<ws.length;i++) out.push({from:ws[i-1].date,to:ws[i].date,A:ws[i-1],B:ws[i]});
+  return out;
+}
+function trdCellsAB(A,B,name){
+  const a=A.cats[name], b=B.cats[name]; if(!a||!b) return null;
+  const own=c=>c.own!=null?c.pts.slice(0,c.own):c.pts;
+  const ma=new Map(own(a).map(p=>[p[0],p[1]])), cells=new Map(), asc=!!b.asc;
+  for(const p of own(b)){ if(!ma.has(p[0])) continue; const x=ma.get(p[0]), y=p[1], d=y-x;
+    cells.set(p[0],{a:x,b:y,d,rel:x?d/Math.abs(x):null,good:asc?d<0:d>0}); }
+  return cells.size?cells:null;
+}
+/** ヒートマップ（図）・表 を描きます */
+function trdHeatDraw(){
+  const box=$("#trdHeat"); if(!box||!RKU.weeks) return;
+  const name=TRD.name;
+  if(TRD.mode==="tbl") return trdTableDraw(box,name);
+  /* 「種目ごと」：1 つの「前の日 → 次の日」で、たてに種目、横に順位 */
+  if(TRD.view==="cats"){
+    const pairs=trdCatPairs().filter(p=>trdNames().some(n=>trdCellsAB(p.A,p.B,n)));
+    if(!pairs.length){ box.innerHTML='<p class="tiny">くらべられる 2 つの日が まだありません。</p>'; return; }
+    if(!pairs.some(p=>p.from+">"+p.to===TRD.pair)) TRD.pair=(pairs.slice().reverse().find(p=>p.A.hasRank&&p.B.hasRank)||pairs[pairs.length-1]).from+">"+pairs[pairs.length-1].to;
+    if(!pairs.some(p=>p.from+">"+p.to===TRD.pair)) TRD.pair=pairs[pairs.length-1].from+">"+pairs[pairs.length-1].to;
+    const cur=pairs.find(p=>p.from+">"+p.to===TRD.pair);
+    const rows=trdNames().map(n=>({n,cells:trdCellsAB(cur.A,cur.B,n)})).filter(r=>r.cells);
+    box.innerHTML=`<div class="trd-tools" style="margin-top:6px"><label class="tiny" for="trdPair">くらべる日</label>
+        <select id="trdPair">${pairs.slice().reverse().map(p=>`<option value="${p.from}>${p.to}"${p.from+">"+p.to===TRD.pair?" selected":""}>${trdMDj(p.from)} → ${trdMDj(p.to)}（${rkpM().dayDiff(p.from,p.to)}日）</option>`).join("")}</select></div>
+      <div class="trd-plot"><canvas id="trdCv" role="img" aria-label="種目ごとの、順位ごとの変化のヒートマップ"></canvas><div class="trd-tip" id="trdTip" hidden></div></div>
+      <div id="trdLegend"></div>`;
+    box.querySelector("#trdPair").onchange=e=>{ TRD.pair=e.target.value; trdHeatDraw(); };
+    return trdCanvas(box,{kind:"cats",rows,from:cur.from,to:cur.to});
+  }
+  const cols=trdCols(name,16);
+  if(!cols.length){ box.innerHTML=`<p class="tiny">${esc(trdLabel(name))}は、くらべられる 2 つの日が まだありません。</p>`; return; }
+  box.innerHTML=`<div class="trd-plot"><canvas id="trdCv" role="img" aria-label="${esc(trdLabel(name))}の、週ごと・順位ごとの変化のヒートマップ"></canvas><div class="trd-tip" id="trdTip" hidden></div></div>
+    <div id="trdLegend"></div>`;
+  trdCanvas(box,{kind:"time",cols,name});
+}
+/** キャンバスに描きます。opt.kind：time（横＝週、たて＝順位）／cats（横＝順位、たて＝種目） */
+function trdCanvas(box,opt){
+  const cv=box.querySelector("#trdCv"), tip=box.querySelector("#trdTip"), wrap=cv.parentElement;
+  const dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
+  const CW=Math.max(280,Math.floor(wrap.clientWidth||320));
+  const time=opt.kind==="time", nm=opt.name;
+  /* 大きさを集めて、色の こさの はばを決めます */
+  const allMags=[];
+  const lists=time?opt.cols.map(c=>c.cells):opt.rows.map(r=>r.cells);
+  lists.forEach(cells=>cells.forEach(c=>{ const m=trdMag(c); if(m!=null) allMags.push(m); }));
+  const NRM=trdNorm(allMags);
+  let R=1; lists.forEach(cells=>cells.forEach((c,r)=>{ if(r>R) R=r; }));
+  const log=TRD.scale==="log";
+  const pos=(r,len)=>log?(Math.log(r)-Math.log(0.5))/(Math.log(R+0.5)-Math.log(0.5))*len:(r-0.5)/R*len;
+  let ML,MT,MR=10,MB=10,PW,PH,cw,rh;
+  const small=CW<520;
+  const ctxFont=w=>`${w} ${small?10:11}px "Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,sans-serif`;
+  if(time){
+    ML=small?44:52; MT=46; PH=small?430:520;
+    cw=Math.max(10,Math.min(96,Math.floor((CW-ML-MR)/opt.cols.length)));
+    PW=cw*opt.cols.length;
+  }else{
+    ML=small?108:150; MT=26; rh=small?17:20;
+    PH=rh*opt.rows.length; PW=Math.max(120,CW-ML-MR);
+  }
+  const W=Math.min(CW,ML+PW+MR), H=MT+PH+MB;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.width=W+"px"; cv.style.height=H+"px";
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+  g.fillStyle=HEAT_SURF; g.fillRect(0,0,W,H);
+  /* データが無い所：うすい斜線 */
+  g.save(); g.beginPath(); g.rect(ML,MT,PW,PH); g.clip();
+  g.strokeStyle="#e4e0d8"; g.lineWidth=1;
+  for(let k=-PH;k<PW;k+=7){ g.beginPath(); g.moveTo(ML+k,MT+PH); g.lineTo(ML+k+PH,MT); g.stroke(); }
+  g.restore();
+  /* 1 本ぶん（たて または 横）の 点を ならべて、1 ピクセルずつ いちばん大きい変化の色を ぬります（点が まばらな時は、となりの点との まん中まで のばします） */
+  const hits=[];
+  const strip=(cells,len,paint)=>{
+    const pts=[...cells.entries()].map(([r,c])=>({r,c,y:pos(r,len),m:trdMag(c)})).filter(p=>p.m!=null).sort((a,b)=>a.r-b.r);
+    const acc=new Float64Array(len).fill(NaN), who=new Array(len);
+    /* その順位の はば：（順位 − 0.5）〜（順位 ＋ 0.5）。となりの点との あいだが あいている時は、まん中で分けます */
+    const lo=pts.map(p=>pos(p.r-0.5,len)), hi=pts.map(p=>pos(p.r+0.5,len));
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i];
+      let a=i>0?(hi[i-1]+lo[i])/2:lo[i];
+      let b=i<pts.length-1?(hi[i]+lo[i+1])/2:hi[i];
+      a=Math.max(0,a); b=Math.min(len,b);
+      let s=Math.floor(a), e=Math.max(s+1,Math.ceil(b));
+      for(let k=s;k<e&&k<len;k++){ if(isNaN(acc[k])||p.m>acc[k]){ acc[k]=p.m; who[k]=p; } }
+    }
+    let k=0;
+    while(k<len){
+      if(isNaN(acc[k])){ k++; continue; }
+      const col=acc[k]===0?HEAT_ZERO:heatColor(NRM.t(acc[k]));
+      let e=k+1; while(e<len&&!isNaN(acc[e])&&(acc[e]===0?HEAT_ZERO:heatColor(NRM.t(acc[e])))===col) e++;
+      paint(k,e-k,col); k=e;
+    }
+    return who;
+  };
+  if(time){
+    opt.cols.forEach((c,i)=>{ const x=ML+i*cw;
+      hits.push({x0:x,x1:x+cw,who:strip(c.cells,PH,(y,h,col)=>{ g.fillStyle=col; g.fillRect(x+1,MT+y,cw-2,h); }),col:c}); });
+  }else{
+    opt.rows.forEach((r,i)=>{ const y=MT+i*rh;
+      hits.push({y0:y,y1:y+rh,who:strip(r.cells,PW,(x,w,col)=>{ g.fillStyle=col; g.fillRect(ML+x,y+1,w,rh-2); }),row:r}); });
+  }
+  /* 目盛り（順位） */
+  const ticks=(log?[1,2,3,5,10,20,50,100,200,500,1000,2000,5000,10000]:(R<=200?[1,50,100,150,200]:R<=1000?[1,200,400,600,800,1000]:R<=2000?[1,500,1000,1500,2000]:[1,2500,5000,7500,10000])).filter(t=>t<=R);
+  g.font=ctxFont("600"); g.fillStyle=HEAT_MUTED; g.strokeStyle="rgba(47,44,39,.28)"; g.lineWidth=1;
+  if(time){
+    g.textAlign="right"; g.textBaseline="middle";
+    let lastY=-99;
+    ticks.forEach(t=>{ const y=MT+pos(t,PH); if(y-lastY<13) return; lastY=y;
+      g.fillText(jp(t)+"位",ML-5,y); g.beginPath(); g.moveTo(ML-3,y+0.5); g.lineTo(ML,y+0.5); g.stroke(); });
+    /* 列の見出し（次の日。ななめ） */
+    g.fillStyle=HEAT_INK; g.font=ctxFont("700"); g.textAlign="left"; g.textBaseline="middle";
+    opt.cols.forEach((c,i)=>{ const x=ML+i*cw+cw/2; g.save(); g.translate(x,MT-6); g.rotate(-Math.PI/3);
+      g.fillText(trdMD(c.to),0,0); g.restore(); });
+  }else{
+    g.textAlign="center"; g.textBaseline="bottom";
+    let lastR=-99;
+    ticks.forEach(t=>{ const x=ML+pos(t,PW), lab=jp(t), w=g.measureText(lab).width;
+      if(x-w/2<lastR+5||x+w/2>W-1) return; lastR=x+w/2;
+      g.fillText(lab,x,MT-6); g.beginPath(); g.moveTo(x+0.5,MT-4); g.lineTo(x+0.5,MT); g.stroke(); });
+    g.fillStyle=HEAT_INK; g.font=ctxFont("700"); g.textAlign="right"; g.textBaseline="middle";
+    opt.rows.forEach((r,i)=>{ let t=trdLabel(r.n); const maxW=ML-8;
+      while(g.measureText(t).width>maxW&&t.length>2) t=t.slice(0,-2)+"…";
+      g.fillText(t,ML-6,MT+i*rh+rh/2); });
+  }
+  /* 凡例 */
+  const lg=box.querySelector("#trdLegend");
+  const steps=[0,0.25,0.5,0.75,1].map(t=>NRM.lo*Math.pow(NRM.hi/NRM.lo,t));
+  lg.innerHTML=`<div class="trd-legend">
+      <span class="trd-sw" style="background:${HEAT_ZERO}"></span><span>変化なし（0）</span>
+      <span class="trd-bar" style="background:linear-gradient(90deg,${HEAT_RAMP.join(",")})"></span>
+      <span class="trd-bart">${steps.map(trdMagText).join(" … ")}${TRD.metric==="rel"?"":(trdIsTime(nm||"")?" 秒":"")}</span>
+      <span class="trd-sw trd-none"></span><span>データなし</span></div>
+    <p class="tiny" style="margin-top:4px">${time
+      ?`横は「前の日 → 次の日」（見出しは次の日）、たては順位です。1 マスは その順位の記録が どれだけ変わったか（${TRD.metric==="rel"?"前の記録に対する割合":"差の大きさ"}）で、<b>変化が大きいほど 濃い赤</b>です。色の こさは 対数の目盛りで、5%〜99% の所を うすい赤〜濃い赤にしています。マスを押すと くわしい数字が出ます。`
+      :`たては種目、横は順位です。${trdMDj(opt.from)} → ${trdMDj(opt.to)} に、その順位の記録が どれだけ変わったかを 赤の こさで表しています（<b>変化が大きいほど 濃い赤</b>）。`}
+      ${TRD.scale==="log"?"順位の目盛りは 対数（上位を大きく）です。":""}</p>`;
+  /* ふきだし */
+  const show=(ev)=>{
+    const rc=cv.getBoundingClientRect(), x=ev.clientX-rc.left, y=ev.clientY-rc.top;
+    let hit=null, p=null;
+    if(time){ hit=hits.find(h=>x>=h.x0&&x<h.x1); if(hit){ const k=Math.floor(y-MT); p=k>=0&&k<PH?hit.who[k]:null; } }
+    else{ hit=hits.find(h=>y>=h.y0&&y<h.y1); if(hit){ const k=Math.floor(x-ML); p=k>=0&&k<PW?hit.who[k]:null; } }
+    if(!hit||!p){ tip.hidden=true; return; }
+    const n=time?nm:hit.row.n, from=time?hit.col.from:opt.from, to=time?hit.col.to:opt.to, c=p.c;
+    const dir=c.d===0?"変化なし":(c.good?(trdIsTime(n)?"速くなった":"上がった"):(trdIsTime(n)?"おそくなった":"下がった"));
+    tip.innerHTML=`<b>${esc(trdLabel(n))}　${jp(p.r)}位</b><br>${esc(trdMDj(from))} → ${esc(trdMDj(to))}（${rkpM().dayDiff(from,to)}日）<br>`
+      +`${esc(trdFmt(n,c.a))} → ${esc(trdFmt(n,c.b))}<br>${esc(trdDelta(n,c.d))}（${esc(trdPct(c.rel))}）${dir}`;
+    tip.hidden=false;
+    const wr=wrap.getBoundingClientRect(), tw=tip.offsetWidth, th=tip.offsetHeight;
+    let lx=ev.clientX-wr.left+12, ty=ev.clientY-wr.top+12;
+    if(lx+tw>wr.width) lx=Math.max(0,ev.clientX-wr.left-tw-12);
+    if(ty+th>wr.height) ty=Math.max(0,ev.clientY-wr.top-th-12);
+    tip.style.left=lx+"px"; tip.style.top=ty+"px";
+  };
+  cv.onpointermove=show; cv.onpointerdown=show;
+  cv.onpointerleave=e=>{ if(e.pointerType==="mouse") tip.hidden=true; };
+}
+/** 表：マイルストーン順位 × 週（「前の日 → 次の日」）の変化を、数字と 赤の こさで */
+function trdTableDraw(box,name){
+  const cols=trdCols(name,10);
+  if(!cols.length){ box.innerHTML=`<p class="tiny">${esc(trdLabel(name))}は、くらべられる 2 つの日が まだありません。</p>`; return; }
+  const MS=rkpM().MILESTONES.filter(r=>cols.some(c=>c.cells.has(r)));
+  const mags=[]; cols.forEach(c=>MS.forEach(r=>{ const x=c.cells.get(r); if(x){ const m=trdMag(x); if(m!=null) mags.push(m); } }));
+  const NRM=trdNorm(mags);
+  const cell=(c,r)=>{
+    const x=c.cells.get(r); if(!x) return `<td class="trd-na">—</td>`;
+    const m=trdMag(x); const t=m>0?NRM.t(m):0, st=heatStep(t);
+    const bg=m===0||m==null?HEAT_ZERO:heatColor(t), fg=m>0&&st>=4?"#fff":"#241512";
+    const txt=TRD.metric==="rel"?trdPct(x.rel):trdDelta(name,x.d);
+    return `<td style="background:${bg};color:${fg}" title="${esc(trdFmt(name,x.a))} → ${esc(trdFmt(name,x.b))}">${esc(txt)}</td>`;
+  };
+  box.innerHTML=`<div class="scroll trd-tblw"><table class="trd-tbl"><thead><tr><th>順位</th>${cols.map(c=>`<th>${trdMD(c.from)}<br>→${trdMD(c.to)}</th>`).join("")}</tr></thead><tbody>`
+    +MS.map(r=>`<tr><th>${jp(r)}位</th>${cols.map(c=>cell(c,r)).join("")}</tr>`).join("")
+    +`</tbody></table></div>
+    <div class="trd-legend" style="margin-top:6px"><span class="trd-sw" style="background:${HEAT_ZERO}"></span><span>変化なし</span>
+      <span class="trd-bar" style="background:linear-gradient(90deg,${HEAT_RAMP.join(",")})"></span><span class="trd-bart">変化が小さい → 大きい</span></div>
+    <p class="tiny" style="margin-top:4px">マイルストーン順位だけを 数字で出しています（${TRD.metric==="rel"?"前の記録に対する割合":"記録の差"}。新しい 10 回ぶん）。全部の順位は「図」で見られます。</p>`;
+}
+/** マイルストーンの表 */
+function trdMsDraw(){
+  const box=$("#trdMs"); if(!box||!RKU.weeks) return;
+  const name=TRD.name, rows=rkpM().milestoneRows(RKU.weeks,name);
+  const has=rows.filter(r=>r.n);
+  if(!has.length){ box.innerHTML='<p class="tiny">この種目は、マイルストーン順位の記録が まだありません。</p>'; return; }
+  const latest=has.reduce((a,r)=>r.date>a?r.date:a,"");
+  const mags=has.filter(r=>r.rel!=null).map(r=>Math.abs(r.rel*100));
+  const NRM=trdNorm(mags);
+  let html=`<div class="scroll"><table class="trd-ms"><thead><tr><th>順位</th><th>いまの記録</th><th>前回から</th><th>1週あたり</th><th>不動日数</th><th>最長の不動</th><th>変わった回数</th><th>次の順位との差</th></tr></thead><tbody>`;
+  let gap=[];
+  const flush=()=>{ if(!gap.length) return; html+=`<tr class="trd-gap"><td colspan="8">${jp(gap[0])}位${gap.length>1?`〜${jp(gap[gap.length-1])}位`:""}：まだ読み取った週がありません（その順位まで集計すると出ます）</td></tr>`; gap=[]; };
+  rows.forEach(r=>{
+    if(!r.n){ gap.push(r.r); return; }
+    flush();
+    const f=r.fudo, rel=r.rel, m=rel==null?null:Math.abs(rel*100);
+    const bg=m==null?"":m===0?HEAT_ZERO:heatColor(NRM.t(m)), fg=m>0&&heatStep(NRM.t(m))>=4?"#fff":"#241512";
+    const open=!!TRD.open[r.r];
+    html+=`<tr class="trd-row${open?" on":""}" data-r="${r.r}" tabindex="0" aria-expanded="${open}">
+      <th>${jp(r.r)}位</th>
+      <td><b>${esc(trdFmt(name,r.last))}</b>${r.date!==latest?`<span class="tiny">（${esc(trdMDj(r.date))}）</span>`:""}</td>
+      <td>${r.prev==null?'<span class="tiny">—（1回だけ）</span>':`<span class="trd-chip" style="background:${bg};color:${fg}">${esc(trdDelta(name,r.d))}</span><span class="tiny"> ${esc(trdPct(rel))}</span>`}</td>
+      <td>${r.perWeek==null?"—":esc(trdDelta(name,r.perWeek))}</td>
+      <td>${f&&f.n>1?`<b>${jp(f.days)}日</b><span class="tiny">（${esc(trdMDj(f.since))}から）</span>`:"—"}</td>
+      <td>${f&&f.n>1?jp(f.maxDays)+"日":"—"}</td>
+      <td>${f?`${jp(f.changes)}回<span class="tiny"> ／ 見た ${jp(f.n)}回</span>`:"—"}</td>
+      <td>${r.gapNext?`${esc(trdDelta(name,r.gapNext.d).replace(/^\+/,""))}<span class="tiny">（${jp(r.gapNext.r)}位まで）</span>`:"—"}</td></tr>`;
+    if(open){
+      const s=r.series;
+      html+=`<tr class="trd-hist"><td colspan="8"><div class="trd-histw">`+s.slice().reverse().map((p,i,arr)=>{
+        const q=arr[i+1]; const d=q?p.v-q.v:null;
+        return `<span class="trd-hp${d===0?" z":""}"><b>${esc(trdMDj(p.date))}</b> ${esc(trdFmt(name,p.v))}${q?`<i>${d===0?"変わらず":esc(trdDelta(name,d))}</i>`:"<i>はじめて</i>"}</span>`;
+      }).join("")+`</div></td></tr>`;
+    }
+  });
+  flush();
+  html+=`</tbody></table></div>
+    <p class="tiny" style="margin-top:6px">「前回から」は 1つ前に見た日からの差（赤が濃いほど 大きく変化）、「1週あたり」は はじめて見た日からの変化を 7日あたりに直したものです。
+      不動日数は「見た日」どうしで くらべるので、そのあいだに 一度変わって もとにもどった、は 分かりません。</p>`;
+  box.innerHTML=html;
+  box.querySelectorAll("tr.trd-row").forEach(tr=>{
+    const tg=()=>{ const r=+tr.dataset.r; TRD.open[r]=!TRD.open[r]; trdMsDraw(); };
+    tr.onclick=tg; tr.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tg(); } };
+  });
+}
+/** 不動日数ランキング */
+function trdFudoDraw(){
+  const box=$("#trdFudo"); if(!box||!RKU.weeks) return;
+  const all=rkpM().fudoRanking(RKU.weeks,{names:trdNames()});
+  if(!all.length){ box.innerHTML='<p class="tiny">まだ 2 回以上 見た順位がありません。</p>'; return; }
+  const list=all.slice(0,TRD.fudoN);
+  let k=0, prevKey=null;
+  box.innerHTML=`<div class="scroll"><table class="trd-fudo"><thead><tr><th>#</th><th>種目</th><th>順位</th><th>記録</th><th>不動日数</th><th>いつから</th><th>最長</th><th>見た回数</th></tr></thead><tbody>`
+    +list.map((x,i)=>{ const key=x.days+":"+x.n; if(key!==prevKey){ k=i+1; prevKey=key; }
+      return `<tr><td>${k}</td><td>${esc(trdLabel(x.name))}</td><td>${jp(x.r)}位</td><td>${esc(trdFmt(x.name,x.value))}</td>`
+        +`<td><b>${jp(x.days)}日</b></td><td>${esc(trdMDj(x.since))}</td><td>${jp(x.maxDays)}日</td><td>${jp(x.n)}回</td></tr>`; }).join("")
+    +`</tbody></table></div>`+(all.length>list.length?`<div class="tools"><button class="btn sm" id="trdFudoMore">もっと見る（あと ${jp(all.length-list.length)} 件）</button></div>`:"");
+  const mb=box.querySelector("#trdFudoMore"); if(mb) mb.onclick=()=>{ TRD.fudoN+=30; trdFudoDraw(); };
+}
+window.addEventListener("resize",()=>{ clearTimeout(TRD.rs); TRD.rs=setTimeout(()=>{ if($("#stats")&&!$("#stats").hidden&&RKU.weeks&&TRD.mode==="fig") trdHeatDraw(); },250); });
+
+/* ══════════════════════════════════════════════════════════
+   統計情報（3）：管理者が集めたデータ（独自の集計データ）
+   ・管理者が「タイトル・説明文・単位（なくてもよい）・全員に表示するか」を決めた項目を作り、日付ごとの値を入れます
+   ・入れた値は、全員に表示するかどうかに かかわらず、リポジトリの custom-data.json に 日付つきで ずっと残します
+     （タイトル・説明文・単位・表示するか も 同じファイルに入ります）
+   ・「全員に表示する」項目だけ、統計情報タブに出します
+   ══════════════════════════════════════════════════════════ */
+const CUST={json:null,busy:null,src:"",draft:null,base:null,msg:""};
+const CUST_PATH="custom-data.json", K_CUST_DRAFT="sa-cust-draft-v1";
+const custId=()=>Date.now().toString(36).slice(-4)+Math.random().toString(36).slice(2,6);
+const custToday=()=>new Intl.DateTimeFormat("sv-SE",Object.assign({year:"numeric",month:"2-digit",day:"2-digit"},JST)).format(new Date());
+/** ファイルの中身を ととのえます（おかしな行は 捨てます） */
+function custNorm(j){
+  const items=(j&&Array.isArray(j.items)?j.items:[]).filter(it=>it&&typeof it==="object"&&String(it.title||"").trim()).map(it=>({
+    id:String(it.id||custId()).replace(/[^\w-]/g,"").slice(0,24)||custId(),
+    title:String(it.title).trim().slice(0,60), desc:String(it.desc||"").slice(0,400), unit:String(it.unit||"").trim().slice(0,16),
+    public:!!it.public, created:it.created||null, updated:it.updated||null,
+    values:(Array.isArray(it.values)?it.values:[]).filter(v=>v&&/^\d{4}-\d{2}-\d{2}$/.test(String(v.date||""))&&isFinite(+v.value))
+      .map(v=>({date:String(v.date),value:+v.value})).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0)
+  }));
+  return {app:"素数あつめ RATING",format:1,
+    note:"管理者が自分で集めて入れたデータです。public が true の項目だけ サイト（統計情報）に出します。public が false の項目も、このファイルには のこります（このファイルは だれでも開けます）。",
+    updated:j&&j.updated||null,items};
+}
+async function custLoad(force){
+  if(CUST.json&&!force) return CUST.json;
+  if(CUST.busy) return CUST.busy;
+  CUST.busy=(async()=>{
+    const r=await freshJson(CUST_PATH);
+    CUST.json=custNorm(r&&r.json); CUST.src=r?r.src:"";
+    return CUST.json;
+  })().finally(()=>{ CUST.busy=null; });
+  return CUST.busy;
+}
+/** 数字を読みます（3けた区切り・全角・空白は 落とします） */
+function custNum(t){
+  const x=String(t||"").replace(/[，,\s　]/g,"").replace(/[０-９．－]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/^＋|^\+/,"");
+  if(!/^-?\d+(\.\d+)?$/.test(x)) return null;
+  return +x;
+}
+const custFmt=(v,unit)=>(Number.isInteger(v)?jp(v):v.toLocaleString("ja-JP",{maximumFractionDigits:6}))+(unit?`<span class="cu-unit">${esc(unit)}</span>`:"");
+const custDiff=(d,unit)=>d==null?"":`<span class="pgd ${d>0?"p":d<0?"m":"z"}">${d>0?"+":d<0?"−":"±"}${Number.isInteger(Math.abs(d))?jp(Math.abs(d)):Math.abs(d).toLocaleString("ja-JP",{maximumFractionDigits:6})}${unit?esc(unit):""}</span>`;
+/** 全員に見せる項目（統計情報タブ） */
+async function custEnter(){
+  const card=$("#custCard"), box=$("#custBody"); if(!card||!box) return;
+  const j=await custLoad();
+  const pub=j.items.filter(it=>it.public&&it.values.length);
+  card.hidden=!pub.length;
+  if(pub.length) box.innerHTML=`<div class="cu-grid">`+pub.map(it=>{
+    const v=it.values, L=v[v.length-1], P=v.length>1?v[v.length-2]:null;
+    return `<div class="cu-item"><div class="cu-head"><b class="cu-title">${esc(it.title)}</b><span class="cu-date">${esc(trdMDj(L.date))}</span></div>
+      <div class="cu-val">${custFmt(L.value,it.unit)}${P?` ${custDiff(L.value-P.value,it.unit)}<span class="cu-from">（${esc(trdMDj(P.date))}から）</span>`:""}</div>
+      ${it.desc?`<p class="cu-desc">${esc(it.desc)}</p>`:""}
+      ${v.length>1?`<details class="cu-hist"><summary>これまでの記録（${jp(v.length)} 回）</summary><div class="scroll"><table><thead><tr><th>日付</th><th>値</th><th>前回から</th></tr></thead><tbody>`
+        +v.slice().reverse().map((x,i,a)=>`<tr><td>${esc(trdMDj(x.date))}</td><td>${custFmt(x.value,it.unit)}</td><td>${a[i+1]?custDiff(x.value-a[i+1].value,it.unit):"—"}</td></tr>`).join("")
+        +`</tbody></table></div></details>`:""}</div>`;
+  }).join("")+`</div>`;
+  custAdminEnter();
+}
+/** 管理者の入力欄 */
+function custDraftSave(){ try{ localStorage.setItem(K_CUST_DRAFT,JSON.stringify({base:CUST.base,json:CUST.draft,at:Date.now()})); }catch(e){} }
+function custDraftClear(){ try{ localStorage.removeItem(K_CUST_DRAFT); }catch(e){} }
+async function custAdminEnter(){
+  const card=$("#custAdmin"), box=$("#custAdminBody"); if(!card||!box) return;
+  card.hidden=!isAdmin(); if(!isAdmin()) return;
+  const j=await custLoad();
+  if(!CUST.draft){
+    const saved=ls(K_CUST_DRAFT,null);
+    if(saved&&saved.json&&Array.isArray(saved.json.items)&&JSON.stringify(custNorm(saved.json).items)!==JSON.stringify(j.items)){
+      CUST.draft=custNorm(saved.json); CUST.base=saved.base||null; CUST.msg='<span class="lose">まだ GitHub に保存していない 下書きがあります。</span>';
+    }else{ CUST.draft=JSON.parse(JSON.stringify(j)); CUST.base=j.updated||null; }
+  }
+  custAdminDraw();
+}
+function custAdminDraw(){
+  const box=$("#custAdminBody"); if(!box||!CUST.draft) return;
+  const D=CUST.draft, dirty=JSON.stringify(D.items)!==JSON.stringify((CUST.json||{items:[]}).items);
+  const today=custToday();
+  box.innerHTML=`<p class="tiny" style="margin-top:-6px">項目ごとに タイトル・説明文・単位（なくてもかまいません）・全員に表示するかを決めて、日付ごとの値を入れます。
+      入れた値は <b>全員に表示しない項目も</b> custom-data.json に のこるので、あとから推移を調べられます。
+      <span class="lose">このファイルは GitHub で だれでも開けます（「全員に表示しない」は サイトに出さない、という意味です）。</span></p>
+    <div class="cu-new lockbox">
+      <b>新しい項目を作る</b>
+      <div class="frow"><div><label class="fl" for="cxdT">タイトル</label><input type="text" class="txt" id="cxdT" maxlength="60" style="max-width:none" placeholder="例：完全制覇"></div>
+        <div><label class="fl" for="cxdU">単位（なくてもかまいません）</label><input type="text" class="txt" id="cxdU" maxlength="16" style="max-width:none" placeholder="例：人（空なら 単位なし）"></div></div>
+      <label class="fl" for="cxdD">説明文</label><textarea id="cxdD" maxlength="400" style="min-height:60px" placeholder="例：素数あつめを完全にクリアした人の数"></textarea>
+      <label class="tiny" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="cxdP" checked> 全員に表示する</label>
+      <div class="tools"><button class="btn pri sm" id="cxdAdd">項目を足す</button><button class="btn sm" id="cxdTpl">例を入れる（完全制覇）</button></div>
+    </div>`
+    +(D.items.length?D.items.map(it=>{
+      const v=it.values;
+      return `<div class="cu-ed lockbox" data-id="${esc(it.id)}">
+        <div class="cu-edh"><b>${esc(it.title)}</b> <span class="cu-badge ${it.public?"on":""}">${it.public?"全員に表示":"表示しない"}</span>
+          <span class="tiny">${it.unit?`単位：${esc(it.unit)}`:"単位なし"}　記録 ${jp(v.length)} 回</span></div>
+        <div class="cu-addv"><input type="date" class="txt" data-k="date" value="${esc(today)}" aria-label="日付">
+          <input type="text" class="txt" data-k="val" inputmode="decimal" placeholder="値（例：1,766）" aria-label="値">
+          <button class="btn pri sm" data-act="addv">この日の値を記録する</button></div>
+        ${v.length?`<div class="scroll"><table class="cu-vals"><thead><tr><th>日付</th><th>値</th><th>前回から</th><th></th></tr></thead><tbody>`
+          +v.slice().reverse().map((x,i,a)=>`<tr><td>${esc(x.date)}</td><td>${custFmt(x.value,it.unit)}</td><td>${a[i+1]?custDiff(x.value-a[i+1].value,it.unit):"—"}</td>`
+            +`<td><button class="btn sm" data-act="delv" data-date="${esc(x.date)}" aria-label="${esc(x.date)} の値を消す">消す</button></td></tr>`).join("")+`</tbody></table></div>`:'<p class="tiny">まだ値がありません。</p>'}
+        <details class="cu-def"><summary>タイトル・説明文・単位・表示を変える</summary>
+          <div class="frow"><div><label class="fl">タイトル</label><input type="text" class="txt" data-k="title" maxlength="60" style="max-width:none" value="${esc(it.title)}"></div>
+            <div><label class="fl">単位（なくてもかまいません）</label><input type="text" class="txt" data-k="unit" maxlength="16" style="max-width:none" value="${esc(it.unit)}"></div></div>
+          <label class="fl">説明文</label><textarea data-k="desc" maxlength="400" style="min-height:56px">${esc(it.desc)}</textarea>
+          <label class="tiny" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" data-k="pub"${it.public?" checked":""}> 全員に表示する</label>
+          <div class="tools"><button class="btn sm pri" data-act="def">この内容にする</button><button class="btn sm" data-act="delit">この項目を消す</button></div>
+        </details>
+      </div>`;
+    }).join(""):'<p class="tiny">まだ項目がありません。</p>')
+    +`<div class="tools cu-save"><button class="btn pri" id="cxdSave"${dirty?"":" disabled"}>GitHub に保存する（custom-data.json）</button>
+        <button class="btn sm" id="cxdDiscard"${dirty?"":" disabled"}>下書きを捨てる</button>
+        <span class="tiny">${dirty?'<span class="lose">まだ保存していない変更があります</span>':"保存ずみです"}</span></div>
+      <div id="cxdMsg" class="tiny">${CUST.msg||""}</div>`;
+  const q=s=>box.querySelector(s);
+  const touch=m=>{ CUST.msg=m||""; custDraftSave(); custAdminDraw(); };
+  q("#cxdTpl").onclick=()=>{ q("#cxdT").value="完全制覇"; q("#cxdU").value="人"; q("#cxdD").value="素数あつめを完全にクリアした人の数"; q("#cxdP").checked=true; };
+  q("#cxdAdd").onclick=()=>{
+    const t=q("#cxdT").value.trim();
+    if(!t){ q("#cxdT").focus(); return; }
+    const now=new Date().toISOString();
+    D.items.push({id:custId(),title:t.slice(0,60),desc:q("#cxdD").value.trim().slice(0,400),unit:q("#cxdU").value.trim().slice(0,16),public:q("#cxdP").checked,created:now,updated:now,values:[]});
+    touch(`<span class="win">「${esc(t)}」を足しました。値を入れてから「GitHub に保存する」を押してください。</span>`);
+  };
+  box.querySelectorAll(".cu-ed").forEach(el=>{
+    const it=D.items.find(x=>x.id===el.dataset.id); if(!it) return;
+    const g=k=>el.querySelector(`[data-k="${k}"]`);
+    el.querySelector('[data-act="addv"]').onclick=()=>{
+      const date=g("date").value, v=custNum(g("val").value);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ touch('<span class="lose">日付を入れてください。</span>'); return; }
+      if(v==null){ g("val").focus(); CUST.msg='<span class="lose">値は 数字で入れてください（例：1,766）。</span>'; custAdminDraw(); return; }
+      const i=it.values.findIndex(x=>x.date===date);
+      if(i>=0) it.values[i].value=v; else it.values.push({date,value:v});
+      it.values.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0); it.updated=new Date().toISOString();
+      touch(`<span class="win">${esc(it.title)}：${esc(date)} に ${esc(String(v))} を ${i>=0?"入れ直しました":"記録しました"}。</span>`);
+    };
+    el.querySelectorAll('[data-act="delv"]').forEach(b=>b.onclick=async()=>{
+      if(!await askYN("この値を消しますか？",`${esc(it.title)} の ${esc(b.dataset.date)} の値を消します（保存するまで GitHub は変わりません）。`,"消す")) return;
+      it.values=it.values.filter(x=>x.date!==b.dataset.date); it.updated=new Date().toISOString(); touch();
+    });
+    el.querySelector('[data-act="def"]').onclick=()=>{
+      const t=g("title").value.trim(); if(!t){ g("title").focus(); return; }
+      it.title=t.slice(0,60); it.unit=g("unit").value.trim().slice(0,16); it.desc=g("desc").value.trim().slice(0,400); it.public=g("pub").checked;
+      it.updated=new Date().toISOString(); touch('<span class="win">変えました（保存するまで GitHub は変わりません）。</span>');
+    };
+    el.querySelector('[data-act="delit"]').onclick=async()=>{
+      if(!await askYN("この項目を消しますか？",`「${esc(it.title)}」と、その値 ${jp(it.values.length)} 件を 消します（保存するまで GitHub は変わりません）。`,"消す")) return;
+      D.items=D.items.filter(x=>x!==it); touch();
+    };
+  });
+  q("#cxdDiscard").onclick=async()=>{
+    if(!await askYN("下書きを捨てますか？","GitHub に保存していない変更が なくなります。","捨てる")) return;
+    CUST.draft=JSON.parse(JSON.stringify(CUST.json||custNorm(null))); CUST.base=(CUST.json||{}).updated||null; custDraftClear(); CUST.msg=""; custAdminDraw();
+  };
+  q("#cxdSave").onclick=custSave;
+}
+async function custSave(){
+  const msg=$("#cxdMsg"); if(!msg) return;
+  if(!isAdmin()){ msg.innerHTML='<span class="lose">管理者だけが保存できます。</span>'; return; }
+  if(typeof ghReady!=="function"||!ghReady()){ msg.innerHTML='<span class="lose">GitHub連携が未設定です。「データ編集」の「GitHub連携の設定」から入れてください。</span>'; return; }
+  msg.textContent="いま GitHub にあるものを読んでいます…";
+  let remote=null;
+  try{ const g=await ghGetJson(CUST_PATH); remote=g&&g.json; }
+  catch(e){ msg.innerHTML=`<span class="lose">GitHub を読めませんでした：${esc(String(e.message||e)).slice(0,200)}</span><br><span class="tiny">${ghHint(e.message||e)}</span>`; return; }
+  const ru=remote&&remote.updated||null;
+  if(ru&&ru!==CUST.base){
+    if(!await askYN("GitHub のファイルが 変わっています",`この下書きを作ったあとに、${esc(CUST_PATH)} が 別の所から更新されています（${esc(String(ru))}）。<br>このまま保存すると、そちらの変更は なくなります。保存しますか？`,"このまま保存する")) { msg.textContent=""; return; }
+  }
+  const out=custNorm(CUST.draft); out.updated=new Date().toISOString();
+  const nPub=out.items.filter(x=>x.public).length;
+  if(!await askYN("独自の集計データを GitHub に保存しますか？",`${esc(gh.owner)}/${esc(gh.repo)} の <b>${esc(CUST_PATH)}</b> に、${jp(out.items.length)} 項目（全員に表示：${jp(nPub)}・表示しない：${jp(out.items.length-nPub)}）を書きこみます。`,"保存する")) { msg.textContent=""; return; }
+  msg.textContent="送っています…";
+  try{
+    await ghPut(CUST_PATH,JSON.stringify(out,null,2)+"\n",`独自の集計データを更新（${custToday()}）`);
+    CUST.json=custNorm(out); CUST.json.updated=out.updated; CUST.draft=JSON.parse(JSON.stringify(CUST.json)); CUST.base=out.updated;
+    custDraftClear();
+    CUST.msg='<span class="win">保存しました。統計情報タブに すぐ出ます。</span>';
+    toast("独自の集計データを保存しました");
+    custEnter();
+    freshSha(true).catch(()=>{});
+  }catch(e){ msg.innerHTML=`<span class="lose">保存できませんでした：${esc(String(e.message||e)).slice(0,200)}</span><br><span class="tiny">${ghHint(e.message||e)}</span>`; }
 }
 
 /* =========================================================
@@ -31363,6 +32469,8 @@ function devEditor(box,close){
       RATING の「分析」の偏差値と、分析ページで使われます（名前は入っていません）。GitHub 連携の設定が要ります。</p>
     <label class="tiny" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dvRkSelf">
       画面の「あなたの順位」の欄（自分の記録）も入れる（ふだんは入れません）</label>
+    <label class="tiny" style="display:flex;gap:6px;align-items:center;margin-top:4px"><input type="checkbox" id="dvRkAlso" checked>
+      下の「GitHubに直接反映する」を押した時に、読み込んだ JSON の全部の順位も いっしょに公開する（成績表に すぐ出ます）</label>
     <div class="tools" style="margin-top:8px"><button class="btn pri" id="dvRkPub" disabled>全部の順位を公開する</button>
       <span class="tiny" id="dvRkPubMsg">先に「集計の JSON を読み込む」で JSON を選んでください。</span></div>
   </div>
@@ -31469,31 +32577,37 @@ function devEditor(box,close){
       +`<br>中身を確かめてから、下の「GitHubに直接反映する」か「新しい週として追加してダウンロード」を押してください。`;
   };
   const rkpBtn=box.querySelector("#dvRkPub");
-  if(rkpBtn) rkpBtn.onclick=async()=>{
-    const out=box.querySelector("#dvRkPubMsg");
-    if(!rkpRaw){ out.innerHTML='<span class="lose">先に「集計の JSON を読み込む」で JSON を選んでください。</span>'; return; }
-    if(!ghReady()){ out.innerHTML='<span class="lose">先に、下の「GitHub連携の設定」をしてください。</span>'; return; }
-    if(!rkpM()){ out.innerHTML='<span class="lose">rank-model.js を読めていません。ページを読み直してください。</span>'; return; }
+  let rkpDoneDate=null;     /* この画面で もう公開した日付 */
+  /** 読み込んだ JSON の全部の順位を rankings/ に書きこみます。ask：たずねるか。返す値 true／false */
+  const publishRank=async(out,ask)=>{
+    if(!rkpRaw){ out.innerHTML='<span class="lose">先に「集計の JSON を読み込む」で JSON を選んでください。</span>'; return false; }
+    if(!ghReady()){ out.innerHTML='<span class="lose">先に、下の「GitHub連携の設定」をしてください。</span>'; return false; }
+    if(!rkpM()){ out.innerHTML='<span class="lose">rank-model.js を読めていません。ページを読み直してください。</span>'; return false; }
     let pub=null;
     try{ pub=rkpM().toPublic(rkpRaw,{self:!!box.querySelector("#dvRkSelf").checked}); }
-    catch(e){ out.innerHTML=`<span class="lose">${esc(e.message||e)}</span>`; return; }
+    catch(e){ out.innerHTML=`<span class="lose">${esc(e.message||e)}</span>`; return false; }
     const nCat=Object.keys(pub.categories).length;
     const nRank=Object.values(pub.categories).reduce((a,c)=>a+c.count,0);
-    if(!await askYN("全部の順位を公開しますか？",
+    if(ask&&!await askYN("全部の順位を公開しますか？",
       `${esc(pub.date)} の週（${nCat} 種目・${jp(nRank)} 順位）を rankings/${esc(pub.date)}.json に書きこみます。\n`
-      +`だれでも見られるようになります（名前は入っていません）。同じ日付のファイルがあれば、入れかえます。`,"公開する")) return;
-    rkpBtn.disabled=true; out.textContent="書きこんでいます…";
+      +`だれでも見られるようになります（名前は入っていません）。同じ日付のファイルがあれば、入れかえます。`,"公開する")) return false;
+    if(rkpBtn) rkpBtn.disabled=true;
+    out.textContent=`全部の順位（${pub.date}）を書きこんでいます…`;
     try{
       await ghPut(`rankings/${pub.date}.json`,rkpM().stringify(pub),`ランキングの全部の順位（${pub.date}）を公開`);
       let idx=null;
       try{ const g=await ghGetJson("rankings/index.json"); idx=g&&g.json; }catch(e){ idx=null; }
       const nidx=rkpM().addToIndex(idx,pub);
       await ghPut("rankings/index.json",JSON.stringify(nidx,null,2)+"\n",`rankings/index.json に ${pub.date} を足しました`);
-      RKP.state="idle"; RKP.idx=null; RKP.weeks={};
-      out.innerHTML=`<span class="win">公開しました：rankings/${esc(pub.date)}.json（いま ${nidx.weeks.length} 週ぶん）。サイトに出るまで 1〜2 分かかります。</span>`;
-    }catch(e){ out.innerHTML=`<span class="lose">書きこめませんでした：${esc(String(e.message||e).slice(0,160))}</span><br>${ghHint(e.message||e)}`; }
-    rkpBtn.disabled=false;
+      RKP.state="idle"; RKP.idx=null; RKP.weeks={}; RKU.weeks=null; RKU.model=null;
+      rkpDoneDate=pub.date;
+      out.innerHTML=`<span class="win">公開しました：rankings/${esc(pub.date)}.json（いま ${nidx.weeks.length} 週ぶん）。成績表には すぐ出ます。</span>`;
+      freshSha(true).catch(()=>{});
+      return true;
+    }catch(e){ out.innerHTML=`<span class="lose">書きこめませんでした：${esc(String(e.message||e).slice(0,160))}</span><br>${ghHint(e.message||e)}`; return false; }
+    finally{ if(rkpBtn) rkpBtn.disabled=false; }
   };
+  if(rkpBtn) rkpBtn.onclick=()=>publishRank(box.querySelector("#dvRkPubMsg"),true);
   const collect=()=>{const b={};
     for(const n of EVENTS){b[n]={};for(const r of ranks)
       b[n][r]=num(box.querySelector(`[data-b="${CSS.escape(n)}"][data-r="${r}"]`).value);}
@@ -31744,7 +32858,9 @@ function devEditor(box,close){
       `（${esc(weeks[0].date)} 〜 ${esc(weeks[weeks.length-1].date)}）<br>`+
       `<span style="color:${added>0?"var(--acc2)":"var(--dim)"}">`+
       (added>0?`${jp(added)} 週ぶん増えます`:`週の数は変わりません（同じ日付を上書きします）`)+`</span><br><br>`+
-      `<span class="tiny">過去の週は消えません。日付が同じ週だけ、いまの入力で上書きします。</span>`,
+      `<span class="tiny">過去の週は消えません。日付が同じ週だけ、いまの入力で上書きします。</span>`+
+      (rkpRaw&&box.querySelector("#dvRkAlso")&&box.querySelector("#dvRkAlso").checked&&rkpDoneDate!==String(rkpRaw.date||"")
+        ?`<br><br><b>読み込んだ JSON の全部の順位（${esc(String(rkpRaw.date||""))}）も、いっしょに rankings/ に公開します。</b>`:""),
       "反映する")) return;
     msg.innerHTML="送信中…";
     try{
@@ -31761,9 +32877,15 @@ function devEditor(box,close){
           ? `GitHub 側でも <b>${jp(ok2)} 週</b>になっているのを確認しました。`
           : ok2===null ? `※ 確認の読み込みができませんでした。GitHub でファイルを見てください。`
           : `<span class="lose">※ 確認したら ${jp(ok2)} 週でした。もう一度お試しください。</span>`)
-        +`</span><br><span class="tiny">GitHub Pages への反映まで1〜3分かかります。`
-        +`直らない時は、ブラウザで Ctrl+F5 を押してください。</span>`;
+        +`</span><br><span class="tiny">成績表などは GitHub の いちばん新しいコミットを読むので、すぐに反映されます`
+        +`（GitHub Pages への反映には 1〜3分かかります）。</span>`;
       toast("GitHubに反映しました");
+      RKU.weeks=null; RKU.model=null;
+      if(rkpRaw&&box.querySelector("#dvRkAlso")&&box.querySelector("#dvRkAlso").checked&&rkpDoneDate!==String(rkpRaw.date||"")){
+        const o2=document.createElement("div"); o2.className="tiny"; msg.appendChild(o2);
+        await publishRank(o2,false);
+      }
+      freshSha(true).catch(()=>{});
     }catch(e){
       const m2=String(e.message||e);
       msg.innerHTML=`<span class="lose">失敗：${esc(m2).slice(0,250)}</span><br>`
@@ -32292,10 +33414,17 @@ function normalize(j){
   /* 公開されている data.json を必ず読みます。
      この端末だけの一時データは、そのあとで「週の数が多いほう」を採用します。
      （古い一時データのせいで、歴代のボーダーが消えてしまうのを防ぐため） */
-  let pub=null;
-  try{ const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});
-    if(r.ok) pub=normalize(await r.json()); }
-  catch(e){ /* file:// では埋め込みデータを使用 */ }
+  /* GitHub に上がった いちばん新しい data.json を先に読みます（3 秒で返ってこなければ このサイトの data.json。
+     あとから GitHub のほうが届いて 中身がちがえば、その時に入れかえます） */
+  let pub=null, pubRaw=null;
+  try{
+    const siteP=fetchT("data.json?t="+Date.now(),{cache:"no-store"},15000).then(r=>r.ok?r.json():null).catch(()=>null);
+    const freshP=freshJson("data.json",{noSite:true}).then(r=>r&&r.json?r.json:null).catch(()=>null);
+    pubRaw=await Promise.race([freshP,new Promise(res=>setTimeout(()=>res(undefined),3000))]);
+    if(pubRaw===undefined){ pubRaw=null; freshP.then(j=>{ if(j) setTimeout(()=>{ if(freshApplyData(j)) toast("新しいデータを読み込みました"); },0); }); }
+    if(!pubRaw) pubRaw=await siteP;
+    if(pubRaw){ pub=normalize(pubRaw); DATA_SIG=dataSig(pubRaw); }
+  }catch(e){ /* file:// では埋め込みデータを使用 */ }
   const local=ls(K_DATA,null), lw=normalize(local);
   if(pub&&lw){
     WEEKS = (lw.length>=pub.length) ? lw : pub;

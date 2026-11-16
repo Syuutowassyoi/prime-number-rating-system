@@ -108,6 +108,7 @@ td.nm{white-space:normal;min-width:120px}
 .calc{margin:8px 0 0;padding-left:1.4em}
 .calc li{margin:6px 0}
 .calc .f{font-family:var(--numf);background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:1px 7px;white-space:nowrap}
+@media(max-width:480px){.calc .f{white-space:normal;overflow-wrap:anywhere}}
 .ex{display:block;color:var(--dim);font-size:.82rem;margin-top:2px}
 .pubst{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pubst b{font-size:.95rem}
@@ -234,7 +235,7 @@ details>summary{cursor:pointer}
       <div class="tools" style="margin-top:0"><label class="tiny" for="bellT">偏差値</label><input type="range" id="bellT" min="20" max="95" step="0.5" value="70"><b class="num" id="bellV">70.00</b></div>
       <div class="chart" id="bellChart"></div>
       <p class="tiny" id="bellTxt"></p>
-      <div id="howV3"></div>
+      <div id="howV4"></div>
       <details style="margin-top:10px"><summary class="tiny">見つもりの確かめ（一覧の外の点を かくして当ててみる）</summary>
         <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">一覧の外の点</th><th class="r">本当の偏差値</th><th class="r">一覧だけの見つもり</th><th class="r">ずれ</th></tr></thead><tbody id="valBody"></tbody></table></div>
         <p class="note">一覧（1〜1000位など）だけで、その下の点を当てられるかを確かめています。ずれが大きい種目ほど、△ の見つもりも ずれやすい種目です。</p>
@@ -246,7 +247,7 @@ details>summary{cursor:pointer}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="rank-model.js?v=3"></script>
+<script src="rank-model.js?v=4"></script>
 <script id="ana-core">
 /* ============================================================
    ランキング分析の計算（画面を持たない、計算だけの部分です）
@@ -526,10 +527,13 @@ function modelOf(week, name, opt) {
   const RM = G.RankModel, c = week && week.cats[name];
   if (!RM || !c) return null;
   /* 参加人数を前の週から借りた時に 作りなおせるよう、人数も かぎに入れます */
-  const key = name + '|' + (c.players || 0) + (opt && opt.extra === false ? '|noextra' : '');
+  const deep = week._deep && week._deep[name] && !(opt && opt.extra === false) ? week._deep[name] : [];
+  const key = name + '|' + (c.players || 0) + (opt && opt.extra === false ? '|noextra' : '') + '|d' + deep.length;
   if (!week._models) Object.defineProperty(week, '_models', { value: {}, enumerable: false });
   if (!(key in week._models)) {
-    week._models[key] = RM.build(Object.assign({}, c, { kind: name === RAND || name === LSCORE ? 'cum' : c.kind }), opt);
+    /* 近い日の深い順位（attachDeep で借りたもの）も、一覧の外の点として使います */
+    week._models[key] = RM.build(Object.assign({}, c, { kind: name === RAND || name === LSCORE ? 'cum' : c.kind,
+      extra: (c.extra || []).concat(deep), borrowFrom: week._deepFrom && week._deepFrom[name] || null, borrowN: deep.length }), opt);
   }
   return week._models[key];
 }
@@ -585,6 +589,71 @@ G.RankAna = {
 const A = window.RankAna;
 const $ = (s, r) => (r || document).querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/* ---------- GitHub に上がった いちばん新しいデータを読む（GitHub Pages の公開を待ちません） ----------
+   いちばん新しいコミット（main）の SHA を たずねて、raw.githubusercontent.com の「その SHA のファイル」を読みます。
+   たずねられない時（1時間 60 回の回数制限・通信）は、このサイトのファイルを読みます。RATING と 同じ しくみ・同じ おぼえ方です */
+const FRESH = { sha: null, at: 0, busy: null, tree: null, treeSha: null, fail: 0 };
+const FRESH_REPO = { o: 'syuutowassyoi', r: 'prime-number-rating-system', b: 'main' };
+try { const s0 = JSON.parse(sessionStorage.getItem('sa-fresh-v1') || 'null'); if (s0 && /^[0-9a-f]{40}$/.test(s0.sha)) { FRESH.sha = s0.sha; FRESH.at = +s0.at || 0; } } catch (e) { /* 何もしない */ }
+function freshRepo() {
+  const m = /^([\w-]+)\.github\.io$/i.exec(location.hostname || ''), seg = (location.pathname || '').split('/').filter(Boolean)[0];
+  return (m && seg && !/\./.test(seg)) ? { o: m[1], r: seg, b: 'main' } : FRESH_REPO;
+}
+function fetchT(url, opt, ms) {
+  const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const t = ac ? setTimeout(() => { try { ac.abort(); } catch (e) { /* 何もしない */ } }, ms || 8000) : null;
+  return fetch(url, Object.assign({}, opt || {}, ac ? { signal: ac.signal } : {})).finally(() => { if (t) clearTimeout(t); });
+}
+function freshSha() {
+  if (FRESH.sha && Date.now() - FRESH.at < 60000) return Promise.resolve(FRESH.sha);
+  if (FRESH.fail && Date.now() - FRESH.at < 60000) return Promise.resolve(FRESH.sha);
+  if (FRESH.busy) return FRESH.busy;
+  const R = freshRepo();
+  FRESH.busy = (async () => {
+    try {
+      const res = await fetchT(`https://api.github.com/repos/${encodeURIComponent(R.o)}/${encodeURIComponent(R.r)}/commits/${encodeURIComponent(R.b)}`, { headers: { Accept: 'application/vnd.github.sha' }, cache: 'no-cache' }, 6000);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const t = (await res.text()).trim();
+      if (!/^[0-9a-f]{40}$/.test(t)) throw new Error('sha');
+      FRESH.sha = t; FRESH.at = Date.now(); FRESH.fail = 0;
+      try { sessionStorage.setItem('sa-fresh-v1', JSON.stringify({ sha: t, at: FRESH.at })); } catch (e) { /* 何もしない */ }
+      return t;
+    } catch (e) { FRESH.fail++; FRESH.at = Date.now(); return FRESH.sha; }
+    finally { FRESH.busy = null; }
+  })();
+  return FRESH.busy;
+}
+async function freshJson(path) {
+  const sha = await freshSha();
+  if (sha) {
+    const R = freshRepo();
+    try {
+      const res = await fetchT(`https://raw.githubusercontent.com/${encodeURIComponent(R.o)}/${encodeURIComponent(R.r)}/${sha}/${path.split('/').map(encodeURIComponent).join('/')}`, { cache: 'force-cache' }, 15000);
+      if (res.ok) return { json: await res.json(), src: 'github' };
+      if (res.status === 404) return { json: null, src: 'github', missing: true };
+    } catch (e) { /* このサイトを読みます */ }
+  }
+  try {
+    const res = await fetchT('./' + path + (path.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { cache: 'no-store' }, 15000);
+    return res.ok ? { json: await res.json(), src: 'site' } : { json: null, src: 'site', missing: res.status === 404 };
+  } catch (e) { return { json: null, src: 'site' }; }
+}
+async function freshTree() {
+  const sha = await freshSha();
+  if (!sha) return null;
+  if (FRESH.tree && FRESH.treeSha === sha) return FRESH.tree;
+  try { const s0 = JSON.parse(sessionStorage.getItem('sa-fresh-tree-v1') || 'null'); if (s0 && s0.sha === sha && Array.isArray(s0.paths)) { FRESH.tree = s0.paths; FRESH.treeSha = sha; return s0.paths; } } catch (e) { /* 何もしない */ }
+  const R = freshRepo();
+  try {
+    const res = await fetchT(`https://api.github.com/repos/${encodeURIComponent(R.o)}/${encodeURIComponent(R.r)}/git/trees/${sha}?recursive=1`, { cache: 'force-cache' }, 8000);
+    if (!res.ok) return null;
+    const j = await res.json();
+    const paths = (j && Array.isArray(j.tree) ? j.tree : []).filter(t => t && t.type === 'blob' && /\.json$/i.test(t.path || '')).map(t => t.path);
+    FRESH.tree = paths; FRESH.treeSha = sha;
+    try { sessionStorage.setItem('sa-fresh-tree-v1', JSON.stringify({ sha, paths })); } catch (e) { /* 何もしない */ }
+    return paths;
+  } catch (e) { return null; }
+}
 try {
   const sk = JSON.parse(localStorage.getItem('sa-skin-v1') || '{}');
   if (sk && sk.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
@@ -646,24 +715,32 @@ function saveWeeks() {
 /** 公開データ（rankings/index.json と 週ごとのファイル）を読み込みます */
 async function loadPublished() {
   try {
-    const res = await fetch('./rankings/index.json?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const idx = await res.json();
-    const list = (Array.isArray(idx.weeks) ? idx.weeks : [])
+    const r0 = await freshJson('rankings/index.json');
+    const idx = r0.json && Array.isArray(r0.json.weeks) ? r0.json : { weeks: [] };
+    let list = (Array.isArray(idx.weeks) ? idx.weeks : [])
       .filter(x => x && /^\d{4}-\d{2}-\d{2}$/.test(x.date) && /^[\w.-]+\.json$/.test(String(x.file || '')))
-      .sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 26);
+      .map(x => ({ date: x.date, path: 'rankings/' + x.file }));
+    /* index.json に まだ入っていない週（GitHub に直接 上げたもの）も 見つけます */
+    const tree = await freshTree();
+    if (tree) {
+      const have = new Set(list.map(x => x.date));
+      tree.forEach(p => { const m = /^rankings\/(\d{4}-\d{2}-\d{2})\.json$/.exec(p); if (m && !have.has(m[1])) { list.push({ date: m[1], path: p }); have.add(m[1]); } });
+      tree.forEach(p => { const m = /^(?:rankings\/)?rankings?[-_](\d{4}-\d{2}-\d{2})\.json$/i.exec(p); if (m && !have.has(m[1])) { list.push({ date: m[1], path: p }); have.add(m[1]); } });
+    }
+    if (!r0.json && !list.length) throw new Error('no index');
+    list = list.sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 26);
     let ok = 0;
     await Promise.all(list.map(async x => {
       try {
-        const r = await fetch('./rankings/' + x.file, { cache: 'no-cache' });
-        if (!r.ok) return;
-        const j = await r.json();
+        const r = await freshJson(x.path);
+        if (!r.json) return;
+        const j = r.json;
         ST.pubRaw[x.date] = j;
         addWeek(j, '公開データ', { pub: true, keepSel: true });
         ok++;
       } catch (e) { /* その週だけ とばします */ }
     }));
-    ST.pub = { state: ok ? 'ok' : 'none', weeks: ok, latest: idx.latest || (list[0] && list[0].date) || null };
+    ST.pub = { state: ok ? 'ok' : 'none', weeks: ok, latest: (list[0] && list[0].date) || idx.latest || null };
   } catch (e) { ST.pub = { state: 'error', weeks: 0, latest: null }; }
 }
 function loadSaved() {
@@ -675,10 +752,29 @@ function loadSaved() {
 }
 async function loadDataJson() {
   try {
-    const res = await fetch('./data.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(res.status);
-    ST.data = A.normalizeData(await res.json());
-  } catch (e) { ST.data = null; }
+    const r = await freshJson('data.json');
+    if (!r.json) throw new Error('no data');
+    ST.data = A.normalizeData(r.json); ST.dataRaw = r.json;
+  } catch (e) { ST.data = null; ST.dataRaw = null; }
+}
+/** 偏差値の計算用に、近い日（28日以内）の週に もっと深い順位まで あれば、その順位を借ります（RATING の成績表と同じ決まり）。
+    週の「読めた順位」は 変えません（借りた点は week._deep に入れて、モデルを作る時だけ使います） */
+function attachDeep() {
+  if (!RM || !RM.unify || !RM.borrowDeep) return;
+  const dws = (ST.dataRaw && Array.isArray(ST.dataRaw.weeks) ? ST.dataRaw.weeks : []).map(RM.fromDataWeek).filter(Boolean);
+  const U = RM.unify(ST.weeks.map(w => ({ date: w.date, cats: w.cats })), dws);
+  RM.borrowDeep(U, 28);
+  for (const w of ST.weeks) {
+    const u = U.find(x => x.date === w.date); if (!u) continue;
+    const deep = {}, from = {};
+    for (const n of Object.keys(w.cats)) {
+      const c = u.cats[n]; if (!c || !c.borrowN) continue;
+      deep[n] = c.extra.slice(c.extra.length - c.borrowN); from[n] = c.borrowFrom;
+    }
+    Object.defineProperty(w, '_deep', { value: deep, enumerable: false, configurable: true, writable: true });
+    Object.defineProperty(w, '_deepFrom', { value: from, enumerable: false, configurable: true, writable: true });
+    if (w._models) Object.keys(w._models).forEach(k => delete w._models[k]);
+  }
 }
 const curWeek = () => ST.weeks.find(w => w.date === ST.sel) || null;
 const dataWeek = () => { const w = curWeek(); return w ? A.dataWeekFor(ST.data, w.date) : null; };
@@ -1245,99 +1341,98 @@ function renderHow(w) {
       <li><b>偏差値にします</b>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span><span class="ex">${esc(e3)}</span></li>
     </ol>
     <p class="tiny">点数が つりがね形に ちらばっている時は、この出し方と ふつうの偏差値が 同じになります。ちらばり方が ちがっても「上位何%か」は そのまま正しく出るのが、この出し方の よい所です。</p>`;
-  $('#howV3').innerHTML = howV3(w);
+  $('#howV4').innerHTML = howV4(w);
   renderBell();
   renderVal(w);
 }
-/** v3 の式の説明（いちばん参加人数の多い種目で、じっさいの数を入れて見せます） */
-function howV3(w) {
+/** v4 の式の説明（いちばん参加人数の多い種目で、じっさいの数を入れて見せます） */
+function howV4(w) {
   const ex = exampleCat(w), m = ex ? A.modelOf(w, ex) : null;
   const f3 = x => x.toLocaleString('en-US', { maximumFractionDigits: 3, minimumFractionDigits: 3 });
   const f2 = x => x.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
   let ex1 = '', ex2 = '', ex3 = '', ex4 = '', ex5 = '';
-  if (m && m.sigma) {
-    const L = m.last, D = m.dist, k = RM.POW.score;
-    ex1 = `例：${ex}：いちばん下の読めた順位 L ＝ ${fmtN(L.r)}位（${fmtV(ex, L.v)}）→ z_L ＝ ${f3(L.z)}、y_L ＝ ${fmtN(L.v)}^(3/4) ＝ ${f3(L.y)}。`
-      + `${fmtN(m.tailFrom)}〜${fmtN(L.r)}位の ${fmtN(m.tailN)} 点で σ ＝ ${f3(m.sigma)}`
-      + (m.clamp === 'low' ? `（最下位 ≈ 0 の決まりで σ ＝ y_L ÷（z_L − z_N）＝ ${f3(L.y)} ÷（${f3(L.z)} − (${f3(m.zBottom)})））`
-        : m.clamp === 'high' ? `（まん中 ≧ 0 点 の決まりで σ ＝ y_L ÷ z_L ＝ ${f3(L.y)} ÷ ${f3(L.z)}）`
-        : `（σ の はば：${f3(L.y / (L.z - m.zBottom))} 〜 ${L.z > 0 ? f3(L.y / L.z) : '∞'} の中です）`);
-    ex2 = `例：μ ＝ ${f3(L.y)} − ${f3(m.sigma)} × ${f3(L.z)} ＝ ${f3(m.mu)}`;
+  if (m && m.kappa) {
+    const L = m.last, D = m.dist;
+    ex1 = `例：${ex}：いちばん下の読めた順位 L ＝ ${fmtN(L.r)}位（${fmtV(ex, L.v)}）→ z_L ＝ ${f3(L.z)}。最下位 N ＝ ${fmtN(m.N)}位 → z_N ＝ ${f3(m.zBottom)}。z_L − z_N ＝ ${f3(m.D)}`;
+    ex2 = `例：${fmtN(m.tailFrom)}〜${fmtN(L.r)}位の ${fmtN(m.tailN)} 点で κ̂ ＝ ${m.kappaHat == null ? '—' : f3(m.kappaHat)}、κ_min ＝ ${f3(m.kappaMin)} → κ ＝ ${f3(m.kappa)}`
+      + (m.regime === 'heavy' ? '（読めた所の 下がり方に合わせた形）' : '（いちばん ゆるい形。v3 の決まりと同じ）');
     const xr = RM.valueAtZ(m, L.z - 0.6), x = xr > 1000 ? Math.round(xr / 1000) * 1000 : Math.round(xr);
     if (x > 0) {
-      const y = Math.pow(x, k), z = (y - m.mu) / m.sigma, d = RM.locate(m, x);
-      ex3 = `例：${fmtV(ex, x)} → y ＝ ${fmtN(x)}^(3/4) ＝ ${f3(y)} → z ＝（${f3(y)} − ${f3(m.mu)}）÷ ${f3(m.sigma)} ＝ ${f3(z)} → 順位 ≈ ${fmtN(m.N)} × ${RM.upper(z).toFixed(6)} ＋ 0.5 ≈ ${fmtN(d.rank)}位、偏差値 ${fmtT(d.T)}`;
+      const z = m.zBottom + m.D * Math.pow(x / L.v, 1 / m.kappa), d = RM.locate(m, x);
+      ex3 = `例：${fmtV(ex, x)} → z ＝ ${f3(m.zBottom)} ＋ ${f3(m.D)} ×（${fmtN(x)} ÷ ${fmtN(L.v)}）^(1/${f3(m.kappa)}) ＝ ${f3(z)} → 順位 ≈ ${fmtN(m.N)} × ${RM.upper(z).toFixed(6)} ＋ 0.5 ≈ ${fmtN(d.rank)}位、偏差値 ${fmtT(d.T)}`;
     }
     if (D) {
-      ex4 = `例：${ex}（参加 ${fmtN(m.N)} 人）は 予測平均点 ${f2(D.mean)}、予測標準偏差 ${f2(D.sd)}`
-        + (D.zeroN ? `（${fmtN(D.zeroN)} 人＝${fmtPct(D.zero * 100)} は「μ ＋ σz が 0 より下」なので 0 点として数えています）` : '');
+      ex4 = `例：${ex}（参加 ${fmtN(m.N)} 人）は 予測平均点 ${f2(D.mean)}、予測標準偏差 ${f2(D.sd)}、予測の まん中（中央値）${fmtV(ex, D.median)}。0 点と予測されるのは 最下位の ${fmtN(D.zeroN || 0)} 人だけです。`;
       const pt = RM.plainT(m, L.v);
       if (pt != null) ex5 = `例えば ${ex} の ${fmtV(ex, L.v)}（${fmtN(L.r)}位）は、順位からの偏差値 ${fmtT(RM.tOfRank(L.r, m.N))}、ふつうの偏差値 ${fmtT(pt)} です。`;
     }
   }
   return `
-    <h3>読めた順位の外は？（予測分布）</h3>
-    <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、記録を下の y に直して、y と z を まっすぐ結んで見つもります（○）。
+    <h3>読めた順位の外は？（予測分布・v4）</h3>
+    <p class="tiny" style="margin:0">読めた順位のあいだ（例：500位と1000位のあいだ）は、記録を y（点数 x^(3/4)・タイム −√x・累積 x^0.3）に直して、y と z を まっすぐ結んで見つもります（○）。
       いちばん下の読めた順位 L より下は「予測分布」を使います（△）。</p>
     <ol class="calc">
-      <li><b>記録 x を y に直します</b>　<span class="f">点数：y ＝ x^(3/4)</span>　<span class="f">タイム：y ＝ −√x</span>　<span class="f">累積：y ＝ x^0.3</span>
-        <span class="ex">y が つりがね形（正規分布）に ちらばる、と考えます。べき（3/4・1/2・0.3）は、上位 200・300・500 位だけで当てはめて その下を当てる ためし（下の表）と、累積は もっと下の順位（1480〜10000位）を当てる ためしで、いちばん よく当たったものです。</span></li>
-      <li><b>いちばん下の所の傾き σ</b>　<span class="f">σ ＝ Σ(z_i − z̄)(y_i − ȳ) ÷ Σ(z_i − z̄)²</span>
-        <span class="ex">L から z の幅 0.4 の中にある 読めた点 i（z_i − z_L ≦ 0.4）で、y を z の直線で表した時の傾き（最小二乗）です。z̄・ȳ は その点の平均です。
-          点数と累積は「最下位（N 位）の人は 0 くらい」とするので σ ≧ y_L ÷（z_L − z_N）（z_N は N 位の z）、
-          点数は「まん中（z ＝ 0）の人は 0 点より上」とするので σ ≦ y_L ÷ z_L にします（z_L ＞ 0 の時）。</span>
+      <li><b>点数・累積：最下位の人で はじめて 0 になる形</b>　<span class="f">x(z) ＝ x_L ×（(z − z_N) ÷ (z_L − z_N)）^κ</span>
+        <span class="ex">z ＝ z_L で ちょうど x_L になり、z が 下がるほど 小さくなって、最下位（N 位）の z_N で はじめて 0 になります。とちゅうで 0 には なりません（v3 では 直線が 最下位より ずっと上で 0 に とどき、「偏差値 50〜60 に要る記録が 0」になる種目がありました）。</span>
         <span class="ex">${esc(ex1)}</span></li>
-      <li><b>直線が L を通るように</b>　<span class="f">μ ＝ y_L − σ z_L</span><span class="ex">${esc(ex2)}</span></li>
-      <li><b>順位と偏差値</b>　<span class="f">z ＝（y − μ）÷ σ</span>　<span class="f">順位 ≈ N × Q(z) ＋ 0.5</span>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span>
-        <span class="ex">Q(z) は z より上にいる人の割合（上側確率）です。z は z_N より下に しません。</span><span class="ex">${esc(ex3)}</span></li>
+      <li><b>下がり方の強さ κ</b>　<span class="f">κ̂ ＝ Σ a_i b_i ÷ Σ a_i²</span>　<span class="f">a_i ＝ ln((z_i − z_N) ÷ (z_L − z_N))</span>　<span class="f">b_i ＝ ln(x_i ÷ x_L)</span>　<span class="f">κ ＝ max(κ_min, κ̂)</span>
+        <span class="ex">L から z の幅 0.4 の中にある 読めた点 i で、b を a の 原点を通る直線で表した時の傾き（最小二乗）です。L での 下がり方が 読めた点と そろいます。
+          κ_min は 点数 4/3、累積 1/0.3 です（κ ＝ 4/3 は「x^(3/4) が z の直線で、最下位で 0」と同じ形で、上が つまっている種目では この形のほうが よく当たります）。</span>
+        <span class="ex">${esc(ex2)}</span></li>
+      <li><b>順位と偏差値</b>　<span class="f">z ＝ z_N ＋ (z_L − z_N) ×（x ÷ x_L）^(1/κ)</span>　<span class="f">順位 ≈ N × Q(z) ＋ 0.5</span>　<span class="f">偏差値 ＝ 50 ＋ 10 × z</span>
+        <span class="ex">Q(z) は z より上にいる人の割合（上側確率）です。タイムは y ＝ −√x を z の直線 y ＝ μ ＋ σz（σ は L から z の幅 0.4 の中の点の最小二乗、直線は L を通る）にして z ＝（y − μ）÷ σ です。</span><span class="ex">${esc(ex3)}</span></li>
+      <li><b>形の えらび方</b>
+        <span class="ex">x^λ の いろいろな λ、v3、対数正規、対数の2次式、ロジット（上限つき）などを くらべ、「上位 200・300・500 位だけで当てはめて その下を当てる」「累積の 1〜10000 位で 深い所を当てる」「一覧より下の記録（非公開）を当てる」で いちばん よく当たり、0 にも ならない この形に しました（下の表で v4 と v3 を くらべられます）。</span></li>
     </ol>
     <h3>予測平均点・予測標準偏差</h3>
     <p class="tiny" style="margin:0">参加者 N 人の記録を 1位から N 位まで並べたもの x̂₁, x̂₂, …, x̂_N を作って、ふつうに 平均 と 標準偏差 を出します。</p>
     <ol class="calc">
-      <li><b>並べる</b>　<span class="f">r ≦ r_L：x̂_r ＝ 読めた記録</span>　<span class="f">r ＞ r_L：x̂_r ＝（μ ＋ σ z_r）^(4/3)</span>
-        <span class="ex">z_r ＝ Φ⁻¹(1 − (r − 0.5) ÷ N)。タイムは x̂_r ＝（μ ＋ σ z_r）²（μ ＋ σ z_r は マイナス）、累積は x̂_r ＝（μ ＋ σ z_r）^(1/0.3)。μ ＋ σ z_r が 0 より下なら 0 です。読めた順位の中で 抜けている所は、まっすぐ結んだ値です。</span></li>
+      <li><b>並べる</b>　<span class="f">r ≦ r_L：x̂_r ＝ 読めた記録</span>　<span class="f">r ＞ r_L：x̂_r ＝ x(z_r)（上の予測分布）</span>
+        <span class="ex">z_r ＝ Φ⁻¹(1 − (r − 0.5) ÷ N)（Φ⁻¹ は 相対誤差 10⁻¹⁶ ほどの式）。タイムは x̂_r ＝（μ ＋ σ z_r）²。読めた順位の中で 抜けている所は、まっすぐ結んだ値です。</span></li>
       <li><b>平均と標準偏差</b>　<span class="f">x̄ ＝（x̂₁ ＋ x̂₂ ＋ … ＋ x̂_N）÷ N</span>　<span class="f">s ＝ √(（(x̂₁ − x̄)² ＋ … ＋ (x̂_N − x̄)²）÷ N)</span>
-        <span class="ex">x̄ が 予測平均点、s が 予測標準偏差 です。${esc(ex4)}</span></li>
+        <span class="ex">x̄ が 予測平均点、s が 予測標準偏差 です（足し算は 誤差を補正して、平均と ちらばりを 2 回に分けて 足します）。${esc(ex4)}</span></li>
     </ol>
     <p class="tiny">偏差値は 順位から出しているので、ふつうの偏差値「50 ＋ 10 ×（x − x̄）÷ s」とは ぴったり同じには なりません（記録が つりがね形に ちらばっていないためです）。${esc(ex5)}<br>
-      読めた順位より ずっと下（0 点に近い所など）は、見えない所なので、予測の形の決め方で 大きく変わります。もっと下の順位まで読み取ると、その所までは ◎・○ になります。</p>
+      読めた順位より ずっと下（0 点に近い所など）は、見えない所なので、予測の形の決め方で 変わります。もっと下の順位まで読み取ると、その所までは ◎・○ になります。
+      近い日（28日以内）の週に もっと深い順位まで あれば、その順位も 借りて使います（累積の 1〜10000 位の ボーダーなど）。</p>
     <p class="tiny">参加人数が少ない種目は、1位でも偏差値が低めに出ます（参加 N 人の1位は p ＝ 0.5 ÷ N だからです）。</p>
     <h3>「参加者 全員が 正規分布」と考えると？</h3>
     <p class="tiny" style="margin:0">参加 N 人の記録 x が そのまま 正規分布 N(μ, σ²) に したがう、と考えると、上位 k 人の記録 x₁ ≧ … ≧ x_k と「残りの N − k 人は x_k より下」ということから、
       μ と σ を 最尤推定で決められます：<span class="f">ℓ(μ, σ) ＝ −k log σ − Σ (x_i − μ)² ÷ (2σ²) ＋ (N − k) log Φ((x_k − μ) ÷ σ)</span> を いちばん大きくする μ・σ です（タイムは −x で考えます）。<br>
       人数が多いので「たまたま」による ずれは小さいのですが、記録の ちらばり方が つりがね形でないと、<b>形の ちがいによる ずれは、人数が多くても小さくなりません</b>。
       上位 1000 位は 参加者の上の 数% なので、まん中（z ＝ 0）までは 読めた はばの 2 倍くらい 先まで のばすことになり、少しの曲がりが 大きな ずれになります。
-      下の表で、2つのやり方を くらべられます（上位 K 位だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれの平均）。</p>
+      下の表で、やり方を くらべられます（上位 K 位だけで当てはめて、その下の読めた順位を当てた時の 偏差値のずれの平均。v4 ＝ いまの計算、v3 ＝ 前の版、正規分布 ＝ 全員が正規分布）。</p>
     <div class="tools"><button class="btn sm" id="cmpRun" type="button">くらべる（少し時間がかかります）</button><span class="tiny" id="cmpMsg"></span></div>
     <div class="tblwrap"><table><thead><tr><th>種目</th><th class="r">参加</th><th class="r">全員が正規分布<br><span class="tiny">μ ／ σ</span></th><th class="r">0 点より下<br><span class="tiny">と出る人</span></th>
-      <th class="r">この計算<br><span class="tiny">予測平均点 ／ 予測標準偏差</span></th><th class="r">K ＝ 200<br><span class="tiny">この計算 ／ 正規分布</span></th><th class="r">K ＝ 500<br><span class="tiny">この計算 ／ 正規分布</span></th><th class="r">K ＝ 1000<br><span class="tiny">この計算 ／ 正規分布</span></th></tr></thead><tbody id="cmpBody"><tr><td colspan="8" class="tiny">「くらべる」を押すと出ます。</td></tr></tbody></table></div>
+      <th class="r">この計算（v4）<br><span class="tiny">予測平均点 ／ 予測標準偏差</span></th><th class="r">K ＝ 200<br><span class="tiny">v4 ／ v3 ／ 正規分布</span></th><th class="r">K ＝ 500<br><span class="tiny">v4 ／ v3 ／ 正規分布</span></th><th class="r">K ＝ 1000<br><span class="tiny">v4 ／ v3 ／ 正規分布</span></th></tr></thead><tbody id="cmpBody"><tr><td colspan="8" class="tiny">「くらべる」を押すと出ます。</td></tr></tbody></table></div>
     <p class="note" id="cmpNote"></p>`;
 }
 /** 「全員が正規分布」と この計算の くらべ */
 function renderCmp(w) {
   const names = [A.SUMEX].concat(A.EVENTS, [A.SUMALL]).filter(n => w.cats[n]);
   const f2 = x => x.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-  const rows = [], sums = { a2: 0, b2: 0, n2: 0, a5: 0, b5: 0, n5: 0, a10: 0, b10: 0, n10: 0, neg: [] };
+  const rows = [], sums = { a2: 0, b2: 0, c2: 0, n2: 0, a5: 0, b5: 0, c5: 0, n5: 0, a10: 0, b10: 0, c10: 0, n10: 0, neg: [] };
   for (const n of names) {
     const m = A.modelOf(w, n, { extra: false });
     if (!m) continue;
     const c = w.cats[n], cat = Object.assign({}, c, { extra: [] });
     const nf = RM.fitNormalAll(m), D = m.dist, u = m.asc ? '秒' : '';
-    const h = K => { const a = RM.holdout(cat, K, 'v3'), b = RM.holdout(cat, K, 'normal'); return a && b ? [a.mae, b.mae] : null; };
+    const h = K => { const a = RM.holdout(cat, K, 'v4'), b = RM.holdout(cat, K, 'normal'), c3 = RM.holdout(cat, K, 'v3'); return a && b && c3 ? [a.mae, b.mae, c3.mae] : null; };
     const h2 = h(200), h5 = h(500), h10 = h(1000);
-    if (h2) { sums.a2 += h2[0]; sums.b2 += h2[1]; sums.n2++; }
-    if (h5) { sums.a5 += h5[0]; sums.b5 += h5[1]; sums.n5++; }
-    if (h10) { sums.a10 += h10[0]; sums.b10 += h10[1]; sums.n10++; }
+    if (h2) { sums.a2 += h2[0]; sums.b2 += h2[1]; sums.c2 += h2[2]; sums.n2++; }
+    if (h5) { sums.a5 += h5[0]; sums.b5 += h5[1]; sums.c5 += h5[2]; sums.n5++; }
+    if (h10) { sums.a10 += h10[0]; sums.b10 += h10[1]; sums.c10 += h10[2]; sums.n10++; }
     if (nf && !m.asc && nf.mu < 0) sums.neg.push(short(n));
-    const cell = x => !x ? '—' : `${x[0].toFixed(2)} ／ <span class="${x[1] > x[0] ? 'down' : ''}">${x[1].toFixed(2)}</span>`;
+    const cell = x => !x ? '—' : `${x[0].toFixed(2)} ／ <span class="${x[2] > x[0] ? 'down' : ''}">${x[2].toFixed(2)}</span> ／ <span class="${x[1] > x[0] ? 'down' : ''}">${x[1].toFixed(2)}</span>`;
     rows.push(`<tr><td class="nm">${esc(short(n))}</td><td class="r num">${fmtN(m.N)}</td>`
       + `<td class="r num">${nf ? `${f2(nf.mu)} ／ ${f2(nf.sd)}${u}` : '—'}</td><td class="r num">${nf && nf.below0 != null ? fmtPct(nf.below0 * 100) : '—'}</td>`
       + `<td class="r num">${D ? `${f2(D.mean)} ／ ${f2(D.sd)}${u}` : '—'}</td><td class="r num">${cell(h2)}</td><td class="r num">${cell(h5)}</td><td class="r num">${cell(h10)}</td></tr>`);
   }
   $('#cmpBody').innerHTML = rows.join('') || '<tr><td colspan="8" class="tiny">くらべられる種目が ありません（参加人数と、上から抜けなく読めた順位が要ります）。</td></tr>';
-  $('#cmpNote').innerHTML = rows.length ? `偏差値のずれの平均（種目の平均）：K ＝ 200 で この計算 ${(sums.a2 / Math.max(1, sums.n2)).toFixed(2)} ／ 全員が正規分布 ${(sums.b2 / Math.max(1, sums.n2)).toFixed(2)}、`
-    + `K ＝ 500 で ${(sums.a5 / Math.max(1, sums.n5)).toFixed(2)} ／ ${(sums.b5 / Math.max(1, sums.n5)).toFixed(2)}`
-    + (sums.n10 ? `、K ＝ 1000 で ${(sums.a10 / sums.n10).toFixed(2)} ／ ${(sums.b10 / sums.n10).toFixed(2)}（1000位より下まで読めた ${sums.n10} 種目）。` : '。K ＝ 1000 は、1000位より下まで読めた週で出ます。')
+  const av = (a, n) => (a / Math.max(1, n)).toFixed(2);
+  $('#cmpNote').innerHTML = rows.length ? `偏差値のずれの平均（種目の平均。v4 ／ v3 ／ 全員が正規分布）：K ＝ 200 で ${av(sums.a2, sums.n2)} ／ ${av(sums.c2, sums.n2)} ／ ${av(sums.b2, sums.n2)}、`
+    + `K ＝ 500 で ${av(sums.a5, sums.n5)} ／ ${av(sums.c5, sums.n5)} ／ ${av(sums.b5, sums.n5)}`
+    + (sums.n10 ? `、K ＝ 1000 で ${av(sums.a10, sums.n10)} ／ ${av(sums.c10, sums.n10)} ／ ${av(sums.b10, sums.n10)}（1000位より下まで読めた ${sums.n10} 種目）。` : '。K ＝ 1000 は、1000位より下まで読めた週で出ます。')
     + (sums.neg.length ? `<br>全員が正規分布 と考えると、${esc(sums.neg.join('・'))} は μ（平均点）が マイナスになります（点数は 0 点より下が無いので、形が合っていない しるしです）。` : '')
     + '<br>「0 点より下と出る人」は、正規分布 N(μ, σ²) で 0 点より下になる人の割合 Φ(−μ ÷ σ) です。' : '';
 }
@@ -1510,6 +1605,7 @@ window.addEventListener('resize', () => {
   loadSaved();
   renderData();
   await Promise.all([loadDataJson(), loadPublished()]);
+  attachDeep();
   if (!ST.weeks.length) {
     /* はじめて開いた時は、この端末の最新の集計があれば読み込みます */
     try { const j = JSON.parse(localStorage.getItem(K_LAST) || 'null'); if (j) addWeek(j, 'この端末の最新の集計'); } catch (e) { /* 無ければ空のまま */ }
